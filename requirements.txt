@@ -1,0 +1,6 @@
+# Python 3.11+; versions below are ranges, not a promise about future releases.
+numpy>=2.0,<3
+scipy>=1.13,<2
+matplotlib>=3.8,<4
+scikit-learn>=1.5,<2
+pytest>=8,<10

@@ -1,0 +1,28 @@
+Illustrative EEG passive input network -- NOT A HUMAN-USE SCHEMATIC
+* 0 denotes local analog midpoint for small-signal AC, NOT protective earth.
+* No ADS1299 silicon, input clamps, body-bias loop, or safety analysis included.
+Vp skinp 0 AC 0.5
+Vn skinn 0 AC 0.5 180
+Rep skinp ep 10000
+Cep skinp ep 1e-07
+Ren skinn en 10000
+Cen skinn en 1e-07
+Rsp ep inp 10000
+Rsn en inn 10000
+Rip inp 0 1000000000
+Rin inn 0 1000000000
+Ccp inp 0 1e-10
+Ccn inn 0 1e-10
+Cd inp inn 1e-09
+.control
+set wr_singlescale
+set wr_vecnames
+set numdgt=15
+ac dec 40 0.1 100000
+let h = v(inp)-v(inn)
+let hr = real(h)
+let hi = imag(h)
+wrdata ac.txt hr hi
+quit
+.endc
+.end

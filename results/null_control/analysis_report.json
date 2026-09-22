@@ -1,0 +1,157 @@
+{
+  "balanced_accuracy": 0.5416666666666666,
+  "baseline_balanced_accuracy": 0.5,
+  "confusion_matrix": [
+    [
+      28,
+      14
+    ],
+    [
+      21,
+      15
+    ]
+  ],
+  "folds": [
+    {
+      "held_out_session": 0,
+      "train_sessions": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "train_epochs": 65,
+      "test_epochs": 13,
+      "balanced_accuracy": 0.35
+    },
+    {
+      "held_out_session": 1,
+      "train_sessions": [
+        0,
+        2,
+        3,
+        4,
+        5
+      ],
+      "train_epochs": 65,
+      "test_epochs": 13,
+      "balanced_accuracy": 0.6071428571428572
+    },
+    {
+      "held_out_session": 2,
+      "train_sessions": [
+        0,
+        1,
+        3,
+        4,
+        5
+      ],
+      "train_epochs": 65,
+      "test_epochs": 13,
+      "balanced_accuracy": 0.575
+    },
+    {
+      "held_out_session": 3,
+      "train_sessions": [
+        0,
+        1,
+        2,
+        4,
+        5
+      ],
+      "train_epochs": 65,
+      "test_epochs": 13,
+      "balanced_accuracy": 0.5595238095238095
+    },
+    {
+      "held_out_session": 4,
+      "train_sessions": [
+        0,
+        1,
+        2,
+        3,
+        5
+      ],
+      "train_epochs": 65,
+      "test_epochs": 13,
+      "balanced_accuracy": 0.5357142857142857
+    },
+    {
+      "held_out_session": 5,
+      "train_sessions": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "train_epochs": 65,
+      "test_epochs": 13,
+      "balanced_accuracy": 0.6071428571428572
+    }
+  ],
+  "kind": "synthetic_pipeline_test_not_neuroscience_evidence",
+  "candidate_epochs": 96,
+  "accepted_epochs": 78,
+  "rejected_epochs": 18,
+  "alpha_median_uV2": {
+    "0": 12.209669589690426,
+    "1": 12.536838589618558
+  },
+  "closed_open_alpha_ratio": 1.0267958930030658,
+  "block_permutation_scores": [
+    0.5062623599208965,
+    0.513157894736842,
+    0.5519736842105263,
+    0.5243421052631578,
+    0.5625,
+    0.5372445616348056,
+    0.4415282392026578,
+    0.4861111111111111,
+    0.43486842105263157,
+    0.6032894736842105,
+    0.3849206349206349,
+    0.5655899802241267,
+    0.49868421052631584,
+    0.5394736842105263,
+    0.51977587343441,
+    0.39743589743589747,
+    0.5255813953488373,
+    0.5454845088991431,
+    0.44605263157894737,
+    0.4060646011865524
+  ],
+  "block_permutation_mean": 0.49951706342911145,
+  "block_permutation_p": 0.2857142857142857,
+  "feature_names": [
+    "log10_theta_V2_ch1",
+    "log10_theta_V2_ch2",
+    "log10_theta_V2_ch3",
+    "log10_theta_V2_ch4",
+    "log10_alpha_V2_ch1",
+    "log10_alpha_V2_ch2",
+    "log10_alpha_V2_ch3",
+    "log10_alpha_V2_ch4",
+    "log10_beta_V2_ch1",
+    "log10_beta_V2_ch2",
+    "log10_beta_V2_ch3",
+    "log10_beta_V2_ch4"
+  ],
+  "configuration": {
+    "seed": 42,
+    "channels": 4,
+    "sessions": 6,
+    "blocks_per_session": 8,
+    "block_seconds": 12,
+    "fs_hz": 250,
+    "line_hz": 50,
+    "gain": 24,
+    "closed_alpha_uV": 18.0,
+    "open_alpha_uV": 5.0,
+    "adc_noise_rms_uV": 0.25,
+    "differential_offset_mV": 30.0,
+    "artifact_uV": 200.0,
+    "null_effect": true
+  }
+}

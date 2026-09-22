@@ -1,0 +1,47 @@
+.................................................................        [100%]
+65 passed in 8.46s
+{
+  "timestamp_utc": "2026-09-19T20:21:54.811256+00:00",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "python": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]",
+  "versions": {
+    "numpy": "2.3.5",
+    "scipy": "1.17.0",
+    "matplotlib": "3.10.8",
+    "scikit-learn": "1.8.0",
+    "pytest": "9.0.2"
+  },
+  "test_counts": {
+    "tests": 65,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "python_tests_passed": true,
+  "native_cpp_core": {
+    "compiler": "/usr/bin/g++",
+    "scope": "CRC, signed 24-bit conversion, transport encoder only; test result in pytest.xml"
+  },
+  "ngspice": {
+    "available": false,
+    "required": false,
+    "error": null,
+    "executed": false
+  },
+  "esp32_target_compile": {
+    "status": "not_run",
+    "reason": "ESP32 Arduino toolchain unavailable in this environment"
+  },
+  "visual_guide": {
+    "node_available": true,
+    "arithmetic_scope": "Node regression tests in pytest; not full browser behavior",
+    "browser_render": "not_run",
+    "reason": "Playwright package present but Chromium executable unavailable"
+  },
+  "physical_hardware_test": {
+    "status": "not_run",
+    "reason": "No actual ADS1299/ESP32 board connected"
+  },
+  "body_connection_authorized": false,
+  "overall_scope": "Software/numerical-model verification only; NOT full hardware validation"
+}

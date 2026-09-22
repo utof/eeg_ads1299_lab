@@ -1,0 +1,18 @@
+{
+  "accepted": 2248,
+  "missing": 2,
+  "duplicates": 0,
+  "stale": 0,
+  "timing_anomalies": 0,
+  "channels": 4,
+  "gain": 24,
+  "fs_hz": 250,
+  "assumed_vref_v": 4.5,
+  "discarded_bytes": 0,
+  "invalid_candidates": 0,
+  "trailing_bytes": 0,
+  "last_device_overruns": 0,
+  "flags": 4,
+  "gap_policy": "retain gaps; do not interpolate or bridge for FFT",
+  "recording_mode": "synthetic"
+}

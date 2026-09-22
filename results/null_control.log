@@ -1,0 +1,10 @@
+{
+  "kind": "synthetic_pipeline_test_not_neuroscience_evidence",
+  "accepted_epochs": 78,
+  "rejected_epochs": 18,
+  "closed_open_alpha_ratio": 1.0267958930030658,
+  "balanced_accuracy": 0.5416666666666666,
+  "baseline_balanced_accuracy": 0.5,
+  "block_permutation_mean": 0.49951706342911145
+}
+Outputs: /mnt/data/eeg_ads1299_lab/results/null_control

@@ -1,0 +1,16 @@
+{
+  "seed": 42,
+  "channels": 4,
+  "sessions": 6,
+  "blocks_per_session": 8,
+  "block_seconds": 12,
+  "fs_hz": 250,
+  "line_hz": 50,
+  "gain": 24,
+  "closed_alpha_uV": 18.0,
+  "open_alpha_uV": 5.0,
+  "adc_noise_rms_uV": 0.25,
+  "differential_offset_mV": 30.0,
+  "artifact_uV": 200.0,
+  "null_effect": false
+}

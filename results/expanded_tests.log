@@ -1,0 +1,15 @@
+.....................................F.........................          [100%]
+=================================== FAILURES ===================================
+______________ test_firmware_is_bench_gated_and_halt_powers_down _______________
+
+    def test_firmware_is_bench_gated_and_halt_powers_down():
+        root=Path(__file__).resolve().parents[1]
+        config=(root/'firmware/esp32_ads1299_bench/board_config.h').read_text()
+        source=(root/'firmware/esp32_ads1299_bench/esp32_ads1299_bench.ino').read_text()
+>       assert 'BOARD_PROFILE_REVIEWED=false' in config
+E       assert 'BOARD_PROFILE_REVIEWED=false' in '#pragma once\n// Do not change this until HARDWARE_GUIDE.md and your actual board schematic\n// have been reviewed. T...expr char UDP_HOST[]="192.168.1.2"; // replace with private-LAN computer IP\nconstexpr unsigned short UDP_PORT=9000;\n'
+
+tests/test_extended.py:65: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_extended.py::test_firmware_is_bench_gated_and_halt_powers_down - assert 'BOARD_PROFILE_REVIEWED=false' in '#pragma once\n// Do not change this until HARDWARE_GUIDE.md and your actual board schematic\n// have been reviewed. T...expr char UDP_HOST[]="192.168.1.2"; // replace with private-LAN computer IP\nconstexpr unsigned short UDP_PORT=9000;\n'
+1 failed, 62 passed in 8.81s
