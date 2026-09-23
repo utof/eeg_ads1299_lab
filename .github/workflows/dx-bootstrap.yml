@@ -1,4 +1,4 @@
-name: DX bootstrap (temporary)
+name: DX recovery (temporary)
 on:
   push:
     branches: [dx/tooling-bootstrap]
@@ -8,31 +8,50 @@ concurrency:
   group: dx-bootstrap
   cancel-in-progress: true
 jobs:
-  prepare:
+  recover:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
-        with:
-          python-version: '3.13'
-      - name: Resolve compatible static typing dependencies
+          fetch-depth: 0
+      - name: Inspect available source without executing it
         shell: bash
         run: |
-          mkdir -p dx-lock/wheels
-          python -m pip install uv==0.12.18
-          uv add --project dx-bootstrap-project --dev --no-sync scipy-stubs==1.17.0.0
-          uv export --project dx-bootstrap-project --locked --all-extras --no-emit-project --no-hashes > dx-lock/requirements.txt
-          cp dx-bootstrap-project/uv.lock dx-lock/uv.lock
-          cp dx-bootstrap-project/pyproject.toml dx-lock/pyproject.toml
-          grep -E '^(scipy-stubs|optype|numpy-typing-compat|typing-extensions)==' dx-lock/requirements.txt > dx-lock/typing-requirements.txt
-          python -m pip download --no-deps --only-binary=:all: --dest dx-lock/wheels -r dx-lock/typing-requirements.txt
-          sha256sum dx-lock/uv.lock dx-lock/wheels/* > dx-lock/SHA256SUMS.txt
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: dx-lock-scipy
-          path: dx-lock/
-          if-no-files-found: error
-          retention-days: 1
+          python - <<'PY'
+          import base64, hashlib, json, lzma, pathlib, re, subprocess, zlib
+          base = 'b1c8e82b084f2fb2408fb0f8df27ff354586742b'
+          decoder = lzma.LZMADecompressor()
+          raw = b''
+          for path in sorted(pathlib.Path('.dx-transfer').glob('part-*.b64')):
+              encoded = path.read_text().strip()
+              print('PART', path.name, len(encoded), hashlib.sha256(encoded.encode()).hexdigest())
+              raw += decoder.decompress(base64.b64decode(encoded, validate=True))
+          print('RECOVERED_JSON_BYTES', len(raw), 'COMPLETE_XZ', decoder.eof)
+          text = raw.decode('utf-8')
+          print('HEADER', text[:180])
+          jd = json.JSONDecoder()
+          recovered = []
+          for match in re.finditer(r'\{"path":', text):
+              try:
+                  entry, consumed = jd.raw_decode(text[match.start():])
+              except json.JSONDecodeError:
+                  print('INCOMPLETE_ENTRY', text[match.start():match.start()+210])
+                  break
+              name = entry['path']
+              prior = subprocess.run(['git','show',base+':'+name], capture_output=True, check=False)
+              old = prior.stdout if prior.returncode == 0 else b''
+              assert hashlib.sha256(old).hexdigest() == entry['old'], ('old hash', name)
+              if entry.get('delete'):
+                  print('DELETE', name)
+              else:
+                  zd = zlib.decompressobj(zdict=old[-32768:])
+                  new = zd.decompress(base64.b64decode(entry['data'], validate=True)) + zd.flush()
+                  assert zd.eof and hashlib.sha256(new).hexdigest() == entry['sha256'], ('new hash', name)
+                  print('RECOVERED', name, len(new), entry['sha256'])
+              recovered.append(name)
+          print('TOTAL_COMPLETE_ENTRIES', len(recovered))
+          print('MESSAGES', re.findall(r'"message":"([^"\\]*)"', text))
+          print('UNPARSED_TAIL_BYTES', len(text) - (match.start() if 'match' in locals() else 0))
+          PY
