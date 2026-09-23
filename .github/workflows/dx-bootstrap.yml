@@ -15,22 +15,20 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           persist-credentials: false
-          fetch-depth: 0
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: '3.13'
-      - name: Collect exact source and public dependency wheels
+      - name: Resolve exact development dependency graph
         run: |
-          mkdir -p dx-bootstrap/wheels
-          git bundle create dx-bootstrap/source.bundle HEAD
-          python -m pip download --only-binary=:all: --dest dx-bootstrap/wheels ruff pyrefly complexipy tach hypothesis pre-commit pytest pytest-cov uv hatchling build types-pyserial scipy-stubs
-          python -m pip download --only-binary=:all: --dest dx-bootstrap/wheels -r requirements-tested.txt -r requirements-serial.txt
-          sha256sum dx-bootstrap/source.bundle dx-bootstrap/wheels/* > dx-bootstrap/SHA256SUMS.txt
-          python --version
+          mkdir -p dx-lock/wheels
+          python -m pip install uv==0.12.18
+          uv lock --project dx-bootstrap-project
+          cp dx-bootstrap-project/uv.lock dx-lock/uv.lock
+          python -m pip download --only-binary=:all: --dest dx-lock/wheels typing-extensions==4.15.0
+          sha256sum dx-lock/uv.lock dx-lock/wheels/* > dx-lock/SHA256SUMS.txt
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: dx-bootstrap
-          path: dx-bootstrap/
+          name: dx-lock
+          path: dx-lock/
           if-no-files-found: error
           retention-days: 1
-          compression-level: 0
