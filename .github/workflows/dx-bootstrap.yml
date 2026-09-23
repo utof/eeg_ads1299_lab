@@ -4,6 +4,7 @@ on:
     branches: [dx/tooling-bootstrap]
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: dx-bootstrap
   cancel-in-progress: true
@@ -11,47 +12,73 @@ jobs:
   recover:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
+    permissions:
+      contents: write
+      actions: read
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           persist-credentials: false
           fetch-depth: 0
-      - name: Inspect available source without executing it
+      - name: Retrieve prior resolved dependency lock
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download 35910810144 --name dx-lock-scipy --dir "$RUNNER_TEMP/dx-lock"
+      - name: Recover checksummed entries without executing recovered code
         shell: bash
         run: |
           python - <<'PY'
-          import base64, hashlib, json, lzma, pathlib, re, subprocess, zlib
+          import base64, hashlib, json, lzma, os, pathlib, re, subprocess, zlib
           base = 'b1c8e82b084f2fb2408fb0f8df27ff354586742b'
+          target = pathlib.Path(os.environ['RUNNER_TEMP']) / 'dx-source'
+          subprocess.run(['git','worktree','add','-b','dx/quality-foundation',str(target),base], check=True)
           decoder = lzma.LZMADecompressor()
-          raw = b''
-          for path in sorted(pathlib.Path('.dx-transfer').glob('part-*.b64')):
-              encoded = path.read_text().strip()
-              print('PART', path.name, len(encoded), hashlib.sha256(encoded.encode()).hexdigest())
-              raw += decoder.decompress(base64.b64decode(encoded, validate=True))
-          print('RECOVERED_JSON_BYTES', len(raw), 'COMPLETE_XZ', decoder.eof)
+          raw = b''.join(decoder.decompress(base64.b64decode(p.read_text().strip(),validate=True)) for p in sorted(pathlib.Path('.dx-transfer').glob('part-*.b64')))
           text = raw.decode('utf-8')
-          print('HEADER', text[:180])
           jd = json.JSONDecoder()
-          recovered = []
+          count = 0
           for match in re.finditer(r'\{"path":', text):
               try:
                   entry, consumed = jd.raw_decode(text[match.start():])
               except json.JSONDecodeError:
-                  print('INCOMPLETE_ENTRY', text[match.start():match.start()+210])
                   break
               name = entry['path']
-              prior = subprocess.run(['git','show',base+':'+name], capture_output=True, check=False)
-              old = prior.stdout if prior.returncode == 0 else b''
+              path = target / name
+              assert path.resolve().is_relative_to(target.resolve())
+              old = path.read_bytes() if path.is_file() else b''
               assert hashlib.sha256(old).hexdigest() == entry['old'], ('old hash', name)
               if entry.get('delete'):
-                  print('DELETE', name)
+                  path.unlink()
               else:
                   zd = zlib.decompressobj(zdict=old[-32768:])
-                  new = zd.decompress(base64.b64decode(entry['data'], validate=True)) + zd.flush()
+                  new = zd.decompress(base64.b64decode(entry['data'],validate=True)) + zd.flush()
                   assert zd.eof and hashlib.sha256(new).hexdigest() == entry['sha256'], ('new hash', name)
-                  print('RECOVERED', name, len(new), entry['sha256'])
-              recovered.append(name)
-          print('TOTAL_COMPLETE_ENTRIES', len(recovered))
-          print('MESSAGES', re.findall(r'"message":"([^"\\]*)"', text))
-          print('UNPARSED_TAIL_BYTES', len(text) - (match.start() if 'match' in locals() else 0))
+                  path.parent.mkdir(parents=True,exist_ok=True)
+                  path.write_bytes(new)
+              count += 1
+          assert count == 45, count
+          locks = list((pathlib.Path(os.environ['RUNNER_TEMP'])/'dx-lock').rglob('uv.lock'))
+          assert len(locks) == 1
+          lock = locks[0].read_bytes()
+          digest = hashlib.sha256(lock).hexdigest()
+          assert digest == '83aa4e6dacc27e8f483badfd25f8a6ae0c6b7851c58c6db0cb20d51e6c8596e3', digest
+          (target/'uv.lock').write_bytes(lock)
+          print('RECOVERED',count,'entries; original lock SHA256',digest)
+          for name in ['pyproject.toml','tests/test_check_runner.py','tests/test_dx_contracts.py','tools/validate.py','tools/run_loopback.py']:
+              print('\nSOURCE_START',name,'\n'+(target/name).read_text()+'\nSOURCE_END',name)
+          protected = ['firmware','hardware/rev_a/board_profile.json','hardware/rev_a/bom.json','hardware/rev_a/sources.json','VALIDATION.json','results','requirements-tested.txt']
+          subprocess.run(['git','diff','--exit-code',base,'--',*protected],cwd=target,check=True)
+          subprocess.run(['git','config','user.name','utof'],cwd=target,check=True)
+          subprocess.run(['git','config','user.email','38869938+utof@users.noreply.github.com'],cwd=target,check=True)
+          subprocess.run(['git','add','.'],cwd=target,check=True)
+          subprocess.run(['git','commit','-m','feat(dx): recover strict typed APIs, unified tests, and locked toolchain'],cwd=target,check=True)
           PY
+      - name: Publish only the new DX review branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          cd "$RUNNER_TEMP/dx-source"
+          gh auth setup-git
+          git push origin HEAD:refs/heads/dx/quality-foundation
+          git log -1 --format='%H %s'
