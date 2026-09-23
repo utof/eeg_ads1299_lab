@@ -1,0 +1,199 @@
+{
+  "schema_version": 1,
+  "profile_id": "ads1299_4_s3_devkit_rev_a_bench",
+  "revision": "A",
+  "status": "design_baseline_not_hardware_validated",
+  "gates": {
+    "board_profile_reviewed": false,
+    "firmware_port_validated": false,
+    "schematic_released": false,
+    "purchase_approved": false,
+    "human_connection_allowed": false
+  },
+  "afe": {
+    "mpn": "ADS1299-4PAGR",
+    "channels": 4,
+    "sample_rate_sps": 250,
+    "gain": 24,
+    "reference": "internal",
+    "reference_v": 4.5,
+    "clock": "internal",
+    "clock_hz_nominal": 2048000,
+    "clk_sel_level": 1,
+    "clock_output_enabled": false,
+    "daisy_chain": false,
+    "frame_status_bytes": 3,
+    "bytes_per_channel": 3,
+    "frame_bytes": 15,
+    "input_modes_initial": [
+      "internal_test",
+      "input_short"
+    ],
+    "external_dummy_mode_enabled": false,
+    "lead_off_enabled": false,
+    "bias_drive_enabled": false,
+    "srb1_enabled": false,
+    "srb2_enabled": false
+  },
+  "mcu": {
+    "board_mpn": "ESP32-S3-DevKitC-1-N8R8",
+    "preferred_pcb_revision": "v1.1",
+    "module_mpn": "ESP32-S3-WROOM-1-N8R8",
+    "target": "esp32s3",
+    "onboard_regulator_supplies_mcu": true,
+    "capture_buffer_memory": "internal_RAM",
+    "psram_required": false,
+    "wifi_enabled_initially": false,
+    "ble_enabled": false
+  },
+  "spi": {
+    "mode": 1,
+    "clock_hz": 1000000,
+    "pin_map_status": "proposed_not_bench_verified",
+    "signals": [
+      {
+        "signal": "SCLK",
+        "gpio": 12,
+        "ads_pin": 40,
+        "direction_from_mcu": "out"
+      },
+      {
+        "signal": "MOSI",
+        "gpio": 11,
+        "ads_pin": 34,
+        "direction_from_mcu": "out"
+      },
+      {
+        "signal": "MISO",
+        "gpio": 13,
+        "ads_pin": 43,
+        "direction_from_mcu": "in"
+      },
+      {
+        "signal": "CS",
+        "gpio": 10,
+        "ads_pin": 39,
+        "direction_from_mcu": "out"
+      },
+      {
+        "signal": "DRDY",
+        "gpio": 4,
+        "ads_pin": 47,
+        "direction_from_mcu": "in"
+      },
+      {
+        "signal": "RESET",
+        "gpio": 5,
+        "ads_pin": 36,
+        "direction_from_mcu": "out"
+      },
+      {
+        "signal": "START",
+        "gpio": 6,
+        "ads_pin": 38,
+        "direction_from_mcu": "out"
+      },
+      {
+        "signal": "PWDN",
+        "gpio": 7,
+        "ads_pin": 35,
+        "direction_from_mcu": "out"
+      }
+    ]
+  },
+  "power": {
+    "topology": "unipolar_bench",
+    "external_source_nominal_v": 5.0,
+    "external_source_tolerance_fraction": 0.01,
+    "external_source_capacity_a": 1.0,
+    "avss_v": 0.0,
+    "avdd_design_v": 5.0,
+    "avdd_operating_min_v": 4.75,
+    "avdd_operating_max_v": 5.25,
+    "analog_feed_resistance_ohm": 10,
+    "analog_branch_design_current_budget_a": 0.01,
+    "dvdd_v": 3.3,
+    "dvdd_regulator_mpn": "TPS7A2033PDBVR",
+    "dvdd_regulator_supplies_mcu": false,
+    "common_ground": true,
+    "devkit_usb_and_5v_header_simultaneous": false,
+    "battery_selected": false,
+    "charger_fitted": false
+  },
+  "input_network": {
+    "channels": 4,
+    "topology": "two_series_resistors_and_one_differential_cap_per_channel",
+    "series_resistance_each_ohm": 4990,
+    "differential_capacitance_f": 4.7e-09,
+    "common_mode_capacitance_fitted_f": 0.0,
+    "clamp_population": "dnp",
+    "nominal_dummy_common_mode_v": 2.5,
+    "bias_feedback_resistance_ohm": 1000000,
+    "bias_feedback_capacitance_f": 1.5e-09,
+    "bias_output_series_resistance_ohm": 1000000
+  },
+  "interface_headers": {
+    "J_DIG": {
+      "mpn": "TSW-110-07-T-D",
+      "pin_map": {
+        "1": "SCLK",
+        "2": "DGND",
+        "3": "MOSI",
+        "4": "DGND",
+        "5": "MISO",
+        "6": "DGND",
+        "7": "CS",
+        "8": "DGND",
+        "9": "DRDY",
+        "10": "DGND",
+        "11": "RESET",
+        "12": "DGND",
+        "13": "START",
+        "14": "DGND",
+        "15": "PWDN",
+        "16": "DGND",
+        "17": "VIN_5V_AFE",
+        "18": "DGND",
+        "19": "DVDD_SENSE_DO_NOT_POWER_MCU",
+        "20": "DGND"
+      }
+    },
+    "J_INPUT": {
+      "mpn": "TSW-110-07-T-D",
+      "pin_map": {
+        "1": "CH1P_DUMMY",
+        "2": "CH1N_DUMMY",
+        "3": "CH2P_DUMMY",
+        "4": "CH2N_DUMMY",
+        "5": "CH3P_DUMMY",
+        "6": "CH3N_DUMMY",
+        "7": "CH4P_DUMMY",
+        "8": "CH4N_DUMMY",
+        "9": "BIAS_AFTER_1M_DUMMY",
+        "10": "AVSS",
+        "11": "NC",
+        "12": "NC",
+        "13": "NC",
+        "14": "NC",
+        "15": "NC",
+        "16": "NC",
+        "17": "NC",
+        "18": "NC",
+        "19": "NC",
+        "20": "NC"
+      }
+    }
+  },
+  "integration": {
+    "existing_firmware_modified": false,
+    "existing_model_defaults_modified": false,
+    "preserve_simulated_channel_counts": [
+      4,
+      6,
+      8
+    ],
+    "requires_explicit_s3_firmware_profile": true,
+    "do_not_remove_existing_target_guard": true,
+    "this_json_is_not_loaded_by_existing_firmware": true
+  }
+}

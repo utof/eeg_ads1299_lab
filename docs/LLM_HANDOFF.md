@@ -4,7 +4,7 @@
 
 An electronics beginner wants to learn EEG through runnable simulation and hands-on experiments, eventually studying perception, meditation and consciousness. They own an Arduino Uno, an unspecified ESP32, breadboards, basic components and >10 electrodes. Additional spending target: **$100**, not the $300 in the older uploaded reports. Electrode type, connectors, country-specific sourcing and exact MCU are not confirmed.
 
-## What exists
+## Current hardware decision\n\nRev A selects a four-channel `ADS1299-4PAGR` daughterboard plus `ESP32-S3-DevKitC-1-N8R8`, internal ADS reference/clock, 5-V unipolar analog bench power, ADC-only `TPS7A2033PDBVR` DVDD regulation, and a 4.99 kΩ / 4.7 nF differential input network. Read `docs/HARDWARE_BASELINE_REV_A.md` and `hardware/rev_a/` before reopening component selection. All hardware-review, purchase, firmware-port, schematic-release and human-connection gates remain false.\n\n## What exists
 
 Read `README.md`, `VALIDATION.json`, `docs/RESULTS.md` and `docs/MODEL_SCOPE.md`. Run the tests before modifying code. The sources, generated figures and machine-readable evidence are in this ZIP. The old uploaded AD8232/alternative-ADC reports are background only; their historical ZIP links are not dependencies.
 
