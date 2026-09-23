@@ -1,0 +1,144 @@
+# Public package APIs and dependency direction are checked in CI.
+# No unchecked modules, implicit consumers, or ignored TYPE_CHECKING imports.
+source_roots = ["."]
+root_module = "forbid"
+exact = true
+forbid_circular_dependencies = true
+ignore_type_checking_imports = false
+exclude = ["^reports/", "^results/", "^\\.venv/", "^build/", "^dist/"]
+
+[[modules]]
+path = "lab"
+depends_on = []
+
+[[modules]]
+path = "lab.data_types"
+depends_on = []
+
+[[modules]]
+path = "lab.validation"
+depends_on = ["lab.data_types"]
+
+[[modules]]
+path = "lab.adc"
+depends_on = ["lab.data_types", "lab.validation"]
+
+[[modules]]
+path = "lab.analog"
+depends_on = ["lab.data_types"]
+
+[[modules]]
+path = "lab.signals"
+depends_on = ["lab.adc", "lab.data_types", "lab.validation"]
+
+[[modules]]
+path = "lab.dsp"
+depends_on = ["lab.adc", "lab.data_types", "lab.validation"]
+
+[[modules]]
+path = "lab.protocol"
+depends_on = ["lab.adc", "lab.data_types"]
+
+[[modules]]
+path = "lab.acquisition"
+depends_on = ["lab.adc", "lab.data_types", "lab.protocol"]
+
+[[modules]]
+path = "lab.inspect_capture"
+depends_on = ["lab.adc", "lab.data_types", "lab.dsp", "lab.validation"]
+
+[[modules]]
+path = "lab.pipeline"
+depends_on = ["lab.adc", "lab.analog", "lab.data_types", "lab.dsp", "lab.signals", "lab.validation"]
+
+[[modules]]
+path = "hardware"
+depends_on = []
+
+[[modules]]
+path = "hardware.rev_a"
+depends_on = []
+
+[[modules]]
+path = "tools"
+depends_on = []
+
+[[modules]]
+path = "tools.run_loopback"
+depends_on = ["lab.acquisition", "lab.inspect_capture"]
+
+[[modules]]
+path = "tools.validate"
+depends_on = ["lab.analog"]
+
+[[modules]]
+path = "run_lab"
+depends_on = ["lab.acquisition", "lab.analog", "lab.inspect_capture", "lab.pipeline", "lab.signals", "tools.validate"]
+
+[[modules]]
+path = "tests"
+depends_on = ["hardware.rev_a", "lab.acquisition", "lab.adc", "lab.analog", "lab.data_types", "lab.dsp", "lab.inspect_capture", "lab.pipeline", "lab.protocol", "lab.signals", "lab.validation", "tools.check", "run_lab"]
+
+[[interfaces]]
+from = ["lab.data_types"]
+expose = ["AnalysisReport", "BoolArray", "BoolResult", "CaptureSummary", "CodeArray", "CodeResult", "ComplexArray", "CrossValidationReport", "EpochRow", "FloatArray", "FloatResult", "FoldReport", "InspectionReport", "IntArray", "QualityFlags", "Recording", "SyntheticMetadata", "TrackerInfo", "TrackerSummary"]
+
+[[interfaces]]
+from = ["lab.validation"]
+expose = ["Scalar", "boolean", "float_array", "integer", "number", "read_object", "stored_array", "text"]
+
+[[interfaces]]
+from = ["lab.adc"]
+expose = ["ADCConfig", "GAINS", "MAX_CODE", "MIN_CODE", "RATES", "behavioral_decimate", "headroom_valid", "quantize", "sinc3_magnitude", "to_volts"]
+
+[[interfaces]]
+from = ["lab.analog"]
+expose = ["CircuitReport", "Drive", "InputNetwork", "circuit_report", "export_spice", "run_ngspice", "transfer"]
+
+[[interfaces]]
+from = ["lab.signals"]
+expose = ["SyntheticConfig", "generate", "parse_metadata"]
+
+[[interfaces]]
+from = ["lab.dsp"]
+expose = ["BANDS", "analyze", "bandpower", "epoch_features", "psd", "quality_flags"]
+
+[[interfaces]]
+from = ["lab.protocol"]
+expose = ["CHANNELS", "FLAG_OVERRUN", "FLAG_SHORT", "FLAG_SYNTHETIC", "FLAG_TEST", "HEADER", "MAGIC", "Packet", "StreamDecoder", "Tracker", "VERSION", "native_frame", "parse_native", "signed24"]
+
+[[interfaces]]
+from = ["lab.acquisition"]
+expose = ["capture_serial", "capture_udp", "decode_capture", "replay_packets"]
+
+[[interfaces]]
+from = ["lab.inspect_capture"]
+expose = ["inspect_capture"]
+
+[[interfaces]]
+from = ["lab.pipeline"]
+expose = ["Scalar", "load_data", "make_plots", "run_demo", "save_data"]
+
+[[interfaces]]
+from = ["hardware.rev_a"]
+expose = ["BillOfMaterials", "BoardProfile", "CostTotals", "SourcesDocument", "load_documents", "totals", "validate"]
+
+[[interfaces]]
+from = ["tools.run_loopback"]
+expose = ["ROOT", "main"]
+
+[[interfaces]]
+from = ["tools.validate"]
+expose = ["validate"]
+
+[[modules]]
+path = "tools.check"
+depends_on = []
+
+[[interfaces]]
+from = ["tools.check"]
+expose = ["main", "command_plan", "run_step", "check_branch_coverage", "require_native_tools"]
+
+[[interfaces]]
+from = ["run_lab"]
+expose = ["main"]
