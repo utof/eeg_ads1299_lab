@@ -1,0 +1,87 @@
+name: Finish reviewed DX policy
+on:
+  push:
+    branches: [refactor/adversarial-review]
+    paths: ['.github/apply_dx.py', '.github/workflows/finish-review.yml']
+permissions:
+  contents: write
+jobs:
+  apply:
+    if: github.repository == 'utof/eeg_ads1299_lab' && github.ref == 'refs/heads/refactor/adversarial-review'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.13'
+      - name: Install locked tools
+        run: |
+          python -m pip install uv==0.12.18
+          uv sync --locked --all-extras
+          sudo apt-get update -qq
+          sudo apt-get install --yes --no-install-recommends ngspice g++ nodejs > /tmp/native-install.log
+      - name: Preserve recovery history and delete already merged original branches
+        run: |
+          expected=511eb3a63cfa5533124a919747070c52dde645e8
+          ref=refs/heads/dx/tooling-bootstrap
+          tag=refs/tags/archive/dx-tooling-bootstrap-2026-09-24
+          current=$(git ls-remote --refs origin "$ref" | cut -f1)
+          if test -n "$current"; then
+            test "$current" = "$expected"
+            git push --atomic --force-with-lease="$ref:$expected" origin "$expected:$tag" ":$ref"
+          fi
+          test "$(git ls-remote --refs origin "$tag" | cut -f1)" = "$expected"
+          while read -r branch expected; do
+            ref="refs/heads/$branch"
+            current=$(git ls-remote --refs origin "$ref" | cut -f1)
+            test -n "$current" || continue
+            test "$current" = "$expected"
+            git merge-base --is-ancestor "$expected" origin/main
+            git push --force-with-lease="$ref:$expected" origin ":$ref"
+          done <<'HEADS'
+          hardware/rev-a-component-baseline b1c8e82b084f2fb2408fb0f8df27ff354586742b
+          dx/quality-foundation 6b072b47547b7f247bd129c91509d9ff70154f98
+          HEADS
+      - name: Observe tests before introducing the new commit-policy API
+        run: |
+          test ! -e tools/commit_messages.py
+          if uv run --locked python -m pytest tests/test_commit_messages.py -q; then
+            echo 'Unexpected pass before implementation'; exit 1
+          fi
+      - name: Apply reviewed policy and remove authoring scaffolding
+        run: |
+          uv run --locked python .github/apply_dx.py
+          uv run --locked python - <<'PY'
+          from pathlib import Path
+          path = Path('tools/commit_messages.py')
+          source = path.read_text(encoding='utf-8')
+          assert source.count(').stdout.strip()') == 1
+          path.write_text(source.replace(').stdout.strip()', ').stdout.rstrip("\\n")'), encoding='utf-8')
+          PY
+          rm .github/apply_dx.py .github/workflows/finish-review.yml
+          uv run --locked ruff check --fix .
+          uv run --locked ruff format .
+          git diff --exit-code e52200d6a3a3334f220ac28f1a1b8e52b80359bf -- 'hardware/rev_a/*.json' firmware results VALIDATION.json SHA256SUMS.txt requirements-tested.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'chore(dx): enforce conventional commits and uv-first workflows'
+          git push origin HEAD:refs/heads/refactor/adversarial-review
+      - name: Run the complete canonical gate
+        run: uv run --locked python -m tools.check --native
+      - name: Show independent diagnostics on failure
+        if: failure()
+        run: |
+          uv run --locked pyrefly check --min-severity warn || true
+          uv run --locked complexipy --failed || true
+          uv run --locked tach check || true
+          uv run --locked python -m pytest tests/test_commit_messages.py -q || true
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: review-dx-evidence
+          path: reports/
