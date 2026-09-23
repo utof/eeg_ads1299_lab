@@ -1,6 +1,6 @@
 # Hardware guide: buy the right thing, then test it in layers
 
-**Current status: no ADS1299 board or exact ESP32 model has been identified. No physical circuit was tested.** This document separates a concrete digital bench example from the connections that cannot yet be specified responsibly.
+**Current status (Rev A): the component baseline is selected, but no physical circuit has been tested.** See [HARDWARE_BASELINE_REV_A.md](HARDWARE_BASELINE_REV_A.md) and `hardware/rev_a/` for the exact ADS1299-4 + ESP32-S3 devkit decision, BOM, proposed pin map, provenance, and fail-closed review gates. The generic/original-ESP32 material below remains useful background; where it conflicts with Rev A, the Rev A baseline is authoritative for new simulation and schematic work. This document separates a concrete digital bench example from the connections that cannot yet be specified responsibly.
 
 The included firmware is deliberately restricted to the ADS1299's **internal test signal or internally shorted inputs**. There is no external-electrode acquisition mode to enable. An acquisition waveform is not evidence of electrical safety.
 
@@ -123,8 +123,10 @@ Battery and wireless operation remove some hazardous paths; they do not check ev
 
 Use recording-only experiments. Do not repurpose the bias circuit or electrode wiring for stimulation. Avoid broken or irritated skin and stop on discomfort. This is a learning/research project, not diagnosis or treatment.
 
-## 8. What must be supplied next
+## 8. What comes next
 
-The next engineering input is the **exact ADS1299 board listing and schematic/revision, plus the exact model printed on your ESP32**. Those allow the provisional digital table to be checked, a real power diagram to be drawn, the complete sketch to be built for its target, and the remaining board-specific work to be scoped. Without them, a photo-realistic wiring picture would provide confidence that the evidence does not justify.
+Rev A removes the need to keep shopping among MCU/AFE architectures. The immediate engineering task is to implement the selected 4.99 kΩ / 4.7 nF differential input network in ngspice, preserve the existing educational circuit as a regression fixture, and sweep source/electrode impedance imbalance, component tolerance, cable capacitance, 50/60-Hz common mode, and bounded clamp leakage.
 
-References marked `[S#]` are linked in [SOURCES.md](SOURCES.md).
+After that: BIAS/power modeling, a reviewed KiCad schematic, and an explicit ESP32-S3 firmware profile. Purchasing remains blocked until the schematic is reviewed and a complete delivered parts/fabrication/assembly quote is obtained. External-input and body-connected work remain separate later gates.
+
+References marked `[S#]` are linked in [SOURCES.md](SOURCES.md); Rev A source provenance is in `hardware/rev_a/sources.json`.
