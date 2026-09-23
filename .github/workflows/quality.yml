@@ -36,6 +36,12 @@ jobs:
         run: uv sync --locked --all-extras
       - name: Run the shared quality gate
         run: uv run --locked python -m tools.check
+      - name: Exercise the actual commit hooks
+        if: matrix.python == '3.13'
+        run: uv run --locked pre-commit run --all-files --show-diff-on-failure
+      - name: Verify checks left tracked source and evidence unchanged
+        if: always()
+        run: git diff --exit-code HEAD
       - name: Retain quality evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -70,6 +76,9 @@ jobs:
           uv sync --locked --all-extras
       - name: Run the shared gate including required native checks
         run: uv run --locked python -m tools.check --native
+      - name: Verify checks left tracked source and evidence unchanged
+        if: always()
+        run: git diff --exit-code HEAD
       - name: Retain native simulation and transport evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
