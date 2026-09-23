@@ -25,3 +25,9 @@ Ruff uses safe fixes only. Pyrefly is strict and fails on warnings as well as er
 Run the same `tools.check` entry point locally and in CI. Keep subprocesses bounded and retain failure output. Never accept stale simulator output as a fresh successful run. CI evidence belongs in ignored `reports/`; do not overwrite committed `results/`, `VALIDATION.json`, or historical validation records during routine quality checks.
 
 Treat `pyproject.toml` and `uv.lock` as the dependency source of truth. Regenerate requirements exports using the commands in the development guide. `requirements-tested.txt` is a historical record, not a second dependency input. Keep feature changes separate from broad formatting or dependency upgrades.
+
+## Commits and ownership
+
+Use Conventional Commit subjects (`feat`, `fix`, `refactor`, `docs`, `test`, `build`, `ci`, `chore`, etc.) with optional lowercase scopes. Install hooks with `uv run --locked pre-commit install`; CI validates the actual new commit range. Preserve history with merge commits, not squash. Use the type/priority/area issue-label taxonomy in `.github/labels.json`.
+
+`lab.recording` owns the synthetic-recording contract and persistence; `lab.pipeline` re-exports its old load/save names for compatibility. `tools.check` is the only verification orchestrator. Read `docs/ADVERSARIAL_REVIEW.md` before introducing new layers. Project commands run through uv; do not introduce a second pip-managed environment.

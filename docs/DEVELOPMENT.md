@@ -4,10 +4,9 @@ The Rev A hardware choice is not reopened by this work. All firmware guards and 
 
 ## Setup
 
-Work from the repository root. Python 3.11 is the minimum supported version; the normal development interpreter is 3.13. CI checks both. Install the pinned environment manager and synchronize the locked project, development tools, and optional serial dependency:
+Work from the repository root. Python 3.11 is the minimum supported version; the normal development interpreter is 3.13. CI checks both. Install uv 0.12.18 using its [official standalone installation instructions](https://docs.astral.sh/uv/getting-started/installation/), then synchronize the locked project, development tools, and optional serial dependency:
 
 ```bash
-python -m pip install uv==0.12.18
 uv sync --locked --all-extras
 uv run --locked pre-commit install
 uv run --locked python -m tools.check
@@ -52,7 +51,7 @@ uv run --locked python -m tools.check --native
 
 The native mode requires ngspice, Node, and g++ or clang++. Their absence is a failure, not a simulator pass. It verifies the existing educational circuit against the independent nodal solution, tests portable firmware helpers, and exercises synthetic transport over real localhost UDP. It does not compile an ESP32 target, introduce the next Rev A SPICE model, measure hardware, or establish body-interface safety.
 
-Logs, JUnit results, coverage, and `CHECK_REPORT.json` are written under ignored `reports/check/`; use `--out PATH` for a separate evidence directory. CI uploads these as artifacts, including on failure. Routine quality checks must not overwrite the committed historical `results/`, `VALIDATION.json`, `requirements-tested.txt`, or `SHA256SUMS.txt`. The old `python run_lab.py verify` command remains an explicit historical-style report generator and is not the DX gate.
+Logs, JUnit results, coverage, and `CHECK_REPORT.json` are written under ignored `reports/check/`; use `--out PATH` for a separate evidence directory. CI uploads these as artifacts, including on failure. Routine quality checks must not overwrite the committed historical `results/`, `VALIDATION.json`, `requirements-tested.txt`, or `SHA256SUMS.txt`. `uv run --locked python run_lab.py verify` delegates to this same gate; `--native` (or the old `--require-ngspice` alias) adds native checks. The redundant `tools.validate` implementation was deleted.
 
 ## Test-first changes
 
@@ -98,7 +97,7 @@ CI uses `--locked`; it must fail rather than silently resolving a different envi
 
 The `Quality` workflow runs `Python 3.11 quality`, `Python 3.13 quality`, and `Native integration`. Those are the checks to require in the repository's merge rules. Creating a workflow does not itself enable required-status branch protection; that is a separate repository setting.
 
-Keep the DX review separate from hardware PR #1 and from new simulation behavior. Review changes against the hardware-baseline branch until #1 is merged, then retarget the DX PR to `main`. Do not merge either PR or change the selected hardware/gates as part of tooling work.
+Hardware PR #1 and DX PR #2 were merged, in that order, using merge commits. Review subsequent changes against `main`; keep architecture fixes separate from new simulation behavior. Use Conventional Commit subjects as specified in the README. `pre-commit install` installs both hook stages, and CI checks the actual new commit range. Merge with merge commits, never squash or rewrite published history. Merging software does not approve any hardware gate.
 
 ## Tool documentation
 

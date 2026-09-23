@@ -106,8 +106,8 @@ No person or animal should be connected to this Rev A design. Battery operation,
 From the repository root:
 
 ```bash
-python hardware/rev_a/check_baseline.py
-python -m unittest discover -s hardware/rev_a -p 'test_*.py' -v
+uv run --locked python hardware/rev_a/check_baseline.py
+uv run --locked python -m unittest discover -s hardware/rev_a -p 'test_*.py' -v
 ```
 
 These checks verify the declarative BOM/profile contract, quantities, pin conflicts, cost arithmetic, frame length, provenance references, and fail-closed gates. They do **not** run SPICE, compile firmware, perform KiCad ERC/DRC, measure hardware, or certify safety.

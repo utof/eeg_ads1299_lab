@@ -30,8 +30,18 @@ def test_valid_subjects(subject: str) -> None:
 
 @pytest.mark.parametrize(
     "subject",
-    ["", "update things", "Fix: capitalize", "feat:", "feat:   ", "feat(): empty scope",
-     "feat: line\nbreak", "fix: trailing space ", "Merge pull request #5", "unknown: type"],
+    [
+        "",
+        "update things",
+        "Fix: capitalize",
+        "feat:",
+        "feat:   ",
+        "feat(): empty scope",
+        "feat: line\nbreak",
+        "fix: trailing space ",
+        "Merge pull request #5",
+        "unknown: type",
+    ],
 )
 def test_invalid_subjects(subject: str) -> None:
     assert not valid_subject(subject)

@@ -79,7 +79,7 @@ def test_numeric_guards_are_exercised() -> None:
 
 
 def test_transport_option_guards_and_empty_capture(tmp_path: Path) -> None:
-    with pytest.raises(ValueError, match="duration/port"):
+    with pytest.raises(ValueError, match="duration"):
         capture_udp(tmp_path / "x.bin", seconds=0)
     with pytest.raises(ValueError, match="replay"):
         replay_packets(channels=3)
