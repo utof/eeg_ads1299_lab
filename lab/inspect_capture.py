@@ -1,6 +1,8 @@
 """Bench capture quality report. Never interpolate gaps into a spectrum."""
 
 import csv
+import hashlib
+import io
 import json
 from pathlib import Path
 
@@ -16,6 +18,12 @@ from .validation import integer, number, read_object, text
 def inspect_capture(csv_path: str | Path, out_dir: str | Path) -> InspectionReport:
     csv_path, out_dir = Path(csv_path), Path(out_dir)
     metadata_path = csv_path.with_suffix(".json")
+    outputs = (out_dir / "spectrum.csv", out_dir / "quality_report.json")
+    if any(p.resolve() in (csv_path.resolve(), metadata_path.resolve()) for p in outputs):
+        raise ValueError("Inspection output must not overwrite its input")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for output in outputs:
+        output.unlink(missing_ok=True)
     if not metadata_path.exists():
         raise ValueError("Keep the metadata JSON created by decode beside this CSV")
     raw_metadata: object = json.loads(metadata_path.read_text())
@@ -23,7 +31,8 @@ def inspect_capture(csv_path: str | Path, out_dir: str | Path) -> InspectionRepo
     fs, n = integer(metadata, "fs_hz"), integer(metadata, "channels")
     if fs not in RATES or n not in (4, 6, 8):
         raise ValueError("Unsupported capture fs_hz/channels")
-    x, counts, times, sequence = _read_capture(csv_path, n)
+    digest = text(metadata, "csv_sha256") if "csv_sha256" in metadata else None
+    x, counts, times, sequence = _read_capture(csv_path, n, digest)
     # Both counters and device timing must remain continuous. uint32 wrap is OK.
     ds = (sequence[1:].astype(np.int64) - sequence[:-1].astype(np.int64)) % (2**32)
     dt = np.diff(times)
@@ -56,7 +65,8 @@ def inspect_capture(csv_path: str | Path, out_dir: str | Path) -> InspectionRepo
             "Voltage scale uses supplied reference and gain, not bench calibration.",
         ],
     }
-    out_dir.mkdir(parents=True, exist_ok=True)
+    if digest is None:
+        result["cautions"].append("Legacy capture: no digest binds this CSV to its metadata.")
     if spectra and frequencies is not None:
         power = np.asarray(np.mean(spectra, axis=0), dtype=np.float64)
         np.savetxt(
@@ -97,10 +107,15 @@ def _contiguous_spectra(
 
 
 def _read_capture(
-    csv_path: Path, n: int
+    csv_path: Path, n: int, expected_digest: str | None
 ) -> tuple[FloatArray, IntArray, FloatArray, NDArray[np.uint64]]:
-    with csv_path.open(newline="") as stream:
-        rows = list(csv.DictReader(stream))
+    with csv_path.open("rb") as binary:
+        actual_digest = hashlib.file_digest(binary, "sha256").hexdigest()
+        if expected_digest is not None and actual_digest != expected_digest:
+            raise ValueError("Capture CSV/metadata digest mismatch")
+        binary.seek(0)
+        with io.TextIOWrapper(binary, encoding="utf-8", newline="") as stream:
+            rows = list(csv.DictReader(stream))
     if not rows:
         raise ValueError("Empty capture CSV")
     x = np.array([[float(r[f"ch{c + 1}_uV"]) for c in range(n)] for r in rows])

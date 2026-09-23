@@ -25,6 +25,7 @@ from .data_types import (
     QualityFlags,
     Recording,
 )
+from .recording import validate_recording
 from .validation import float_array
 
 BANDS = {"theta": (4, 8), "alpha": (8, 13), "beta": (13, 30)}
@@ -90,6 +91,7 @@ def epoch_features(data: Recording) -> tuple[FloatArray, IntArray, IntArray, lis
     sessions. Quality rules are fixed before labels are read. Condition and
     session IDs are NEVER features. Split by session, not window.
     """
+    data = validate_recording(data)
     cfg = data["metadata"]
     fs = cfg["fs_hz"]
     adc = ADCConfig(gain=cfg["gain"], fs_hz=fs)
@@ -104,9 +106,7 @@ def epoch_features(data: Recording) -> tuple[FloatArray, IntArray, IntArray, lis
     for block in np.unique(data["block"]):
         same_block: BoolArray = data["block"] == block
         indices = np.flatnonzero(same_block)
-        # Dataset uses contiguous blocks; refusing otherwise prevents bridging.
-        if not np.all(np.diff(indices) == 1):
-            raise ValueError("Noncontiguous block")
+        # The recording boundary has already verified continuity and labels.
         for offset in range(2 * fs, len(indices) - 2 * fs - window + 1, window):
             idx = indices[offset : offset + window]
             raw = x[idx]

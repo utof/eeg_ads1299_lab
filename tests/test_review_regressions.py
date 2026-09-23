@@ -49,7 +49,7 @@ def _archive(path: Path, data: Recording) -> Path:
 
 def test_recording_rejects_non_adc_counts(tmp_path: Path, recording: Recording) -> None:
     recording["codes"][0, 0] = MAX_CODE + 1
-    with pytest.raises(ValueError, match="counts|24-bit"):
+    with pytest.raises(ValueError, match=r"counts|24-bit"):
         load_data(_archive(tmp_path / "bad.npz", recording))
 
 
@@ -57,20 +57,20 @@ def test_recording_rejects_non_adc_counts(tmp_path: Path, recording: Recording) 
 def test_recording_rejects_time_discontinuity(
     tmp_path: Path, recording: Recording, delta: float
 ) -> None:
-    recording["time_s"][100] = recording["time_s"][99] + delta
-    with pytest.raises(ValueError, match="time|continu"):
+    recording["time_s"][100] = float(recording["time_s"][99]) + delta
+    with pytest.raises(ValueError, match=r"time|continu"):
         load_data(_archive(tmp_path / "bad.npz", recording))
 
 
 def test_recording_rejects_mixed_block_condition(tmp_path: Path, recording: Recording) -> None:
-    recording["condition"][100] ^= 1
-    with pytest.raises(ValueError, match="condition|block"):
+    recording["condition"][100] = int(recording["condition"][100]) ^ 1
+    with pytest.raises(ValueError, match=r"condition|block"):
         load_data(_archive(tmp_path / "bad.npz", recording))
 
 
 def test_recording_rejects_mixed_block_session(tmp_path: Path, recording: Recording) -> None:
     recording["session"][100] = 1
-    with pytest.raises(ValueError, match="session|block"):
+    with pytest.raises(ValueError, match=r"session|block"):
         load_data(_archive(tmp_path / "bad.npz", recording))
 
 
@@ -82,7 +82,7 @@ def test_recording_rejects_reused_block(tmp_path: Path, recording: Recording) ->
 
 def test_recording_rejects_inconsistent_scale(tmp_path: Path, recording: Recording) -> None:
     recording["metadata"]["adc_lsb_v"] *= 2
-    with pytest.raises(ValueError, match="scale|lsb"):
+    with pytest.raises(ValueError, match=r"scale|lsb"):
         load_data(_archive(tmp_path / "bad.npz", recording))
 
 
@@ -140,9 +140,7 @@ def test_serial_rejects_invalid_duration_before_io(
 
 
 @pytest.mark.parametrize("rate", [0, -250, 123])
-def test_replay_rejects_invalid_rate_before_io(
-    monkeypatch: pytest.MonkeyPatch, rate: int
-) -> None:
+def test_replay_rejects_invalid_rate_before_io(monkeypatch: pytest.MonkeyPatch, rate: int) -> None:
     monkeypatch.setattr("socket.socket", _no_io)
     with pytest.raises(ValueError):
         replay_packets(fs_hz=rate)
