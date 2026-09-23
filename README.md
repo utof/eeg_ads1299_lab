@@ -27,21 +27,20 @@ Use Python **3.11 or newer**; Python 3.13 is the development default. CI exercis
 Clone or extract the repository, then open a terminal **inside `eeg_ads1299_lab`**:
 
 ```bash
-python -m pip install uv==0.12.18
 uv sync --locked --all-extras
 uv run --locked python run_lab.py demo
 uv run --locked python -m tools.check
 ```
 
-Use `python3` for the first command on systems where `python` is unavailable, or `py -3` in Windows PowerShell. The remaining `uv` commands do not require virtual-environment activation. The editable installation makes package imports work outside the checkout too.
+Install **uv 0.12.18** first using the [official installation instructions](https://docs.astral.sh/uv/getting-started/installation/). The standalone installer supports an explicit version in its URL. All project commands use `uv`; do not use a separately activated environment or bare Python/pip to run or modify this project. The editable installation makes imports work outside the checkout too.
 
-The demo makes `results/demo/synthetic_recording.npz`, event/quality CSVs, an analysis JSON, and four PNG figures. The included example results were already generated. Use `--out reports/my_demo` to avoid replacing those examples. Regenerating uses the same seed, but numerical outputs can vary slightly across dependency versions.
+The demo makes `reports/demo/synthetic_recording.npz`, event/quality CSVs, an analysis JSON, and four PNG figures. Live commands default to ignored `reports/`; committed `results/` examples are historical evidence. Use `--out reports/my_demo` for a separate run. The seed is fixed, but numerical outputs can vary slightly across dependency versions.
 
 The quality command checks formatting, Ruff lint, strict Pyrefly typing, cognitive complexity, Tach import boundaries, the hardware baseline, software tests, and measured branch coverage. It includes the hardware-baseline tests that formerly needed a separate discovery command. Logs and reports go under `reports/check/`, not over historical evidence.
 
-**A successful software check is not a native-simulator, firmware-target, or hardware pass.** Run the explicit native command below for native integration. The legacy `uv run --locked python run_lab.py verify` command remains available, but deliberately writes historical-style results under `results/validation/` and replaces `VALIDATION.json`; it is not the routine DX gate.
+**A successful software check is not a native-simulator, firmware-target, or hardware pass.** Run the explicit native command below for native integration. `uv run --locked python run_lab.py verify` is now a compatibility entry point to the **same** `tools.check` gate. Add `--native` for native integration; `--require-ngspice` remains an alias. There is no competing historical-report verifier.
 
-Before making changes, read [AGENTS.md](AGENTS.md) and install the optional commit hooks:
+Before making changes, read [AGENTS.md](AGENTS.md) and install both the pre-commit and commit-message hooks:
 
 ```bash
 uv run --locked pre-commit install
@@ -87,7 +86,7 @@ Changing a JSON changes the **simulation**, not a physical board. The firmware d
 uv run --locked python -m tools.check --native
 ```
 
-The native gate includes the real localhost UDP loopback: nine seconds of synthetic packets with samples 1000 and 2000 deliberately omitted, CSV decoding, and a gap-safe quality report. It checks 2,248 accepted packets and two missing samples. Unexpected extra loss causes a failure rather than a reassuring-looking plot. To run only the legacy loopback with its default `results/loopback/` output, use `uv run --locked python -m tools.run_loopback`.
+The native gate includes the real localhost UDP loopback: nine seconds of synthetic packets with samples 1000 and 2000 deliberately omitted, CSV decoding, and a gap-safe quality report. It checks 2,248 accepted packets and two missing samples. Unexpected extra loss causes a failure rather than a reassuring-looking plot. To run only the loopback, use `uv run --locked python -m tools.run_loopback --out reports/loopback`.
 
 For manual control, use two terminals:
 
@@ -108,7 +107,7 @@ uv run --locked python run_lab.py decode reports/practice.bin --out reports/prac
 uv run --locked python run_lab.py inspect reports/practice.csv --out reports/practice_quality
 ```
 
-Keep the `.json` metadata beside the decoded CSV. The inspector analyzes only uninterrupted four-second windows. It reports DC offset separately and never fills gaps to manufacture a continuous spectrum. The receiver defaults to localhost; actual LAN use requires `--host 0.0.0.0`, private-network firewall permission, and the computer's LAN address in the firmware. UDP is unencrypted; never expose the port to the public internet.
+Keep the `.json` metadata beside the decoded CSV. New captures include a SHA-256 binding the pair; inspection rejects a mismatched generation. Legacy captures without a digest remain readable with an explicit caution. The inspector analyzes only uninterrupted four-second windows. It reports DC offset separately and never fills gaps to manufacture a continuous spectrum. The receiver defaults to localhost; actual LAN use requires `--host 0.0.0.0`, private-network firewall permission, and the computer's LAN address in the firmware. UDP is unencrypted; never expose the port to the public internet.
 
 ## What is in the source?
 
@@ -122,7 +121,8 @@ lab/dsp.py              Quality screens, band power, session-held-out classifier
 lab/protocol.py         ADS frame decoding, custom packets, CRC and counters
 lab/acquisition.py      UDP/optional bench serial logging and CSV decoding
 lab/inspect_capture.py  Gap-safe bench spectra and quality reports
-lab/pipeline.py         Demo outputs and figures
+lab/recording.py        Synthetic recording validation and atomic NPZ persistence
+lab/pipeline.py         Demo outputs and figures; compatibility persistence re-exports
 hardware/rev_a/         Hardware-contract facade, checker, data, and tests
 firmware/              Original-ESP32 bench starter; NOT target-compiled by the DX gate
 configs/               Editable demo settings and hardware-review worksheet
@@ -130,10 +130,37 @@ results/               Historical example recordings, figures, logs, and reports
 reports/               Ignored outputs from current quality/simulation runs
 tests/                 Regression, property, architecture, and workflow tests
 tools/check.py         Shared local/CI quality command
+tools/commit_messages.py Conventional Commit hook and actual-history validation
 tach.toml              Enforced public interfaces and dependency direction
 ```
 
 The firmware's default `BOARD_PROFILE_REVIEWED = false` intentionally prevents acquisition startup. Changing that setting acknowledges **bench digital wiring only**, not body-use approval. Do not bypass it just to see a waveform.
+
+## Contributing: uv and Conventional Commits
+
+Use `uv sync --locked --all-extras` and `uv run --locked ...` for project work. Child processes launched with `sys.executable` inherit that locked interpreter; they do not create a second environment. CI bootstraps uv itself separately, then uses the same locked commands.
+
+Commit subjects follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/):
+
+```text
+feat(simulation): add a Rev A input-network sweep
+fix(recording): reject discontinuous sample times
+refactor(acquisition): stream decoded packets
+chore(dx): synchronize issue labels
+```
+
+Use lowercase `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, or `revert`; an optional lowercase scope describes the affected component. A breaking change uses `!` after the type/scope and should explain the incompatibility in a `BREAKING CHANGE:` footer. Subjects must have a nonempty description and no trailing whitespace.
+
+The installed `commit-msg` hook checks the subject. CI checks **actual commits introduced by the PR**, not just its title. Old history is grandfathered. Actual merge commits are exempt, but writing “Merge” on a single-parent commit is not a bypass. **Merge PRs with merge commits: no squash and no history rewriting.** Validate a range locally with:
+
+```bash
+uv run --locked python -m tools.commit_messages --base origin/main --head HEAD
+uv run --locked python -m tools.check --native
+```
+
+Issues use one `type/*`, one `priority/*`, and applicable `area/*` labels. Examples: `type/bug` + `priority/high` + `area/acquisition`, or `type/refactor` + `priority/medium` + `area/dx`. [The label manifest](.github/labels.json) owns names, colors, and descriptions; trusted-main housekeeping synchronizes it without deleting unrelated labels. Merged same-repository PR branches are removed only after ancestry and exact-head checks. Active or changed branches are retained.
+
+Read [the adversarial review](docs/ADVERSARIAL_REVIEW.md) for the architecture verdict, reproduced failures, corrections, and remaining limits.
 
 ## Troubleshooting
 

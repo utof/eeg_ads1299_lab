@@ -1,6 +1,7 @@
 """Known-ground-truth synthetic recordings; deliberately not a brain model."""
 
 from dataclasses import dataclass, fields
+from math import isclose
 from typing import TypedDict
 
 import numpy as np
@@ -224,9 +225,16 @@ def parse_metadata(value: object) -> SyntheticMetadata:
     if missing:
         raise ValueError(f"Synthetic metadata missing fields: {sorted(missing)}")
     cfg = SyntheticConfig.from_mapping({key: values[key] for key in names})
+    scale = number(values, "adc_lsb_v")
+    delay = number(values, "surrogate_filter_delay_s")
+    expected_scale = ADCConfig(gain=cfg.gain, fs_hz=cfg.fs_hz).lsb_v
+    if not isclose(scale, expected_scale, rel_tol=1e-12, abs_tol=0.0):
+        raise ValueError("adc_lsb_v scale disagrees with the synthetic ADC configuration")
+    if delay < 0:
+        raise ValueError("surrogate_filter_delay_s must be nonnegative")
     return _metadata(
         cfg,
-        number(values, "adc_lsb_v"),
-        number(values, "surrogate_filter_delay_s"),
+        scale,
+        delay,
         boolean(values, "analog_network_applied"),
     )

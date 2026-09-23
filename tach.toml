@@ -33,7 +33,7 @@ depends_on = ["lab.adc", "lab.data_types", "lab.validation"]
 
 [[modules]]
 path = "lab.dsp"
-depends_on = ["lab.adc", "lab.data_types", "lab.validation"]
+depends_on = ["lab.adc", "lab.data_types", "lab.recording", "lab.validation"]
 
 [[modules]]
 path = "lab.protocol"
@@ -49,7 +49,7 @@ depends_on = ["lab.adc", "lab.data_types", "lab.dsp", "lab.validation"]
 
 [[modules]]
 path = "lab.pipeline"
-depends_on = ["lab.adc", "lab.analog", "lab.data_types", "lab.dsp", "lab.signals", "lab.validation"]
+depends_on = ["lab.adc", "lab.analog", "lab.data_types", "lab.dsp", "lab.recording", "lab.signals"]
 
 [[modules]]
 path = "hardware"
@@ -68,16 +68,12 @@ path = "tools.run_loopback"
 depends_on = ["lab.acquisition", "lab.inspect_capture"]
 
 [[modules]]
-path = "tools.validate"
-depends_on = ["lab.analog"]
-
-[[modules]]
 path = "run_lab"
-depends_on = ["lab.acquisition", "lab.analog", "lab.inspect_capture", "lab.pipeline", "lab.signals", "tools.validate"]
+depends_on = ["lab.acquisition", "lab.analog", "lab.inspect_capture", "lab.pipeline", "lab.signals", "tools.check"]
 
 [[modules]]
 path = "tests"
-depends_on = ["hardware.rev_a", "lab.acquisition", "lab.adc", "lab.analog", "lab.data_types", "lab.dsp", "lab.inspect_capture", "lab.pipeline", "lab.protocol", "lab.signals", "lab.validation", "tools.check", "run_lab"]
+depends_on = ["hardware.rev_a", "lab.acquisition", "lab.adc", "lab.analog", "lab.data_types", "lab.dsp", "lab.inspect_capture", "lab.pipeline", "lab.protocol", "lab.signals", "lab.validation", "tools.check", "tools.commit_messages", "run_lab"]
 
 [[interfaces]]
 from = ["lab.data_types"]
@@ -117,7 +113,7 @@ expose = ["inspect_capture"]
 
 [[interfaces]]
 from = ["lab.pipeline"]
-expose = ["Scalar", "load_data", "make_plots", "run_demo", "save_data"]
+expose = ["load_data", "make_plots", "run_demo", "save_data"]
 
 [[interfaces]]
 from = ["hardware.rev_a"]
@@ -126,10 +122,6 @@ expose = ["BillOfMaterials", "BoardProfile", "CostTotals", "SourcesDocument", "l
 [[interfaces]]
 from = ["tools.run_loopback"]
 expose = ["ROOT", "main"]
-
-[[interfaces]]
-from = ["tools.validate"]
-expose = ["validate"]
 
 [[modules]]
 path = "tools.check"
@@ -142,3 +134,19 @@ expose = ["main", "command_plan", "run_step", "check_branch_coverage", "require_
 [[interfaces]]
 from = ["run_lab"]
 expose = ["main"]
+
+[[modules]]
+path = "lab.recording"
+depends_on = ["lab.adc", "lab.data_types", "lab.signals", "lab.validation"]
+
+[[interfaces]]
+from = ["lab.recording"]
+expose = ["load_data", "save_data", "validate_recording"]
+
+[[modules]]
+path = "tools.commit_messages"
+depends_on = []
+
+[[interfaces]]
+from = ["tools.commit_messages"]
+expose = ["valid_subject", "check_range", "main"]

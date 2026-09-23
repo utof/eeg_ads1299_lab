@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """One-command REAL localhost UDP test using synthetic packets and deliberate loss."""
 
+import argparse
 import json
 import re
 import subprocess
@@ -14,8 +15,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def main(out: Path | None = None) -> int:
-    out = ROOT / "results/loopback" if out is None else out
+    out = ROOT / "reports/loopback" if out is None else out
     out.mkdir(parents=True, exist_ok=True)
+    (out / "LOOPBACK_REPORT.json").unlink(missing_ok=True)
     proc: subprocess.Popen[str] = subprocess.Popen(
         [
             sys.executable,
@@ -78,4 +80,6 @@ def main(out: Path | None = None) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--out", type=Path, default=ROOT / "reports/loopback")
+    sys.exit(main(parser.parse_args().out))

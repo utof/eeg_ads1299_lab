@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Entry point: python run_lab.py --help. Defaults require NO hardware."""
+"""Entry point: uv run --locked python run_lab.py --help. Defaults require NO hardware."""
 
 import argparse
 import json
@@ -19,7 +19,7 @@ def _parser() -> argparse.ArgumentParser:
     )
     sub = p.add_subparsers(dest="command", required=True)
     demo = sub.add_parser("demo", help="Generate and analyze only synthetic EEG-like recordings")
-    demo.add_argument("--out", type=Path, default=ROOT / "results/demo")
+    demo.add_argument("--out", type=Path, default=ROOT / "reports/demo")
     demo.add_argument("--config", type=Path)
     demo.add_argument("--seed", type=int)
     demo.add_argument("--channels", type=int, choices=[4, 6, 8])
@@ -30,14 +30,15 @@ def _parser() -> argparse.ArgumentParser:
     circuits = sub.add_parser(
         "circuits", help="Solve a passive model; export SPICE; compare when installed"
     )
-    circuits.add_argument("--out", type=Path, default=ROOT / "results/circuits")
+    circuits.add_argument("--out", type=Path, default=ROOT / "reports/circuits")
     circuits.add_argument("--require-ngspice", action="store_true")
     verify = sub.add_parser(
         "verify", help="Run automated tests and record exact verification scope"
     )
-    verify.add_argument("--require-ngspice", action="store_true")
+    verify.add_argument("--native", "--require-ngspice", dest="native", action="store_true")
+    verify.add_argument("--out", type=Path, default=ROOT / "reports/check")
     receive = sub.add_parser("receive", help="Capture synthetic/bench UDP; localhost default")
-    receive.add_argument("--out", type=Path, default=ROOT / "results/capture.bin")
+    receive.add_argument("--out", type=Path, default=ROOT / "reports/capture.bin")
     receive.add_argument("--host", default="127.0.0.1")
     receive.add_argument("--port", type=int, default=9000)
     receive.add_argument("--seconds", type=float, default=10)
@@ -53,18 +54,18 @@ def _parser() -> argparse.ArgumentParser:
         "decode", help="Decode transport file to CSV without interpolating gaps"
     )
     decode.add_argument("input", type=Path)
-    decode.add_argument("--out", type=Path, default=ROOT / "results/capture.csv")
+    decode.add_argument("--out", type=Path, default=ROOT / "reports/capture.csv")
     decode.add_argument("--vref", type=float, default=4.5)
     inspect = sub.add_parser(
         "inspect", help="Gap-safe quality and PSD report from decoded bench CSV"
     )
     inspect.add_argument("input", type=Path)
-    inspect.add_argument("--out", type=Path, default=ROOT / "results/capture_quality")
+    inspect.add_argument("--out", type=Path, default=ROOT / "reports/capture_quality")
     serial = sub.add_parser(
         "serial", help="USB bench capture ONLY, all body electrodes disconnected"
     )
     serial.add_argument("--port", required=True)
-    serial.add_argument("--out", type=Path, default=ROOT / "results/serial.bin")
+    serial.add_argument("--out", type=Path, default=ROOT / "reports/serial.bin")
     serial.add_argument("--seconds", type=float, default=10)
     serial.add_argument("--acknowledge-bench-only", action="store_true", required=True)
     return p
@@ -113,9 +114,12 @@ def _dispatch(args: argparse.Namespace) -> int:
 
         print(json.dumps(circuit_report(args.out, require_ngspice=args.require_ngspice), indent=2))
     elif args.command == "verify":
-        from tools.validate import validate
+        from tools.check import main as check
 
-        return validate(ROOT, args.require_ngspice)
+        options = ["--out", str(args.out)]
+        if args.native:
+            options.append("--native")
+        return check(options)
     elif args.command == "receive":
         from lab.acquisition import capture_udp
 

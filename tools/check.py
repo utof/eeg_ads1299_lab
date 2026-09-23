@@ -156,9 +156,9 @@ def _native(out: Path) -> None:
         "loopback",
         [
             sys.executable,
-            "-c",
-            "from pathlib import Path; from tools.run_loopback import main; "
-            "raise SystemExit(main(Path(__import__('sys').argv[1])))",
+            "-m",
+            "tools.run_loopback",
+            "--out",
             str(out / "loopback"),
         ],
         out,

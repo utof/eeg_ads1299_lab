@@ -313,8 +313,12 @@ def _check_shape(value: object, schema: object, path: str) -> None:
     elif origin is list:
         _check_sequence_shape(value, schema, path)
     elif schema is float:
-        if type(value) not in (int, float):
-            raise ValueError(f"{path}: expected a number, not {type(value).__name__}")
+        if (
+            isinstance(value, bool)
+            or not isinstance(value, (int, float))
+            or not math.isfinite(value)
+        ):
+            raise ValueError(f"{path}: expected a finite number")
     elif schema not in (str, int, bool) or type(value) is not schema:
         raise ValueError(f"{path}: incorrect JSON type for {schema}")
 
@@ -369,6 +373,9 @@ def validate(profile: BoardProfile, bom: BillOfMaterials, sources: SourcesDocume
             errors.append(message)
 
     try:
+        _check_shape(profile, BoardProfile, "profile")
+        _check_shape(bom, BillOfMaterials, "bom")
+        _check_shape(sources, SourcesDocument, "sources")
         for document in (profile, bom, sources):
             require(document["schema_version"] == 1, "unsupported schema version")
         require(set(profile["gates"]) == GATES, "gate set changed")
@@ -438,9 +445,10 @@ def validate(profile: BoardProfile, bom: BillOfMaterials, sources: SourcesDocume
             "do not buy/count the devkit module twice",
         )
 
-        _validate_afe(profile, parts, bom, require)
-        _validate_network(profile, parts, bom, require)
+        _validate_afe(profile, parts, require)
+        _validate_network(profile, parts, require)
         _validate_power(profile, parts, bom, require)
+        _validate_integration(profile, require)
     except (KeyError, TypeError, ValueError, InvalidOperation, AttributeError) as exc:
         errors.append(f"malformed or incomplete design document: {exc}")
     return errors
@@ -449,7 +457,6 @@ def validate(profile: BoardProfile, bom: BillOfMaterials, sources: SourcesDocume
 def _validate_afe(
     profile: BoardProfile,
     parts: dict[str, BomItem],
-    bom: BillOfMaterials,
     require: Callable[[bool, str], None],
 ) -> None:
     afe = profile["afe"]
@@ -505,7 +512,6 @@ def _validate_afe(
 def _validate_network(
     profile: BoardProfile,
     parts: dict[str, BomItem],
-    bom: BillOfMaterials,
     require: Callable[[bool, str], None],
 ) -> None:
     network = profile["input_network"]
@@ -592,6 +598,25 @@ def _validate_power(
     require: Callable[[bool, str], None],
 ) -> None:
     power = profile["power"]
+    require(
+        power["avdd_operating_min_v"] == 4.75 and power["avdd_operating_max_v"] == 5.25,
+        "reviewed ADS operating rail limits must not be redefined",
+    )
+    require(
+        power["external_source_nominal_v"] == power["avdd_design_v"] == 5.0,
+        "reviewed 5 V bench source drift",
+    )
+    require(
+        0 <= power["external_source_tolerance_fraction"] <= 0.01
+        and power["analog_branch_design_current_budget_a"] == 0.01,
+        "reviewed source tolerance/current budget drift",
+    )
+    require(
+        power["common_ground"] is True
+        and power["battery_selected"] is False
+        and power["charger_fitted"] is False,
+        "bench power integration drift",
+    )
     require(power["topology"] == "unipolar_bench" and power["avss_v"] == 0, "power topology drift")
     require(
         power["dvdd_v"] == parts["dvdd_ldo"]["spec"]["output_v"] == 3.3,
@@ -619,14 +644,6 @@ def _validate_power(
         low >= power["avdd_operating_min_v"] and high <= power["avdd_operating_max_v"],
         "analog rail design envelope outside ADS operating range",
     )
-    require(
-        profile["integration"]["this_json_is_not_loaded_by_existing_firmware"] is True,
-        "this commit does not implement firmware integration",
-    )
-    require(
-        profile["integration"]["preserve_simulated_channel_counts"] == [4, 6, 8],
-        "retain multi-variant simulation support",
-    )
     costs = totals(bom)
     require(
         costs["planning_total"] <= money(bom["budget_target_usd"]),
@@ -635,6 +652,25 @@ def _validate_power(
     require(
         "PCB assembly/stencil/setup fees" in bom["excluded"] and "shipping" in bom["excluded"],
         "budget exclusions missing",
+    )
+
+
+def _validate_integration(profile: BoardProfile, require: Callable[[bool, str], None]) -> None:
+    integration = profile["integration"]
+    require(
+        integration["requires_explicit_s3_firmware_profile"] is True
+        and integration["do_not_remove_existing_target_guard"] is True
+        and integration["this_json_is_not_loaded_by_existing_firmware"] is True,
+        "explicit S3 port and existing target guards must remain required",
+    )
+    require(
+        integration["existing_firmware_modified"] is False
+        and integration["existing_model_defaults_modified"] is False,
+        "baseline must not claim firmware or educational-model modifications",
+    )
+    require(
+        integration["preserve_simulated_channel_counts"] == [4, 6, 8],
+        "retain multi-variant simulation support",
     )
 
 

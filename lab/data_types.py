@@ -121,6 +121,7 @@ class CaptureSummary(TrackerSummary):
     flags: int
     gap_policy: str
     recording_mode: str
+    csv_sha256: NotRequired[str]
 
 
 class InspectionReport(TypedDict):

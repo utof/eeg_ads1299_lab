@@ -162,7 +162,7 @@ Our offline analysis uses a 1–40-Hz bandpass on individual candidate windows. 
 ### Exercise: remove the answer from the generator
 
 ```bash
-python run_lab.py demo --null-effect --out results/my_null
+uv run --locked python run_lab.py demo --null-effect --out results/my_null
 ```
 
 Now both labels have the same alpha-generation rule. In the recorded example, balanced accuracy falls from 100% to about 54%. One near-chance run is a useful negative control, not a proof that every possible source of leakage has been eliminated.

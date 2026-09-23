@@ -4,70 +4,18 @@ import csv
 import json
 from dataclasses import asdict
 from pathlib import Path
-from typing import TypeVar
 
 import numpy as np
-from numpy.lib.npyio import NpzFile
-from numpy.typing import NDArray
 
 from .adc import ADCConfig, sinc3_magnitude, to_volts
 from .analog import InputNetwork, transfer
 from .data_types import AnalysisReport, BoolArray, EpochRow, FloatArray, Recording
 from .dsp import analyze, psd
-from .signals import SyntheticConfig, generate, parse_metadata
-from .validation import stored_array
+from .recording import load_data as load_data
+from .recording import save_data as save_data
+from .signals import SyntheticConfig, generate
 
 _DEFAULT_CONFIG = SyntheticConfig()
-
-
-def save_data(data: Recording, path: str | Path) -> None:
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    np.savez_compressed(
-        path,
-        codes=data["codes"],
-        session=data["session"],
-        block=data["block"],
-        condition=data["condition"],
-        time_s=data["time_s"],
-        invalid=data["invalid"],
-        artifact_truth=data["artifact_truth"],
-        metadata_json=np.array(json.dumps(data["metadata"])),
-    )
-
-
-def load_data(path: str | Path) -> Recording:
-    archive: NpzFile
-    with np.load(path, allow_pickle=False) as archive:
-        metadata_raw: object = archive["metadata_json"]
-        metadata_text = str(metadata_raw)
-        metadata_value: object = json.loads(metadata_text)
-        data: Recording = {
-            "codes": _stored(archive, "codes", np.int32, 2),
-            "session": _stored(archive, "session", np.int16, 1),
-            "block": _stored(archive, "block", np.int16, 1),
-            "condition": _stored(archive, "condition", np.int8, 1),
-            "time_s": _stored(archive, "time_s", np.float64, 1),
-            "invalid": _stored(archive, "invalid", np.bool_, 2),
-            "artifact_truth": _stored(archive, "artifact_truth", np.bool_, 1),
-            "metadata": parse_metadata(metadata_value),
-        }
-    samples = len(data["codes"])
-    expected = (samples, data["metadata"]["channels"])
-    if data["codes"].shape != expected or data["invalid"].shape != expected:
-        raise ValueError("codes/invalid: channel or sample count mismatch")
-    for name in ("session", "block", "condition", "time_s", "artifact_truth"):
-        # All arrays in this tuple are explicitly known 1-D contracts.
-        lengths = {
-            "session": len(data["session"]),
-            "block": len(data["block"]),
-            "condition": len(data["condition"]),
-            "time_s": len(data["time_s"]),
-            "artifact_truth": len(data["artifact_truth"]),
-        }
-        if lengths[name] != samples:
-            raise ValueError(f"{name}: sample count mismatch")
-    return data
 
 
 def make_plots(
@@ -207,11 +155,3 @@ def _condition_psd(
         raise ValueError(f"No accepted epochs for condition {label}")
     mean: FloatArray = np.mean(spectra, axis=0)
     return frequencies, mean
-
-
-Scalar = TypeVar("Scalar", bound=np.generic)
-
-
-def _stored(archive: NpzFile, name: str, dtype: type[Scalar], ndim: int) -> NDArray[Scalar]:
-    value: object = archive[name]
-    return stored_array(value, dtype, ndim, name)

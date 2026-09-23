@@ -82,11 +82,11 @@ The sketch reads the ADC ID, determines the physical channel count, sets and che
 `USE_WIFI_UDP = false` sends a custom binary USB serial stream for bench use. It is not Arduino Serial Plotter CSV. Optional Python support requires:
 
 ```bash
-python -m pip install -r requirements-serial.txt
-python run_lab.py serial --port /dev/ttyUSB0 --seconds 30 \
+uv run --locked python -m pip install -r requirements-serial.txt
+uv run --locked python run_lab.py serial --port /dev/ttyUSB0 --seconds 30 \
   --out results/internal_test.bin --acknowledge-bench-only
-python run_lab.py decode results/internal_test.bin --out results/internal_test.csv
-python run_lab.py inspect results/internal_test.csv --out results/internal_test_quality
+uv run --locked python run_lab.py decode results/internal_test.bin --out results/internal_test.csv
+uv run --locked python run_lab.py inspect results/internal_test.csv --out results/internal_test_quality
 ```
 
 The serial device name is an example; Windows often uses a `COM` name. Every body lead, including reference and bias, must be disconnected throughout USB bench capture. That acknowledgement flag is not an isolation mechanism.

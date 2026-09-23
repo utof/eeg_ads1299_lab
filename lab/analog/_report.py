@@ -30,6 +30,12 @@ class CircuitReport(TypedDict):
 def circuit_report(out: str | Path, seed: int = 42, require_ngspice: bool = False) -> CircuitReport:
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
+    report_path = out / "circuit_report.json"
+    report_path.unlink(missing_ok=True)
+    if require_ngspice and not shutil.which("ngspice"):
+        raise RuntimeError(
+            "Native SPICE validation required but ngspice unavailable; no SPICE pass claimed."
+        )
     f = np.geomspace(0.1, 100_000, 241)
     balanced = InputNetwork()
     mismatch = replace(balanced, r_electrode_n=50_000)
@@ -90,9 +96,5 @@ def circuit_report(out: str | Path, seed: int = 42, require_ngspice: bool = Fals
                 raise AssertionError(f"ngspice/nodal disagreement in {name}: {error}")
             report.setdefault("ngspice_comparisons", {})[name] = error
             report["ngspice"] = {"status": "executed_and_compared"}
-    (out / "circuit_report.json").write_text(json.dumps(report, indent=2))
-    if require_ngspice and not shutil.which("ngspice"):
-        raise RuntimeError(
-            "Native SPICE validation required but ngspice unavailable; no SPICE pass claimed."
-        )
+    report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
     return report
