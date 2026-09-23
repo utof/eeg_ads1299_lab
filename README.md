@@ -2,7 +2,7 @@
 
 **Start without buying anything.** This is a runnable Python learning environment for EEG-like signals, an illustrative electrode/input circuit, signed 24-bit conversion, data transport, signal quality, and a small machine-learning experiment.
 
-It is **not a finished EEG recorder, a validated PCB, or permission to attach a circuit to a person**. The firmware is a board-dependent **bench-only starter** using the ADS1299's internal test/short circuits. The exact ADS1299 board and ESP32 model are still unknown.
+It is **not a finished EEG recorder, a validated PCB, or permission to attach a circuit to a person**. The firmware is a board-dependent **bench-only starter** using the ADS1299's internal test/short circuits. **Rev A now selects an ADS1299-4 daughterboard plus ESP32-S3-DevKitC-1-N8R8 for simulation/schematic work; none of the hardware-review or body-connection gates are approved.**
 
 ## Open these first
 
@@ -11,7 +11,7 @@ It is **not a finished EEG recorder, a validated PCB, or permission to attach a 
 | [START_HERE.html](START_HERE.html) | Offline visual walkthrough, provisional digital pin map, interactive gain/offset calculator. Open after extracting the entire ZIP. |
 | [Results report](docs/RESULTS.md) | What actually ran, measured outputs, test evidence, and what remains unverified. |
 | [Learning guide](docs/LEARNING_GUIDE.md) | A beginner explanation of the electronics, simulations, signal processing, and small exercises. |
-| [Hardware guide](docs/HARDWARE_GUIDE.md) | Purchasing gate, $100 budget constraint, conditional wiring, bench tests, and the body-connection boundary. |
+| [Hardware guide](docs/HARDWARE_GUIDE.md) | Purchasing gate, $100 budget constraint, conditional wiring, bench tests, and the body-connection boundary. |\n| [Rev A hardware baseline](docs/HARDWARE_BASELINE_REV_A.md) | Selected ADS1299-4 + ESP32-S3 components, machine-readable BOM/profile, fail-closed gates, and ordered next work. |
 | [Experiments guide](docs/EXPERIMENTS.md) | From synthetic alpha to a future controlled meditation experiment, without confusing artifacts with consciousness. |
 | [Next-session handoff](docs/LLM_HANDOFF.md) | Give this to a future assistant together with the source and validation records. |
 
