@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-09-23",
+  "repository": {
+    "url": "https://github.com/utof/eeg_ads1299_lab",
+    "live_read_succeeded": true,
+    "upstream_commit": "31205de841c577c373532fbc9d065fa81d0a6ac8",
+    "remote_write_succeeded": true,
+    "delivery": "integrated on a review branch against the recorded upstream commit"
+  },
+  "reports": [
+    {
+      "id": "REPORT_1",
+      "filename": "Pasted text.txt",
+      "sha256": "9f9982310abd743b469f8567a14f1e5857602ba3dedf1973e23702c782e71ab3",
+      "authority": "agent research supplied by user; secondary evidence, not a hardware validation"
+    },
+    {
+      "id": "REPORT_2",
+      "filename": "Pasted text (2).txt",
+      "sha256": "07250e1eafbf63188645ea16ae38aac4cf802ec5c3184d64e244fbc541021131",
+      "authority": "agent research supplied by user; secondary evidence, not a hardware validation"
+    }
+  ],
+  "primary_sources": [
+    {
+      "id": "TI_ADS_DS",
+      "title": "ADS1299-x datasheet, SBAS499C",
+      "url": "https://www.ti.com/lit/ds/symlink/ads1299.pdf",
+      "sections": "device comparison; pin functions; serial interface; 10.2.2; 11; Fig. 77",
+      "verification": "read; relevant diagrams inspected"
+    },
+    {
+      "id": "TI_ADS_PRODUCT",
+      "title": "ADS1299 product and model catalog",
+      "url": "https://www.ti.com/product/ADS1299",
+      "sections": "Design & development: ADS129x IBIS SBAM163A.ZIP",
+      "verification": "catalog entry verified; model archive not retrieved"
+    },
+    {
+      "id": "TI_ADS4",
+      "title": "ADS1299-4PAGR orderable part",
+      "url": "https://www.ti.com/product/ADS1299-4/part-details/ADS1299-4PAGR",
+      "verification": "part identity verified; no current landed quote obtained"
+    },
+    {
+      "id": "TI_EVM",
+      "title": "ADS1299EEG-FE user guide, SLAU443B",
+      "url": "https://www.ti.com/lit/ug/slau443b/slau443b.pdf",
+      "sections": "Table 10, printed pp. 57-58",
+      "verification": "BOM screenshots inspected; precedent, not a current stock check"
+    },
+    {
+      "id": "ESP_DEVKIT",
+      "title": "ESP32-S3-DevKitC-1 user guide",
+      "url": "https://documentation.espressif.com/api/resource/path/docs/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/user_guide.html",
+      "sections": "ordering; headers; mutually exclusive power options; revision details",
+      "verification": "read"
+    },
+    {
+      "id": "ESP_MODULE",
+      "title": "ESP32-S3-WROOM-1 / WROOM-1U datasheet",
+      "url": "https://www.espressif.com/sites/default/files/documentation/esp32-s3-wroom-1_wroom-1u_datasheet_en.pdf",
+      "sections": "module ordering and memory variants",
+      "verification": "read; module variant table inspected"
+    },
+    {
+      "id": "TI_LDO",
+      "title": "TPS7A2033PDBVR orderable part",
+      "url": "https://www.ti.com/product/TPS7A20/part-details/TPS7A2033PDBVR",
+      "sections": "300 mA; 3.3 V; DBV; output capacitance requirements",
+      "verification": "read; no current landed quote obtained"
+    },
+    {
+      "id": "TI_LDO_MODELS",
+      "title": "TPS7A20 product/model catalog",
+      "url": "https://www.ti.com/product/TPS7A20",
+      "verification": "PSpice catalog entry verified; ngspice compatibility not tested"
+    },
+    {
+      "id": "NX_BAV",
+      "title": "BAV199 datasheet, 1 April 2023",
+      "url": "https://assets.nexperia.com/documents/data-sheet/BAV199.pdf",
+      "sections": "pinning and electrical characteristics",
+      "verification": "pinning and leakage/forward-voltage tables inspected; model archive not retrieved"
+    },
+    {
+      "id": "KEMET_T491",
+      "title": "T491 solid tantalum series",
+      "url": "https://content.kemet.com/datasheets/KEM_T2005_T491.pdf",
+      "sections": "ordering code; 16 V, 22 uF B case and 100 uF D case ratings",
+      "verification": "ordering and ratings read; 22 uF table screenshot inspected; retailer stock not checked"
+    },
+    {
+      "id": "SAMTEC",
+      "title": "TSW-110-07-T-D header",
+      "url": "https://www.samtec.com/products/tsw-110-07-t-d",
+      "verification": "exact 20-pin through-hole part verified"
+    },
+    {
+      "id": "MURATA_TOOL",
+      "title": "Murata SimSurfing",
+      "url": "https://ds.murata.com/simsurfing/mlcc.html",
+      "verification": "tool identified; exact selected-part effective-capacitance curves not retrieved"
+    }
+  ],
+  "limitations": [
+    "No source or model binaries vendored.",
+    "No current supplier basket or assembly quote.",
+    "Commodity substitutions require value, tolerance, dielectric, voltage and footprint review; an MPN here is a design selection, not purchasing approval."
+  ]
+}

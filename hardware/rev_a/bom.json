@@ -1,0 +1,448 @@
+{
+  "schema_version": 1,
+  "revision": "A",
+  "scope": "one four-channel bench daughterboard plus one external ESP32-S3 devkit",
+  "currency": "USD",
+  "prices_are_quotes": false,
+  "line_items": [
+    {
+      "id": "afe",
+      "mpn": "ADS1299-4PAGR",
+      "manufacturer": "Texas Instruments",
+      "description": "Four-channel AFE",
+      "package": "PAG / TQFP-64",
+      "references": [
+        "U1"
+      ],
+      "quantity": 1,
+      "population": "fit",
+      "planning_unit_usd": "45.00",
+      "source_ids": [
+        "TI_ADS4",
+        "TI_ADS_DS"
+      ],
+      "evidence": "exact manufacturer part page verified; price is an allowance, not a quote",
+      "spec": {
+        "channels": 4
+      }
+    },
+    {
+      "id": "controller",
+      "mpn": "ESP32-S3-DevKitC-1-N8R8",
+      "manufacturer": "Espressif",
+      "description": "External controller development board; includes module and its 3.3 V regulator",
+      "package": "Development board",
+      "references": [
+        "MOD1"
+      ],
+      "quantity": 1,
+      "population": "fit",
+      "planning_unit_usd": "15.00",
+      "source_ids": [
+        "ESP_DEVKIT",
+        "ESP_MODULE"
+      ],
+      "evidence": "official order code and pinout verified; prefer PCB v1.1, record actual revision",
+      "spec": {
+        "module": "ESP32-S3-WROOM-1-N8R8"
+      }
+    },
+    {
+      "id": "dvdd_ldo",
+      "mpn": "TPS7A2033PDBVR",
+      "manufacturer": "Texas Instruments",
+      "description": "3.3 V regulator for AFE DVDD only",
+      "package": "SOT-23-5 / DBV",
+      "references": [
+        "U2"
+      ],
+      "quantity": 1,
+      "population": "fit",
+      "planning_unit_usd": "1.20",
+      "source_ids": [
+        "TI_LDO"
+      ],
+      "evidence": "exact manufacturer part page verified",
+      "spec": {
+        "output_v": 3.3,
+        "rated_output_current_a": 0.3,
+        "supplies_mcu": false
+      }
+    },
+    {
+      "id": "input_r",
+      "mpn": "RC0603FR-074K99L",
+      "manufacturer": "Yageo",
+      "description": "Two series resistors per differential channel",
+      "package": "0603",
+      "references": [
+        "R_IN1P",
+        "R_IN1N",
+        "R_IN2P",
+        "R_IN2N",
+        "R_IN3P",
+        "R_IN3N",
+        "R_IN4P",
+        "R_IN4N"
+      ],
+      "quantity": 8,
+      "population": "fit",
+      "planning_unit_usd": "0.08",
+      "source_ids": [
+        "TI_EVM"
+      ],
+      "evidence": "exact MPN appears in TI EVM BOM",
+      "spec": {
+        "resistance_ohm": 4990,
+        "tolerance_fraction": 0.01,
+        "rated_power_w": 0.1
+      }
+    },
+    {
+      "id": "input_c",
+      "mpn": "GRM1885C1H472JA01D",
+      "manufacturer": "Murata",
+      "description": "One differential capacitor per channel",
+      "package": "0603",
+      "references": [
+        "C_DIFF1",
+        "C_DIFF2",
+        "C_DIFF3",
+        "C_DIFF4"
+      ],
+      "quantity": 4,
+      "population": "fit",
+      "planning_unit_usd": "0.40",
+      "source_ids": [
+        "REPORT_1",
+        "TI_ADS_DS",
+        "MURATA_TOOL"
+      ],
+      "evidence": "report MPN retained as design selection; supplier and manufacturer part-specific data check pending",
+      "spec": {
+        "capacitance_f": 4.7e-09,
+        "dielectric": "C0G",
+        "rated_voltage_v": 50,
+        "tolerance_fraction": 0.05
+      }
+    },
+    {
+      "id": "bias_r",
+      "mpn": "RC0603FR-071ML",
+      "manufacturer": "Yageo",
+      "description": "BIAS feedback and separate dummy-load output resistor",
+      "package": "0603",
+      "references": [
+        "R_BIAS_FB",
+        "R_BIAS_OUT"
+      ],
+      "quantity": 2,
+      "population": "fit",
+      "planning_unit_usd": "0.10",
+      "source_ids": [
+        "TI_ADS_DS"
+      ],
+      "evidence": "engineering selection; verify current orderability before purchase",
+      "spec": {
+        "resistance_ohm": 1000000,
+        "tolerance_fraction": 0.01,
+        "rated_power_w": 0.1
+      }
+    },
+    {
+      "id": "bias_c",
+      "mpn": "GRM1885C1H152JA01D",
+      "manufacturer": "Murata",
+      "description": "BIAS feedback capacitor",
+      "package": "0603",
+      "references": [
+        "C_BIAS_FB"
+      ],
+      "quantity": 1,
+      "population": "fit",
+      "planning_unit_usd": "0.35",
+      "source_ids": [
+        "TI_ADS_DS",
+        "MURATA_TOOL"
+      ],
+      "evidence": "engineering selection; verify current orderability before purchase",
+      "spec": {
+        "capacitance_f": 1.5e-09,
+        "dielectric": "C0G",
+        "rated_voltage_v": 50,
+        "tolerance_fraction": 0.05
+      }
+    },
+    {
+      "id": "vcap1",
+      "mpn": "T491D107K016AT",
+      "manufacturer": "KEMET",
+      "description": "VCAP1: polarized non-ferroelectric capacitor",
+      "package": "D / 7343-31",
+      "references": [
+        "C_VCAP1"
+      ],
+      "quantity": 1,
+      "population": "fit",
+      "planning_unit_usd": "2.00",
+      "source_ids": [
+        "TI_ADS_DS",
+        "KEMET_T491"
+      ],
+      "evidence": "manufacturer series ordering/rating table verified",
+      "spec": {
+        "capacitance_f": 0.0001,
+        "dielectric": "solid tantalum",
+        "rated_voltage_v": 16,
+        "tolerance_fraction": 0.1
+      }
+    },
+    {
+      "id": "vref",
+      "mpn": "T491B226K016AT",
+      "manufacturer": "KEMET",
+      "description": "VREFP to VREFN: 22 uF gives margin above 10 uF minimum",
+      "package": "B / 3528-21",
+      "references": [
+        "C_REF"
+      ],
+      "quantity": 1,
+      "population": "fit",
+      "planning_unit_usd": "1.20",
+      "source_ids": [
+        "TI_ADS_DS",
+        "KEMET_T491"
+      ],
+      "evidence": "manufacturer series ordering/rating table verified; ref loading/settling remains to be measured",
+      "spec": {
+        "capacitance_f": 2.2e-05,
+        "dielectric": "solid tantalum",
+        "rated_voltage_v": 16,
+        "tolerance_fraction": 0.1
+      }
+    },
+    {
+      "id": "decap_1u",
+      "mpn": "GRM188R61E105KA12D",
+      "manufacturer": "Murata",
+      "description": "VCAP2/3/4, local supply pins and paired LDO capacitors",
+      "package": "0603",
+      "references": [
+        "C_VCAP2",
+        "C_VCAP3",
+        "C_VCAP4",
+        "C_AVDD_19",
+        "C_AVDD_21",
+        "C_AVDD_22",
+        "C_AVDD_56",
+        "C_AVDD_59",
+        "C_AVDD1_54",
+        "C_DVDD_48",
+        "C_DVDD_50",
+        "C_LDO_IN_A",
+        "C_LDO_IN_B",
+        "C_LDO_OUT_A",
+        "C_LDO_OUT_B"
+      ],
+      "quantity": 15,
+      "population": "fit",
+      "planning_unit_usd": "0.15",
+      "source_ids": [
+        "TI_EVM",
+        "TI_ADS_DS",
+        "TI_LDO"
+      ],
+      "evidence": "exact MPN appears in EVM; effective capacitance versus bias must be checked",
+      "spec": {
+        "capacitance_f": 1e-06,
+        "dielectric": "X5R",
+        "rated_voltage_v": 25,
+        "tolerance_fraction": 0.1
+      }
+    },
+    {
+      "id": "decap_100n",
+      "mpn": "GRM188R71H104KA93D",
+      "manufacturer": "Murata",
+      "description": "Local high-frequency bypass",
+      "package": "0603",
+      "references": [
+        "C_VCAP1_HF",
+        "C_VCAP3_HF",
+        "C_REF_HF",
+        "C_AVDD_HF",
+        "C_AVDD1_HF",
+        "C_DVDD_HF",
+        "C_VIN_HF"
+      ],
+      "quantity": 7,
+      "population": "fit",
+      "planning_unit_usd": "0.10",
+      "source_ids": [
+        "TI_EVM",
+        "TI_ADS_DS"
+      ],
+      "evidence": "exact MPN appears in EVM",
+      "spec": {
+        "capacitance_f": 1e-07,
+        "dielectric": "X7R",
+        "rated_voltage_v": 50,
+        "tolerance_fraction": 0.1
+      }
+    },
+    {
+      "id": "bulk_10u",
+      "mpn": "GRM219R61A106KE44D",
+      "manufacturer": "Murata",
+      "description": "Input, AVDD, AVDD1 and DVDD bulk capacitors",
+      "package": "0805",
+      "references": [
+        "C_VIN_BULK",
+        "C_AVDD_BULK",
+        "C_AVDD1_BULK",
+        "C_DVDD_BULK"
+      ],
+      "quantity": 4,
+      "population": "fit",
+      "planning_unit_usd": "0.35",
+      "source_ids": [
+        "TI_EVM"
+      ],
+      "evidence": "exact MPN appears in EVM; effective capacitance versus bias must be checked",
+      "spec": {
+        "capacitance_f": 1e-05,
+        "dielectric": "X5R",
+        "rated_voltage_v": 10,
+        "tolerance_fraction": 0.1
+      }
+    },
+    {
+      "id": "analog_feed",
+      "mpn": "RC0603FR-0710RL",
+      "manufacturer": "Yageo",
+      "description": "Analog rail RC feed, not a voltage regulator",
+      "package": "0603",
+      "references": [
+        "R_AVDD_FEED"
+      ],
+      "quantity": 1,
+      "population": "fit",
+      "planning_unit_usd": "0.08",
+      "source_ids": [
+        "TI_ADS_DS"
+      ],
+      "evidence": "engineering selection; verify current orderability before purchase",
+      "spec": {
+        "resistance_ohm": 10,
+        "tolerance_fraction": 0.01,
+        "rated_power_w": 0.1
+      }
+    },
+    {
+      "id": "straps",
+      "mpn": "RC0603FR-0710KL",
+      "manufacturer": "Yageo",
+      "description": "Control defaults and unused digital input termination",
+      "package": "0603",
+      "references": [
+        "R_CS_UP",
+        "R_CLKSEL_UP",
+        "R_RESET_DN",
+        "R_PWDN_DN",
+        "R_START_DN",
+        "R_SCLK_DN",
+        "R_DIN_DN",
+        "R_DAISY_DN",
+        "R_GPIO1_DN",
+        "R_GPIO2_DN",
+        "R_GPIO3_DN",
+        "R_GPIO4_DN"
+      ],
+      "quantity": 12,
+      "population": "fit",
+      "planning_unit_usd": "0.06",
+      "source_ids": [
+        "TI_EVM",
+        "TI_ADS_DS"
+      ],
+      "evidence": "exact MPN appears in EVM; proposed strap population is a new design decision",
+      "spec": {
+        "resistance_ohm": 10000,
+        "tolerance_fraction": 0.01,
+        "rated_power_w": 0.1
+      }
+    },
+    {
+      "id": "headers",
+      "mpn": "TSW-110-07-T-D",
+      "manufacturer": "Samtec",
+      "description": "Two 2x10 bench-only headers: digital and dummy-input",
+      "package": "THT / 2.54 mm / 2x10",
+      "references": [
+        "J_DIG",
+        "J_INPUT"
+      ],
+      "quantity": 2,
+      "population": "fit",
+      "planning_unit_usd": "0.90",
+      "source_ids": [
+        "SAMTEC"
+      ],
+      "evidence": "exact manufacturer part page verified; not touchproof, not patient connectors",
+      "spec": {}
+    },
+    {
+      "id": "clamps",
+      "mpn": "BAV199,215",
+      "manufacturer": "Nexperia",
+      "description": "Optional low-leakage steering diode experiment; DO NOT FIT initially",
+      "package": "SOT-23",
+      "references": [
+        "D_IN1P",
+        "D_IN1N",
+        "D_IN2P",
+        "D_IN2N",
+        "D_IN3P",
+        "D_IN3N",
+        "D_IN4P",
+        "D_IN4N"
+      ],
+      "quantity": 8,
+      "population": "dnp",
+      "planning_unit_usd": "0.30",
+      "source_ids": [
+        "NX_BAV",
+        "REPORT_1"
+      ],
+      "evidence": "BAV199 device characteristics verified; order suffix/model retrieval and fault qualification pending",
+      "spec": {
+        "diodes_per_package": 2
+      }
+    }
+  ],
+  "allowances": [
+    {
+      "id": "pcb",
+      "description": "Bare four-layer fabrication reserve; no assembly or shipping",
+      "planning_usd": "15.00"
+    },
+    {
+      "id": "harness",
+      "description": "Short bench leads / connector mating reserve",
+      "planning_usd": "3.00"
+    }
+  ],
+  "budget_target_usd": "100.00",
+  "excluded": [
+    "shipping",
+    "tax/VAT/import charges",
+    "PCB assembly/stencil/setup fees",
+    "soldering tools and assembly labor",
+    "regulated bench source and measurement equipment",
+    "battery and charger",
+    "enclosure",
+    "patient-safety components or certification",
+    "replacement electrodes: user already has more than ten"
+  ],
+  "purchase_approved": false
+}
