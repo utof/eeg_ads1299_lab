@@ -28,6 +28,22 @@ jobs:
         run: |
           git merge-base --is-ancestor 7aa0d1f5e693a43fb41028a3031e0d5c5fc4c940 HEAD
           uv run --locked python .github/apply_review.py
+          uv run --locked python - <<'PY'
+          from pathlib import Path
+          path = Path('lab/recording.py')
+          text = path.read_text()
+          text = text.replace('from .data_types import Recording', 'from .data_types import BoolArray, Recording')
+          text = text.replace('        indices = np.flatnonzero(data["block"] == block)', '        mask: BoolArray = data["block"] == block\n        indices = np.flatnonzero(mask)')
+          text = text.replace('        indices = np.flatnonzero(data["session"] == session)', '        mask: BoolArray = data["session"] == session\n        indices = np.flatnonzero(mask)')
+          path.write_text(text)
+          path = Path('tests/test_review_regressions.py')
+          text = path.read_text()
+          for pattern in ('counts|24-bit', 'time|continu', 'condition|block', 'session|block', 'scale|lsb'):
+              text = text.replace(f'match="{pattern}"', f'match=r"{pattern}"')
+          text = text.replace('recording["time_s"][99] + delta', 'float(recording["time_s"][99]) + delta')
+          text = text.replace('recording["condition"][100] ^= 1', 'recording["condition"][100] = int(recording["condition"][100]) ^ 1')
+          path.write_text(text)
+          PY
           rm .github/apply_review.py .github/workflows/review-authoring.yml .github/workflows/review-regressions.yml
           uv run --locked ruff check --fix .
           uv run --locked ruff format .
