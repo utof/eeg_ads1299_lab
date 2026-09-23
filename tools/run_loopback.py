@@ -7,11 +7,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
 from lab.acquisition import decode_capture, replay_packets
 from lab.inspect_capture import inspect_capture
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def main(out: Path | None = None) -> int:
