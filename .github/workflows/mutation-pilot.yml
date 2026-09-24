@@ -51,7 +51,7 @@ jobs:
           set +e
           export PATH="$PWD/.venv-mutation/bin:$PATH"
           start=$(date +%s)
-          timeout 420 mutmut run 'lab.validation*' > reports/mutation-pilot/mutmut.log 2>&1
+          timeout 420 mutmut run > reports/mutation-pilot/mutmut.log 2>&1
           result=$?
           end=$(date +%s)
           printf 'exit_code=%s\nelapsed_seconds=%s\n' "$result" "$((end-start))" | tee reports/mutation-pilot/run-status.txt
