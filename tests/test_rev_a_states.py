@@ -50,13 +50,13 @@ def test_corner_sequences_are_immutable(completed: StudyReport) -> None:
 
 @pytest.mark.parametrize("value", [-1.0, float("nan"), float("inf")])
 def test_completed_metrics_reject_invalid_values(completed: StudyReport, value: float) -> None:
-    with pytest.raises(ValueError, match="finite|nonnegative"):
+    with pytest.raises(ValueError, match=r"finite|nonnegative"):
         replace(completed.cases["balanced"], leakage_dc_bound_v=value)
 
 
 @pytest.mark.parametrize("value", [-1.0, float("nan"), float("inf")])
 def test_completed_report_rejects_invalid_leakage(completed: StudyReport, value: float) -> None:
-    with pytest.raises(ValueError, match="finite|nonnegative"):
+    with pytest.raises(ValueError, match=r"finite|nonnegative"):
         replace(completed, leakage_bound_a=value)
 
 
@@ -68,7 +68,7 @@ def test_completed_report_requires_all_scenarios(completed: StudyReport) -> None
 def test_completed_report_requires_all_corners(completed: StudyReport) -> None:
     incoming = dict(completed.corners)
     incoming.pop("balanced")
-    with pytest.raises(ValueError, match="corner|scenario"):
+    with pytest.raises(ValueError, match=r"corner|scenario"):
         replace(completed, corners=incoming)
 
 
