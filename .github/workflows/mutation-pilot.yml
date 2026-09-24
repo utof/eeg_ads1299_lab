@@ -40,7 +40,7 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           path = Path('pyproject.toml')
-          addition = '\n[tool.mutmut]\nsource_paths = ["lab/"]\nonly_mutate = ["lab/validation.py"]\npytest_add_cli_args_test_selection = ["tests/test_input_boundaries.py", "tests/test_adc.py", "tests/test_extended.py"]\n'
+          addition = '\n[tool.mutmut]\nsource_paths = ["lab/"]\nonly_mutate = ["lab/validation.py"]\nalso_copy = ["run_lab.py", "tools/", "hardware/", "firmware/", "configs/"]\npytest_add_cli_args_test_selection = ["tests/test_input_boundaries.py", "tests/test_adc.py", "tests/test_extended.py"]\n'
           path.write_text(path.read_text() + addition)
           Path('reports/mutation-pilot/experiment-config.txt').write_text(addition)
           PY
@@ -60,6 +60,7 @@ jobs:
           cat reports/mutation-pilot/results.txt
           mutmut export-cicd-stats > reports/mutation-pilot/statistics.json 2>&1
           cat reports/mutation-pilot/statistics.json
+          find mutants -name '*.meta' -o -name '*stats*' > reports/mutation-pilot/metadata-paths.txt
           exit "$result"
       - name: Restore experiment-only working configuration
         if: always()
