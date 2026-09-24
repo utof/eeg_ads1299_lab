@@ -126,7 +126,7 @@ class StudyReport:
     def __post_init__(self) -> None:
         if not isinstance(self.baseline, RevABaseline):
             raise TypeError("study baseline must be a RevABaseline")
-        if type(self.spice_evidence) not in (AnalyticOnly, NativeCompared):
+        if not isinstance(self.spice_evidence, (AnalyticOnly, NativeCompared)):
             raise TypeError("study evidence must be AnalyticOnly or NativeCompared")
         _finite_nonnegative(self.leakage_bound_a, "leakage bound")
         cases = dict(self.cases)
@@ -270,7 +270,7 @@ def _corners(model: InputNetwork, baseline: RevABaseline) -> list[InputNetwork]:
             r_series_n=model.r_series_n * rn,
             c_differential=model.c_differential * cd,
         )
-        for rp, rn, cd in product((1 - rt, 1 + rt), (1 - rt, 1 + ct))
+        for rp, rn, cd in product((1 - rt, 1 + rt), (1 - rt, 1 + rt), (1 - ct, 1 + ct))
     ]
 
 
