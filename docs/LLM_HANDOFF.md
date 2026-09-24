@@ -20,7 +20,7 @@ The shared check command enforces Ruff formatting/lint, strict Pyrefly (includin
 
 `lab.analog` is now a package facade with `_model`, `_solver`, `_spice`, and `_report` internals. Preserve public imports such as `from lab.analog import InputNetwork, transfer`. Use the `hardware.rev_a` facade for hardware-contract functions. Cross-component imports go through public interfaces; internal modules must not import back through their own facade. Keep `__all__` and `tach.toml` aligned. Validate external data at entry points; array dtype annotations do not establish shape, units, or finiteness.
 
-Hypothesis is already installed. Mutation testing with mutmut is a candidate for a small opt-in pilot, not yet a project dependency. See `docs/MODEL_REUSE_REVIEW.md` for dated research and compatibility limits; do not confuse a proposed tool with an installed, executed gate.
+Hypothesis is already installed. A scoped mutmut 3.8.0 pilot actually ran in a separate hash-locked Python 3.13 environment: 292 mutants, 207 killed, 60 survived, 25 with no associated tests in the focused selection. See `docs/MUTATION_PILOT.md` for exact run/artifact, elapsed time, failed setup attempts and interpretation limits. Survivors have not been individually classified. mutmut is not a permanent project dependency or mandatory CI gate. The disposable experiment PR #16 was closed without merging and its authoring workflow removed. See `docs/MODEL_REUSE_REVIEW.md` for the measured adoption decision.
 
 ## What exists and what was verified
 
@@ -42,7 +42,7 @@ Do not provide invented power, reference, bias or electrode connections for an u
 
 PR #11 has been merged at `9400c797003fe7610e8710b5954bab2851bdd66d` after its final three checks passed. Its selected-component passive study is implemented; do not describe that bridge as still unstarted. Source/contact impedances and ADC-node parasitics remain illustrative, not measurements of the owned MCScap leads.
 
-Read `docs/MODEL_REUSE_REVIEW.md` before expanding the models. Reuse TI's SBAA188 RLD/BIAS topology and analysis; TI specifically connects it to ADS1299. The TPS7A20 vendor PSpice transient model still needs an actual compatibility smoke test. Do not launch a full ADS1299 transistor/macromodel implementation. Keep BIAS and power studies focused, parameter-bounded, and separate from the passive transfer solver.
+Read `docs/MODEL_REUSE_REVIEW.md` before expanding the models. Actual TI TINA subsystem examples were located: `ADS1299_BIAS_MEAS.TSC` and a four-channel electrode/lead-off example. Their attachment downloads failed; they were not imported or simulated here. Retrieve/inspect them before claiming reuse. Reuse TI's SBAA188 RLD/BIAS topology and analysis; TI specifically connects it to ADS1299. The TPS7A20 vendor PSpice transient model still needs an actual compatibility smoke test. Do not launch a full ADS1299 transistor/macromodel implementation. Keep BIAS and power studies focused, parameter-bounded, and separate from the passive transfer solver.
 
 Subsequent work is the exact four-channel schematic/ERC and independent footprint/polarity review, then the explicit ESP32-S3 firmware profile/compile tests with existing guards preserved. PCB/layout and an actual delivered build quote follow those gates. The planning subtotal is not a verified complete delivered under-$100 build.
 
@@ -56,7 +56,7 @@ Make one substantial change at a time; add a regression test; retain useful fail
 
 Hardware PR #1 and DX PR #2 were merged in order with merge commits. Audit #3 and child findings #4–#8 are implemented in merged PR #9; consult its final checks and `docs/ADVERSARIAL_REVIEW.md` rather than assuming a branch snapshot passed. Use Conventional Commits, uv-first commands, and merge commits without squash. `lab.recording` owns synthetic persistence/continuity, capture decoding streams into digest-bound artifacts, and `tools.check` owns verification. The existence of CI workflows is not proof that required-status branch protection is enabled. All hardware gates remain unchanged.
 
-Issue #12 / PR #13 separately address contradictory and mutable completed-study values. Read their actual status before claiming those changes are on main. Typed immutable values are not proof of filesystem crash consistency, model realism or hardware safety.
+Issue #12 / PR #13 separately address contradictory and mutable completed-study values. Read their actual status before claiming those changes are on main. Typed immutable values are not proof of filesystem crash consistency, model realism or hardware safety. Issue #15 tracks the remaining CLI rejection / run-identity / multi-file publication contract; it is not solved by the immutable result change.
 
 ## Rev A passive input study (issue #10)
 
