@@ -34,15 +34,14 @@ def test_report_is_explicit_about_analytic_only_and_safety(report_dir: Path) -> 
     result = study(report_dir)
     assert result.ngspice_status == "not_requested"
     assert result.ngspice_max_abs_error == {}
-    assert result.clamps_fitted is False
-    assert result.hardware_validated is False
-    assert result.body_connection_permitted is False
     assert len(result.cases) == 3
     assert len(list(report_dir.glob("*/*/network.cir"))) == 6
     assert len(list(report_dir.glob("*/response.csv"))) == 3
     stored: object = json.loads((report_dir / "study.json").read_text(encoding="utf-8"))
     assert isinstance(stored, dict)
     assert stored["hardware_validated"] is False
+    assert stored["clamps_fitted"] is False
+    assert stored["body_connection_permitted"] is False
 
 
 def test_ideal_source_limit_matches_independent_rc_reference(report_dir: Path) -> None:
@@ -52,7 +51,7 @@ def test_ideal_source_limit_matches_independent_rc_reference(report_dir: Path) -
     assert result.ideal_source_pole_hz == pytest.approx(pole, rel=1e-12)
     model = result.cases["ideal_source_limit"].parameters
     frequencies: FloatArray = np.geomspace(0.1, 100000, 101)
-    reference: ComplexArray = 1 / (1 + 1j * frequencies / pole)
+    reference: ComplexArray = np.asarray(1 / (1 + 1j * frequencies / pole), dtype=np.complex128)
     np.testing.assert_allclose(transfer(frequencies, model), reference, rtol=3e-7, atol=1e-9)
 
 
@@ -66,10 +65,14 @@ def test_loaded_resistive_case_matches_independent_half_circuit(report_dir: Path
     )
     frequencies: FloatArray = np.array([0.0, 10.0, 50.0, 60.0, 1000.0])
     resistance = model.r_series_p + model.r_electrode_p
-    expected: ComplexArray = 1 / (
+    expected: ComplexArray = np.asarray(
         1
-        + resistance / model.r_input_p
-        + 2j * np.pi * frequencies * 2 * resistance * model.c_differential
+        / (
+            1
+            + resistance / model.r_input_p
+            + 2j * np.pi * frequencies * 2 * resistance * model.c_differential
+        ),
+        dtype=np.complex128,
     )
     np.testing.assert_allclose(transfer(frequencies, model), expected, rtol=1e-12, atol=1e-12)
 
@@ -175,3 +178,29 @@ def test_real_ngspice_compares_all_six_drives(tmp_path: Path) -> None:
     assert len(result.ngspice_max_abs_error) == 6
     assert max(result.ngspice_max_abs_error.values()) < 1e-5
     assert len(list(tmp_path.glob("*/*/ngspice.log"))) == 6
+
+
+@pytest.mark.parametrize("bound", [-1.0, float("nan"), float("inf")])
+def test_invalid_rerun_removes_old_completion_marker(tmp_path: Path, bound: float) -> None:
+    marker = tmp_path / "study.json"
+    marker.write_text('{"ngspice_status":"executed_and_compared"}', encoding="utf-8")
+    with pytest.raises(ValueError, match="leakage"):
+        study(tmp_path, leakage_bound_a=bound)
+    assert not marker.exists()
+
+
+def test_analytic_rerun_removes_previous_simulator_outputs(tmp_path: Path) -> None:
+    study(tmp_path)
+    for netlist in tmp_path.glob("*/*/network.cir"):
+        for name in ("ac.txt", "ngspice.log"):
+            (netlist.parent / name).write_text("stale evidence", encoding="utf-8")
+    result = study(tmp_path)
+    assert result.ngspice_status == "not_requested"
+    assert not list(tmp_path.glob("*/*/ac.txt"))
+    assert not list(tmp_path.glob("*/*/ngspice.log"))
+
+
+@pytest.mark.parametrize("tolerance", [-0.01, 1.0, float("nan"), float("inf")])
+def test_baseline_rejects_invalid_tolerances(tolerance: float) -> None:
+    with pytest.raises(ValueError, match="tolerance"):
+        replace(load_baseline(), resistor_tolerance=tolerance)

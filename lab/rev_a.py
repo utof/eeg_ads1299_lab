@@ -196,15 +196,15 @@ def study(
     A report is the completion marker. Intermediate CSV/netlists are not evidence
     of a successful run. Different concurrent runs require different directories.
     """
+    out = Path(out)
+    report_path = out / "study.json"
+    report_path.unlink(missing_ok=True)
     if (
         isinstance(leakage_bound_a, bool)
         or not math.isfinite(leakage_bound_a)
         or leakage_bound_a < 0
     ):
         raise ValueError("leakage bound must be finite and nonnegative")
-    out = Path(out)
-    report_path = out / "study.json"
-    report_path.unlink(missing_ok=True)
     baseline = load_baseline()
     models = _models(baseline)
     cases = {name: _case_result(model, leakage_bound_a) for name, model in models.items()}
@@ -259,12 +259,27 @@ def main(argv: Sequence[str] | None = None) -> int:
         report = study(
             args.out,
             require_ngspice=args.require_ngspice,
-            leakage_bound_a=args.leakage_bound_na * 1e-9,
+            leakage_bound_a=float(args.leakage_bound_na) * 1e-9,
         )
     except (ValueError, RuntimeError, OSError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
-    print(json.dumps(asdict(report), indent=2, allow_nan=False))
+    summary = {
+        "report": str(Path(args.out) / "study.json"),
+        "ideal_source_pole_hz": report.ideal_source_pole_hz,
+        "ngspice_status": report.ngspice_status,
+        "ngspice_max_abs_error": report.ngspice_max_abs_error,
+        "case_metrics": {
+            name: {
+                "differential_gain_10hz": case.differential_gain_10hz,
+                "common_to_differential_50hz": case.common_to_differential_50hz,
+                "common_to_differential_60hz": case.common_to_differential_60hz,
+                "leakage_dc_bound_v": case.leakage_dc_bound_v,
+            }
+            for name, case in report.cases.items()
+        },
+    }
+    print(json.dumps(summary, indent=2, allow_nan=False))
     return 0
 
 
