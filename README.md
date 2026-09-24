@@ -136,6 +136,19 @@ tach.toml              Enforced public interfaces and dependency direction
 
 The firmware's default `BOARD_PROFILE_REVIEWED = false` intentionally prevents acquisition startup. Changing that setting acknowledges **bench digital wiring only**, not body-use approval. Do not bypass it just to see a waveform.
 
+## Rev A input-network study
+
+The selected Rev A input components now feed a reproducible passive-network study, rather than remaining isolated hardware JSON. Start with the numerical calculation; then run the independent simulator comparison when ngspice is installed:
+
+```bash
+uv run --locked python -m lab.rev_a --out reports/rev_a_input
+uv run --locked python -m lab.rev_a --require-ngspice --out reports/rev_a_input_native
+```
+
+The study validates and loads the locked 4.99 kOhm / 4.7 nF component values and BOM tolerances, checks an ideal-source reference, compares balanced and mismatched source impedances, evaluates eight tolerance corners per case, and reports 50/60 Hz common-mode conversion plus hypothetical DC leakage sensitivity. The native command actually runs six ngspice comparisons. `uv run --locked python -m tools.check --native` includes this study and retains its evidence under `reports/check/rev_a_input/`.
+
+All source/load/parasitic assumptions appear in the report. Clamps remain DNP. **This is not an ADS1299 silicon, distributed-cable, BIAS-loop, physical-hardware or human-use safety model.** Read the [Rev A study guide](docs/REV_A_INPUT_STUDY.md) before interpreting the numbers.
+
 ## Contributing: uv and Conventional Commits
 
 Use `uv sync --locked --all-extras` and `uv run --locked ...` for project work. Child processes launched with `sys.executable` inherit that locked interpreter; they do not create a second environment. CI bootstraps uv itself separately, then uses the same locked commands.
