@@ -67,7 +67,8 @@ def test_loaded_resistive_case_matches_independent_half_circuit(report_dir: Path
     frequencies: FloatArray = np.array([0.0, 10.0, 50.0, 60.0, 1000.0])
     resistance = model.r_series_p + model.r_electrode_p
     expected: ComplexArray = 1 / (
-        1 + resistance / model.r_input_p
+        1
+        + resistance / model.r_input_p
         + 2j * np.pi * frequencies * 2 * resistance * model.c_differential
     )
     np.testing.assert_allclose(transfer(frequencies, model), expected, rtol=1e-12, atol=1e-12)

@@ -47,3 +47,9 @@ Keep raw counts, event metadata, transport gaps and quality exclusions. Any futu
 Make one substantial change at a time; add a regression test; retain useful failing evidence. Do not overwrite committed historical reports during routine checks. Distinguish analytical checks, simulator runs, target compilation, physical bench evidence and physiological observations in every progress summary.
 
 Hardware PR #1 and DX PR #2 were merged in order with merge commits. Audit #3 and child findings #4–#8 are implemented in PR #9; consult its final checks and `docs/ADVERSARIAL_REVIEW.md` rather than assuming a branch snapshot passed. Use Conventional Commits, uv-first commands, and merge commits without squash. `lab.recording` owns synthetic persistence/continuity, capture decoding streams into digest-bound artifacts, and `tools.check` owns verification. The existence of CI workflows is not proof that required-status branch protection is enabled. All hardware gates remain unchanged.
+
+## Rev A passive input study (issue #10)
+
+After the adversarial fixes in PR #9 were merged and main passed all three checks, the next addition was `lab.rev_a`, an explicit consumer of the public `hardware.rev_a` and `lab.analog` APIs. It does not change generic analog defaults, hardware JSON or firmware. Run it through uv and read `docs/REV_A_INPUT_STUDY.md`. The native quality gate includes its six real ngspice comparisons and keeps reports in the normal ignored evidence directory.
+
+This closes the first executable selected-component/passive-input bridge, not the entire Rev A simulation plan. BIAS-loop stability, power/decoupling and input-fault analysis still need their own appropriate models; target-specific S3 compilation, schematic review and physical measurements are separate gates. Do not treat the illustrative ADC-node parasitics as a distributed cable model or the DC leakage sensitivity as qualified clamp protection.

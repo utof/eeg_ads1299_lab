@@ -73,7 +73,7 @@ depends_on = ["lab.acquisition", "lab.analog", "lab.inspect_capture", "lab.pipel
 
 [[modules]]
 path = "tests"
-depends_on = ["hardware.rev_a", "lab.acquisition", "lab.adc", "lab.analog", "lab.data_types", "lab.dsp", "lab.inspect_capture", "lab.pipeline", "lab.protocol", "lab.signals", "lab.validation", "tools.check", "tools.commit_messages", "run_lab"]
+depends_on = ["lab.rev_a", "hardware.rev_a", "lab.acquisition", "lab.adc", "lab.analog", "lab.data_types", "lab.dsp", "lab.inspect_capture", "lab.pipeline", "lab.protocol", "lab.signals", "lab.validation", "tools.check", "tools.commit_messages", "run_lab"]
 
 [[interfaces]]
 from = ["lab.data_types"]
@@ -150,3 +150,11 @@ depends_on = []
 [[interfaces]]
 from = ["tools.commit_messages"]
 expose = ["valid_subject", "check_range", "main"]
+
+[[modules]]
+path = "lab.rev_a"
+depends_on = ["hardware.rev_a", "lab.analog", "lab.data_types"]
+
+[[interfaces]]
+from = ["lab.rev_a"]
+expose = ["RevABaseline", "CaseResult", "StudyReport", "load_baseline", "study", "main"]

@@ -153,6 +153,11 @@ def _native(out: Path) -> None:
         out,
     )
     run_step(
+        "rev-a-input",
+        [sys.executable, "-m", "lab.rev_a", "--require-ngspice", "--out", str(out / "rev_a_input")],
+        out,
+    )
+    run_step(
         "loopback",
         [
             sys.executable,
