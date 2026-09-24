@@ -1,0 +1,121 @@
+name: Finish Rev A input study
+on:
+  push:
+    branches: [feat/rev-a-input-study]
+    paths: ['.github/workflows/finish-input-study.yml']
+permissions:
+  contents: write
+jobs:
+  finish:
+    if: github.repository == 'utof/eeg_ads1299_lab' && github.ref == 'refs/heads/feat/rev-a-input-study'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.13'
+      - name: Install locked tools and native dependencies
+        run: |
+          python -m pip install uv==0.12.18
+          uv sync --locked --all-extras
+          sudo apt-get update -qq
+          sudo apt-get install --yes --no-install-recommends ngspice g++ nodejs > /tmp/native-install.log
+      - name: Reproduce invalid-rerun freshness before the correction
+        run: |
+          cat >> tests/test_rev_a_study.py <<'PY'
+
+
+          @pytest.mark.parametrize("bound", [-1.0, float("nan"), float("inf")])
+          def test_invalid_rerun_removes_old_completion_marker(tmp_path: Path, bound: float) -> None:
+              marker = tmp_path / "study.json"
+              marker.write_text('{"ngspice_status":"executed_and_compared"}', encoding="utf-8")
+              with pytest.raises(ValueError, match="leakage"):
+                  study(tmp_path, leakage_bound_a=bound)
+              assert not marker.exists()
+
+
+          def test_analytic_rerun_removes_previous_simulator_outputs(tmp_path: Path) -> None:
+              study(tmp_path)
+              for netlist in tmp_path.glob("*/*/network.cir"):
+                  for name in ("ac.txt", "ngspice.log"):
+                      (netlist.parent / name).write_text("stale evidence", encoding="utf-8")
+              result = study(tmp_path)
+              assert result.ngspice_status == "not_requested"
+              assert not list(tmp_path.glob("*/*/ac.txt"))
+              assert not list(tmp_path.glob("*/*/ngspice.log"))
+
+
+          @pytest.mark.parametrize("tolerance", [-0.01, 1.0, float("nan"), float("inf")])
+          def test_baseline_rejects_invalid_tolerances(tolerance: float) -> None:
+              with pytest.raises(ValueError, match="tolerance"):
+                  replace(load_baseline(), resistor_tolerance=tolerance)
+          PY
+          if uv run --locked python -m pytest tests/test_rev_a_study.py -k invalid_rerun -q; then
+            echo 'Unexpected pass before freshness correction'; exit 1
+          fi
+      - name: Apply narrow source corrections and format
+        run: |
+          uv run --locked python - <<'PY'
+          from pathlib import Path
+
+          def edit(name: str, before: str, after: str) -> None:
+              path = Path(name)
+              source = path.read_text(encoding="utf-8")
+              if source.count(before) != 1:
+                  raise RuntimeError(f"Expected one reviewed fragment in {name}: {before!r}")
+              path.write_text(source.replace(before, after), encoding="utf-8")
+
+          edit("lab/rev_a.py", "leakage_bound_a=args.leakage_bound_na * 1e-9,", "leakage_bound_a=float(args.leakage_bound_na) * 1e-9,")
+          marker = '    out = Path(out)\n    report_path = out / "study.json"\n    report_path.unlink(missing_ok=True)\n'
+          edit("lab/rev_a.py", marker, "")
+          edit("lab/rev_a.py", '    if (\n        isinstance(leakage_bound_a, bool)', marker + '    if (\n        isinstance(leakage_bound_a, bool)')
+          for field in ("clamps_fitted", "hardware_validated", "body_connection_permitted"):
+              edit("tests/test_rev_a_study.py", f"    assert result.{field} is False\n", "")
+          edit("tests/test_rev_a_study.py", '    assert stored["hardware_validated"] is False\n', '    assert stored["hardware_validated"] is False\n    assert stored["clamps_fitted"] is False\n    assert stored["body_connection_permitted"] is False\n')
+          edit("tests/test_rev_a_study.py", '    reference: ComplexArray = 1 / (1 + 1j * frequencies / pole)\n', '    reference: ComplexArray = np.asarray(1 / (1 + 1j * frequencies / pole), dtype=np.complex128)\n')
+          edit("tests/test_rev_a_study.py", '    expected: ComplexArray = 1 / (\n        1\n        + resistance / model.r_input_p\n        + 2j * np.pi * frequencies * 2 * resistance * model.c_differential\n    )\n', '    expected: ComplexArray = np.asarray(\n        1 / (1 + resistance / model.r_input_p + 2j * np.pi * frequencies * 2 * resistance * model.c_differential),\n        dtype=np.complex128,\n    )\n')
+          edit("lab/rev_a.py", '    print(json.dumps(asdict(report), indent=2, allow_nan=False))\n', '''    summary = {
+                  "report": str(Path(args.out) / "study.json"),
+                  "ideal_source_pole_hz": report.ideal_source_pole_hz,
+                  "ngspice_status": report.ngspice_status,
+                  "ngspice_max_abs_error": report.ngspice_max_abs_error,
+                  "case_metrics": {
+                      name: {
+                          "differential_gain_10hz": case.differential_gain_10hz,
+                          "common_to_differential_50hz": case.common_to_differential_50hz,
+                          "common_to_differential_60hz": case.common_to_differential_60hz,
+                          "leakage_dc_bound_v": case.leakage_dc_bound_v,
+                      }
+                      for name, case in report.cases.items()
+                  },
+              }
+              print(json.dumps(summary, indent=2, allow_nan=False))
+          ''')
+          PY
+          rm .github/workflows/finish-input-study.yml
+          uv run --locked ruff check --fix .
+          uv run --locked ruff format .
+          git diff --exit-code 809aa566963337b3fb6168c4d973a6021045f785 -- 'hardware/rev_a/*.json' firmware results VALIDATION.json SHA256SUMS.txt requirements-tested.txt lab/analog
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'fix(simulation): preserve strict types and invalidate failed study attempts'
+          git push origin HEAD:refs/heads/feat/rev-a-input-study
+      - name: Execute the complete native quality gate
+        run: uv run --locked python -m tools.check --native
+      - name: Show independent diagnostics after a failure
+        if: failure()
+        run: |
+          uv run --locked pyrefly check --min-severity warn || true
+          uv run --locked complexipy --failed || true
+          uv run --locked tach check || true
+          uv run --locked python -m pytest tests/test_rev_a_study.py -q || true
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: rev-a-final-evidence
+          path: reports/
