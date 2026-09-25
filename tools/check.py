@@ -123,7 +123,7 @@ def check_branch_coverage(path: Path, minimum: float) -> float:
 def require_native_tools() -> None:
     for name in ("ngspice", "node"):
         if shutil.which(name) is None:
-            raise RuntimeError("Native checks require {name}; absence is not a pass")
+            raise RuntimeError(f"Native checks require {name}; absence is not a pass")
     if not (shutil.which("g++") or shutil.which("clang++")):
         raise RuntimeError("Native checks require g++ or clang++; absence is not a pass")
 
