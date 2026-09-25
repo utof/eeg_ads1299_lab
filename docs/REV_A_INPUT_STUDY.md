@@ -16,9 +16,14 @@ uv run --locked python -m tools.check --native
 
 The first study command needs no simulator; its report explicitly says `not_requested`. `--require-ngspice` must execute and compare all six native cases or fail. The shared native gate also runs the study and retains its JSON, CSVs, netlists and simulator logs under `reports/check/rev_a_input/` for the normal CI artifact upload.
 
-`study.json` is the completion marker. It records exact model parameters, canonical document digest, selected part numbers, nominal metrics, 24 tolerance-corner results (eight per scenario), simulator comparison errors, and limitations. Each scenario has a `response.csv` with frequency and real/imaginary differential/common transfer. Each drive has a self-contained `network.cir`; requested native runs also produce fresh `ac.txt` and `ngspice.log`. The terminal prints a compact summary rather than repeating every corner.
+`runs/<run-id>/study.json` is the immutable-by-writer report for one generation.
+`current.json` is published last and points to its digest-bound manifest. Use the
+caller-known identity with `read_study`; current means last successful run, not last
+attempt. See `docs/REV_A_RUN_IDENTITY.md` for the failure/reader contract.
 
-A failed new attempt, including invalid numeric arguments, does not leave an earlier success report. An analytic-only rerun clears old simulator outputs for its cases. A completed JSON report is atomically replaced; intermediate CSV/netlists are not themselves proof of completion. Use separate directories for concurrent runs. Committed historical `results/` remain untouched.
+The report records exact model parameters, canonical document digest, selected part numbers, nominal metrics, 24 tolerance-corner results (eight per scenario), simulator comparison errors, and limitations. Each scenario has a `response.csv` with frequency and real/imaginary differential/common transfer. Each drive has a self-contained `network.cir`; requested native runs also produce fresh `ac.txt` and `ngspice.log`. The terminal prints a compact summary rather than repeating every corner.
+
+A failed new attempt preserves earlier generations without satisfying a new requested run identity. Analytic-only runs have their own directories and cannot inherit old simulator outputs. The current pointer is replaced only after the whole generation is complete. Same-root writers are explicitly excluded; different output roots remain independent. Committed historical `results/` remain untouched. This supersedes the flat-marker invalidation policy used in the dated PR #11 evidence below.
 
 ## Selected facts versus assumptions
 

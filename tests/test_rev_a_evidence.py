@@ -10,7 +10,7 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from lab.rev_a import AnalyticOnly, NativeCompared, study
+from lab.rev_a import AnalyticOnly, NativeCompared, StudyReport, read_study, study
 
 
 def _errors() -> dict[str, float]:
@@ -69,7 +69,7 @@ def test_status_is_derived_and_json_view_is_detached(tmp_path: Path) -> None:
     assert payload["hardware_validated"] is False
     assert payload["clamps_fitted"] is False
     assert json.loads(json.dumps(analytic.to_dict())) == json.loads(
-        (tmp_path / "study.json").read_text(encoding="utf-8")
+        (tmp_path / "runs" / analytic.run_id / "study.json").read_text(encoding="utf-8")
     )
 
 
@@ -86,17 +86,22 @@ def test_duplicate_corner_networks_are_not_a_completed_study(tmp_path: Path) -> 
 def test_generated_success_failure_reruns_never_reuse_completion(actions: list[bool]) -> None:
     with TemporaryDirectory() as directory:
         out = Path(directory)
-        marker = out / "study.json"
+        marker = out / "current.json"
+        previous: StudyReport | None = None
         for succeed in actions:
-            # Model a prior completed generation before every new attempt.
-            marker.write_text('{"ngspice_status":"executed_and_compared"}', encoding="utf-8")
+            before = marker.read_bytes() if marker.exists() else None
             if succeed:
                 report = study(out)
                 assert report.ngspice_status == "not_requested"
                 assert report.ngspice_max_abs_error == {}
-                assert marker.exists()
-                assert not list(out.glob("*/*/ac.txt"))
+                assert read_study(out, expected_run_id=report.run_id) == report
+                assert not list((out / "runs" / report.run_id).glob("*/*/ac.txt"))
+                if previous is not None:
+                    assert report.run_id != previous.run_id
+                previous = report
             else:
                 with pytest.raises(ValueError, match="leakage"):
                     study(out, leakage_bound_a=-1.0)
-                assert not marker.exists()
+                assert (marker.read_bytes() if marker.exists() else None) == before
+                if previous is not None:
+                    assert read_study(out, expected_run_id=previous.run_id) == previous

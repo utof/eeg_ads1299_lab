@@ -10,7 +10,7 @@ import pytest
 from hardware.rev_a import BillOfMaterials, BoardProfile, SourcesDocument, load_documents
 from lab.analog import InputNetwork, transfer
 from lab.data_types import ComplexArray, FloatArray
-from lab.rev_a import load_baseline, main, study
+from lab.rev_a import load_baseline, main, read_study, study
 
 
 @pytest.fixture(scope="module")
@@ -35,9 +35,10 @@ def test_report_is_explicit_about_analytic_only_and_safety(report_dir: Path) -> 
     assert result.ngspice_status == "not_requested"
     assert result.ngspice_max_abs_error == {}
     assert len(result.cases) == 3
-    assert len(list(report_dir.glob("*/*/network.cir"))) == 6
-    assert len(list(report_dir.glob("*/response.csv"))) == 3
-    stored: object = json.loads((report_dir / "study.json").read_text(encoding="utf-8"))
+    root = report_dir / "runs" / result.run_id
+    assert len(list(root.glob("*/*/network.cir"))) == 6
+    assert len(list(root.glob("*/response.csv"))) == 3
+    stored: object = json.loads((root / "study.json").read_text(encoding="utf-8"))
     assert isinstance(stored, dict)
     assert stored["hardware_validated"] is False
     assert stored["clamps_fitted"] is False
@@ -129,15 +130,16 @@ def _absent(_name: str) -> None:
     return None
 
 
-def test_required_missing_simulator_invalidates_old_success(
+def test_required_missing_simulator_preserves_only_historical_success(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    report = tmp_path / "study.json"
-    report.write_text('{"ngspice_status":"executed_and_compared"}', encoding="utf-8")
+    previous = study(tmp_path)
+    pointer = (tmp_path / "current.json").read_bytes()
     monkeypatch.setattr("shutil.which", _absent)
     with pytest.raises(RuntimeError, match="ngspice"):
         study(tmp_path, require_ngspice=True)
-    assert not report.exists()
+    assert (tmp_path / "current.json").read_bytes() == pointer
+    assert read_study(tmp_path, expected_run_id=previous.run_id) == previous
 
 
 def _wrong_simulation(_netlist: str | Path, _out: str | Path) -> tuple[FloatArray, ComplexArray]:
@@ -150,7 +152,7 @@ def test_simulator_disagreement_cannot_publish_success(
     monkeypatch.setattr("lab.rev_a.run_ngspice", _wrong_simulation)
     with pytest.raises(RuntimeError, match="disagree"):
         study(tmp_path, require_ngspice=True)
-    assert not (tmp_path / "study.json").exists()
+    assert not (tmp_path / "current.json").exists()
 
 
 def test_rejects_invalid_hardware_contract(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -167,7 +169,7 @@ def test_rejects_invalid_hardware_contract(monkeypatch: pytest.MonkeyPatch) -> N
 
 def test_cli_uses_requested_output_and_leakage_units(tmp_path: Path) -> None:
     assert main(["--out", str(tmp_path), "--leakage-bound-na", "2"]) == 0
-    assert (tmp_path / "study.json").exists()
+    assert (tmp_path / "current.json").exists()
     assert main(["--out", str(tmp_path), "--leakage-bound-na", "-1"]) == 1
 
 
@@ -177,27 +179,30 @@ def test_real_ngspice_compares_all_six_drives(tmp_path: Path) -> None:
     assert result.ngspice_status == "executed_and_compared"
     assert len(result.ngspice_max_abs_error) == 6
     assert max(result.ngspice_max_abs_error.values()) < 1e-5
-    assert len(list(tmp_path.glob("*/*/ngspice.log"))) == 6
+    assert len(list((tmp_path / "runs" / result.run_id).glob("*/*/ngspice.log"))) == 6
+    assert read_study(tmp_path, expected_run_id=result.run_id, require_ngspice=True) == result
 
 
 @pytest.mark.parametrize("bound", [-1.0, float("nan"), float("inf")])
-def test_invalid_rerun_removes_old_completion_marker(tmp_path: Path, bound: float) -> None:
-    marker = tmp_path / "study.json"
-    marker.write_text('{"ngspice_status":"executed_and_compared"}', encoding="utf-8")
+def test_invalid_rerun_does_not_allocate_a_generation(tmp_path: Path, bound: float) -> None:
+    previous = study(tmp_path)
+    pointer = (tmp_path / "current.json").read_bytes()
     with pytest.raises(ValueError, match="leakage"):
         study(tmp_path, leakage_bound_a=bound)
-    assert not marker.exists()
+    assert (tmp_path / "current.json").read_bytes() == pointer
+    assert list((tmp_path / "runs").iterdir()) == [tmp_path / "runs" / previous.run_id]
 
 
-def test_analytic_rerun_removes_previous_simulator_outputs(tmp_path: Path) -> None:
-    study(tmp_path)
-    for netlist in tmp_path.glob("*/*/network.cir"):
+def test_analytic_rerun_cannot_inherit_previous_simulator_outputs(tmp_path: Path) -> None:
+    previous = study(tmp_path)
+    for netlist in (tmp_path / "runs" / previous.run_id).glob("*/*/network.cir"):
         for name in ("ac.txt", "ngspice.log"):
             (netlist.parent / name).write_text("stale evidence", encoding="utf-8")
     result = study(tmp_path)
     assert result.ngspice_status == "not_requested"
-    assert not list(tmp_path.glob("*/*/ac.txt"))
-    assert not list(tmp_path.glob("*/*/ngspice.log"))
+    root = tmp_path / "runs" / result.run_id
+    assert not list(root.glob("*/*/ac.txt"))
+    assert not list(root.glob("*/*/ngspice.log"))
 
 
 @pytest.mark.parametrize("tolerance", [-0.01, 1.0, float("nan"), float("inf")])

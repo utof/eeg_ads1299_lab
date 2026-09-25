@@ -83,8 +83,9 @@ def test_completed_report_requires_all_corners(completed: StudyReport) -> None:
         replace(completed, corners=incoming)
 
 
-def test_failed_rerun_has_no_completion_marker(tmp_path: Path) -> None:
+def test_failed_rerun_does_not_replace_the_historical_pointer(tmp_path: Path) -> None:
     study(tmp_path)
+    before = (tmp_path / "current.json").read_bytes()
     with pytest.raises(ValueError):
         study(tmp_path, leakage_bound_a=-1.0)
-    assert not (tmp_path / "study.json").exists()
+    assert (tmp_path / "current.json").read_bytes() == before
