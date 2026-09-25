@@ -110,3 +110,71 @@ def test_native_transient_rc_matches_independent_exponential(tmp_path: Path) -> 
     time, values = run_ngspice_transient(path, tmp_path, columns=1)
     expected = 1 - np.exp(-time / 0.001)
     np.testing.assert_allclose(values[:, 0], expected, rtol=2e-5, atol=1e-7)
+
+
+def _window_process(monkeypatch: pytest.MonkeyPatch, root: Path, window: str | None) -> None:
+    def tool(_name: str) -> str:
+        return "/fake/ngspice"
+
+    monkeypatch.setattr(shutil, "which", tool)
+
+    def run(args: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
+        # A deliberately padded export: NOT actual simulator evidence.
+        (root / "transient.txt").write_text("time v\n0 0\n0.035 0\n")
+        if window is not None:
+            (root / "transient-window.txt").write_text(window)
+        return subprocess.CompletedProcess(args, 0, "fixture", "")
+
+    monkeypatch.setattr(subprocess, "run", run)
+
+
+def test_raw_window_accepts_completed_adaptive_integration(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _window_process(monkeypatch, tmp_path, "integration_start = 1e-11\nintegration_stop = 0.035\n")
+    times, _ = run_ngspice_transient(
+        tmp_path / "network.cir", tmp_path, columns=1, expected_stop_s=0.035
+    )
+    assert times[-1] == 0.035
+
+
+@pytest.mark.parametrize(
+    "window",
+    [
+        None,
+        "",
+        "integration_start = 0\n",
+        "integration_start = 0\nintegration_stop = 0.025\n",  # truncated, padded export
+        "integration_start = 0\nintegration_stop = 0.04\n",  # wrong request
+        "integration_start = nan\nintegration_stop = 0.035\n",
+        "integration_start = 0\nintegration_stop = inf\n",
+        "integration_start = -1\nintegration_stop = 0.035\n",
+        "integration_start = 0.04\nintegration_stop = 0.035\n",
+        "integration_start = 0.035\nintegration_stop = 0.035\n",
+        "integration_start = 0\nintegration_stop = zero\n",
+        "integration_start = 0\nintegration_start = 0.035\n",
+        "integration_start : 0\nintegration_stop = 0.035\n",
+        "integration_start = 0 extra\nintegration_stop = 0.035\n",
+        "integration_start = 0\nintegration_stop = 0.035\nextra = 1\n",
+    ],
+)
+def test_window_rejects_missing_malformed_or_incomplete_integration(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, window: str | None
+) -> None:
+    # Even a previous valid window cannot authenticate new padded output.
+    (tmp_path / "transient-window.txt").write_text(
+        "integration_start = 0\nintegration_stop = 0.035\n"
+    )
+    _window_process(monkeypatch, tmp_path, window)
+    with pytest.raises(RuntimeError, match="native integration window"):
+        run_ngspice_transient(tmp_path / "network.cir", tmp_path, columns=1, expected_stop_s=0.035)
+    assert (tmp_path / "ngspice.log").read_text().startswith("fixture")
+    if window is None:
+        assert not (tmp_path / "transient-window.txt").exists()
+
+
+@pytest.mark.parametrize("stop", [True, 0.0, -1.0, float("nan"), float("inf")])
+def test_expected_stop_rejected_before_simulator_or_io(tmp_path: Path, stop: float) -> None:
+    with pytest.raises(ValueError, match="stop"):
+        run_ngspice_transient(tmp_path / "network.cir", tmp_path, columns=1, expected_stop_s=stop)
+    assert not list(tmp_path.iterdir())

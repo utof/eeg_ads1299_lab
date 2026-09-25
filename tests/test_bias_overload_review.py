@@ -20,7 +20,10 @@ from lab.rev_a_bias_overload import (
 def test_sparse_native_endpoints_cannot_publish_comparison(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fault: str
 ) -> None:
-    def endpoints(_netlist: Path, _out: Path, *, columns: int) -> tuple[FloatArray, FloatArray]:
+    def endpoints(
+        _netlist: Path, _out: Path, *, columns: int, expected_stop_s: float
+    ) -> tuple[FloatArray, FloatArray]:
+        assert expected_stop_s == 0.035
         times = np.linspace(0.0, 0.035, 17501)
         if fault == "sparse":
             times = times[[0, -1]]

@@ -1,9 +1,11 @@
 """One local/CI quality gate. Native checks are explicit; no hardware approval."""
 
 import argparse
+import hashlib
 import importlib.metadata
 import json
 import math
+import re
 import shutil
 import subprocess
 import sys
@@ -12,6 +14,7 @@ import time
 import tomllib
 from collections.abc import Sequence
 from pathlib import Path
+from tempfile import mkdtemp
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -195,6 +198,85 @@ def _native(out: Path) -> None:
     )
 
 
+def _firmware_config() -> dict[str, str]:
+    raw = _mapping(json.loads((ROOT / "firmware/toolchain.json").read_text()), "firmware")
+    result: dict[str, str] = {}
+    for name in ("cli_version", "core", "core_version", "fqbn", "cpp_flags"):
+        value = raw.get(name)
+        if not isinstance(value, str) or not value:
+            raise ValueError(f"firmware {name} must be a nonempty string")
+        result[name] = value
+    return result
+
+
+def _firmware(out: Path) -> None:
+    """Compile the complete guarded sketch, never upload or enable its hardware gate."""
+    marker = out / "FIRMWARE_BUILD.json"
+    cli = shutil.which("arduino-cli")
+    if cli is None:
+        raise RuntimeError("Firmware checks require arduino-cli; absence is not a pass")
+    config = _firmware_config()
+    run_step("firmware-source", ["git", "rev-parse", "HEAD"], out)
+    source_commit = (out / "firmware-source.log").read_text().strip()
+    if re.fullmatch(r"[0-9a-f]{40}", source_commit) is None:
+        raise RuntimeError("Cannot establish firmware source commit")
+    run_step("arduino-version", [cli, "version"], out)
+    version = (out / "arduino-version.log").read_text()
+    if not re.search(r"Version:\s*" + re.escape(config["cli_version"]) + r"\b", version):
+        raise RuntimeError("arduino-cli does not match the pinned version")
+    run_step("arduino-core", [cli, "core", "list"], out)
+    core = (out / "arduino-core.log").read_text()
+    pattern = (
+        r"^" + re.escape(config["core"]) + r"\s+" + re.escape(config["core_version"]) + r"(?:\s|$)"
+    )
+    if re.search(pattern, core, re.MULTILINE) is None:
+        raise RuntimeError("Arduino ESP32 core does not match the pinned version")
+    run_step(
+        "s3-board", [cli, "board", "details", "--fqbn", config["fqbn"], "--format", "json"], out
+    )
+    build = Path(mkdtemp(prefix="s3-", dir=out))
+    run_step(
+        "s3-compile",
+        [
+            cli,
+            "compile",
+            "--fqbn",
+            config["fqbn"],
+            "--build-property",
+            "compiler.cpp.extra_flags=" + config["cpp_flags"],
+            "--output-dir",
+            str(build),
+            "firmware/esp32_ads1299_bench",
+        ],
+        out,
+        timeout=600,
+    )
+    binaries = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in build.glob("*.bin")}
+    if not binaries:
+        raise RuntimeError("S3 compilation returned without fresh binary artifacts")
+    marker.write_text(
+        json.dumps(
+            {
+                "scope": "target_compile_only",
+                "source_commit": source_commit,
+                "source_sha256": {
+                    p.name: hashlib.sha256(p.read_bytes()).hexdigest()
+                    for p in (ROOT / "firmware/esp32_ads1299_bench").iterdir()
+                    if p.is_file()
+                },
+                "toolchain": config,
+                "artifact_directory": build.name,
+                "sha256": binaries,
+                "physical_hardware_tested": False,
+                "board_profile_reviewed": False,
+                "body_connection_authorized": False,
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+
+
 def _branch_floor() -> float:
     config = _mapping(tomllib.loads((ROOT / "pyproject.toml").read_text()), "pyproject")
     tool = _mapping(config.get("tool"), "tool")
@@ -217,12 +299,17 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument(
         "--native", action="store_true", help="Require native tools and run integration checks"
     )
+    parser.add_argument(
+        "--firmware", action="store_true", help="Require the pinned S3 target compiler"
+    )
     parser.add_argument("--out", type=Path, default=ROOT / "reports/check")
     args = parser.parse_args(argv)
     out: Path = args.out.resolve()
     out.mkdir(parents=True, exist_ok=True)
     report_path = out / "CHECK_REPORT.json"
     report_path.unlink(missing_ok=True)  # Never retain a stale successful status.
+    if args.firmware:
+        (out / "FIRMWARE_BUILD.json").unlink(missing_ok=True)
     completed: list[str] = []
     started = time.monotonic()
     failure: str | None = None
@@ -235,6 +322,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.native:
             _native(out)
             completed.append("native")
+        if args.firmware:
+            _firmware(out)
+            completed.append("firmware")
     except (RuntimeError, ValueError, OSError) as exc:
         failure = str(exc)
         print(f"ERROR: {failure}", file=sys.stderr)
@@ -251,6 +341,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "versions": versions,
         "elapsed_seconds": time.monotonic() - started,
         "native_requested": bool(args.native),
+        "firmware_requested": bool(args.firmware),
         "physical_hardware_tested": False,
         "body_connection_authorized": False,
     }

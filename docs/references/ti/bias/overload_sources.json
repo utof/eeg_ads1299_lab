@@ -13,7 +13,10 @@
     "output_swing_and_overload_recovery": "Not specified by this table; no measured recovery parameters claimed"
   },
   "assumptions": {
-    "output_deviations_v": [-2.0, 2.0],
+    "output_deviations_v": [
+      -2.0,
+      2.0
+    ],
     "midpoint_v": 2.5,
     "rail_interpretation": "Illustrative 0.5 to 4.5 V output window about a 2.5 V midpoint, NOT a device guarantee",
     "topology": "Single dominant output state; clip requested slope and block outward motion at a rail; release when requested slope turns inward",
@@ -22,5 +25,18 @@
     "slow_slew_interpretation": "Deliberately slow numerical sensitivity case, not an ADS1299 specification or guaranteed bound",
     "dummy_contacts": "Reuse existing explicitly unmeasured BIAS dummy loads; not calibrated MCScap/scalp values"
   },
-  "excluded": ["Extra-pole nonlinear saturation topology", "PGA/input clipping", "Output current limiting", "Supply startup", "Transistor-level recovery", "Physical or human-use validation"]
+  "excluded": [
+    "Extra-pole nonlinear saturation topology",
+    "PGA/input clipping",
+    "Output current limiting",
+    "Supply startup",
+    "Transistor-level recovery",
+    "Physical or human-use validation"
+  ],
+  "numerical_scope": {
+    "minimum_absolute_rail_v": 0.001,
+    "interpretation": "Software resolution domain for 1e-10 V absolute state tolerance; NOT a manufacturer rail limit",
+    "native_observation_grid_s": 2e-06,
+    "raw_stop_verified_before_interpolation": true
+  }
 }
