@@ -42,6 +42,7 @@ class BiasModel:
     gbw_hz: float = 100e3
     # Remaining values are explicit, unmeasured engineering assumptions.
     open_loop_gain: float = 1e5
+    extra_pole_hz: float | None = None
     contacts_ohm: tuple[float | None, ...] = (10e3,) * 8
     bias_contact_ohm: float | None = 10e3
     lead_c_f: float = 100e-12
@@ -54,8 +55,15 @@ class BiasModel:
         if re.fullmatch(r"[0-9a-f]{64}", self.baseline_sha256) is None:
             raise ValueError("baseline digest must be SHA-256")
         for field in fields(self):
-            if field.name not in ("baseline_sha256", "contacts_ohm", "bias_contact_ohm"):
+            if field.name not in (
+                "baseline_sha256",
+                "contacts_ohm",
+                "bias_contact_ohm",
+                "extra_pole_hz",
+            ):
                 _positive(getattr(self, field.name), field.name)
+        if self.extra_pole_hz is not None:
+            _positive(self.extra_pole_hz, "extra amplifier pole")
         contacts = tuple(self.contacts_ohm)
         if len(contacts) != 8:
             raise ValueError("exactly eight input contacts are required")
@@ -191,7 +199,8 @@ class BiasResponse:
 def response(frequency_hz: FloatArray, model: BiasModel) -> BiasResponse:
     """Return ratio L for negative feedback, and closed V/A responses.
 
-    A(s)=A0/(1+s*A0/(2*pi*GBW)) is an assumed single-pole amplifier family.
+    A(s)=A0/(1+s*A0/(2*pi*GBW)), optionally divided by (1+s/(2*pi*extra_pole)).
+    With an extra pole GBW remains a dominant gain product, not total unity bandwidth.
     Controller output = -K(s)*sum(sensed input voltages); L=K*sum(plant gains).
     """
     frequency = _frequencies(frequency_hz)
@@ -206,6 +215,8 @@ def response(frequency_hz: FloatArray, model: BiasModel) -> BiasResponse:
     amplifier: ComplexArray = model.open_loop_gain / (
         1 + s * model.open_loop_gain / (2 * np.pi * model.gbw_hz)
     )
+    if model.extra_pole_hz is not None:
+        amplifier = amplifier / (1 + s / (2 * np.pi * model.extra_pole_hz))
     feedback: ComplexArray = 1 / model.feedback_r_ohm + s * model.feedback_c_f
     controller: ComplexArray = (
         amplifier / model.summing_r_ohm / (8 / model.summing_r_ohm + (1 + amplifier) * feedback)
@@ -224,8 +235,9 @@ def response(frequency_hz: FloatArray, model: BiasModel) -> BiasResponse:
 def _closed_system(model: BiasModel) -> tuple[FloatArray, FloatArray]:
     """Independent full circuit descriptor: passive nodes, summing node, amplifier output."""
     plant_g, plant_c, sources = _plant(model)
-    conductance = np.zeros((12, 12), dtype=np.float64)
-    capacitance = np.zeros((12, 12), dtype=np.float64)
+    size = 12 if model.extra_pole_hz is None else 13
+    conductance = np.zeros((size, size), dtype=np.float64)
+    capacitance = np.zeros((size, size), dtype=np.float64)
     conductance[:10, :10], capacitance[:10, :10] = plant_g, plant_c
     conductance[:10, 11] = -sources[:, 0]
     # Summing-node KCL, with ideal unity buffers supplying the eight resistor paths.
@@ -233,9 +245,13 @@ def _closed_system(model: BiasModel) -> tuple[FloatArray, FloatArray]:
     conductance[10, 10] = 8 / model.summing_r_ohm + 1 / model.feedback_r_ohm
     conductance[10, 11] = -1 / model.feedback_r_ohm
     capacitance[10, 10], capacitance[10, 11] = model.feedback_c_f, -model.feedback_c_f
-    conductance[11, 10], conductance[11, 11] = model.open_loop_gain, 1
-    capacitance[11, 11] = model.open_loop_gain / (2 * np.pi * model.gbw_hz)
-    injected = np.zeros(12, dtype=np.float64)
+    dominant = 11 if model.extra_pole_hz is None else 12
+    conductance[dominant, 10], conductance[dominant, dominant] = model.open_loop_gain, 1
+    capacitance[dominant, dominant] = model.open_loop_gain / (2 * np.pi * model.gbw_hz)
+    if model.extra_pole_hz is not None:
+        conductance[11, 11], conductance[11, 12] = 1, -1
+        capacitance[11, 11] = 1 / (2 * np.pi * model.extra_pole_hz)
+    injected = np.zeros(size, dtype=np.float64)
     injected[1] = 1
     return np.asarray(-np.linalg.solve(capacitance, conductance), dtype=np.float64), np.asarray(
         np.linalg.solve(capacitance, injected), dtype=np.float64
@@ -284,8 +300,18 @@ def export_bias_spice(path: str | Path, model: BiasModel, *, mode: str = "loop")
         f"Eamp raw 0 vm 0 {-model.open_loop_gain:.15g}",
         "Rdominant raw dom 1000",
         f"Cdominant dom 0 {model.open_loop_gain / (2 * np.pi * model.gbw_hz) / 1000:.15g}",
-        "Eoutput out 0 dom 0 1",
     ]
+    if model.extra_pole_hz is None:
+        lines.append("Eoutput out 0 dom 0 1")
+    else:
+        lines.extend(
+            [
+                "Eisolate buffer 0 dom 0 1",
+                "Rextra buffer extra 1000",
+                f"Cextra extra 0 {1 / (2 * np.pi * model.extra_pole_hz * 1000):.15g}",
+                "Eoutput out 0 extra 0 1",
+            ]
+        )
     if model.bias_contact_ohm is not None:
         lines.append(f"Rbias lead common {model.bias_contact_ohm:.15g}")
     for index, contact in enumerate(model.contacts_ohm):
@@ -459,6 +485,16 @@ def _sweep(model: BiasModel) -> list[dict[str, object]]:
     return rows
 
 
+def _dynamics_artifacts(root: Path, model: BiasModel, required: bool) -> dict[str, object]:
+    root.mkdir()
+    return {
+        f"extra_pole_{pole:g}hz": _case_artifacts(
+            root / f"extra_pole_{pole:g}hz", replace(model, extra_pole_hz=pole), required
+        )
+        for pole in (100.0, 1000.0, 100000.0)
+    }
+
+
 def _execution_identity(required: bool) -> dict[str, object]:
     root = Path(__file__).resolve().parents[1]
     native: str | None = None
@@ -512,11 +548,13 @@ def run_bias_study(
             for name, case in scenarios(model).items()
         },
         "sensitivity_samples": _sweep(model),
+        "amplifier_dynamics_cases": _dynamics_artifacts(root / "dynamics", model, require_ngspice),
         "hardware_validated": False,
         "body_connection_permitted": False,
         "limitations": [
             "Unmeasured electrical dummy loads; not calibrated MCScap/scalp parameters.",
-            "Assumed single-pole amplifier and ideal PGA common-mode buffers, not a silicon model.",
+            "Assumed one/two-pole amplifier families and ideal PGA buffers, not a silicon model.",
+            "For added-pole cases gbw_hz is the dominant gain product, not total unity-gain bandwidth.",
             "Linear steps are not power-up, slew/current limits or saturation recovery.",
             "Sampled assumptions do not establish global stability or physical safety.",
             "No TINA attachment was imported or executed; published topology was reconstructed.",
