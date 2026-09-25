@@ -95,3 +95,25 @@ node excursions are not literal predictions of real ADS1299 voltages. The
 next physical constraints need source/measurement-backed output swing, overload
 and load behavior. No firmware BIAS/lead-off/external-input enablement, purchase,
 protection, schematic-release or human-connection approval follows.
+
+## Independent-review corrections
+
+The first Codex review found four numerical/evidence edge cases, reproduced by
+focused regressions before correction. Native comparison now requires all
+17,501 points of the declared 2 us grid, including interior spacing, rather
+than merely accepting matching endpoints. Solver-reported events at pulse
+segment boundaries are recorded before returning. Rail snaps shift both output
+and summing voltage by the same correction, preserving `vm-out` charge.
+
+Both rail deviations must be at least 1 mV from zero: a numerical supported-input
+restriction relative to the 1e-10 V solver absolute tolerance, not a hardware
+specification. Mode selection uses exact rail inequalities rather than a fixed
+proximity band. Smaller rail hypotheses require a separately justified numerical
+scale/tolerance contract; they are rejected instead of silently approximated.
+
+A subsequent native regression shortened only the real integration to 25 ms,
+leaving the interpolation request at 35 ms. ngspice padded the exported grid,
+and the old check incorrectly accepted it. The exporter now records the actual
+native stop before interpolation; the caller clears stale completion evidence
+and verifies this stop independently of grid/voltage checks. The native
+regression must reject that padded trace without publishing a manifest.

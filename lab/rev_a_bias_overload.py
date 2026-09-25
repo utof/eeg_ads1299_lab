@@ -13,7 +13,7 @@ import re
 import shutil
 import subprocess
 import sys
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Literal
@@ -52,6 +52,8 @@ class OutputLimits:
             raise ValueError("output limits must be finite real numbers")
         if not self.lower_v < 0 < self.upper_v or self.slew_v_per_s <= 0:
             raise ValueError("rails must contain zero and slew must be positive")
+        if min(-self.lower_v, self.upper_v) < 1e-3:
+            raise ValueError("rails must be at least one millivolt from zero for this solver")
 
 
 _DEFAULT_LIMITS = OutputLimits()
@@ -195,9 +197,9 @@ class _Event:
 
 
 def _mode(state: FloatArray, rate: float, limits: OutputLimits) -> _Mode:
-    if state[11] >= limits.upper_v - 1e-10 and rate > 0:
+    if state[11] >= limits.upper_v and rate > 0:
         return "upper"
-    if state[11] <= limits.lower_v + 1e-10 and rate < 0:
+    if state[11] <= limits.lower_v and rate < 0:
         return "lower"
     return "free"
 
@@ -234,25 +236,39 @@ def _integrate_segment(
         if not result.success or result.sol is None:
             raise RuntimeError(f"overload integration failed: {result.message}")
         end = float(result.t[-1])
-        selected = (times >= time) & (times <= end)
-        if np.any(selected):
-            states[selected] = np.asarray(result.sol(times[selected]).T, dtype=np.float64)
+        _record_samples(times, states, time, end, result.sol)
         state = np.asarray(result.y[:, -1], dtype=np.float64)
+        if result.status == 1:
+            mode, name = _transition(mode, state, active.limits)
+            recorded.append((end, name))
         if end == stop:
             return state, recorded
         if end <= time:
             raise RuntimeError("overload event integration made no time progress")
-        mode, name = _transition(mode, state, active.limits)
-        recorded.append((end, name))
         time = end
     raise RuntimeError("overload integration exceeded the bounded event count")
+
+
+def _record_samples(
+    times: FloatArray,
+    states: FloatArray,
+    start: float,
+    stop: float,
+    interpolate: Callable[[FloatArray], FloatArray],
+) -> None:
+    """Record only observed samples; a sparse grid must not skip circuit evolution."""
+    selected = (times >= start) & (times <= stop)
+    if np.any(selected):
+        states[selected] = np.asarray(interpolate(times[selected]).T, dtype=np.float64)
 
 
 def _transition(mode: _Mode, state: FloatArray, limits: OutputLimits) -> tuple[_Mode, _EventName]:
     if mode != "free":
         return "free", "release"
     bound: Literal["lower", "upper"] = "upper" if state[11] > 0 else "lower"
-    state[11] = limits.upper_v if bound == "upper" else limits.lower_v
+    rail = limits.upper_v if bound == "upper" else limits.lower_v
+    state[10] = float(state[10]) + rail - float(state[11])
+    state[11] = rail
     return bound, bound
 
 
@@ -338,6 +354,8 @@ def export_overload_spice(
         "set wr_vecnames",
         "set numdgt=15",
         f"tran 1n {stop_s:.15g} 0 {max_step_s:.15g} uic",
+        "let native_tstop = time[length(time)-1]",
+        "echo $&native_tstop > integration_stop.txt",
         "let lin-tstart = 0",
         f"let lin-tstop = {stop_s:.15g}",
         "let lin-tstep = 2u",
@@ -363,9 +381,13 @@ def _write_json(path: Path, value: object) -> None:
 def _native_compare(
     netlist: Path, model: BiasModel, pulse: InterferencePulse, limits: OutputLimits
 ) -> dict[str, object]:
+    completion = netlist.parent / "integration_stop.txt"
+    completion.unlink(missing_ok=True)
     times, actual = run_ngspice_transient(netlist, netlist.parent, columns=3)
-    if times[0] != 0 or abs(float(times[-1]) - 0.035) > 1e-12:
-        raise RuntimeError("overload transient does not cover the requested time window")
+    grid = np.linspace(0.0, 0.035, 17501)
+    if times.shape != grid.shape or not np.allclose(times, grid, rtol=0, atol=1e-12):
+        raise RuntimeError("overload transient observation grid is incomplete or irregular")
+    _check_integration_window(completion)
     expected = overload_response(times, model, pulse, limits).state_v[:, [1, 11, 10]]
     # Switching introduces finite-step boundary error: 100 uV is the declared
     # large-pulse numerical comparison tolerance, not a hardware accuracy claim.
@@ -382,6 +404,16 @@ def _native_compare(
         "atol_v": atol,
         "max_abs_error_common_output_summing_v": np.max(np.abs(actual - expected), axis=0).tolist(),
     }
+
+
+def _check_integration_window(completion: Path) -> None:
+    """Check the actual transient stop BEFORE linearize can pad its export."""
+    try:
+        stop = float(completion.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise RuntimeError("missing or invalid native integration window evidence") from exc
+    if not math.isfinite(stop) or abs(stop - 0.035) > 1e-12:
+        raise RuntimeError("native integration window is incomplete before interpolation")
 
 
 def _case(

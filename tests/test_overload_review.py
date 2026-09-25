@@ -20,7 +20,7 @@ from lab.rev_a_bias_overload import (
 
 @pytest.mark.parametrize("rail", [1e-12, 1e-10, 1e-8])
 def test_rails_below_supported_numerical_scale_are_rejected(rail: float) -> None:
-    with pytest.raises(ValueError, match="numerical"):
+    with pytest.raises(ValueError, match="millivolt"):
         OutputLimits(lower_v=-rail, upper_v=rail)
 
 
