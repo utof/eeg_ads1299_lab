@@ -37,7 +37,8 @@ def test_switch_result_preserves_completion_separately_from_endpoint(
     report = read_object(json.loads((root / "pilot.json").read_text()), "report")
     probes = report["switch_probes"]
     assert isinstance(probes, list)
-    probe = read_object(probes[0], "switch probe")
+    values: list[object] = probes
+    probe = read_object(values[0], "switch probe")
     assert probe["window_complete"] is complete
     assert probe["compatible_endpoint"] is (True if complete else None)
     assert probe["outcome"] == ("probe_completed_not_validated" if complete else "rejected")
