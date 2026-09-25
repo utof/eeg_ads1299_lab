@@ -245,12 +245,46 @@ def _version(executable: str, root: Path) -> str:
     return result.stdout
 
 
+def _vendor_results(
+    root: Path, library: bytes | None, normalize_switch: bool
+) -> list[dict[str, object]]:
+    """Own the private vendor library lifetime; never leave it in retained reports."""
+    if library is None:
+        return []
+    with TemporaryDirectory(prefix="private-ti-model-") as temporary:
+        path = Path(temporary) / "vendor.lib"
+        path.write_bytes(library)
+        return [
+            _vendor_probe(root / name, path, shutdown, normalize_switch)
+            for name, shutdown in (("startup_load", False), ("shutdown", True))
+        ]
+
+
+def _publish_investigation(root: Path, report: dict[str, object]) -> None:
+    """Bind all retained diagnostics before applying an optional execution gate."""
+    (root / "pilot.json").write_text(json.dumps(report, indent=2, allow_nan=False) + "\n")
+    files = {
+        p.relative_to(root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+        for p in root.rglob("*")
+        if p.is_file()
+    }
+    (root / "manifest.json").write_text(
+        json.dumps({"run_id": root.name, "files": files}, indent=2) + "\n"
+    )
+
+
 def run_pilot(
-    out: Path, *, vendor_archive: Path | None = None, normalize_switch: bool = False
+    out: Path,
+    *,
+    vendor_archive: Path | None = None,
+    normalize_switch: bool = False,
+    require_complete_switches: bool = False,
 ) -> Path:
     """Retain an investigation, including rejected probes; not a successful power study."""
     if not isinstance(normalize_switch, bool):
         raise ValueError("normalization request must be boolean")
+    if not isinstance(require_complete_switches, bool):
+        raise ValueError("switch completion requirement must be boolean")
     if normalize_switch and vendor_archive is None:
         raise ValueError("normalization requires the caller-supplied vendor archive")
     library = (
@@ -269,25 +303,18 @@ def run_pilot(
         for variant in ("usual", "inverse", "normalized")
         for control in (0.0, 0.001)
     ]
-    vendor: list[dict[str, object]] = []
-    if library is not None:
-        with TemporaryDirectory(prefix="private-ti-model-") as temporary:
-            path = Path(temporary) / "vendor.lib"
-            path.write_bytes(library)
-            vendor = [
-                _vendor_probe(root / name, path, shutdown, normalize_switch)
-                for name, shutdown in (("startup_load", False), ("shutdown", True))
-            ]
+    vendor = _vendor_results(root, library, normalize_switch)
     repository = Path(__file__).resolve().parents[1]
     source = repository / "docs/references/ti/tps7a20/source_record.json"
     (root / "source_record.json").write_bytes(source.read_bytes())
-    report = {
+    report: dict[str, object] = {
         "schema_version": 1,
         "purpose": "compatibility_investigation_including_failures",
         "ngspice_version": version,
         "ngbehavior": "psa",
         "uv_lock_sha256": hashlib.sha256((repository / "uv.lock").read_bytes()).hexdigest(),
         "switch_probes": switches,
+        "switch_execution_complete": all(probe["window_complete"] is True for probe in switches),
         "vendor_probes": vendor,
         "vendor_archive_sha256": ARCHIVE_SHA256 if library is not None else None,
         "original_library_sha256": LIBRARY_SHA256 if library is not None else None,
@@ -306,15 +333,9 @@ def run_pilot(
             "Vendor archive/library are not included; retrieve the exact hashed source separately.",
         ],
     }
-    (root / "pilot.json").write_text(json.dumps(report, indent=2, allow_nan=False) + "\n")
-    files = {
-        p.relative_to(root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
-        for p in root.rglob("*")
-        if p.is_file()
-    }
-    (root / "manifest.json").write_text(
-        json.dumps({"run_id": root.name, "files": files}, indent=2) + "\n"
-    )
+    _publish_investigation(root, report)
+    if require_complete_switches and not report["switch_execution_complete"]:
+        raise RuntimeError(f"Incomplete switch executions; investigation retained at {root}")
     return root
 
 
@@ -323,10 +344,14 @@ def main() -> int:
     parser.add_argument("--out", type=Path, default=Path("reports/tps7a20_compatibility"))
     parser.add_argument("--vendor-archive", type=Path)
     parser.add_argument("--normalize-switch", action="store_true")
+    parser.add_argument("--require-complete-switches", action="store_true")
     args = parser.parse_args()
     try:
         root = run_pilot(
-            args.out, vendor_archive=args.vendor_archive, normalize_switch=args.normalize_switch
+            args.out,
+            vendor_archive=args.vendor_archive,
+            normalize_switch=args.normalize_switch,
+            require_complete_switches=args.require_complete_switches,
         )
     except (OSError, ValueError, RuntimeError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)

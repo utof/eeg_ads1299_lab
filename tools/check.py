@@ -130,6 +130,19 @@ def require_native_tools() -> None:
 
 def _native(out: Path) -> None:
     require_native_tools()
+    # Retain the diagnostic run before pytest can fail on the same native fixture.
+    run_step(
+        "rev-a-power",
+        [
+            sys.executable,
+            "-m",
+            "lab.rev_a_power",
+            "--require-complete-switches",
+            "--out",
+            str(out / "rev_a_power"),
+        ],
+        out,
+    )
     run_step(
         "native-tests",
         [
