@@ -185,6 +185,18 @@ def _native(out: Path) -> None:
         out,
     )
     run_step(
+        "rev-a-power",
+        [
+            sys.executable,
+            "-m",
+            "lab.rev_a_power",
+            "--require-complete-switches",
+            "--out",
+            str(out / "rev_a_power"),
+        ],
+        out,
+    )
+    run_step(
         "loopback",
         [
             sys.executable,
