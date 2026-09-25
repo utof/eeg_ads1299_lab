@@ -73,7 +73,7 @@ depends_on = ["lab.acquisition", "lab.analog", "lab.inspect_capture", "lab.pipel
 
 [[modules]]
 path = "tests"
-depends_on = ["lab.rev_a_bias_overload", "lab.rev_a_bias", "lab.rev_a", "hardware.rev_a", "lab.acquisition", "lab.adc", "lab.analog", "lab.data_types", "lab.dsp", "lab.inspect_capture", "lab.pipeline", "lab.protocol", "lab.signals", "lab.validation", "tools.check", "tools.commit_messages", "run_lab"]
+depends_on = ["lab.rev_a_power", "lab.rev_a_bias_overload", "lab.rev_a_bias", "lab.rev_a", "hardware.rev_a", "lab.acquisition", "lab.adc", "lab.analog", "lab.data_types", "lab.dsp", "lab.inspect_capture", "lab.pipeline", "lab.protocol", "lab.signals", "lab.validation", "tools.check", "tools.commit_messages", "run_lab"]
 
 [[interfaces]]
 from = ["lab.data_types"]
@@ -174,3 +174,11 @@ depends_on = ["lab.rev_a_bias", "lab.analog", "lab.data_types"]
 [[interfaces]]
 from = ["lab.rev_a_bias_overload"]
 expose = ["OutputLimits", "InterferencePulse", "OverloadTrace", "overload_response", "export_overload_spice", "run_overload_study", "main"]
+
+[[modules]]
+path = "lab.rev_a_power"
+depends_on = ["lab.analog", "lab.data_types"]
+
+[[interfaces]]
+from = ["lab.rev_a_power"]
+expose = ["ARCHIVE_SHA256", "LIBRARY_SHA256", "prepare_library", "assess_trace", "switch_netlist", "run_pilot", "main"]

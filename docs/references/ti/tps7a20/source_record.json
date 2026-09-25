@@ -1,0 +1,32 @@
+{
+  "source_url": "https://www.ti.com/lit/zip/sbvm961",
+  "archive": "SBVM961",
+  "archive_sha256": "4db279371817cb0873e103b03ddf26c6a5a1ff2c4672093c0037c940dc8c8fd2",
+  "library_member": "tps7a20-adj_trans.lib",
+  "library_sha256": "154acfdd2199ac44259908b90b07d15bc7e535a45c8c51d1413894c900718b69",
+  "header_version": "Final 1.00, 21JAN2020, PSpice 17.2-2016 S050",
+  "header_datasheet": "SBVS338, August 2019",
+  "model_pins": ["VIN", "GND", "EN", "N_C", "VOUT"],
+  "setpoint": "V_out=3.3; configurable vendor model, not a changed hardware selection",
+  "redistribution": "No affirmative redistribution permission established. Original and adapted vendor library are NOT committed or included in report artifacts.",
+  "reference_fixture_limit": "The archive's transient.cir references SCHEMATIC1.net and Cadence libraries; a complete vendor reference fixture was not reproduced.",
+  "experimental_edit": {
+    "scope": "Exactly one _S2 VSWITCH declaration, only after raw archive and library hash checks",
+    "old": "Roff=1e-6 Ron=1E6 Voff=0 Von=1m",
+    "new": "Roff=1E6 Ron=1e-6 Voff=1m Von=0",
+    "adapted_library_sha256": "499350e27bc6014b634c23fb5b486f8f66632958097d6403aa5d5b2a04eea525",
+    "interpretation": "Swaps resistance and control endpoint labels together. Endpoint behavior is checked; continuous interpolation and Cadence equivalence are NOT established. Not an unmodified-vendor-model pass."
+  },
+  "fixture_assumptions": {
+    "vin_v": 5,
+    "capacitors_each_f": 0.000001,
+    "base_load_ohm": 1100,
+    "load_step": "Additional conductance, nominal total 3 to 10 to 3 mA at 3.3 V; current is zero when output is zero",
+    "plateau_sanity_tolerance_fraction": 0.02,
+    "interpretation": "Handwritten compatibility fixture, not the physical board or a datasheet qualification"
+  },
+  "simulator_reference": "https://ngspice.sourceforge.io/docs/ngspice-manual.pdf",
+  "simulator_reference_scope": "PSpice compatibility modes and switch semantics; observed results are separately tied to ngspice 42, not asserted for every version",
+  "physical_hardware_tested": false,
+  "body_connection_permitted": false
+}
