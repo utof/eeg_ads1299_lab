@@ -74,3 +74,13 @@ partial evidence but no completed generation. Prior run directories are intact.
 
 No output rails, slew/current limit, saturation/recovery, startup sequence,
 physical contact measurement, firmware enablement or safety approval is added.
+
+
+Subsequent completion hardening requires `expected_stop_s=0.1` when the study
+reads native output. A fresh `transient-window.txt`, written before `linearize`,
+records the raw integration endpoints and is included in the file manifest.
+Exported endpoints alone are insufficient: interpolation can extend the displayed
+window after a shorter integration. The overload study's actual truncated-run
+regression demonstrated a numerical false pass; the separately probed linear
+step truncation did fail its numerical comparison. No claim is made that this
+linear reference itself was observed falsely passing that probe.

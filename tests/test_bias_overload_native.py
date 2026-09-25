@@ -22,7 +22,7 @@ def test_native_overload_matches_hybrid_circuit(tmp_path: Path, name: str) -> No
     limits = OutputLimits(slew_v_per_s=100) if name == "slow_slew" else OutputLimits()
     pulse = InterferencePulse()
     path = export_overload_spice(tmp_path / "network.cir", model, pulse, limits)
-    times, actual = run_ngspice_transient(path, tmp_path, columns=3)
+    times, actual = run_ngspice_transient(path, tmp_path, columns=3, expected_stop_s=0.035)
     assert times[0] == 0
     assert times[-1] == pytest.approx(0.035, abs=1e-12)
     reference = overload_response(times, model, pulse, limits).state_v[:, [1, 11, 10]]
@@ -38,8 +38,12 @@ def test_nominal_overload_is_insensitive_to_finer_native_timestep(tmp_path: Path
     fine_path = export_overload_spice(
         tmp_path / "fine" / "network.cir", model, pulse, max_step_s=50e-9
     )
-    times, coarse = run_ngspice_transient(coarse_path, coarse_path.parent, columns=3)
-    fine_times, fine = run_ngspice_transient(fine_path, fine_path.parent, columns=3)
+    times, coarse = run_ngspice_transient(
+        coarse_path, coarse_path.parent, columns=3, expected_stop_s=0.035
+    )
+    fine_times, fine = run_ngspice_transient(
+        fine_path, fine_path.parent, columns=3, expected_stop_s=0.035
+    )
     np.testing.assert_array_equal(times, fine_times)
     expected = overload_response(times, model, pulse).state_v[:, [1, 11, 10]]
     # A stronger nominal-case accuracy check than the broad seven-case gate.

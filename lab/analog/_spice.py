@@ -1,5 +1,6 @@
 """Netlist serialization and the bounded external-simulator process boundary."""
 
+import math
 import shutil
 import subprocess
 from pathlib import Path
@@ -62,7 +63,9 @@ def _log_text(value: str | bytes | None) -> str:
     return value or ""
 
 
-def _execute_ngspice(netlist: str | Path, output_dir: str | Path, filename: str) -> Path:
+def _execute_ngspice(
+    netlist: str | Path, output_dir: str | Path, filename: str, *, window_required: bool = False
+) -> Path:
     """Shared bounded process boundary; callers select a fixed output filename."""
     exe = shutil.which("ngspice")
     if not exe:
@@ -74,6 +77,8 @@ def _execute_ngspice(netlist: str | Path, output_dir: str | Path, filename: str)
     log = output_dir / "ngspice.log"
     # A successful exit without NEW output must not validate a previous run.
     output.unlink(missing_ok=True)
+    if window_required:
+        (output_dir / "transient-window.txt").unlink(missing_ok=True)
     try:
         result = subprocess.run(
             [exe, "-b", str(netlist)],
@@ -103,16 +108,29 @@ def run_ngspice(netlist: str | Path, output_dir: str | Path) -> tuple[FloatArray
 
 
 def run_ngspice_transient(
-    netlist: str | Path, output_dir: str | Path, *, columns: int
+    netlist: str | Path,
+    output_dir: str | Path,
+    *,
+    columns: int,
+    expected_stop_s: float | None = None,
 ) -> tuple[FloatArray, FloatArray]:
     """Read a fresh transient.txt: increasing nonnegative seconds, then real columns.
 
     Exporters must use wr_singlescale/wr_vecnames. Adaptive timesteps need not
-    include t=0. This verifies format/execution, not the circuit or settling.
+    include t=0. Without expected_stop_s this verifies format/execution only.
+    With it, require a fresh transient-window.txt recorded from the active time
+    vector BEFORE linearize. An interpolated endpoint cannot prove completion.
+    The window is integrity evidence from our exporter, not authenticated proof.
     """
     if isinstance(columns, bool) or not isinstance(columns, int) or columns < 1:
         raise ValueError("transient columns must be a positive integer")
-    output = _execute_ngspice(netlist, output_dir, "transient.txt")
+    if expected_stop_s is not None:
+        _validate_stop(expected_stop_s)
+    output = _execute_ngspice(
+        netlist, output_dir, "transient.txt", window_required=expected_stop_s is not None
+    )
+    if expected_stop_s is not None:
+        _verify_native_window(output.parent / "transient-window.txt", expected_stop_s)
     try:
         data: FloatArray = np.loadtxt(output, skiprows=1, dtype=np.float64, ndmin=2)
     except (ValueError, UserWarning) as exc:
@@ -123,3 +141,30 @@ def run_ngspice_transient(
     if np.any(times < 0) or np.any(np.diff(times) <= 0):
         raise RuntimeError("Invalid ngspice transient time axis")
     return times, data[:, 1:]
+
+
+def _validate_stop(stop: float) -> None:
+    if isinstance(stop, bool) or not isinstance(stop, (int, float)):
+        raise ValueError("expected transient stop must be a positive finite real number")
+    if not math.isfinite(stop) or stop <= 0:
+        raise ValueError("expected transient stop must be a positive finite real number")
+
+
+def _verify_native_window(path: Path, expected_stop: float) -> None:
+    """Read the raw time-vector endpoints, not linearize's requested output grid."""
+    try:
+        rows = [line.split() for line in path.read_text(encoding="utf-8").splitlines()]
+        if len(rows) != 2 or any(len(row) != 3 or row[1] != "=" for row in rows):
+            raise ValueError("two named scalar endpoints required")
+        if [row[0] for row in rows] != ["integration_start", "integration_stop"]:
+            raise ValueError("unexpected endpoint names")
+        start, stop = (float(row[2]) for row in rows)
+    except (OSError, UnicodeError, ValueError) as exc:
+        raise RuntimeError("Missing or invalid native integration window") from exc
+    if not math.isfinite(start) or not math.isfinite(stop) or not 0 <= start < stop:
+        raise RuntimeError("Invalid native integration window values")
+    if not math.isclose(stop, expected_stop, rel_tol=0, abs_tol=1e-12):
+        raise RuntimeError(
+            f"Incomplete native integration window: stopped at {stop:g}s; "
+            f"requested {expected_stop:g}s"
+        )
