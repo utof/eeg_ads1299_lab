@@ -89,7 +89,7 @@ expose = ["ADCConfig", "GAINS", "MAX_CODE", "MIN_CODE", "RATES", "behavioral_dec
 
 [[interfaces]]
 from = ["lab.analog"]
-expose = ["CircuitReport", "Drive", "InputNetwork", "circuit_report", "export_spice", "run_ngspice", "transfer"]
+expose = ["CircuitReport", "Drive", "InputNetwork", "circuit_report", "export_spice", "run_ngspice", "run_ngspice_transient", "transfer"]
 
 [[interfaces]]
 from = ["lab.signals"]
@@ -165,4 +165,4 @@ depends_on = ["hardware.rev_a", "lab.analog", "lab.data_types"]
 
 [[interfaces]]
 from = ["lab.rev_a_bias"]
-expose = ["BiasModel", "BiasResponse", "load_bias_model", "ideal_controller", "response", "closed_poles", "step_response", "export_bias_spice", "scenarios", "run_bias_study", "main"]
+expose = ["BiasModel", "BiasResponse", "load_bias_model", "ideal_controller", "response", "closed_poles", "step_response", "step_voltages", "export_bias_spice", "scenarios", "run_bias_study", "main"]

@@ -125,9 +125,10 @@ uv run --locked python -m tools.check --native
 The command returns one unique run ID and report path. `--run-id` accepts a
 caller-chosen 32-character lowercase hex identity. It cannot be reused. Each
 run directory contains the full parameter/results JSON, copied source record,
-response CSVs, ten contact-case netlists plus six under `dynamics/`, four
+response CSVs, 16 AC netlists and seven stable-case step netlists, four
 contact-case linear-step CSVs plus stable dynamics traces, and native
-`ac.txt`/logs when requested. `manifest.json` is published **last**, hashing every
+`ac.txt`/`transient.txt`/logs when requested. The transient tables use a uniform
+interpolated observation grid; see `REV_A_BIAS_TRANSIENT_VALIDATION.md`. `manifest.json` is published **last**, hashing every
 artifact. A failure has no completion manifest; previous directories are untouched.
 There is no mutable `current` alias and no fallback to a previous run. The caller
 must check command success and use that returned/requested identity. This is not

@@ -62,15 +62,15 @@ def _log_text(value: str | bytes | None) -> str:
     return value or ""
 
 
-def run_ngspice(netlist: str | Path, output_dir: str | Path) -> tuple[FloatArray, ComplexArray]:
-    """Run ngspice with a deadline. A missing tool/output is never a pass."""
+def _execute_ngspice(netlist: str | Path, output_dir: str | Path, filename: str) -> Path:
+    """Shared bounded process boundary; callers select a fixed output filename."""
     exe = shutil.which("ngspice")
     if not exe:
         raise RuntimeError("ngspice executable is absent; install it, then rerun --require-ngspice")
     output_dir = Path(output_dir).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
     netlist = Path(netlist).resolve()
-    output = output_dir / "ac.txt"
+    output = output_dir / filename
     log = output_dir / "ngspice.log"
     # A successful exit without NEW output must not validate a previous run.
     output.unlink(missing_ok=True)
@@ -89,8 +89,37 @@ def run_ngspice(netlist: str | Path, output_dir: str | Path) -> tuple[FloatArray
     log.write_text(result.stdout + "\n" + result.stderr, encoding="utf-8")
     if result.returncode != 0 or not output.exists():
         raise RuntimeError(f"ngspice failed: see {log}")
+    return output
+
+
+def run_ngspice(netlist: str | Path, output_dir: str | Path) -> tuple[FloatArray, ComplexArray]:
+    """Run an AC netlist with a deadline and read its real/imaginary output."""
+    output = _execute_ngspice(netlist, output_dir, "ac.txt")
     data: FloatArray = np.loadtxt(output, skiprows=1, dtype=np.float64)
     if data.ndim != 2 or data.shape[1] != 3 or not np.all(np.isfinite(data)):
         raise RuntimeError("Unexpected ngspice wrdata format (expected f, real, imag)")
     response: ComplexArray = data[:, 1] + 1j * data[:, 2]
     return data[:, 0], response
+
+
+def run_ngspice_transient(
+    netlist: str | Path, output_dir: str | Path, *, columns: int
+) -> tuple[FloatArray, FloatArray]:
+    """Read a fresh transient.txt: increasing nonnegative seconds, then real columns.
+
+    Exporters must use wr_singlescale/wr_vecnames. Adaptive timesteps need not
+    include t=0. This verifies format/execution, not the circuit or settling.
+    """
+    if isinstance(columns, bool) or not isinstance(columns, int) or columns < 1:
+        raise ValueError("transient columns must be a positive integer")
+    output = _execute_ngspice(netlist, output_dir, "transient.txt")
+    try:
+        data: FloatArray = np.loadtxt(output, skiprows=1, dtype=np.float64, ndmin=2)
+    except (ValueError, UserWarning) as exc:
+        raise RuntimeError("Invalid ngspice transient table") from exc
+    if data.shape[0] < 2 or data.shape[1] != columns + 1 or not np.all(np.isfinite(data)):
+        raise RuntimeError("Invalid ngspice transient table shape or values")
+    times = data[:, 0]
+    if np.any(times < 0) or np.any(np.diff(times) <= 0):
+        raise RuntimeError("Invalid ngspice transient time axis")
+    return times, data[:, 1:]

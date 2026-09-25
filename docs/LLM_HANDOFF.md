@@ -76,3 +76,13 @@ nominal dummy cases against actual ngspice. TI explicitly corrects the datasheet
 bounded assumptions; stress cases can be unstable. Linear steps are not power-up,
 saturation/recovery or physical validation. No firmware BIAS is enabled. Keep #17
 open for those remaining questions and verify PR #20's current exact-head checks.
+
+## Independent BIAS step cross-check (PR #23)
+
+Read `docs/REV_A_BIAS_TRANSIENT_VALIDATION.md`. The BIAS native study now adds
+seven time-domain comparisons of dummy-common and amplifier-output voltages to
+the existing 16 AC comparisons. Its transient reader shares the existing
+ngspice subprocess boundary. Retained transient tables are uniformly interpolated,
+not raw adaptive solver history. This is zero-state linear interference response,
+not power-up, saturation/recovery or a physical safety gate. Verify PR status/CI
+before assuming a development snapshot is merged.
