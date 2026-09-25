@@ -22,6 +22,9 @@ def test_bias_artifacts_are_identified_hashed_and_explicitly_analytic(tmp_path: 
     assert report["body_connection_permitted"] is False
     assert report["hardware_validated"] is False
     assert len(cases) == 5
+    dynamics = read_object(report["amplifier_dynamics_cases"], "dynamics")
+    assert set(dynamics) == {"extra_pole_100hz", "extra_pole_1000hz", "extra_pole_100000hz"}
+    assert len(list(root.glob("dynamics/*/*/network.cir"))) == 6
     stress = read_object(cases["high_impedance_stress"], "stress")
     assert stress["linear_model_stable"] is False
     assert stress["frequency_response_interpretation"] == "formal_transfer_only_unstable_model"

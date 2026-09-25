@@ -10,8 +10,9 @@
   "parameter_classes": {
     "selected_components": "feedback_r_ohm, feedback_c_f, drive_r_ohm, input_r_ohm, differential_c_f are consumed from the validated Rev A JSON baseline; not duplicated as model defaults",
     "manufacturer_nominal": "summing_r_ohm=220000; gbw_hz=100000 is TYPICAL, not a guaranteed bound",
-    "engineering_assumptions": "open_loop_gain=100000 and single-pole dynamics; eight ideal unity common-mode buffers; contacts and all load/environment/input/lead capacitances; one-amp AC transfer normalization and one-nanoamp step amplitude",
+    "engineering_assumptions": "open_loop_gain=100000 and single-pole dynamics by default, optional unmeasured extra pole; eight ideal unity common-mode buffers; contacts and all load/environment/input/lead capacitances; one-amp AC transfer normalization and one-nanoamp step amplitude",
     "sensitivity_samples": "contact 10k,50k,1M,10M ohm; lead and each input capacitance jointly 100pF,1nF,10nF; GBW 50k,100k,200k Hz; open-loop gain 10k,100k,1M V/V. Illustrative samples, not measured ranges or manufacturer tolerances.",
+    "extra_pole_cases": "100, 1000, 100000 Hz are arbitrary sensitivity points, not identified ADS1299 poles. Original dominant gain product is held fixed, so added-pole cases are not calibrated to the datasheet total unity-gain bandwidth.",
     "bench_measurements": "none"
   },
   "tina_retrieval": "ADS1299_BIAS_MEAS.TSC and four-channel lead-off example remain located-only; no binary hash, import or execution is claimed",

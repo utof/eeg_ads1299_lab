@@ -1,6 +1,7 @@
 # Rev A bounded linear BIAS study
 
-First executable increment for issue #17 / PR #20. **Simulation and electrical
+First executable increment for issue #17 / PR #20, extended in PR #21.
+See `docs/REV_A_BIAS_DYNAMICS.md` for optional amplifier-pole uncertainty. **Simulation and electrical
 dummy loads only.** This is not a full ADS1299 model, a calibrated MCScap model,
 a schematic release, or permission to enable BIAS in firmware.
 
@@ -109,7 +110,8 @@ capacitance settings × three GBWs × three assumed open-loop gains. Lead and
 input-node capacitances vary **together** in this first sweep. These are neither
 manufacturer tolerances, measured electrode ranges, a probability distribution,
 nor exhaustive independent parameter bounds. Ten native comparisons cover five
-nominal cases × loop/closed modes, not all 108 samples.
+nominal cases × loop/closed modes, not all 108 samples. PR #21 adds three separate
+extra-pole cases and six more native comparisons; the original cases are unchanged.
 
 ## Run and retained evidence
 
@@ -123,7 +125,8 @@ uv run --locked python -m tools.check --native
 The command returns one unique run ID and report path. `--run-id` accepts a
 caller-chosen 32-character lowercase hex identity. It cannot be reused. Each
 run directory contains the full parameter/results JSON, copied source record,
-response CSVs, ten netlists, four stable-case linear-step CSVs, and native
+response CSVs, ten contact-case netlists plus six under `dynamics/`, four
+contact-case linear-step CSVs plus stable dynamics traces, and native
 `ac.txt`/logs when requested. `manifest.json` is published **last**, hashing every
 artifact. A failure has no completion manifest; previous directories are untouched.
 There is no mutable `current` alias and no fallback to a previous run. The caller
@@ -162,8 +165,10 @@ claim every stable mode has settled (an open contact can have a much slower mode
 
 ## Remaining work
 
-Keep issue #17 open for independently bounded extra amplifier poles, limited
-output swing/slew/current, nonlinear overload/recovery, and dummy-bench calibration.
+PR #21 adds an optional unmeasured extra amplifier pole consistently to equations,
+state dynamics and netlists. Keep issue #17 open for physically justified dynamic
+bounds, limited output swing/slew/current, nonlinear overload/recovery, and
+dummy-bench calibration.
 Do not fit uncertain poles or cable values just to obtain a comfortable margin.
 No firmware BIAS or lead-off excitation was enabled. Power, schematic/ERC, S3
 compilation, physical measurements and a separate body-interface review remain
