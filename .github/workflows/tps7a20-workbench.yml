@@ -1,0 +1,128 @@
+name: Disposable TPS7A20 workbench
+on:
+  pull_request:
+    paths: ['.github/workflows/tps7a20-workbench.yml']
+permissions:
+  contents: read
+jobs:
+  investigate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      UV_PYTHON: '3.13'
+      MPLBACKEND: Agg
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.13'
+      - name: Install existing locked environment and simulator
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends ngspice
+          python -m pip install uv==0.12.18
+          uv sync --locked --all-extras
+      - name: Isolate supply collapse from enable deassertion
+        run: |
+          mkdir -p reports/workbench
+          git archive --format=tar HEAD > reports/workbench/repository.tar
+          cat > reports/workbench/experiment.py <<'PY'
+          """Disposable fixture experiment; never qualifies a device or redistributes TI bytes."""
+          import hashlib
+          import json
+          import subprocess
+          import urllib.request
+          from pathlib import Path
+          from tempfile import TemporaryDirectory
+
+          import numpy as np
+
+          from lab.rev_a_power import _run, _vendor_netlist, prepare_library, run_pilot
+
+          root = Path('reports/workbench')
+          results = []
+          with TemporaryDirectory(prefix='private-ti-workbench-') as temporary:
+              private = Path(temporary)
+              archive = private / 'sbvm961.zip'
+              with urllib.request.urlopen('https://www.ti.com/lit/zip/sbvm961', timeout=30) as source:
+                  raw = source.read(4_000_001)
+              archive.write_bytes(raw)
+              for normalized in (False, True):
+                  directory = run_pilot(root / 'baseline', vendor_archive=archive, normalize_switch=normalized)
+                  results.append({'baseline': str(directory), 'normalized': normalized})
+              library = private / 'normalized.lib'
+              library.write_bytes(prepare_library(archive, normalize_switch=True))
+              base = _vendor_netlist(library, True, True)
+              both = 'PWL(0 0 1m 0 1.01m 5 15m 5 15.01m 0 20m 0)'
+              held = 'PWL(0 0 1m 0 1.01m 5 20m 5)'
+              delayed = 'PWL(0 0 1m 0 1.01m 5 16m 5 16.01m 0 20m 0)'
+              for name, supply, enable in (
+                  ('enable_only', held, both),
+                  ('supply_only', both, held),
+                  ('enable_then_supply', delayed, both),
+              ):
+                  text = base.replace('Vin in 0 ' + both, 'Vin in 0 ' + supply)
+                  text = text.replace('Xreg in 0 in nc out', 'Venable en 0 ' + enable + '\nXreg in 0 en nc out')
+                  text = text.replace('v(in) v(out)', 'v(in) v(en) v(out)')
+                  result = {'case': name, 'library_edited': True, 'power_model_validated': False}
+                  try:
+                      times, volts = _run(root / name, text, 3, expected_stop_s=0.02)
+                      result.update({'completed': True, 'last_time_s': float(times[-1]), 'rows': len(times),
+                                     'final_output_v': float(volts[-1, -1]),
+                                     'min_output_v': float(np.min(volts[:, -1])),
+                                     'max_output_v': float(np.max(volts[:, -1]))})
+                  except (RuntimeError, ValueError) as exc:
+                      result.update({'completed': False, 'reason': str(exc)})
+                  results.append(result)
+              for variant, spec in (
+                  ('inverse', 'Roff=1e-6 Ron=1e6 Voff=0 Von=1m'),
+                  ('normalized', 'Roff=1e6 Ron=1e-6 Voff=1m Von=0'),
+              ):
+                  for collapsing in (False, True):
+                      name = f'isolated_{variant}_{collapsing}'
+                      supply = 'PWL(0 3.3 15m 3.3 15.01m 0 20m 0)' if collapsing else '3.3'
+                      text = (
+                          'Independent switch plus RC shutdown fixture\n'
+                          f'Vin in 0 {supply}\n'
+                          'Vctrl ctrl 0 PWL(0 0 15m 0 15.01m 1m 20m 1m)\n'
+                          'Sprobe in out ctrl 0 DUT\nRload out 0 1100\nCout out 0 1u\n'
+                          f'.model DUT VSWITCH({spec})\n'
+                          '.options reltol=1e-5 abstol=1e-10 vntol=1e-7 method=gear\n'
+                          '.control\nset wr_singlescale\nset wr_vecnames\nset numdgt=15\n'
+                          'tran 1u 20m 0 1u\n'
+                          'let integration_start = time[0]\n'
+                          'let integration_stop = time[length(time)-1]\n'
+                          'print integration_start integration_stop > transient-window.txt\n'
+                          'wrdata transient.txt v(in) v(ctrl) v(out)\nquit\n.endc\n.end\n'
+                      )
+                      result = {'case': name, 'power_model_validated': False}
+                      try:
+                          times, volts = _run(root / name, text, 3, expected_stop_s=0.02)
+                          result.update({'completed': True, 'last_time_s': float(times[-1]),
+                                         'final_output_v': float(volts[-1, -1]),
+                                         'min_output_v': float(np.min(volts[:, -1])),
+                                         'max_output_v': float(np.max(volts[:, -1]))})
+                      except (RuntimeError, ValueError) as exc:
+                          result.update({'completed': False, 'reason': str(exc)})
+                      results.append(result)
+          summary = {'source_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+                     'results': results, 'hardware_validated': False,
+                     'scope': 'isolated optional investigation, not a CI gate or model approval'}
+          (root / 'summary.json').write_text(json.dumps(summary, indent=2) + '\n')
+          print(json.dumps(summary, indent=2))
+          files = {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
+                   for p in root.rglob('*') if p.is_file()}
+          (root / 'manifest.json').write_text(json.dumps(files, indent=2) + '\n')
+          PY
+          uv run --locked python reports/workbench/experiment.py
+      - name: Preserve handwritten fixtures, diagnostics and source snapshot only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: tps7a20-disposable-workbench
+          path: reports/workbench/
+          if-no-files-found: error
+          retention-days: 14
