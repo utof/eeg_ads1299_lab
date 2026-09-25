@@ -9,11 +9,12 @@ import hashlib
 import json
 import math
 import sys
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass, replace
 from itertools import product
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import MappingProxyType
 from typing import Literal
 
 import numpy as np
@@ -22,6 +23,15 @@ from hardware.rev_a import load_documents, validate
 
 from .analog import Drive, InputNetwork, export_spice, run_ngspice, transfer
 from .data_types import FloatArray
+
+_SCENARIOS = frozenset(("ideal_source_limit", "balanced", "impedance_mismatch"))
+_DRIVES: tuple[Drive, ...] = ("differential", "common")
+_COMPARISONS = frozenset(f"{name}/{drive}" for name in _SCENARIOS for drive in _DRIVES)
+
+
+def _finite_nonnegative(value: float, name: str) -> None:
+    if isinstance(value, bool) or not math.isfinite(value) or value < 0:
+        raise ValueError(f"{name} must be finite and nonnegative")
 
 
 @dataclass(frozen=True)
@@ -46,7 +56,7 @@ class RevABaseline:
                 raise ValueError("Rev A baseline tolerance must be finite and in [0, 1)")
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CaseResult:
     parameters: InputNetwork
     differential_gain_10hz: float
@@ -54,20 +64,126 @@ class CaseResult:
     common_to_differential_60hz: float
     leakage_dc_bound_v: float
 
+    def __post_init__(self) -> None:
+        if not isinstance(self.parameters, InputNetwork):
+            raise TypeError("case parameters must be an InputNetwork")
+        for value in (
+            self.differential_gain_10hz,
+            self.common_to_differential_50hz,
+            self.common_to_differential_60hz,
+            self.leakage_dc_bound_v,
+        ):
+            _finite_nonnegative(value, "case metric")
 
-@dataclass(frozen=True)
+
+@dataclass(frozen=True, slots=True)
+class AnalyticOnly:
+    """No native evidence exists; there is no success flag to toggle."""
+
+
+@dataclass(frozen=True, slots=True)
+class NativeCompared:
+    """Complete comparison summary, produced after the numerical checks.
+
+    This enforces structure, not cryptographic proof that a simulator ran.
+    The study runner owns execution and the real allclose comparison.
+    """
+
+    errors: Mapping[str, float]
+
+    def __post_init__(self) -> None:
+        errors = dict(self.errors)
+        if set(errors) != _COMPARISONS:
+            raise ValueError("native evidence requires exactly all six scenario/drive comparisons")
+        for value in errors.values():
+            _finite_nonnegative(value, "comparison error")
+        object.__setattr__(self, "errors", MappingProxyType(errors))
+
+
+def _snapshot_corners(
+    corners: Mapping[str, Sequence[CaseResult]],
+) -> Mapping[str, tuple[CaseResult, ...]]:
+    snapshot = {name: tuple(values) for name, values in corners.items()}
+    if set(snapshot) != _SCENARIOS:
+        raise ValueError("corner results require exactly the three study scenarios")
+    for values in snapshot.values():
+        if len(values) != 8 or any(not isinstance(value, CaseResult) for value in values):
+            raise ValueError("each scenario requires eight CaseResult corners")
+        if len({value.parameters for value in values}) != 8:
+            raise ValueError("each scenario requires eight distinct corner networks")
+    return MappingProxyType(snapshot)
+
+
+@dataclass(frozen=True, slots=True)
 class StudyReport:
     baseline: RevABaseline
-    cases: dict[str, CaseResult]
-    corners: dict[str, list[CaseResult]]
-    ideal_source_pole_hz: float
+    cases: Mapping[str, CaseResult]
+    corners: Mapping[str, Sequence[CaseResult]]
     leakage_bound_a: float
-    ngspice_status: Literal["not_requested", "executed_and_compared"]
-    ngspice_max_abs_error: dict[str, float]
+    spice_evidence: AnalyticOnly | NativeCompared
     limitations: tuple[str, ...]
-    clamps_fitted: Literal[False] = False
-    hardware_validated: Literal[False] = False
-    body_connection_permitted: Literal[False] = False
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.baseline, RevABaseline):
+            raise TypeError("study baseline must be a RevABaseline")
+        if not isinstance(self.spice_evidence, (AnalyticOnly, NativeCompared)):
+            raise TypeError("study evidence must be AnalyticOnly or NativeCompared")
+        _finite_nonnegative(self.leakage_bound_a, "leakage bound")
+        cases = dict(self.cases)
+        if set(cases) != _SCENARIOS:
+            raise ValueError("case results require exactly the three study scenarios")
+        if any(not isinstance(value, CaseResult) for value in cases.values()):
+            raise TypeError("study scenarios must contain CaseResult values")
+        object.__setattr__(self, "cases", MappingProxyType(cases))
+        object.__setattr__(self, "corners", _snapshot_corners(self.corners))
+        object.__setattr__(self, "limitations", tuple(self.limitations))
+
+    @property
+    def ideal_source_pole_hz(self) -> float:
+        b = self.baseline
+        return 1 / (2 * math.pi * 2 * b.series_resistance_ohm * b.differential_capacitance_f)
+
+    @property
+    def ngspice_status(self) -> Literal["not_requested", "executed_and_compared"]:
+        if isinstance(self.spice_evidence, NativeCompared):
+            return "executed_and_compared"
+        return "not_requested"
+
+    @property
+    def ngspice_max_abs_error(self) -> Mapping[str, float]:
+        if isinstance(self.spice_evidence, NativeCompared):
+            return self.spice_evidence.errors
+        return MappingProxyType({})
+
+    @property
+    def clamps_fitted(self) -> Literal[False]:
+        return False
+
+    @property
+    def hardware_validated(self) -> Literal[False]:
+        return False
+
+    @property
+    def body_connection_permitted(self) -> Literal[False]:
+        return False
+
+    def to_dict(self) -> dict[str, object]:
+        """Produce a detached JSON-compatible view, preserving the report schema."""
+        return {
+            "baseline": asdict(self.baseline),
+            "cases": {name: asdict(value) for name, value in self.cases.items()},
+            "corners": {
+                name: [asdict(value) for value in values] for name, values in self.corners.items()
+            },
+            "ideal_source_pole_hz": self.ideal_source_pole_hz,
+            "leakage_bound_a": self.leakage_bound_a,
+            "ngspice_status": self.ngspice_status,
+            "ngspice_max_abs_error": dict(self.ngspice_max_abs_error),
+            "limitations": list(self.limitations),
+            "clamps_fitted": self.clamps_fitted,
+            "hardware_validated": self.hardware_validated,
+            "body_connection_permitted": self.body_connection_permitted,
+        }
 
 
 def load_baseline() -> RevABaseline:
@@ -199,12 +315,7 @@ def study(
     out = Path(out)
     report_path = out / "study.json"
     report_path.unlink(missing_ok=True)
-    if (
-        isinstance(leakage_bound_a, bool)
-        or not math.isfinite(leakage_bound_a)
-        or leakage_bound_a < 0
-    ):
-        raise ValueError("leakage bound must be finite and nonnegative")
+    _finite_nonnegative(leakage_bound_a, "leakage bound")
     baseline = load_baseline()
     models = _models(baseline)
     cases = {name: _case_result(model, leakage_bound_a) for name, model in models.items()}
@@ -213,10 +324,9 @@ def study(
         for name, model in models.items()
     }
     comparisons: dict[str, float] = {}
-    drives: tuple[Drive, ...] = ("differential", "common")
     for name, model in models.items():
         _write_response(out / name, model)
-        for drive in drives:
+        for drive in _DRIVES:
             error = _spice_case(out / name / drive, model, drive, require_ngspice)
             if error is not None:
                 comparisons[f"{name}/{drive}"] = error
@@ -224,11 +334,8 @@ def study(
         baseline=baseline,
         cases=cases,
         corners=corners,
-        ideal_source_pole_hz=1
-        / (2 * math.pi * 2 * baseline.series_resistance_ohm * baseline.differential_capacitance_f),
         leakage_bound_a=leakage_bound_a,
-        ngspice_status="executed_and_compared" if require_ngspice else "not_requested",
-        ngspice_max_abs_error=comparisons,
+        spice_evidence=NativeCompared(comparisons) if require_ngspice else AnalyticOnly(),
         limitations=(
             "Passive small-signal input network only; no ADS1299 silicon or digital decimation model.",
             "Source RC and input resistance are illustrative assumptions, not electrode/ADS measurements.",
@@ -243,7 +350,7 @@ def study(
     with TemporaryDirectory(prefix=".study-", dir=out) as directory:
         staged = Path(directory) / "study.json"
         staged.write_text(
-            json.dumps(asdict(report), indent=2, allow_nan=False) + "\n", encoding="utf-8"
+            json.dumps(report.to_dict(), indent=2, allow_nan=False) + "\n", encoding="utf-8"
         )
         staged.replace(report_path)
     return report
@@ -268,7 +375,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "report": str(Path(args.out) / "study.json"),
         "ideal_source_pole_hz": report.ideal_source_pole_hz,
         "ngspice_status": report.ngspice_status,
-        "ngspice_max_abs_error": report.ngspice_max_abs_error,
+        "ngspice_max_abs_error": dict(report.ngspice_max_abs_error),
         "case_metrics": {
             name: {
                 "differential_gain_10hz": case.differential_gain_10hz,

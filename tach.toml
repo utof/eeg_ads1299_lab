@@ -157,4 +157,4 @@ depends_on = ["hardware.rev_a", "lab.analog", "lab.data_types"]
 
 [[interfaces]]
 from = ["lab.rev_a"]
-expose = ["RevABaseline", "CaseResult", "StudyReport", "load_baseline", "study", "main"]
+expose = ["RevABaseline", "CaseResult", "AnalyticOnly", "NativeCompared", "StudyReport", "load_baseline", "study", "main"]
