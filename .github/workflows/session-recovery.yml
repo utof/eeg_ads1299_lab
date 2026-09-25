@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
-          ref: b6ff7d460464adbed60797ff8aa0ca85d618e3e7
+          ref: 1c8d761ebf487d06c23d5c66506d674d6f5e4195
           persist-credentials: false
           fetch-depth: 0
       - name: Export exact source without credentials
@@ -22,7 +22,7 @@ jobs:
           sha256sum /tmp/recovered-source/* > /tmp/recovered-source/SHA256SUMS
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: recovered-source-b6
+          name: recovered-overload-1c8
           path: /tmp/recovered-source/
           retention-days: 3
           if-no-files-found: error
