@@ -15,13 +15,18 @@ jobs:
           ref: 65a20db96cf6a0dd3377e25ad961ea3e82489919
           persist-credentials: false
           fetch-depth: 0
-      - name: Export exact source history without credentials
+      - name: Export exact source history and native runtime without credentials
         run: |
           mkdir -p /tmp/recovery-source
           git bundle create /tmp/recovery-source/source.bundle --all
           git rev-parse HEAD HEAD^{tree} > /tmp/recovery-source/SOURCE.txt
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends ngspice
+          dpkg-query -L ngspice > /tmp/recovery-source/ngspice-package-files.txt
+          ngspice --version > /tmp/recovery-source/ngspice-version.txt
+          tar -C / -czf /tmp/recovery-source/ngspice-runtime.tar.gz usr/bin/ngspice usr/lib/x86_64-linux-gnu/ngspice usr/share/ngspice
           cd /tmp/recovery-source
-          sha256sum source.bundle SOURCE.txt > SHA256SUMS
+          sha256sum source.bundle SOURCE.txt ngspice-* > SHA256SUMS
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: recovered-source
