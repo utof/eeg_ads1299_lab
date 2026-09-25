@@ -73,7 +73,7 @@ depends_on = ["lab.acquisition", "lab.analog", "lab.inspect_capture", "lab.pipel
 
 [[modules]]
 path = "tests"
-depends_on = ["lab.rev_a_bias", "lab.rev_a", "hardware.rev_a", "lab.acquisition", "lab.adc", "lab.analog", "lab.data_types", "lab.dsp", "lab.inspect_capture", "lab.pipeline", "lab.protocol", "lab.signals", "lab.validation", "tools.check", "tools.commit_messages", "run_lab"]
+depends_on = ["lab.rev_a_bias_overload", "lab.rev_a_bias", "lab.rev_a", "hardware.rev_a", "lab.acquisition", "lab.adc", "lab.analog", "lab.data_types", "lab.dsp", "lab.inspect_capture", "lab.pipeline", "lab.protocol", "lab.signals", "lab.validation", "tools.check", "tools.commit_messages", "run_lab"]
 
 [[interfaces]]
 from = ["lab.data_types"]
@@ -165,4 +165,12 @@ depends_on = ["hardware.rev_a", "lab.analog", "lab.data_types"]
 
 [[interfaces]]
 from = ["lab.rev_a_bias"]
-expose = ["BiasModel", "BiasResponse", "load_bias_model", "ideal_controller", "response", "closed_poles", "step_response", "step_voltages", "export_bias_spice", "scenarios", "run_bias_study", "main"]
+expose = ["state_matrices", "bias_network_lines", "BiasModel", "BiasResponse", "load_bias_model", "ideal_controller", "response", "closed_poles", "step_response", "step_voltages", "export_bias_spice", "scenarios", "run_bias_study", "main"]
+
+[[modules]]
+path = "lab.rev_a_bias_overload"
+depends_on = ["lab.rev_a_bias", "lab.analog", "lab.data_types"]
+
+[[interfaces]]
+from = ["lab.rev_a_bias_overload"]
+expose = ["OutputLimits", "InterferencePulse", "OverloadTrace", "overload_response", "export_overload_spice", "run_overload_study", "main"]

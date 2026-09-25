@@ -86,3 +86,16 @@ ngspice subprocess boundary. Retained transient tables are uniformly interpolate
 not raw adaptive solver history. This is zero-state linear interference response,
 not power-up, saturation/recovery or a physical safety gate. Verify PR status/CI
 before assuming a development snapshot is merged.
+
+## Continued BIAS work: linear transients and output-limiting hypothesis
+
+PR #23 independently checks the linear BIAS time traces with actual ngspice;
+read `docs/REV_A_BIAS_TRANSIENT_VALIDATION.md`. `lab.rev_a_bias_overload` adds
+only a **one-pole output-state rail/slew projection hypothesis**, with preserved
+feedback-capacitor charge and independent hybrid/native checks. Read
+`docs/REV_A_BIAS_OVERLOAD.md` before describing it. The +/-2 V output deviations
+are assumptions, not TI's INPUT common-mode range; typical 0.07 V/us is not a
+guaranteed bound. There is no current limiter, internal recovery delay, PGA
+clipping or supply startup. Unknown extra-pole nonlinear topology is rejected.
+Disconnected BIAS can remain saturated throughout the reported 35 ms window.
+All physical and human-use gates remain unchanged; issue #17 remains open.

@@ -170,6 +170,18 @@ def _native(out: Path) -> None:
         out,
     )
     run_step(
+        "rev-a-bias-overload",
+        [
+            sys.executable,
+            "-m",
+            "lab.rev_a_bias_overload",
+            "--require-ngspice",
+            "--out",
+            str(out / "rev_a_bias_overload"),
+        ],
+        out,
+    )
+    run_step(
         "loopback",
         [
             sys.executable,
