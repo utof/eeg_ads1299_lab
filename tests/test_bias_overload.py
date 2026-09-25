@@ -172,14 +172,17 @@ def test_feedback_charge_obeys_resistor_kcl_during_saturation() -> None:
 def test_failed_native_cannot_publish_success(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fault: str
 ) -> None:
-    def bad_trace(_netlist: Path, _out: Path, *, columns: int) -> tuple[FloatArray, FloatArray]:
+    def bad_trace(
+        _netlist: Path, _out: Path, *, columns: int, expected_stop_s: float
+    ) -> tuple[FloatArray, FloatArray]:
         assert columns == 3
-        times = np.array([0.0, 0.01, 0.035])
+        assert expected_stop_s == 0.035
+        times = np.linspace(0, 0.035, 17501)
         if fault == "early_stop":
             times[-1] = 0.02
         elif fault == "late_start":
             times[0] = 1e-3
-        return times, np.zeros((3, 3), dtype=np.float64)
+        return times, np.zeros((len(times), 3), dtype=np.float64)
 
     monkeypatch.setattr("lab.rev_a_bias_overload.run_ngspice_transient", bad_trace)
     with pytest.raises(RuntimeError, match=r"transient|disagree"):
