@@ -78,6 +78,8 @@ def test_native_handwritten_switch_endpoints_and_manifest(tmp_path: Path) -> Non
     assert len(probes) == 6
     for probe in probes:
         assert isinstance(probe, dict)
+        assert probe["window_complete"] is True
+        assert probe["outcome"] == "probe_completed_not_validated"
         if probe["variant"] != "inverse":
             assert probe["compatible_endpoint"] is True
     manifest: object = json.loads((root / "manifest.json").read_text())
