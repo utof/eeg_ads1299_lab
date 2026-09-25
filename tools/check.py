@@ -217,6 +217,10 @@ def _firmware(out: Path) -> None:
     if cli is None:
         raise RuntimeError("Firmware checks require arduino-cli; absence is not a pass")
     config = _firmware_config()
+    run_step("firmware-source", ["git", "rev-parse", "HEAD"], out)
+    source_commit = (out / "firmware-source.log").read_text().strip()
+    if re.fullmatch(r"[0-9a-f]{40}", source_commit) is None:
+        raise RuntimeError("Cannot establish firmware source commit")
     run_step("arduino-version", [cli, "version"], out)
     version = (out / "arduino-version.log").read_text()
     if not re.search(r"Version:\s*" + re.escape(config["cli_version"]) + r"\b", version):
@@ -255,6 +259,12 @@ def _firmware(out: Path) -> None:
         json.dumps(
             {
                 "scope": "target_compile_only",
+                "source_commit": source_commit,
+                "source_sha256": {
+                    p.name: hashlib.sha256(p.read_bytes()).hexdigest()
+                    for p in (ROOT / "firmware/esp32_ads1299_bench").iterdir()
+                    if p.is_file()
+                },
                 "toolchain": config,
                 "artifact_directory": build.name,
                 "sha256": binaries,

@@ -58,7 +58,10 @@ The new `Firmware` workflow installs that toolchain and runs the same command.
 The ordinary software and native/simulation jobs remain separate. Firmware mode
 fails when the compiler or required versions are absent. Each target compile
 uses a fresh output directory; a zero exit without new binary artifacts fails.
-`FIRMWARE_BUILD.json` records the toolchain, directory and binary SHA-256s with
+The CI checkout explicitly selects the PR head (or the push commit); it does not
+call a synthetic merge checkout exact-head evidence.
+`FIRMWARE_BUILD.json` records the source commit, source-file hashes, toolchain,
+directory and binary SHA-256s with
 all physical/review/body-use flags false. It is written only after success.
 
 ## Evidence and limits
