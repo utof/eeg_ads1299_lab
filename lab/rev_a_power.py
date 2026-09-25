@@ -34,6 +34,11 @@ _NEW = b"_S2 VSWITCH Roff=1E6 Ron=1e-6 Voff=1m Von=0"
 
 
 _ARCHIVE_LIMIT = 4_000_000
+_RAW_WINDOW = (
+    "let integration_start = time[0]\n"
+    "let integration_stop = time[length(time)-1]\n"
+    "print integration_start integration_stop > transient-window.txt\n"
+)
 
 
 def _read_archive(path: Path) -> bytes:
@@ -114,17 +119,21 @@ def switch_netlist(variant: _Switch, control_v: float) -> str:
         f"Vin in 0 3.3\nVctrl ctrl 0 {control_v:g}\n"
         f"Sprobe in out ctrl 0 DUT\nRload out 0 1100\n.model DUT VSWITCH({specs[variant]})\n"
         ".control\nset wr_singlescale\nset wr_vecnames\nset numdgt=15\n"
-        "tran 1u 10u\nwrdata transient.txt v(out)\nquit\n.endc\n.end\n"
+        "tran 1u 10u\n" + _RAW_WINDOW + "wrdata transient.txt v(out)\nquit\n.endc\n.end\n"
     )
 
 
-def _run(path: Path, text: str, columns: int) -> tuple[FloatArray, FloatArray]:
+def _run(
+    path: Path, text: str, columns: int, *, expected_stop_s: float
+) -> tuple[FloatArray, FloatArray]:
     path.mkdir()
     (path / "network.cir").write_text(text, encoding="utf-8")
     init = path / ".spiceinit"
     init.write_text("set ngbehavior=psa\n", encoding="utf-8")
     try:
-        return run_ngspice_transient(path / "network.cir", path, columns=columns)
+        return run_ngspice_transient(
+            path / "network.cir", path, columns=columns, expected_stop_s=expected_stop_s
+        )
     finally:
         # Preserve the exact initialization bytes under a visible artifact name.
         # Reproduction restores this file to .spiceinit before invoking ngspice.
@@ -146,7 +155,7 @@ def _switch_probe(root: Path, variant: _Switch, control: float) -> dict[str, obj
         "outcome": "rejected",
     }
     try:
-        times, volts = _run(root, switch_netlist(variant, control), 1)
+        times, volts = _run(root, switch_netlist(variant, control), 1, expected_stop_s=10e-6)
         actual = float(volts[-1, 0])
         result.update({"observed_endpoint_v": actual, "last_time_s": float(times[-1])})
         if abs(float(times[-1]) - 10e-6) >= 1e-12:
@@ -178,7 +187,9 @@ def _vendor_netlist(library: Path, shutdown: bool, normalized: bool) -> str:
         "Bload out 0 I={v(out)*v(ctl)*(0.010-0.003)/3.3}\n"
         ".options reltol=1e-5 abstol=1e-10 vntol=1e-7 method=gear\n"
         ".control\nset wr_singlescale\nset wr_vecnames\nset numdgt=15\n"
-        "tran 1u 20m 0 1u\nwrdata transient.txt v(in) v(out)\nquit\n.endc\n.end\n"
+        "tran 1u 20m 0 1u\n"
+        + _RAW_WINDOW
+        + "wrdata transient.txt v(in) v(out)\nquit\n.endc\n.end\n"
     )
 
 
@@ -189,7 +200,9 @@ def _vendor_probe(root: Path, library: Path, shutdown: bool, normalized: bool) -
         "window_complete": False,
     }
     try:
-        times, volts = _run(root, _vendor_netlist(library, shutdown, normalized), 2)
+        times, volts = _run(
+            root, _vendor_netlist(library, shutdown, normalized), 2, expected_stop_s=0.02
+        )
         result.update(
             {
                 "rows": len(times),
