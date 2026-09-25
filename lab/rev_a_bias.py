@@ -232,8 +232,13 @@ def response(frequency_hz: FloatArray, model: BiasModel) -> BiasResponse:
     )
 
 
-def _closed_system(model: BiasModel) -> tuple[FloatArray, FloatArray]:
-    """Independent full circuit descriptor: passive nodes, summing node, amplifier output."""
+def state_matrices(model: BiasModel) -> tuple[FloatArray, FloatArray]:
+    """Fresh A, B arrays for x'=Ax+B*I, with volts and injected amperes.
+
+    State order: lead, common, eight ADC nodes, summing node, output; an
+    optional dominant-pole state follows. Exposed for the bounded nonlinear
+    study, which preserves the feedback capacitor rather than clipping plots.
+    """
     plant_g, plant_c, sources = _plant(model)
     size = 12 if model.extra_pole_hz is None else 13
     conductance = np.zeros((size, size), dtype=np.float64)
@@ -260,7 +265,7 @@ def _closed_system(model: BiasModel) -> tuple[FloatArray, FloatArray]:
 
 def closed_poles(model: BiasModel) -> ComplexArray:
     """Poles of this linear model, NOT proof that physical ADS1299 hardware is stable."""
-    state, _ = _closed_system(model)
+    state, _ = state_matrices(model)
     return np.asarray(np.linalg.eigvals(state), dtype=np.complex128)
 
 
@@ -273,7 +278,7 @@ def step_voltages(time_s: FloatArray, model: BiasModel, *, current_a: float) -> 
     times = _frequencies(time_s)
     if np.any(np.diff(times) <= 0) or isinstance(current_a, bool) or not math.isfinite(current_a):
         raise ValueError("time must increase strictly and current must be finite")
-    state, drive = _closed_system(model)
+    state, drive = state_matrices(model)
     if np.max(np.linalg.eigvals(state).real) >= 0:
         raise ValueError("unstable linear model has no settling response")
     steady = -np.linalg.solve(state, drive) * current_a
@@ -287,37 +292,18 @@ def step_response(time_s: FloatArray, model: BiasModel, *, current_a: float) -> 
     return step_voltages(time_s, model, current_a=current_a)[:, 0]
 
 
-def export_bias_spice(path: str | Path, model: BiasModel, *, mode: str = "loop") -> Path:
-    """Generate only this bounded circuit; execution reuses lab.analog.run_ngspice."""
-    if mode not in ("loop", "closed", "step"):
-        raise ValueError("mode must be loop, closed or step")
-    stimulus = "Iinterference 0 common DC 1n" if mode == "step" else "Iinterference 0 common AC 1n"
+def bias_network_lines(model: BiasModel, *, drive_node: str = "out") -> list[str]:
+    """The shared, unchanged passive/summing topology, without amplifier or sources."""
+    if drive_node not in ("out", "drive"):
+        raise ValueError("drive node must be out or drive")
     lines = [
-        "Bounded BIAS dummy-load model -- NOT A HUMAN-USE SCHEMATIC",
-        "* Midpoint small-signal reference; unmeasured loads and assumed amplifier dynamics.",
-        "* No imported TINA/silicon model, rails, slew, current limit or recovery model.",
-        "Vdrive drive 0 AC 1" if mode == "loop" else stimulus,
-        f"Rdrive {'drive' if mode == 'loop' else 'out'} lead {model.drive_r_ohm:.15g}",
+        f"Rdrive {drive_node} lead {model.drive_r_ohm:.15g}",
         f"Clead lead 0 {model.lead_c_f:.15g}",
         f"Renv common 0 {model.environment_r_ohm:.15g}",
         f"Cenv common 0 {model.environment_c_f:.15g}",
         f"Rf vm out {model.feedback_r_ohm:.15g}",
         f"Cf vm out {model.feedback_c_f:.15g}",
-        f"Eamp raw 0 vm 0 {-model.open_loop_gain:.15g}",
-        "Rdominant raw dom 1000",
-        f"Cdominant dom 0 {model.open_loop_gain / (2 * np.pi * model.gbw_hz) / 1000:.15g}",
     ]
-    if model.extra_pole_hz is None:
-        lines.append("Eoutput out 0 dom 0 1")
-    else:
-        lines.extend(
-            [
-                "Eisolate buffer 0 dom 0 1",
-                "Rextra buffer extra 1000",
-                f"Cextra extra 0 {1 / (2 * np.pi * model.extra_pole_hz * 1000):.15g}",
-                "Eoutput out 0 extra 0 1",
-            ]
-        )
     if model.bias_contact_ohm is not None:
         lines.append(f"Rbias lead common {model.bias_contact_ohm:.15g}")
     for index, contact in enumerate(model.contacts_ohm):
@@ -333,6 +319,35 @@ def export_bias_spice(path: str | Path, model: BiasModel, *, mode: str = "loop")
         )
     for index in range(0, 8, 2):
         lines.append(f"Cdiff{index} i{index} i{index + 1} {model.differential_c_f:.15g}")
+    return lines
+
+
+def export_bias_spice(path: str | Path, model: BiasModel, *, mode: str = "loop") -> Path:
+    """Generate only this bounded circuit; execution reuses lab.analog.run_ngspice."""
+    if mode not in ("loop", "closed", "step"):
+        raise ValueError("mode must be loop, closed or step")
+    stimulus = "Iinterference 0 common DC 1n" if mode == "step" else "Iinterference 0 common AC 1n"
+    lines = [
+        "Bounded BIAS dummy-load model -- NOT A HUMAN-USE SCHEMATIC",
+        "* Midpoint small-signal reference; unmeasured loads and assumed amplifier dynamics.",
+        "* No imported TINA/silicon model, rails, slew, current limit or recovery model.",
+        "Vdrive drive 0 AC 1" if mode == "loop" else stimulus,
+        *bias_network_lines(model, drive_node="drive" if mode == "loop" else "out"),
+        f"Eamp raw 0 vm 0 {-model.open_loop_gain:.15g}",
+        "Rdominant raw dom 1000",
+        f"Cdominant dom 0 {model.open_loop_gain / (2 * np.pi * model.gbw_hz) / 1000:.15g}",
+    ]
+    if model.extra_pole_hz is None:
+        lines.append("Eoutput out 0 dom 0 1")
+    else:
+        lines.extend(
+            [
+                "Eisolate buffer 0 dom 0 1",
+                "Rextra buffer extra 1000",
+                f"Cextra extra 0 {1 / (2 * np.pi * model.extra_pole_hz * 1000):.15g}",
+                "Eoutput out 0 extra 0 1",
+            ]
+        )
     if mode == "step":
         lines.extend(
             [".save v(common) v(out)", ".options reltol=1e-7 vntol=1e-10 abstol=1e-14 method=trap"]

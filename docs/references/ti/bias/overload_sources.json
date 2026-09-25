@@ -1,0 +1,26 @@
+{
+  "study": "one-pole output-state projection hypothesis",
+  "source": {
+    "url": "https://www.ti.com/lit/ds/symlink/ads1299.pdf",
+    "document": "SBAS499C, revised January 2017",
+    "locator": "Printed page 9, section 7.5, Patient Bias Amplifier table",
+    "slew_rate_typical_v_per_us": 0.07,
+    "slew_test_conditions": "50 kohm parallel 10 pF load, gain = 1",
+    "gbw_typical_hz": 100000,
+    "short_circuit_current_typical_a": 0.0011,
+    "short_circuit_current_used_as_model_limit": false,
+    "input_common_mode_range": "AVSS+0.3 to AVDD-0.3; INPUT range, not output swing",
+    "output_swing_and_overload_recovery": "Not specified by this table; no measured recovery parameters claimed"
+  },
+  "assumptions": {
+    "output_deviations_v": [-2.0, 2.0],
+    "midpoint_v": 2.5,
+    "rail_interpretation": "Illustrative 0.5 to 4.5 V output window about a 2.5 V midpoint, NOT a device guarantee",
+    "topology": "Single dominant output state; clip requested slope and block outward motion at a rail; release when requested slope turns inward",
+    "feedback_capacitor": "Retain vm-out state through projection; do not clip a completed linear trace",
+    "slow_slew_case_v_per_s": 100.0,
+    "slow_slew_interpretation": "Deliberately slow numerical sensitivity case, not an ADS1299 specification or guaranteed bound",
+    "dummy_contacts": "Reuse existing explicitly unmeasured BIAS dummy loads; not calibrated MCScap/scalp values"
+  },
+  "excluded": ["Extra-pole nonlinear saturation topology", "PGA/input clipping", "Output current limiting", "Supply startup", "Transistor-level recovery", "Physical or human-use validation"]
+}

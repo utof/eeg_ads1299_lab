@@ -189,3 +189,10 @@ Read [the adversarial review](docs/ADVERSARIAL_REVIEW.md) for the architecture v
 | Matplotlib cache permission warning | Set `MPLCONFIGDIR` to a writable directory; no special font installation is required. |
 
 Read [SOURCES.md](docs/SOURCES.md) for primary references and [MODEL_SCOPE.md](docs/MODEL_SCOPE.md) for model boundaries.
+
+### Bounded BIAS overload hypothesis
+
+`uv run --locked python -m lab.rev_a_bias_overload --require-ngspice` compares
+a stated one-pole rail/slew hypothesis with ngspice while preserving feedback
+capacitor charge. It is not measured ADS1299 overload recovery. Read
+[the scope, source limits and numerical checks](docs/REV_A_BIAS_OVERLOAD.md).
