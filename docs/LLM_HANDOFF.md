@@ -63,3 +63,16 @@ PRs #13 and #14 were merged into main, ending at `cdd901d5df8375e71eadefc99bdacc
 After the adversarial fixes in PR #9 were merged and main passed all three checks, the next addition was `lab.rev_a`, an explicit consumer of the public `hardware.rev_a` and `lab.analog` APIs. It does not change generic analog defaults, hardware JSON or firmware. Run it through uv and read `docs/REV_A_INPUT_STUDY.md`. The native quality gate includes its six real ngspice comparisons and keeps reports in the normal ignored evidence directory.
 
 This closes the first executable selected-component/passive-input bridge, not the entire Rev A simulation plan. BIAS-loop stability, power/decoupling and input-fault analysis still need their own appropriate models; target-specific S3 compilation, schematic review and physical measurements are separate gates. Do not treat the illustrative ADC-node parasitics as a distributed cable model or the DC leakage sensitivity as qualified clamp protection.
+
+## Bounded BIAS increment (2026-09-25)
+
+PR #19 merged at `59cb94de2af9808b61a81d777e62a37538ac094a` after exact-head
+Python 3.11/3.13/native checks passed in run `36165609993`. The first issue #17
+BIAS increment is `lab.rev_a_bias`, PR #20: read `docs/REV_A_BIAS_STUDY.md`, its
+TI source record and `docs/RESEARCH_APPLICATION_2026_09_25.md`. It reconstructs a
+published summing topology, checks independent limiting cases and compares five
+nominal dummy cases against actual ngspice. TI explicitly corrects the datasheet's
+330k summing-resistor typo to 220k. Amplifier dynamics/contact/cable values remain
+bounded assumptions; stress cases can be unstable. Linear steps are not power-up,
+saturation/recovery or physical validation. No firmware BIAS is enabled. Keep #17
+open for those remaining questions and verify PR #20's current exact-head checks.
