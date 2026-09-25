@@ -47,7 +47,7 @@ def test_native_bias_step_matches_matrix_exponential(
 ) -> None:
     model = replace(scenarios(load_bias_model())[case], extra_pole_hz=extra_pole)
     path = export_bias_spice(tmp_path / "network.cir", model, mode="step")
-    times, actual = run_ngspice_transient(path, tmp_path, columns=2)
+    times, actual = run_ngspice_transient(path, tmp_path, columns=2, expected_stop_s=0.1)
     assert times[0] <= 1e-6
     assert times[-1] == pytest.approx(0.1, abs=1e-12)
     # Test early samples and the entire window; retain the complete native table.
@@ -64,8 +64,12 @@ def test_slow_extra_pole_step_converges_under_timestep_refinement(tmp_path: Path
     coarse_path = export_bias_spice(tmp_path / "coarse" / "network.cir", model, mode="step")
     fine_path = export_bias_spice(tmp_path / "fine" / "network.cir", model, mode="step")
     fine_path.write_text(fine_path.read_text().replace("0 200n uic", "0 100n uic"))
-    times, coarse = run_ngspice_transient(coarse_path, coarse_path.parent, columns=2)
-    fine_times, fine = run_ngspice_transient(fine_path, fine_path.parent, columns=2)
+    times, coarse = run_ngspice_transient(
+        coarse_path, coarse_path.parent, columns=2, expected_stop_s=0.1
+    )
+    fine_times, fine = run_ngspice_transient(
+        fine_path, fine_path.parent, columns=2, expected_stop_s=0.1
+    )
     np.testing.assert_array_equal(times, fine_times)
     indexes = np.linspace(0, len(times) - 1, 701, dtype=np.int64)
     reference = step_voltages(times[indexes], model, current_a=1e-9)

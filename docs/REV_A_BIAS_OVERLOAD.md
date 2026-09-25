@@ -62,7 +62,10 @@ records, model/lock hashes, package/tool versions, all twelve Python circuit
 states, ngspice netlist/log/three voltage traces, explicit parameter values and
 rail-event times are retained. The existing bounded ngspice process/trace
 reader is reused; there is no second simulation runner. An exit code of zero
-is insufficient: the requested time window and voltages must also pass.
+is insufficient: the raw integration stop time and voltages must also pass.
+`transient-window.txt` is recorded **before** interpolation, removed before
+each required execution, validated against the requested stop, and included
+in the manifest. The displayed/interpolated endpoint alone is not completion.
 
 Independent checks include a piecewise-linear-input matrix exponential in the
 small-signal limit, positive/negative symmetry, output-slope bounds, an
@@ -95,3 +98,45 @@ node excursions are not literal predictions of real ADS1299 voltages. The
 next physical constraints need source/measurement-backed output swing, overload
 and load behavior. No firmware BIAS/lead-off/external-input enablement, purchase,
 protection, schematic-release or human-connection approval follows.
+
+
+## Adversarial completion regression (2026-09-25)
+
+Recovery review of implementation `1c8d761ebf487d06c23d5c66506d674d6f5e4195`
+found a false positive: a raw positive-overload run intentionally stopped at
+25 ms, while the unchanged `linearize` command exported to 35 ms. The old
+all-sample numerical comparison still passed and the study published a manifest.
+The late pulse response was already small enough that the padded tail did not
+exceed the existing 100 uV criterion. Thus a successful numerical comparison
+was not proof of integration through the requested window.
+
+The test-only commit `6f9bf3541e8c3fae8e019bba63eb5d8fc0ed37da` preserves
+this actual native failure. The correction requires the fresh raw stop record
+through the existing transient runner; both BIAS studies opt in. No integration
+or comparison tolerance is relaxed. Missing, stale, malformed, nonfinite,
+wrong-request and truncated records have software regressions, alongside the
+end-to-end native regression. Generic callers that omit `expected_stop_s` get
+format verification only, not a completion guarantee. This is not authenticity
+against a maliciously rewritten netlist or external file writer.
+
+
+## Independent review corrections
+
+The completed Codex review of `1c8d761` identified four further boundary issues.
+Nine focused regression cases reproduced the issues or the missing domain
+rejection before correction (test-only commit `8a0f3c5f`). The final study checks
+all 17,501 observation times against the requested 2 us grid; a correct pair of
+endpoints is no substitute for pulse/transition coverage. The linear BIAS study
+likewise checks its 50,001-point grid before selecting comparison samples.
+
+Terminal rail-hit and release events are now recorded even when they coincide
+with a pulse-segment endpoint. A rail snap applies the identical voltage
+correction to output and summing states, preserving the returned numerical
+feedback-capacitor charge. Endpoint-rounding and root-state perturbation tests
+are explicitly software fault-injection checks, not measured simulator errors.
+
+Output rails closer than 1 uV to zero are rejected as outside this solver's
+supported numerical scale (absolute state tolerance 1e-10 V). This is a software
+resolution limit, not a manufacturer output-swing limit. Mode selection no
+longer treats proximity below a rail as saturation. Nominal +/-2 V results and
+all original voltage comparison thresholds are unchanged.

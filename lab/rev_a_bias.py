@@ -367,6 +367,9 @@ def _analysis_commands(mode: str) -> list[str]:
         # incorrectly start at the final steady state, so uic is essential.
         return [
             "tran 1n 0.1 0 200n uic",
+            "let integration_start = time[0]",
+            "let integration_stop = time[length(time)-1]",
+            "print integration_start integration_stop > transient-window.txt",
             "let lin-tstart = 0",
             "let lin-tstop = 0.1",
             "let lin-tstep = 2u",
@@ -499,9 +502,12 @@ def _compare_bias_step(netlist: Path, model: BiasModel) -> dict[str, float | int
     Both a logarithmic early-time selection and a uniform whole-trace selection
     are checked; the uniform interpolated native table is retained. Not all rows are checked.
     """
-    times, actual = run_ngspice_transient(netlist, netlist.parent, columns=2)
+    times, actual = run_ngspice_transient(netlist, netlist.parent, columns=2, expected_stop_s=0.1)
     if times[0] > 1e-6 or abs(float(times[-1]) - 0.1) > 1e-12:
         raise RuntimeError("BIAS transient does not cover the requested time window")
+    grid = np.linspace(0, 0.1, 50001)
+    if times.shape != grid.shape or not np.allclose(times, grid, rtol=0, atol=1e-12):
+        raise RuntimeError("Invalid native BIAS transient observation grid: expected 2 us samples")
     indexes = np.unique(
         np.concatenate(
             (
