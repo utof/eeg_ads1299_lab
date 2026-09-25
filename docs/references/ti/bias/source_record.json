@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "reviewed_date": "2026-09-25",
+  "method": "Published equations/figures reconstructed into repository-owned bounded model; no vendor model binary imported",
+  "sources": [
+    {"id": "ti_sbaa188", "url": "https://www.ti.com/lit/pdf/sbaa188", "revision": "SBAA188 July 2011", "locator": "printed pages 5-6 equation 3 / figure 5; page 9 example", "used_for": "inverting common-mode summing stage, Rf parallel Cf, two-input analytical limiting case", "not_reproduced": "published EVM measurements or complete electrode/cable test fixture"},
+    {"id": "ti_ads1299", "url": "https://www.ti.com/lit/ds/symlink/ads1299.pdf", "revision": "SBAS499C January 2017", "locator": "printed page 9 BIAS amplifier electrical characteristics; page 33 section 9.3.2.4.5 / figure 38; page 68 equation 11", "used_for": "100 kHz typical gain-bandwidth at 50 kohm parallel 10 pF, gain one; summing topology", "conflict": "Figure 38 says 220 kohm, equation 11 says 330 kohm. Explicit TI support correction below selects 220 kohm."},
+    {"id": "ti_220k_correction", "url": "https://e2e.ti.com/support/data-converters-group/data-converters/f/data-converters-forum/617532/ads1299-4-recalling-the-ways-to-get-a-clean-signal?keymatch=ADS1299-4&tisearch=e2e-sitesearch", "locator": "Ryan Andrews response item 2 and earlier gain explanation", "used_for": "TI identifies 330k as a typo and confirms 220k summing resistors; every selected output adds a parallel resistor."}
+  ],
+  "parameter_classes": {
+    "selected_components": "feedback_r_ohm, feedback_c_f, drive_r_ohm, input_r_ohm, differential_c_f are consumed from the validated Rev A JSON baseline; not duplicated as model defaults",
+    "manufacturer_nominal": "summing_r_ohm=220000; gbw_hz=100000 is TYPICAL, not a guaranteed bound",
+    "engineering_assumptions": "open_loop_gain=100000 and single-pole dynamics; eight ideal unity common-mode buffers; contacts and all load/environment/input/lead capacitances; one-amp AC transfer normalization and one-nanoamp step amplitude",
+    "sensitivity_samples": "contact 10k,50k,1M,10M ohm; lead and each input capacitance jointly 100pF,1nF,10nF; GBW 50k,100k,200k Hz; open-loop gain 10k,100k,1M V/V. Illustrative samples, not measured ranges or manufacturer tolerances.",
+    "bench_measurements": "none"
+  },
+  "tina_retrieval": "ADS1299_BIAS_MEAS.TSC and four-channel lead-off example remain located-only; no binary hash, import or execution is claimed",
+  "redistribution": "Source URLs and paraphrased engineering observations only; no vendor binary/PDF source copied",
+  "human_connection_allowed": false
+}
