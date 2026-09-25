@@ -10,7 +10,9 @@ import hashlib
 import io
 import json
 import math
+import os
 import shutil
+import stat
 import subprocess
 import sys
 import zipfile
@@ -31,13 +33,34 @@ _OLD = b"_S2 VSWITCH Roff=1e-6 Ron=1E6 Voff=0 Von=1m"
 _NEW = b"_S2 VSWITCH Roff=1E6 Ron=1e-6 Voff=1m Von=0"
 
 
+_ARCHIVE_LIMIT = 4_000_000
+
+
+def _read_archive(path: Path) -> bytes:
+    """Inspect and bound one open descriptor, including growth after fstat.
+
+    Nonblocking open lets POSIX FIFOs reach the regular-file rejection without
+    waiting for a writer. Symlinks to regular files are permitted; the descriptor
+    rather than a prior pathname stat defines the object actually read.
+    """
+    flags = os.O_RDONLY | getattr(os, "O_NONBLOCK", 0)
+    with os.fdopen(os.open(path, flags), "rb") as stream:
+        info = os.fstat(stream.fileno())
+        if not stat.S_ISREG(info.st_mode):
+            raise ValueError("TI archive must be a regular file")
+        if info.st_size > _ARCHIVE_LIMIT:
+            raise ValueError("unexpected archive size")
+        raw = stream.read(_ARCHIVE_LIMIT + 1)
+    if len(raw) > _ARCHIVE_LIMIT:
+        raise ValueError("unexpected archive size")
+    return raw
+
+
 def prepare_library(archive: Path, *, normalize_switch: bool) -> bytes:
     """Hash-lock the raw artifact before an optional, explicitly experimental edit."""
     if not isinstance(normalize_switch, bool):
         raise ValueError("normalization request must be boolean")
-    if archive.stat().st_size > 4_000_000:
-        raise ValueError("unexpected archive size")
-    raw = archive.read_bytes()
+    raw = _read_archive(archive)
     if hashlib.sha256(raw).hexdigest() != ARCHIVE_SHA256:
         raise ValueError("TI archive SHA-256 mismatch")
     with zipfile.ZipFile(io.BytesIO(raw)) as source:
@@ -109,24 +132,36 @@ def _run(path: Path, text: str, columns: int) -> tuple[FloatArray, FloatArray]:
 
 
 def _switch_probe(root: Path, variant: _Switch, control: float) -> dict[str, object]:
-    times, volts = _run(root, switch_netlist(variant, control), 1)
     low_resistance = (control == 0.001) if variant == "usual" else (control == 0)
     resistance = 1e-6 if low_resistance else 1e6
     expected = 3.3 * 1100 / (1100 + resistance)
-    actual = float(volts[-1, 0])
-    complete = abs(float(times[-1]) - 10e-6) < 1e-12
-    return {
+    result: dict[str, object] = {
         "variant": variant,
         "control_v": control,
         "expected_endpoint_v": expected,
-        "observed_endpoint_v": actual,
+        "observed_endpoint_v": None,
         "tolerance_v": 1e-5,
-        "window_complete": complete,
-        "last_time_s": float(times[-1]),
-        "outcome": "probe_completed_not_validated" if complete else "rejected",
-        "compatible_endpoint": abs(actual - expected) <= 1e-5 if complete else None,
-        "reason": None if complete else "requested switch time window is incomplete",
+        "window_complete": False,
+        "compatible_endpoint": None,
+        "outcome": "rejected",
     }
+    try:
+        times, volts = _run(root, switch_netlist(variant, control), 1)
+        actual = float(volts[-1, 0])
+        result.update({"observed_endpoint_v": actual, "last_time_s": float(times[-1])})
+        if abs(float(times[-1]) - 10e-6) >= 1e-12:
+            raise ValueError("requested switch time window is incomplete")
+        result.update(
+            {
+                "window_complete": True,
+                "outcome": "probe_completed_not_validated",
+                "compatible_endpoint": abs(actual - expected) <= 1e-5,
+                "reason": None,
+            }
+        )
+    except (RuntimeError, ValueError) as exc:
+        result["reason"] = str(exc)
+    return result
 
 
 def _vendor_netlist(library: Path, shutdown: bool, normalized: bool) -> str:
@@ -148,7 +183,11 @@ def _vendor_netlist(library: Path, shutdown: bool, normalized: bool) -> str:
 
 
 def _vendor_probe(root: Path, library: Path, shutdown: bool, normalized: bool) -> dict[str, object]:
-    result: dict[str, object] = {"shutdown_requested": shutdown, "library_edited": normalized}
+    result: dict[str, object] = {
+        "shutdown_requested": shutdown,
+        "library_edited": normalized,
+        "window_complete": False,
+    }
     try:
         times, volts = _run(root, _vendor_netlist(library, shutdown, normalized), 2)
         result.update(
@@ -158,17 +197,39 @@ def _vendor_probe(root: Path, library: Path, shutdown: bool, normalized: bool) -
                 "final_output_v": float(volts[-1, -1]),
             }
         )
-        if shutdown:
-            if abs(float(times[-1]) - 0.02) > 1e-9:
-                raise ValueError("shutdown trajectory did not finish the requested window")
-            # No shutdown accuracy/decay behavior is established by reaching tstop.
-            result["window_complete"] = True
-        else:
+        if abs(float(times[-1]) - 0.02) > 1e-9:
+            raise ValueError("vendor trajectory did not finish the requested window")
+        result["window_complete"] = True
+        # No shutdown accuracy/decay behavior is established by reaching tstop.
+        if not shutdown:
             result.update(assess_trace(times, volts, target_v=3.3))
         result["outcome"] = "probe_completed_not_validated"
     except (RuntimeError, ValueError) as exc:
         result.update({"outcome": "rejected", "reason": str(exc)})
     return result
+
+
+def _version_output(value: str | bytes | None) -> str:
+    return value.decode("utf-8", errors="replace") if isinstance(value, bytes) else value or ""
+
+
+def _version(executable: str, root: Path) -> str:
+    """Retain setup diagnostics without pretending the investigation completed."""
+    log = root / "ngspice-version.log"
+    try:
+        result = subprocess.run(
+            [executable, "--version"], text=True, capture_output=True, timeout=5, check=False
+        )
+    except subprocess.TimeoutExpired as exc:
+        log.write_text(_version_output(exc.stdout) + "\n" + _version_output(exc.stderr))
+        raise RuntimeError(f"ngspice version probe timed out: see {log}") from exc
+    except OSError as exc:
+        log.write_text(str(exc) + "\n")
+        raise RuntimeError(f"ngspice version probe could not start: see {log}") from exc
+    log.write_text(result.stdout + "\n" + result.stderr)
+    if result.returncode != 0 or not result.stdout.strip():
+        raise RuntimeError(f"ngspice version probe failed: see {log}")
+    return result.stdout
 
 
 def run_pilot(
@@ -187,11 +248,9 @@ def run_pilot(
     executable = shutil.which("ngspice")
     if executable is None:
         raise RuntimeError("ngspice is required for the compatibility pilot")
-    version = subprocess.run(
-        [executable, "--version"], text=True, capture_output=True, timeout=5, check=True
-    ).stdout
     root = out / uuid4().hex
     root.mkdir(parents=True)
+    version = _version(executable, root)
     switches = [
         _switch_probe(root / f"switch_{variant}_{control:g}", variant, control)
         for variant in ("usual", "inverse", "normalized")
