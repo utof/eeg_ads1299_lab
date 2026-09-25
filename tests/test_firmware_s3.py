@@ -90,3 +90,47 @@ def test_compile_profile_target_guards(
     assert (result.returncode == 0) is accepted, result.stdout + result.stderr
     if not accepted:
         assert "error:" in result.stderr
+
+
+@pytest.mark.parametrize("fault", ["none", "cli_version", "core_version", "no_binary"])
+def test_firmware_gate_checks_versions_and_fresh_artifacts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fault: str
+) -> None:
+    def no_commands(_out: Path) -> list[tuple[str, list[str]]]:
+        return []
+
+    def coverage(_path: Path, _minimum: float) -> float:
+        return 79.0
+
+    def tool(_name: str) -> str:
+        return "/fake/arduino-cli"
+
+    def fake_step(name: str, command: list[str], out: Path, timeout: float = 300) -> None:
+        # Explicit software-only contract fixture. This is NOT target-build evidence.
+        text = "fixture"
+        if name == "arduino-version":
+            text = "arduino-cli Version: " + ("0.1.0" if fault == "cli_version" else "1.3.1")
+        elif name == "arduino-core":
+            text = "esp32:esp32 " + ("2.0.0" if fault == "core_version" else "3.3.12") + " esp32\n"
+        elif name == "s3-compile":
+            assert timeout == 600
+            assert "compiler.cpp.extra_flags=-DEEGLAB_REV_A_S3" in command
+            folder = Path(command[command.index("--output-dir") + 1])
+            assert folder.is_dir() and not list(folder.iterdir())
+            if fault != "no_binary":
+                (folder / "fixture.bin").write_bytes(b"not an actual firmware image")
+        (out / f"{name}.log").write_text(text)
+
+    monkeypatch.setattr("tools.check.command_plan", no_commands)
+    monkeypatch.setattr("tools.check.check_branch_coverage", coverage)
+    monkeypatch.setattr("tools.check.run_step", fake_step)
+    monkeypatch.setattr(shutil, "which", tool)
+    (tmp_path / "FIRMWARE_BUILD.json").write_text('{"stale": true}')
+    assert main(["--firmware", "--out", str(tmp_path)]) == (0 if fault == "none" else 1)
+    marker = tmp_path / "FIRMWARE_BUILD.json"
+    if fault == "none":
+        report = read_object(json.loads(marker.read_text()), "firmware")
+        assert report["physical_hardware_tested"] is False
+        assert report["body_connection_authorized"] is False
+    else:
+        assert not marker.exists()

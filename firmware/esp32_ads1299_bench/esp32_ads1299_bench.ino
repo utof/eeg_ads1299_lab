@@ -4,9 +4,9 @@
   interface, internal oscillator and internal-reference support. The board's
   analog power arrangement is NOT supplied by this sketch or pin map.
 
-  Validation: portable_core.h is native-C++ compiled/tested. This entire sketch
-  has NOT been compiled for ESP32 or exercised on hardware in the supplied run.
-  Read docs/RESULTS.md. No "passed tests" claim authorizes human connection.
+  Validation scopes: portable helper tests, target compilation and physical
+  measurements are separate. See docs/ESP32_S3_TARGET_BUILD.md for exact build
+  evidence. No "passed tests" claim authorizes GPIO or human connection.
 */
 #include <Arduino.h>
 #include <SPI.h>
@@ -15,9 +15,7 @@
 #include "board_config.h"
 #include "portable_core.h"
 
-#if !defined(CONFIG_IDF_TARGET_ESP32)
-#error "Example pin map is for original ESP32 only. Review/port it for your exact MCU."
-#endif
+// Target guards live with the explicit profile selection in board_config.h.
 
 SPISettings settings(1000000,MSBFIRST,SPI_MODE1);
 WiFiUDP udp;
@@ -78,6 +76,9 @@ void setup() {
     const uint8_t id=readReg(0);
     if((id&0x1c)!=0x1c||(id&3)==3)fail("Not a recognized ADS1299-x ID.");
     channels=4+2*(id&3);
+#if defined(EEGLAB_REV_A_S3)
+    if(channels!=EXPECTED_ADS_CHANNELS)fail("Selected Rev A profile requires ADS1299-4.");
+#endif
     Serial.printf("ID=0x%02x; %u physical channels; 250 SPS; gain 24\n",id,channels);
     checkedReg(0x01,0x96); // 250 SPS at 2.048-MHz clock, clock output disabled
     checkedReg(0x02,USE_INTERNAL_TEST?0xd0:0xc0); // ~0.9765625-Hz internal test, or test off
