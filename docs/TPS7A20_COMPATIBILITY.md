@@ -92,3 +92,20 @@ pilot, not a dependency or required online-download gate. No noise/PSRR, current
 limit, startup sequencing, delivered board voltage or safety qualification is
 claimed. Next work is a reference-engine comparison or a justified compatibility
 fix for shutdown, then a separate actual selected-board power study.
+
+## Rejected switch-window semantics
+
+The independent review identified that the original switch report collapsed an
+incomplete integration and a completed endpoint mismatch into the same false
+boolean. Each switch result now records `window_complete`, `last_time_s` and
+`outcome`. An incomplete window has `outcome: rejected` and
+`compatible_endpoint: null`, with a reason. Its observed voltage is diagnostic
+partial output, not a completed compatibility measurement. Only a completed
+10 us window can produce a true or false endpoint comparison. The voltage
+threshold and all existing complete-case numerical behavior are unchanged.
+
+The test-only `0bcc5f12` adds public-report regressions for complete/incomplete
+cases. A separate local isolated-function check exercised all four combinations
+of completed/incomplete and matching/mismatching endpoints before and after
+the correction. That isolated check is software evidence, not a rerun of the
+optional vendor model. Consult the final PR checks for integrated test evidence.
