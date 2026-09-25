@@ -34,7 +34,7 @@ Unlike the original environment, the dated DX CI run in `docs/DX_VALIDATION.md` 
 
 Do not call the entire ESP32 sketch compiled or hardware-tested because native C++ helper tests passed. No physical ADS1299 or ESP32 test was performed by the DX workflow. No body-use authorization is provided by this package.
 
-Firmware remains bench-only and defaults to `BOARD_PROFILE_REVIEWED = false`. It uses only internal test/short mux modes, with bias and lead-off excitation disabled. Its current GPIO table is for original ESP32/WROOM-32, not the selected S3 or all ESP32 variants. `configs/board_profile.example.json` is a worksheet, not a live firmware configuration. The S3 port is separate work.
+Firmware remains bench-only and defaults to `BOARD_PROFILE_REVIEWED = false`. It uses only internal test/short mux modes, with bias and lead-off excitation disabled. Its default GPIO table remains original ESP32/WROOM-32. PR #28 adds an explicit `EEGLAB_REV_A_S3` compile selection for the unchanged proposed S3 map; see `docs/ESP32_S3_TARGET_BUILD.md` and the exact-head Firmware job before claiming a target build. No automatic profile selection or physical port validation follows. `configs/board_profile.example.json` is a worksheet, not a live firmware configuration.
 
 Do not provide invented power, reference, bias or electrode connections for an unidentified module. Do not fix saturation with only a digital high-pass filter. Do not call model resistor values safe patient protection. Battery/wireless operation is a precaution, not complete certification. Do not switch to AD8232, ADS1115 or a different architecture as a tooling change.
 
@@ -99,3 +99,9 @@ guaranteed bound. There is no current limiter, internal recovery delay, PGA
 clipping or supply startup. Unknown extra-pole nonlinear topology is rejected.
 Disconnected BIAS can remain saturated throughout the reported 35 ms window.
 All physical and human-use gates remain unchanged; issue #17 remains open.
+
+## Resumed-session checkpoints
+
+The failed-turn recovery retained merged PR #23 (independent linear BIAS transients) and PR #24 (bounded output rail/slew hypotheses). PR #27 merged the shared raw integration-window check and exact observation-grid checks, including the actual 25 ms integration / 35 ms interpolated-export false-positive regression. Read `docs/REV_A_BIAS_OVERLOAD.md`: these are unmeasured output-limit hypotheses, not ADS1299 recovery specifications.
+
+The next compile-only increment is PR #28. `tools.check --firmware` requires the pinned Arduino CLI/core and creates a fresh, source/digest-bound target-build record. The dedicated Firmware workflow checks out the explicit PR head, unlike the normal integration checks that use GitHub's merge test checkout. Read the actual PR status before calling it merged or compiled. All hardware, wiring-review, purchasing and human-use gates remain false. PR #26 separately investigates TPS7A20 model compatibility; its retained failed probes are not regulator validation.

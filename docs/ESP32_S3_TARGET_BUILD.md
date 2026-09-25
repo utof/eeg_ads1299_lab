@@ -63,6 +63,8 @@ call a synthetic merge checkout exact-head evidence.
 `FIRMWARE_BUILD.json` records the source commit, source-file hashes, toolchain,
 directory and binary SHA-256s with
 all physical/review/body-use flags false. It is written only after success.
+A new firmware request invalidates the old marker before even the ordinary
+quality checks; an earlier failure cannot leave an old build looking current.
 
 ## Evidence and limits
 

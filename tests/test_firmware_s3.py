@@ -143,3 +143,16 @@ def test_firmware_workflow_builds_explicit_head_and_retains_source_identity() ->
     workflow = (ROOT / ".github/workflows/firmware.yml").read_text()
     assert "ref: ${{ github.event.pull_request.head.sha || github.sha }}" in workflow
     assert "source_commit" in (ROOT / "tools/check.py").read_text()
+
+
+def test_failed_precompile_checks_invalidate_previous_build_marker(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def failing_plan(_out: Path) -> list[tuple[str, list[str]]]:
+        raise RuntimeError("injected ordinary gate failure")
+
+    marker = tmp_path / "FIRMWARE_BUILD.json"
+    marker.write_text('{"old_build": true}')
+    monkeypatch.setattr("tools.check.command_plan", failing_plan)
+    assert main(["--firmware", "--out", str(tmp_path)]) == 1
+    assert not marker.exists()

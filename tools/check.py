@@ -212,7 +212,6 @@ def _firmware_config() -> dict[str, str]:
 def _firmware(out: Path) -> None:
     """Compile the complete guarded sketch, never upload or enable its hardware gate."""
     marker = out / "FIRMWARE_BUILD.json"
-    marker.unlink(missing_ok=True)
     cli = shutil.which("arduino-cli")
     if cli is None:
         raise RuntimeError("Firmware checks require arduino-cli; absence is not a pass")
@@ -309,6 +308,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     out.mkdir(parents=True, exist_ok=True)
     report_path = out / "CHECK_REPORT.json"
     report_path.unlink(missing_ok=True)  # Never retain a stale successful status.
+    if args.firmware:
+        (out / "FIRMWARE_BUILD.json").unlink(missing_ok=True)
     completed: list[str] = []
     started = time.monotonic()
     failure: str | None = None
