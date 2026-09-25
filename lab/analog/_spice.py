@@ -91,6 +91,9 @@ def _execute_ngspice(
     except subprocess.TimeoutExpired as exc:
         log.write_text(_log_text(exc.stdout) + "\n" + _log_text(exc.stderr), encoding="utf-8")
         raise RuntimeError(f"ngspice timed out: see {log}") from exc
+    except OSError as exc:
+        log.write_text(f"ngspice could not start: {exc}\n", encoding="utf-8")
+        raise RuntimeError(f"ngspice could not start: see {log}") from exc
     log.write_text(result.stdout + "\n" + result.stderr, encoding="utf-8")
     if result.returncode != 0 or not output.exists():
         raise RuntimeError(f"ngspice failed: see {log}")
