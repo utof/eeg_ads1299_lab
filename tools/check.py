@@ -123,13 +123,26 @@ def check_branch_coverage(path: Path, minimum: float) -> float:
 def require_native_tools() -> None:
     for name in ("ngspice", "node"):
         if shutil.which(name) is None:
-            raise RuntimeError(f"Native checks require {name}; absence is not a pass")
+            raise RuntimeError("Native checks require {name}; absence is not a pass")
     if not (shutil.which("g++") or shutil.which("clang++")):
         raise RuntimeError("Native checks require g++ or clang++; absence is not a pass")
 
 
 def _native(out: Path) -> None:
     require_native_tools()
+    # Retain the diagnostic run before pytest can fail on the same native fixture.
+    run_step(
+        "rev-a-power",
+        [
+            sys.executable,
+            "-m",
+            "lab.rev_a_power",
+            "--require-complete-switches",
+            "--out",
+            str(out / "rev_a_power"),
+        ],
+        out,
+    )
     run_step(
         "native-tests",
         [
@@ -181,18 +194,6 @@ def _native(out: Path) -> None:
             "--require-ngspice",
             "--out",
             str(out / "rev_a_bias_overload"),
-        ],
-        out,
-    )
-    run_step(
-        "rev-a-power",
-        [
-            sys.executable,
-            "-m",
-            "lab.rev_a_power",
-            "--require-complete-switches",
-            "--out",
-            str(out / "rev_a_power"),
         ],
         out,
     )
