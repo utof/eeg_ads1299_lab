@@ -24,7 +24,7 @@ from scipy.linalg import expm
 
 from hardware.rev_a import load_documents, validate
 
-from .analog import run_ngspice
+from .analog import run_ngspice, run_ngspice_transient
 from .data_types import ComplexArray, FloatArray
 
 
@@ -264,8 +264,8 @@ def closed_poles(model: BiasModel) -> ComplexArray:
     return np.asarray(np.linalg.eigvals(state), dtype=np.complex128)
 
 
-def step_response(time_s: FloatArray, model: BiasModel, *, current_a: float) -> FloatArray:
-    """Zero-state linear dummy-common response to a current step.
+def step_voltages(time_s: FloatArray, model: BiasModel, *, current_a: float) -> FloatArray:
+    """Zero-state linear [dummy common, amplifier output] volts for a current step.
 
     No rails, slew limiting, current limiting, power-up or saturation recovery.
     Reject unstable models rather than presenting a settling result for them.
@@ -278,19 +278,25 @@ def step_response(time_s: FloatArray, model: BiasModel, *, current_a: float) -> 
         raise ValueError("unstable linear model has no settling response")
     steady = -np.linalg.solve(state, drive) * current_a
     return np.array(
-        [(steady - expm(state * float(time)) @ steady)[1] for time in times], dtype=np.float64
+        [(steady - expm(state * float(time)) @ steady)[[1, 11]] for time in times], dtype=np.float64
     )
+
+
+def step_response(time_s: FloatArray, model: BiasModel, *, current_a: float) -> FloatArray:
+    """Compatibility view of the zero-state linear dummy-common step voltage."""
+    return step_voltages(time_s, model, current_a=current_a)[:, 0]
 
 
 def export_bias_spice(path: str | Path, model: BiasModel, *, mode: str = "loop") -> Path:
     """Generate only this bounded circuit; execution reuses lab.analog.run_ngspice."""
-    if mode not in ("loop", "closed"):
-        raise ValueError("mode must be loop or closed")
+    if mode not in ("loop", "closed", "step"):
+        raise ValueError("mode must be loop, closed or step")
+    stimulus = "Iinterference 0 common DC 1n" if mode == "step" else "Iinterference 0 common AC 1n"
     lines = [
         "Bounded BIAS dummy-load model -- NOT A HUMAN-USE SCHEMATIC",
         "* Midpoint small-signal reference; unmeasured loads and assumed amplifier dynamics.",
         "* No imported TINA/silicon model, rails, slew, current limit or recovery model.",
-        "Vdrive drive 0 AC 1" if mode == "loop" else "Iinterference 0 common AC 1n",
+        "Vdrive drive 0 AC 1" if mode == "loop" else stimulus,
         f"Rdrive {'drive' if mode == 'loop' else 'out'} lead {model.drive_r_ohm:.15g}",
         f"Clead lead 0 {model.lead_c_f:.15g}",
         f"Renv common 0 {model.environment_r_ohm:.15g}",
@@ -327,28 +333,39 @@ def export_bias_spice(path: str | Path, model: BiasModel, *, mode: str = "loop")
         )
     for index in range(0, 8, 2):
         lines.append(f"Cdiff{index} i{index} i{index + 1} {model.differential_c_f:.15g}")
-    output = "-v(out)" if mode == "loop" else "v(common)/1e-9"
-    lines.extend(
-        [
-            ".control",
-            "set wr_singlescale",
-            "set wr_vecnames",
-            "set numdgt=15",
-            "ac dec 40 0.1 100000",
-            f"let h = {output}",
-            "let hr = real(h)",
-            "let hi = imag(h)",
-            "wrdata ac.txt hr hi",
-            "quit",
-            ".endc",
-            ".end",
-            "",
-        ]
-    )
+    if mode == "step":
+        lines.extend(
+            [".save v(common) v(out)", ".options reltol=1e-7 vntol=1e-10 abstol=1e-14 method=trap"]
+        )
+    lines.extend([".control", "set wr_singlescale", "set wr_vecnames", "set numdgt=15"])
+    lines.extend(_analysis_commands(mode))
+    lines.extend(["quit", ".endc", ".end", ""])
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text("\n".join(lines), encoding="utf-8")
     return target
+
+
+def _analysis_commands(mode: str) -> list[str]:
+    if mode == "step":
+        # All capacitors start at zero. DC operating-point initialization would
+        # incorrectly start at the final steady state, so uic is essential.
+        return [
+            "tran 1n 0.1 0 200n uic",
+            "let lin-tstart = 0",
+            "let lin-tstop = 0.1",
+            "let lin-tstep = 2u",
+            "linearize v(common) v(out)",
+            "wrdata transient.txt v(common) v(out)",
+        ]
+    output = "-v(out)" if mode == "loop" else "v(common)/1e-9"
+    return [
+        "ac dec 40 0.1 100000",
+        f"let h = {output}",
+        "let hr = real(h)",
+        "let hi = imag(h)",
+        "wrdata ac.txt hr hi",
+    ]
 
 
 def scenarios(model: BiasModel) -> dict[str, BiasModel]:
@@ -444,6 +461,7 @@ def _case_artifacts(root: Path, model: BiasModel, required: bool) -> dict[str, o
         if required
         else None
     )
+    summary["native_step_comparison"] = None
     if summary["linear_model_stable"]:
         times: FloatArray = np.linspace(0, 0.1, 201)
         samples = step_response(times, model, current_a=1e-9)
@@ -454,7 +472,43 @@ def _case_artifacts(root: Path, model: BiasModel, required: bool) -> dict[str, o
             header="time_s,dummy_common_v_for_1na_step",
             comments="",
         )
+        netlist = export_bias_spice(root / "step" / "network.cir", model, mode="step")
+        if required:
+            summary["native_step_comparison"] = _compare_bias_step(netlist, model)
     return summary
+
+
+def _compare_bias_step(netlist: Path, model: BiasModel) -> dict[str, float | int]:
+    """Compare a native zero-state trace against sampled matrix exponentials.
+
+    Both a logarithmic early-time selection and a uniform whole-trace selection
+    are checked; the uniform interpolated native table is retained. Not all rows are checked.
+    """
+    times, actual = run_ngspice_transient(netlist, netlist.parent, columns=2)
+    if times[0] > 1e-6 or abs(float(times[-1]) - 0.1) > 1e-12:
+        raise RuntimeError("BIAS transient does not cover the requested time window")
+    indexes = np.unique(
+        np.concatenate(
+            (
+                np.linspace(0, len(times) - 1, 256, dtype=np.int64),
+                np.geomspace(1, len(times), 128).astype(np.int64) - 1,
+            )
+        )
+    )
+    expected = step_voltages(times[indexes], model, current_a=1e-9)
+    if not np.allclose(actual[indexes], expected, rtol=1e-4, atol=1e-9):
+        raise RuntimeError("BIAS transient and matrix-exponential step disagree")
+    errors: FloatArray = np.max(np.abs(actual[indexes] - expected), axis=0)
+    return {
+        "common_max_abs_error_v": float(errors[0]),
+        "output_max_abs_error_v": float(errors[1]),
+        "compared_points": len(indexes),
+        "native_points": len(times),
+        "comparison_rtol": 1e-4,
+        "comparison_atol_v": 1e-9,
+        "export_grid_s": 2e-6,
+        "max_internal_step_s": 200e-9,
+    }
 
 
 def _sweep(model: BiasModel) -> list[dict[str, object]]:
