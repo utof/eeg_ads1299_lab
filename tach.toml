@@ -153,8 +153,8 @@ expose = ["valid_subject", "check_range", "main"]
 
 [[modules]]
 path = "lab.rev_a"
-depends_on = ["hardware.rev_a", "lab.analog", "lab.data_types"]
+depends_on = ["hardware.rev_a", "lab.analog", "lab.data_types", "lab.validation"]
 
 [[interfaces]]
 from = ["lab.rev_a"]
-expose = ["RevABaseline", "CaseResult", "AnalyticOnly", "NativeCompared", "StudyReport", "load_baseline", "study", "main"]
+expose = ["RevABaseline", "CaseResult", "AnalyticOnly", "NativeCompared", "StudyReport", "load_baseline", "study", "read_study", "main"]

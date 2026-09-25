@@ -8,14 +8,19 @@ import argparse
 import hashlib
 import json
 import math
+import platform
+import re
+import shutil
+import subprocess
 import sys
-from collections.abc import Mapping, Sequence
-from dataclasses import asdict, dataclass, replace
+from collections.abc import Generator, Mapping, Sequence
+from contextlib import contextmanager
+from dataclasses import asdict, dataclass, fields, replace
 from itertools import product
 from pathlib import Path
-from tempfile import TemporaryDirectory
 from types import MappingProxyType
 from typing import Literal
+from uuid import uuid4
 
 import numpy as np
 
@@ -23,6 +28,7 @@ from hardware.rev_a import load_documents, validate
 
 from .analog import Drive, InputNetwork, export_spice, run_ngspice, transfer
 from .data_types import FloatArray
+from .validation import boolean, integer, number, read_object, text
 
 _SCENARIOS = frozenset(("ideal_source_limit", "balanced", "impedance_mismatch"))
 _DRIVES: tuple[Drive, ...] = ("differential", "common")
@@ -116,6 +122,7 @@ def _snapshot_corners(
 
 @dataclass(frozen=True, slots=True)
 class StudyReport:
+    run_id: str
     baseline: RevABaseline
     cases: Mapping[str, CaseResult]
     corners: Mapping[str, Sequence[CaseResult]]
@@ -124,6 +131,7 @@ class StudyReport:
     limitations: tuple[str, ...]
 
     def __post_init__(self) -> None:
+        _validate_run_id(self.run_id)
         if not isinstance(self.baseline, RevABaseline):
             raise TypeError("study baseline must be a RevABaseline")
         if not isinstance(self.spice_evidence, (AnalyticOnly, NativeCompared)):
@@ -170,6 +178,7 @@ class StudyReport:
     def to_dict(self) -> dict[str, object]:
         """Produce a detached JSON-compatible view, preserving the report schema."""
         return {
+            "run_id": self.run_id,
             "baseline": asdict(self.baseline),
             "cases": {name: asdict(value) for name, value in self.cases.items()},
             "corners": {
@@ -304,19 +313,9 @@ def _spice_case(out: Path, model: InputNetwork, drive: Drive, required: bool) ->
     return float(np.max(np.abs(actual - expected)))
 
 
-def study(
-    out: str | Path, *, require_ngspice: bool = False, leakage_bound_a: float = 1e-9
+def _calculate_study(
+    out: Path, baseline: RevABaseline, require_ngspice: bool, leakage_bound_a: float, run_id: str
 ) -> StudyReport:
-    """Write deterministic cases and corners; publish success only at completion.
-
-    A report is the completion marker. Intermediate CSV/netlists are not evidence
-    of a successful run. Different concurrent runs require different directories.
-    """
-    out = Path(out)
-    report_path = out / "study.json"
-    report_path.unlink(missing_ok=True)
-    _finite_nonnegative(leakage_bound_a, "leakage bound")
-    baseline = load_baseline()
     models = _models(baseline)
     cases = {name: _case_result(model, leakage_bound_a) for name, model in models.items()}
     corners = {
@@ -331,6 +330,7 @@ def study(
             if error is not None:
                 comparisons[f"{name}/{drive}"] = error
     report = StudyReport(
+        run_id=run_id,
         baseline=baseline,
         cases=cases,
         corners=corners,
@@ -347,12 +347,375 @@ def study(
             "Document digest is SHA-256 of sorted-key JSON [profile, BOM, sources], not raw file bytes.",
         ),
     )
-    with TemporaryDirectory(prefix=".study-", dir=out) as directory:
-        staged = Path(directory) / "study.json"
-        staged.write_text(
-            json.dumps(report.to_dict(), indent=2, allow_nan=False) + "\n", encoding="utf-8"
+    _write_json(out / "study.json", report.to_dict())
+    return report
+
+
+def _validate_run_id(run_id: str) -> None:
+    if not isinstance(run_id, str) or re.fullmatch(r"[0-9a-f]{32}", run_id) is None:
+        raise ValueError("run identity must be 32 lowercase hexadecimal characters")
+
+
+def _digest(value: bytes) -> str:
+    return hashlib.sha256(value).hexdigest()
+
+
+def _json_bytes(value: object) -> bytes:
+    return (json.dumps(value, sort_keys=True, indent=2, allow_nan=False) + "\n").encode("utf-8")
+
+
+def _write_json(path: Path, value: object) -> None:
+    path.write_text(_json_bytes(value).decode("utf-8"), encoding="utf-8")
+
+
+def _plain_bytes(path: Path) -> bytes:
+    if path.is_symlink():
+        raise ValueError(f"symlink is not a study artifact: {path.name}")
+    return path.read_bytes()
+
+
+def _object_bytes(value: bytes, label: str) -> dict[str, object]:
+    decoded: object = json.loads(value)
+    return read_object(decoded, label)
+
+
+def _exact_keys(value: Mapping[str, object], expected: set[str], label: str) -> None:
+    if set(value) != expected:
+        raise ValueError(f"{label}: unexpected schema or inventory")
+
+
+def _hex_digest(value: object) -> str:
+    if not isinstance(value, str) or re.fullmatch(r"[0-9a-f]{64}", value) is None:
+        raise ValueError("expected a SHA-256 digest")
+    return value
+
+
+@contextmanager
+def _single_writer(out: Path, run_id: str) -> Generator[None, None, None]:
+    out.mkdir(parents=True, exist_ok=True)
+    lock = out / ".writer.lock"
+    try:
+        handle = lock.open("x", encoding="utf-8")
+    except FileExistsError as exc:
+        raise RuntimeError(
+            "another writer or a stale writer lock exists; do not break it blindly"
+        ) from exc
+    try:
+        with handle:
+            handle.write(run_id + "\n")
+        yield
+    finally:
+        lock.unlink()
+
+
+def _run_parent(out: Path, name: str) -> Path:
+    parent = out / name
+    if parent.is_symlink():
+        raise ValueError(f"symlink is not a run directory: {name}")
+    parent.mkdir(exist_ok=True)
+    return parent
+
+
+def _expected_files(required: bool) -> set[str]:
+    expected = {"study.json"}
+    for scenario in _SCENARIOS:
+        expected.add(f"{scenario}/response.csv")
+        for drive in _DRIVES:
+            expected.add(f"{scenario}/{drive}/network.cir")
+            if required:
+                expected.update(f"{scenario}/{drive}/{name}" for name in ("ac.txt", "ngspice.log"))
+    return expected
+
+
+def _artifact_bytes(root: Path, required: bool) -> dict[str, bytes]:
+    if root.is_symlink() or root.parent.is_symlink():
+        raise ValueError("symlink is not a run directory")
+    contents: dict[str, bytes] = {}
+    for path in root.rglob("*"):
+        if path.is_symlink():
+            raise ValueError("symlink is not a study artifact")
+        if path.is_file() and path != root / "manifest.json":
+            contents[path.relative_to(root).as_posix()] = path.read_bytes()
+    if set(contents) != _expected_files(required):
+        raise ValueError("study artifact inventory does not match requested outcome")
+    return contents
+
+
+def _source_identity() -> dict[str, object]:
+    root = Path(__file__).resolve().parents[1]
+    try:
+        commit = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=True,
+        ).stdout.strip()
+        dirty = subprocess.run(
+            ["git", "status", "--porcelain"],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=True,
+        ).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return {"commit": None, "worktree_dirty": None}
+    return {"commit": commit, "worktree_dirty": bool(dirty)}
+
+
+def _tool_versions(required: bool) -> dict[str, object]:
+    native: str | None = None
+    if required:
+        executable = shutil.which("ngspice")
+        if executable is None:
+            raise RuntimeError("ngspice disappeared before publication")
+        result = subprocess.run(
+            [executable, "--version"], capture_output=True, text=True, timeout=5, check=True
         )
-        staged.replace(report_path)
+        native = result.stdout.strip()
+    return {"python": platform.python_version(), "numpy": np.__version__, "ngspice": native}
+
+
+def _manifest(report: StudyReport, root: Path, required: bool) -> dict[str, object]:
+    return {
+        "schema_version": 1,
+        "study": "rev_a_passive_input",
+        "run_id": report.run_id,
+        "request": {"require_ngspice": required, "leakage_bound_a": report.leakage_bound_a},
+        "baseline_sha256": report.baseline.documents_sha256,
+        "source": _source_identity(),
+        "tools": _tool_versions(required),
+        "outcome": report.ngspice_status,
+        "files": {name: _digest(data) for name, data in _artifact_bytes(root, required).items()},
+    }
+
+
+def study(
+    out: str | Path,
+    *,
+    require_ngspice: bool = False,
+    leakage_bound_a: float = 1e-9,
+    run_id: str | None = None,
+) -> StudyReport:
+    """Publish a new generation, preserving previous successes as historical data.
+
+    Rejected requests do not touch the output. Failed accepted attempts retain
+    their private partial directory. Only a complete generation advances current.
+    Readers must supply the expected run identity; current alone is not freshness.
+    """
+    identity = uuid4().hex if run_id is None else run_id
+    _validate_run_id(identity)
+    _finite_nonnegative(leakage_bound_a, "leakage bound")
+    if not isinstance(require_ngspice, bool):
+        raise ValueError("require_ngspice must be a boolean")
+    baseline = load_baseline()
+    out = Path(out)
+    with _single_writer(out, identity):
+        runs = _run_parent(out, "runs")
+        pending = _run_parent(out, ".pending") / identity
+        final = runs / identity
+        if final.exists() or final.is_symlink() or pending.exists() or pending.is_symlink():
+            raise ValueError("run identity already exists and cannot be reused")
+        pending.mkdir()
+        report = _calculate_study(pending, baseline, require_ngspice, leakage_bound_a, identity)
+        manifest = _manifest(report, pending, require_ngspice)
+        _write_json(pending / "manifest.json", manifest)
+        pending.rename(final)
+        pointer = {
+            "schema_version": 1,
+            "run_id": identity,
+            "manifest_sha256": _digest(_plain_bytes(final / "manifest.json")),
+        }
+        staged_pointer = out / f".{identity}.current.tmp"
+        _write_json(staged_pointer, pointer)
+        staged_pointer.replace(out / "current.json")
+    return report
+
+
+def _decode_baseline(value: object) -> RevABaseline:
+    fields_ = read_object(value, "baseline")
+    return RevABaseline(
+        profile_id=text(fields_, "profile_id"),
+        documents_sha256=_hex_digest(fields_.get("documents_sha256")),
+        resistor_mpn=text(fields_, "resistor_mpn"),
+        capacitor_mpn=text(fields_, "capacitor_mpn"),
+        series_resistance_ohm=number(fields_, "series_resistance_ohm"),
+        differential_capacitance_f=number(fields_, "differential_capacitance_f"),
+        resistor_tolerance=number(fields_, "resistor_tolerance"),
+        capacitor_tolerance=number(fields_, "capacitor_tolerance"),
+    )
+
+
+def _decode_case(value: object) -> CaseResult:
+    item = read_object(value, "case")
+    parameters = read_object(item.get("parameters"), "network")
+    _exact_keys(parameters, {field.name for field in fields(InputNetwork)}, "network")
+    return CaseResult(
+        parameters=InputNetwork(**{name: number(parameters, name) for name in parameters}),
+        differential_gain_10hz=number(item, "differential_gain_10hz"),
+        common_to_differential_50hz=number(item, "common_to_differential_50hz"),
+        common_to_differential_60hz=number(item, "common_to_differential_60hz"),
+        leakage_dc_bound_v=number(item, "leakage_dc_bound_v"),
+    )
+
+
+def _decode_corners(value: object) -> dict[str, tuple[CaseResult, ...]]:
+    corners = read_object(value, "corners")
+    result: dict[str, tuple[CaseResult, ...]] = {}
+    for name, entries in corners.items():
+        if not isinstance(entries, list):
+            raise ValueError("corner results must be a list")
+        values: list[object] = entries
+        result[name] = tuple(_decode_case(entry) for entry in values)
+    return result
+
+
+def _decode_report(data: bytes, required: bool) -> StudyReport:
+    raw = _object_bytes(data, "study report")
+    cases = read_object(raw.get("cases"), "cases")
+    errors = read_object(raw.get("ngspice_max_abs_error"), "native comparisons")
+    limitations = raw.get("limitations")
+    if not isinstance(limitations, list):
+        raise ValueError("limitations must be a list of strings")
+    values: list[object] = limitations
+    if not all(isinstance(item, str) for item in values):
+        raise ValueError("limitations must be a list of strings")
+    strings = tuple(item for item in values if isinstance(item, str))
+    for name in ("clamps_fitted", "hardware_validated", "body_connection_permitted"):
+        if raw.get(name) is not False:
+            raise ValueError("simulation cannot grant hardware or body approval")
+    report = StudyReport(
+        run_id=text(raw, "run_id"),
+        baseline=_decode_baseline(raw.get("baseline")),
+        cases={name: _decode_case(value) for name, value in cases.items()},
+        corners=_decode_corners(raw.get("corners")),
+        leakage_bound_a=number(raw, "leakage_bound_a"),
+        spice_evidence=NativeCompared({key: number(errors, key) for key in errors})
+        if required
+        else AnalyticOnly(),
+        limitations=strings,
+    )
+    if report.to_dict() != raw:
+        raise ValueError("study report schema or derived values are inconsistent")
+    return report
+
+
+def _validate_metadata(manifest: Mapping[str, object], required: bool) -> None:
+    source = read_object(manifest.get("source"), "source")
+    _exact_keys(source, {"commit", "worktree_dirty"}, "source")
+    commit = source["commit"]
+    if commit is not None and (
+        not isinstance(commit, str)
+        or re.fullmatch(r"(?:[0-9a-f]{40}|[0-9a-f]{64})", commit) is None
+    ):
+        raise ValueError("invalid source commit")
+    dirty = source["worktree_dirty"]
+    if dirty is not None and not isinstance(dirty, bool):
+        raise ValueError("invalid source worktree state")
+    tools = read_object(manifest.get("tools"), "tools")
+    _exact_keys(tools, {"python", "numpy", "ngspice"}, "tools")
+    text(tools, "python")
+    text(tools, "numpy")
+    if required:
+        if not text(tools, "ngspice"):
+            raise ValueError("native tool version is missing")
+    elif tools["ngspice"] is not None:
+        raise ValueError("analytic-only run cannot claim native tool execution")
+
+
+def _validate_manifest(
+    manifest: Mapping[str, object],
+    run_id: str,
+    required: bool,
+    leakage: float,
+    baseline_digest: str,
+) -> None:
+    _exact_keys(
+        manifest,
+        {
+            "schema_version",
+            "study",
+            "run_id",
+            "request",
+            "baseline_sha256",
+            "source",
+            "tools",
+            "outcome",
+            "files",
+        },
+        "manifest",
+    )
+    if integer(manifest, "schema_version") != 1 or text(manifest, "study") != "rev_a_passive_input":
+        raise ValueError("unsupported manifest schema")
+    if text(manifest, "run_id") != run_id:
+        raise ValueError("manifest run identity mismatch")
+    request = read_object(manifest.get("request"), "request")
+    _exact_keys(request, {"require_ngspice", "leakage_bound_a"}, "request")
+    if (
+        boolean(request, "require_ngspice") != required
+        or number(request, "leakage_bound_a") != leakage
+    ):
+        raise ValueError("manifest request does not match expected parameters")
+    if _hex_digest(manifest["baseline_sha256"]) != baseline_digest:
+        raise ValueError("manifest baseline digest does not match expected baseline")
+    expected_status = "executed_and_compared" if required else "not_requested"
+    if text(manifest, "outcome") != expected_status:
+        raise ValueError("manifest outcome does not match request")
+    _validate_metadata(manifest, required)
+
+
+def read_study(
+    out: str | Path,
+    *,
+    expected_run_id: str,
+    require_ngspice: bool = False,
+    leakage_bound_a: float = 1e-9,
+    baseline_sha256: str | None = None,
+) -> StudyReport:
+    """Verify current against a caller-known request, then reconstruct immutable values.
+
+    Digests detect mismatched/edited files, not malicious replacement of both
+    manifest and pointer. No power-loss durability or hostile-writer guarantee.
+    """
+    _validate_run_id(expected_run_id)
+    _finite_nonnegative(leakage_bound_a, "leakage bound")
+    if not isinstance(require_ngspice, bool):
+        raise ValueError("require_ngspice must be a boolean")
+    baseline_digest = (
+        load_baseline().documents_sha256
+        if baseline_sha256 is None
+        else _hex_digest(baseline_sha256)
+    )
+    out = Path(out)
+    pointer = _object_bytes(_plain_bytes(out / "current.json"), "current pointer")
+    _exact_keys(pointer, {"schema_version", "run_id", "manifest_sha256"}, "pointer")
+    if integer(pointer, "schema_version") != 1:
+        raise ValueError("unsupported pointer schema")
+    if text(pointer, "run_id") != expected_run_id:
+        raise ValueError("current run identity does not match requested run identity")
+    root = out / "runs" / expected_run_id
+    if root.is_symlink() or root.parent.is_symlink():
+        raise ValueError("symlink is not a run directory")
+    raw_manifest = _plain_bytes(root / "manifest.json")
+    if _digest(raw_manifest) != _hex_digest(pointer.get("manifest_sha256")):
+        raise ValueError("manifest digest mismatch")
+    manifest = _object_bytes(raw_manifest, "manifest")
+    _validate_manifest(manifest, expected_run_id, require_ngspice, leakage_bound_a, baseline_digest)
+    digests = read_object(manifest.get("files"), "file digests")
+    contents = _artifact_bytes(root, require_ngspice)
+    _exact_keys(digests, set(contents), "manifest files")
+    for name, data in contents.items():
+        if _digest(data) != _hex_digest(digests[name]):
+            raise ValueError(f"artifact digest mismatch: {name}")
+    report = _decode_report(contents["study.json"], require_ngspice)
+    if (
+        report.run_id != expected_run_id
+        or report.baseline.documents_sha256 != baseline_digest
+        or report.leakage_bound_a != leakage_bound_a
+    ):
+        raise ValueError("study report does not match manifest request")
     return report
 
 
@@ -361,18 +724,24 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--out", type=Path, default=Path("reports/rev_a_input"))
     parser.add_argument("--require-ngspice", action="store_true")
     parser.add_argument("--leakage-bound-na", type=float, default=1.0)
+    parser.add_argument(
+        "--run-id", help="Caller-chosen 32-character lowercase hex identity; never reuse"
+    )
     args = parser.parse_args(argv)
+    identity = uuid4().hex if args.run_id is None else str(args.run_id)
     try:
         report = study(
             args.out,
             require_ngspice=args.require_ngspice,
             leakage_bound_a=float(args.leakage_bound_na) * 1e-9,
+            run_id=identity,
         )
     except (ValueError, RuntimeError, OSError) as exc:
-        print(f"ERROR: {exc}", file=sys.stderr)
+        print(f"ERROR (run_id={identity}): {exc}", file=sys.stderr)
         return 1
     summary = {
-        "report": str(Path(args.out) / "study.json"),
+        "run_id": report.run_id,
+        "report": str(Path(args.out) / "runs" / report.run_id / "study.json"),
         "ideal_source_pole_hz": report.ideal_source_pole_hz,
         "ngspice_status": report.ngspice_status,
         "ngspice_max_abs_error": dict(report.ngspice_max_abs_error),
