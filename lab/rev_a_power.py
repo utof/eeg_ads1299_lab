@@ -121,7 +121,11 @@ def _switch_probe(root: Path, variant: _Switch, control: float) -> dict[str, obj
         "expected_endpoint_v": expected,
         "observed_endpoint_v": actual,
         "tolerance_v": 1e-5,
-        "compatible_endpoint": complete and abs(actual - expected) <= 1e-5,
+        "window_complete": complete,
+        "last_time_s": float(times[-1]),
+        "outcome": "probe_completed_not_validated" if complete else "rejected",
+        "compatible_endpoint": abs(actual - expected) <= 1e-5 if complete else None,
+        "reason": None if complete else "requested switch time window is incomplete",
     }
 
 
