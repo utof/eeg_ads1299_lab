@@ -1,0 +1,28 @@
+name: Session recovery
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  export:
+    if: github.head_ref == 'spike/tps7a20-native-pilot'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: b6ff7d460464adbed60797ff8aa0ca85d618e3e7
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Export exact source without credentials
+        run: |
+          mkdir -p /tmp/recovered-source
+          git bundle create /tmp/recovered-source/source.bundle --all
+          git archive --format=tar.gz HEAD > /tmp/recovered-source/source.tar.gz
+          sha256sum /tmp/recovered-source/* > /tmp/recovered-source/SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: recovered-source-b6
+          path: /tmp/recovered-source/
+          retention-days: 3
+          if-no-files-found: error
