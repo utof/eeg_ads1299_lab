@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import math
 import shutil
 import sys
 from collections.abc import Sequence
@@ -11,6 +12,8 @@ from typing import cast
 
 import numpy as np
 import pytest
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 from lab.data_types import FloatArray
 from lab.rev_a_supply import (
@@ -142,9 +145,15 @@ def test_rejected_native_runs_keep_all_diagnostics_and_no_success_claim(
     calls: list[Path] = []
 
     def rejected(
-        _netlist: Path, out: Path, *, columns: int, expected_stop_s: float
+        _netlist: Path,
+        out: Path,
+        *,
+        columns: int,
+        expected_stop_s: float,
+        expected_vectors: tuple[str, ...],
     ) -> tuple[FloatArray, FloatArray]:
         assert columns == 1 and expected_stop_s == 0.02
+        assert expected_vectors == ("v(avdd)",)
         calls.append(out)
         (out / "ngspice.log").write_text("injected native failure; not a simulation")
         raise RuntimeError("injected incomplete native integration")
@@ -232,3 +241,206 @@ def test_actual_ngspice_comparison_does_not_promote_margin_breaches_to_hardware_
         "shared_1_ohm": False,
         "bulk_100uf": False,
     }
+
+
+@settings(max_examples=60, derandomize=True, deadline=None)
+@given(
+    shared=st.floats(0.0, 2.0),
+    feed=st.floats(1.0, 30.0),
+    cap=st.floats(1e-6, 200e-6),
+    analog=st.floats(0.0, 0.004),
+    idle=st.floats(0.0, 0.05),
+    extra=st.floats(0.0, 0.1),
+    rail=st.floats(0.0, 5.0),
+)
+def test_time_constant_satisfies_independent_instantaneous_kcl(
+    shared: float, feed: float, cap: float, analog: float, idle: float, extra: float, rail: float
+) -> None:
+    case = SupplyCase(
+        shared_r_ohm=shared,
+        feed_r_ohm=feed,
+        capacitance_f=cap,
+        analog_g_s=analog,
+        idle_g_s=idle,
+        burst_g_s=extra,
+    )
+    # Solve the algebraic bus node with the capacitor voltage held at `rail`.
+    # C*dV/dt = feed current minus analog-load current, independent of Thevenin.
+    for burst in (False, True):
+        g_mcu = idle + (extra if burst else 0.0)
+        bus = (case.source_v + shared * rail / feed) / (1 + shared * (g_mcu + 1 / feed))
+        expected_slope = ((bus - rail) / feed - analog * rail) / cap
+        equilibrium, tau = steady_state(case, burst=burst)
+        assert (equilibrium - rail) / tau == pytest.approx(expected_slope, rel=2e-12, abs=1e-8)
+        assert 0 < equilibrium <= case.source_v and tau > 0
+
+
+def test_zero_load_limit_and_query_grid_independence() -> None:
+    case = replace(SupplyCase(), analog_g_s=0.0, idle_g_s=0.0, burst_g_s=0.0)
+    equilibrium, tau = steady_state(case)
+    assert equilibrium == case.source_v
+    assert tau == pytest.approx((case.feed_r_ohm + case.shared_r_ohm) * case.capacitance_f)
+    case = replace(SupplyCase(), shared_r_ohm=0.5, capacitance_f=100e-6)
+    times = np.array([0.0012, 0.008, 0.0119, 0.012, 0.0125, 0.02])
+    together = rail_response(case, times)
+    singles = np.array([rail_response(case, np.array([time]))[0] for time in times])
+    np.testing.assert_array_equal(together, singles)
+    np.testing.assert_allclose(
+        rail_response(replace(case, source_v=2 * case.source_v), times),
+        2 * together,
+        rtol=1e-14,
+        atol=1e-14,
+    )
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "source_v",
+        "feed_r_ohm",
+        "shared_r_ohm",
+        "capacitance_f",
+        "analog_g_s",
+        "idle_g_s",
+        "burst_g_s",
+    ],
+)
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), True])
+def test_all_case_fields_reject_nonfinite_or_boolean_values(field: str, value: float) -> None:
+    with pytest.raises(ValueError):
+        replace(SupplyCase(), **{field: value})
+
+
+@pytest.mark.parametrize(
+    "failure", ["one_execution", "mismatch", "sparse", "late_start", "early_stop"]
+)
+def test_publication_distinguishes_execution_comparison_and_model_margin(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, failure: str
+) -> None:
+    calls: list[str] = []
+
+    def fake(
+        _netlist: Path,
+        out: Path,
+        *,
+        columns: int,
+        expected_stop_s: float,
+        expected_vectors: tuple[str, ...],
+    ) -> tuple[FloatArray, FloatArray]:
+        assert columns == 1 and expected_stop_s == 0.02 and expected_vectors == ("v(avdd)",)
+        calls.append(out.name)
+        (out / "ngspice.log").write_text("Synthetic publication double, not native evidence.")
+        return _publication_trace(out.name, failure)
+
+    monkeypatch.setattr("lab.rev_a_supply.run_ngspice_transient", fake)
+    with pytest.raises(RuntimeError, match="retained"):
+        run_supply_study(tmp_path)
+    assert len(calls) == 5
+    root = next(tmp_path.glob("*/study.json"))
+    report = read_object(json.loads(root.read_text()), "study")
+    assert report["native_comparison_passed"] is False
+    rows = report["cases"]
+    assert isinstance(rows, list)
+    values: list[object] = rows
+    cases = {read_object(value, "case")["name"]: read_object(value, "case") for value in values}
+    bad = cases["shared_0p5_ohm"]
+    assert bad["native_comparison_passed"] is False
+    assert bad["native_execution_complete"] is (failure == "mismatch")
+    assert bad["model_margin_ok"] is False  # An analytical result, even when native fails.
+    assert cases["bulk_100uf"]["native_comparison_passed"] is True
+    assert cases["bulk_100uf"]["model_margin_ok"] is False
+    assert report["margin_window_s"] == [0.004, 0.02]
+    assert report["hardware_validated"] is False
+    assert report["body_connection_permitted"] is False
+
+
+@pytest.mark.native
+@pytest.mark.parametrize("fault", ["move_mcu_downstream", "remove_feed"])
+def test_real_topology_fault_is_caught_by_independent_analytical_response(
+    tmp_path: Path, fault: str
+) -> None:
+    from lab.analog import run_ngspice_transient
+
+    if shutil.which("ngspice") is None:
+        pytest.skip("ngspice unavailable; required native gate rejects this absence")
+    case = replace(SupplyCase(), shared_r_ohm=0.5)
+    text = supply_netlist(case)
+    if fault == "move_mcu_downstream":
+        assert "Bmcu bus 0 I=" in text
+        text = text.replace("Bmcu bus 0 I=", "Bmcu avdd 0 I=")
+    else:
+        assert "Rfeed bus avdd 10" in text
+        text = text.replace("Rfeed bus avdd 10", "Rfeed bus avdd 0.01")
+    circuit = tmp_path / "network.cir"
+    circuit.write_text(text)
+    times, volts = run_ngspice_transient(
+        circuit,
+        tmp_path,
+        columns=1,
+        expected_stop_s=0.02,
+        expected_vectors=("v(avdd)",),
+    )
+    error = float(np.max(np.abs(volts[:, 0] - rail_response(case, times))))
+    assert error > 0.05  # Far above the 100-uV normal fixture comparison tolerance.
+
+
+def _publication_trace(name: str, failure: str) -> tuple[FloatArray, FloatArray]:
+    """Generate synthetic report-boundary inputs; this is not a physics oracle."""
+    case = {
+        "stiff_source": replace(SupplyCase(), shared_r_ohm=0.0),
+        "shared_0p1_ohm": SupplyCase(),
+        "shared_0p5_ohm": replace(SupplyCase(), shared_r_ohm=0.5),
+        "shared_1_ohm": replace(SupplyCase(), shared_r_ohm=1.0),
+        "bulk_100uf": replace(SupplyCase(), shared_r_ohm=1.0, capacitance_f=100e-6),
+    }[name]
+    times = np.linspace(0.0, 0.02, 2001)
+    bad = name == "shared_0p5_ohm"
+    if bad and failure == "one_execution":
+        raise RuntimeError("injected partial integration")
+    if bad and failure == "sparse":
+        times = np.array([0.0, 0.02])
+    if bad and failure == "late_start":
+        times = times[500:]
+    if bad and failure == "early_stop":
+        times = times[:-5]
+    volts = rail_response(case, times)
+    if bad and failure == "mismatch":
+        volts = volts + 0.05
+    return times, volts[:, None]
+
+
+def test_shared_source_transient_matches_independent_nodal_exponential() -> None:
+    case = replace(SupplyCase(), shared_r_ohm=0.7, capacitance_f=75e-6, analog_g_s=0.003)
+
+    def nodal_phase(g_mcu: float) -> tuple[float, float]:
+        shared, feed = case.shared_r_ohm, case.feed_r_ohm
+        matrix = np.array(
+            [
+                [1 / shared + g_mcu + 1 / feed, -1 / feed],
+                [-1 / feed, 1 / feed + case.analog_g_s],
+            ]
+        )
+        dc: FloatArray = np.linalg.solve(matrix, np.array([case.source_v / shared, 0.0]))
+        # With source suppressed and AVDD held at 1 V, KCL gives the driving
+        # conductance; C/G determines tau, independently of steady_state().
+        bus_per_rail = (1 / feed) / (1 / shared + g_mcu + 1 / feed)
+        conductance = (1 - bus_per_rail) / feed + case.analog_g_s
+        return float(dc[1]), case.capacitance_f / conductance
+
+    idle, tau_idle = nodal_phase(case.idle_g_s)
+    burst, tau_burst = nodal_phase(case.idle_g_s + case.burst_g_s)
+    at_on = idle * (1 - math.exp(-0.007 / tau_idle))
+    at_off = burst + (at_on - burst) * math.exp(-0.004 / tau_burst)
+    times = np.array(
+        [0.001, 0.003, 0.007999, 0.008, 0.00801, 0.0084, 0.011999, 0.012, 0.01201, 0.0124, 0.02]
+    )
+    expected = np.where(
+        times < 0.008,
+        idle * (1 - np.exp(-(times - 0.001) / tau_idle)),
+        np.where(
+            times < 0.012,
+            burst + (at_on - burst) * np.exp(-(times - 0.008) / tau_burst),
+            idle + (at_off - idle) * np.exp(-(times - 0.012) / tau_idle),
+        ),
+    )
+    np.testing.assert_allclose(rail_response(case, times), expected, rtol=1e-13, atol=1e-13)
