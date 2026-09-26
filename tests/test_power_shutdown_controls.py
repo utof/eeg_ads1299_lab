@@ -8,6 +8,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from lab.analog import run_ngspice_transient
 from lab.data_types import FloatArray
 from lab.rev_a_power import run_pilot
 from lab.validation import read_object
@@ -115,8 +116,9 @@ def test_one_failed_vendor_control_does_not_hide_its_peers_or_publish_validation
 
 
 @pytest.mark.native
+@pytest.mark.parametrize("swap_inputs", [False, True])
 def test_native_synthetic_model_observes_each_independent_input(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, swap_inputs: bool
 ) -> None:
     # Continuous algebraic test double. It has no regulator dynamics and is
     # deliberately NOT the TI macro-model or a physically valid device model.
@@ -129,10 +131,20 @@ def test_native_synthetic_model_observes_each_independent_input(
             b".ENDS TPS7A20_ADJ_TRANS\n"
         )
 
+    def swapped_trace(
+        netlist: Path, out: Path, *, columns: int, expected_stop_s: float | None = None
+    ) -> tuple[FloatArray, FloatArray]:
+        text = netlist.read_text().replace("Xreg in 0 en nc out", "Xreg en 0 in nc out")
+        netlist.write_text(text)
+        return run_ngspice_transient(netlist, out, columns=columns, expected_stop_s=expected_stop_s)
+
+    if swap_inputs:
+        monkeypatch.setattr("lab.rev_a_power.run_ngspice_transient", swapped_trace)
     monkeypatch.setattr("lab.rev_a_power.prepare_library", library)
     root = run_pilot(tmp_path / "reports", vendor_archive=tmp_path / "synthetic.zip")
     probes = _vendor_probes(root)
     assert [probe.get("case") for probe in probes] == list(_CASES)
+    outputs: list[float] = []
     for name, supply, enable in (
         ("startup_load", 5.0, 5.0),
         ("shutdown", 0.0, 0.0),
@@ -145,4 +157,10 @@ def test_native_synthetic_model_observes_each_independent_input(
         data = np.loadtxt(root / name / "transient.txt", skiprows=1, ndmin=2)
         assert data.shape[1] == 4
         assert data[-1, 0] == pytest.approx(0.02, abs=1e-12)
-        assert data[-1, 1:] == pytest.approx([supply, enable, 3.3 * supply * enable / 25])
+        assert data[-1, 1:3] == pytest.approx([supply, enable])
+        outputs.append(float(data[-1, 3]))
+    expected = [3.3, 0.0, 0.0, 0.0]
+    if swap_inputs:
+        assert outputs != pytest.approx(expected), "oracle must detect swapped model inputs"
+    else:
+        assert outputs == pytest.approx(expected)
