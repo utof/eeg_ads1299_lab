@@ -55,7 +55,7 @@ jobs:
               symbols = []
               instances = []
               controls = []
-              for line in raw.decode('ascii').splitlines():
+              for line in raw.decode('latin-1').splitlines():
                   fields = line.split()
                   if not fields:
                       continue
