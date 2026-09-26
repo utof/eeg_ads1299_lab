@@ -1,0 +1,59 @@
+name: Disposable offline toolchain recovery
+on:
+  pull_request:
+    paths: ['.github/workflows/offline-toolchain-recovery.yml']
+permissions:
+  contents: read
+jobs:
+  recover:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      UV_PYTHON: '3.13'
+      MPLBACKEND: Agg
+      UV_CACHE_DIR: ${{ github.workspace }}/reports/toolchain/uv-cache
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 9c04dc7581ed570da64c53d2ae8b60b8a9a0e9b3
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.13'
+      - name: Install the existing pinned environment and native tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends ngspice g++ nodejs
+          python -m pip install uv==0.12.18
+          uv sync --locked --all-extras
+          mkdir -p reports/toolchain/bin
+          cp "$(command -v uv)" reports/toolchain/bin/uv
+          uv --version > reports/toolchain/versions.txt
+          ngspice --version >> reports/toolchain/versions.txt
+          ldd /usr/bin/ngspice >> reports/toolchain/versions.txt
+          dpkg-query -W ngspice >> reports/toolchain/versions.txt
+          git rev-parse HEAD > reports/toolchain/source-commit.txt
+          sha256sum uv.lock > reports/toolchain/lock.sha256
+      - name: Verify the unchanged baseline
+        run: uv run --locked python -m tools.check --native
+      - name: Package cache and native runtime without credentials or vendor libraries
+        if: always()
+        run: |
+          mkdir -p reports/toolchain/native
+          cp /usr/bin/ngspice reports/toolchain/bin/ngspice
+          cp -a /usr/lib/x86_64-linux-gnu/ngspice reports/toolchain/native/code-models
+          cp -a /usr/share/ngspice reports/toolchain/native/share
+          tar -czf reports/offline-toolchain.tar.gz -C reports/toolchain .
+          sha256sum reports/offline-toolchain.tar.gz > reports/offline-toolchain.sha256
+          git diff --exit-code HEAD
+      - name: Retain offline recovery and baseline execution evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: offline-locked-toolchain
+          path: |
+            reports/offline-toolchain.tar.gz
+            reports/offline-toolchain.sha256
+            reports/check/
+          if-no-files-found: error
+          retention-days: 3
