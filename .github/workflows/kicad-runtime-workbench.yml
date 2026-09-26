@@ -19,15 +19,16 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha }}
-      - name: Export engine, dependencies and selected footprint libraries
+      - name: Export native engines, dependencies and selected footprint libraries
         run: |
           mkdir -p /tmp/kicad-export/bin /tmp/kicad-export/lib /tmp/kicad-export/footprints /tmp/kicad-out
           python3 - <<'PY'
           import pathlib, re, shutil, subprocess
           root=pathlib.Path('/tmp/kicad-export')
           files=subprocess.check_output(['dpkg','-L','kicad'],text=True).splitlines()
-          engines={pathlib.Path(p).resolve() for p in files if p.endswith('_eeschema.kiface') or p.endswith('/kicad-cli')}
-          assert len(engines)==2, engines
+          engines={pathlib.Path(p).resolve() for p in files if p.endswith('.kiface') or p.endswith('/kicad-cli')}
+          assert any(p.name=='_eeschema.kiface' for p in engines)
+          assert any(p.name=='_cvpcb.kiface' for p in engines)
           for engine in engines:
               shutil.copy2(engine,root/'bin'/engine.name)
               result=subprocess.check_output(['ldd',str(engine)],text=True)
