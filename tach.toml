@@ -185,7 +185,7 @@ expose = ["ARCHIVE_SHA256", "LIBRARY_SHA256", "prepare_library", "assess_trace",
 
 [[modules]]
 path = "lab.rev_a_supply"
-depends_on = ["lab.data_types"]
+depends_on = ["hardware.rev_a", "lab.analog", "lab.data_types", "lab.validation"]
 
 [[interfaces]]
 from = ["lab.rev_a_supply"]
