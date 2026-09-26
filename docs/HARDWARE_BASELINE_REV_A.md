@@ -97,7 +97,19 @@ remains 1 for the internal oscillator; firmware must make that transition only
 after the supply-stable boundary. This contract does not claim that rail timing
 has been measured.
 
-The current firmware does not load `hardware/rev_a/board_profile.json`; an explicit S3 firmware profile is a later commit. Do not remove the existing target/review guard just to make the build pass.
+The firmware does not load `hardware/rev_a/board_profile.json`; the explicit
+`EEGLAB_REV_A_S3` header is checked against it in tests. Its reviewed path now
+executes the controlled startup sequence in
+[`REV_A_STARTUP_SEQUENCE.md`](REV_A_STARTUP_SEQUENCE.md). The review gate stays
+false; a successful build does not authorize changing it.
+
+**Analog startup remains a physical precondition, not a digital-GPIO result.**
+The passive R/C input network does not hold a floating external input low. Before
+any reviewed power-up, a separately reviewed passive startup fixture must hold
+the used analog inputs low; no person or powered source may be attached. The
+serial rail/fixture confirmation is only an operator acknowledgment. It neither
+measures those inputs nor supplies an automatic back-powering interlock. Do not
+claim that this contract alone satisfies the complete datasheet startup rule.
 
 ## Fail-closed gates
 

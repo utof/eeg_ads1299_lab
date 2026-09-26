@@ -60,6 +60,19 @@ void checkLowPreparation(const Trace& trace) {
     std::sort(outputs.begin(), outputs.end());
     expect(outputs == required, "missing, duplicate, or unexpected startup output");
 }
+std::uint64_t latestEnable(const Trace& trace, int pin, std::size_t before) {
+    bool high = false;
+    std::uint64_t enabledAt = 0;
+    for (std::size_t i = 0; i < before; ++i) {
+        const auto& e = trace.events[i];
+        if (e.kind == "level" && e.pin == pin) {
+            if (!high && e.value == 1) enabledAt = e.us;
+            high = e.value == 1;
+        }
+    }
+    expect(high, "clock or PWDN still low at VCAP confirmation");
+    return enabledAt;
+}
 void checkPoweredPhase(const Trace& trace) {
     const auto rails = locate(trace, "rails", -1, 0);
     const auto wake = locate(trace, "level", 7, 1);
@@ -68,7 +81,7 @@ void checkPoweredPhase(const Trace& trace) {
     expect(rails < wake && rails < clock, "wake or clock precedes rail confirmation");
     expect(wake < vcap && clock < vcap, "VCAP confirmation precedes wake or clock");
     // 2^18 cycles / (2.048 MHz * 0.975) + 20 us oscillator startup < 132 ms.
-    const auto clockReadyAt = std::max(trace.events[wake].us, trace.events[clock].us);
+    const auto clockReadyAt = std::max(latestEnable(trace, 7, vcap), latestEnable(trace, 8, vcap));
     expect(trace.events[vcap].us - clockReadyAt >= 132000, "tPOR begins before wake/clock");
     expect(locate(trace, "level", 10, 1) > rails, "CS not deselected after rails");
     for (const auto& e : trace.events)

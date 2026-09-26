@@ -23,23 +23,29 @@ def test_s3_setup_uses_review_guard_and_sequence_before_spi() -> None:
 
 @pytest.mark.native
 @pytest.mark.parametrize(
-    ("before", "after"),
+    ("before", "after", "accepted"),
     [
-        ("", ""),
-        ("io.level(PIN_CLKSEL, 1);", ""),
-        ("io.confirmVcap1();", ""),
-        ("io.waitMs(150);", "io.waitMs(1);"),
-        ("io.level(PIN_RESET, 0);", ""),
-        ("io.waitUs(4);", "io.waitUs(0);"),
-        ("io.waitUs(20);", "io.waitUs(0);"),
+        ("", "", True),
+        ("io.level(PIN_CLKSEL, 1);", "", False),
+        ("io.confirmVcap1();", "", False),
+        ("io.waitMs(150);", "io.waitMs(1);", False),
+        ("io.level(PIN_RESET, 0);", "", False),
+        ("io.waitUs(4);", "io.waitUs(0);", False),
+        ("io.waitUs(20);", "io.waitUs(0);", False),
         (
             "io.confirmRailsAndInputs();",
             "io.level(PIN_CLKSEL, 1); io.confirmRailsAndInputs();",
+            False,
         ),
         (
             "io.level(PIN_PWDN, 1);",
             "io.waitMs(150); io.level(PIN_PWDN, 1);",
+            True,
         ),
+        ("io.level(PIN_PWDN, 1);", "", False),
+        ("io.confirmRailsAndInputs();", "", False),
+        ("io.waitMs(150);", "io.level(PIN_PWDN, 0); io.waitMs(150); io.level(PIN_PWDN, 1);", False),
+        ("for (int pin : controls) io.level(pin, 0);", "", False),
     ],
     ids=[
         "production",
@@ -51,9 +57,13 @@ def test_s3_setup_uses_review_guard_and_sequence_before_spi() -> None:
         "no-recovery",
         "early-clock",
         "extra-pre-wake-delay",
+        "no-wake",
+        "no-rails",
+        "por-while-powered-down",
+        "no-low-latches",
     ],
 )
-def test_startup_trace_and_faults(tmp_path: Path, before: str, after: str) -> None:
+def test_startup_trace_and_faults(tmp_path: Path, before: str, after: str, accepted: bool) -> None:
     compiler = shutil.which("g++") or shutil.which("clang++")
     if compiler is None:
         pytest.skip("native C++ compiler absent")
@@ -90,7 +100,6 @@ def test_startup_trace_and_faults(tmp_path: Path, before: str, after: str) -> No
     assert built.returncode == 0, built.stderr
     result = subprocess.run([str(exe)], capture_output=True, text=True, timeout=5)
     # An extra wait before wake is benign: it must not count toward the later tPOR.
-    accepted = not before or before == "io.level(PIN_PWDN, 1);"
     assert (result.returncode == 0) is accepted, result.stdout + result.stderr
     if not accepted:
         assert "STARTUP_ASSERTION:" in result.stderr
