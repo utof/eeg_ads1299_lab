@@ -16,14 +16,17 @@ jobs:
           apt-get install --yes --no-install-recommends ca-certificates git python3 ngspice kicad kicad-symbols
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
-          ref: 0595d457b6272b9db2627cf48e87a89756663c4a
+          ref: 3a6592dc3882ad34cf6a8783cf5116502421e3d1
           fetch-depth: 0
           persist-credentials: false
       - name: Retain portable binaries and exact provenance
         run: |
           set -x
-          mkdir -p /tmp/eeg-native/bin /tmp/eeg-native/lib /tmp/eeg-native/symbols /tmp/eeg-native/out
+          mkdir -p /tmp/eeg-native/bin /tmp/eeg-native/lib /tmp/eeg-native/symbols /tmp/eeg-native/runtime /tmp/eeg-native/out
           cp /usr/bin/ngspice /usr/bin/kicad-cli /tmp/eeg-native/bin/
+          cp -a /usr/lib/x86_64-linux-gnu/ngspice /tmp/eeg-native/runtime/code-models
+          cp -a /usr/share/ngspice/scripts /tmp/eeg-native/runtime/scripts
+          cp -a /usr/share/kicad/schemas /tmp/eeg-native/runtime/schemas
           python3 - <<'PY'
           import json, pathlib, re, shutil, subprocess
           root = pathlib.Path('/tmp/eeg-native')
@@ -50,7 +53,7 @@ jobs:
           dpkg-query -W > /tmp/eeg-native/PACKAGES.txt
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git bundle create /tmp/eeg-native/out/source.bundle --all
-          tar -C /tmp -czf /tmp/eeg-native/out/native-tools.tar.gz eeg-native/bin eeg-native/lib eeg-native/symbols eeg-native/NGSPICE_VERSION.txt eeg-native/KICAD_VERSION.txt eeg-native/ERC_HELP.txt eeg-native/PACKAGES.txt eeg-native/COMMAND_STATUS.json eeg-native/ngspice-ldd.txt eeg-native/kicad-cli-ldd.txt
+          tar -C /tmp -czf /tmp/eeg-native/out/native-tools.tar.gz eeg-native/bin eeg-native/lib eeg-native/symbols eeg-native/runtime eeg-native/NGSPICE_VERSION.txt eeg-native/KICAD_VERSION.txt eeg-native/ERC_HELP.txt eeg-native/PACKAGES.txt eeg-native/COMMAND_STATUS.json eeg-native/ngspice-ldd.txt eeg-native/kicad-cli-ldd.txt
           sha256sum /tmp/eeg-native/out/* > /tmp/eeg-native/out/SHA256SUMS.txt
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
