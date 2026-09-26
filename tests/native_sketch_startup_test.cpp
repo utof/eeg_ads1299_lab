@@ -39,8 +39,14 @@ void checkConsole() {
     require(events.size()>=4,"console initialization missing");
     require(event("console-baud",-1,460800)==0,"console baud or initialization order differs");
     require(event("console-format",-1,SERIAL_8N1)==1,"console format differs");
-    require(event("console-rx",17,0)==2,"console RX is not separate GPIO17");
-    require(event("console-tx",18,0)==3,"console TX is not separate GPIO18");
+#if defined(EEGLAB_REV_A_S3)
+    const int rx = scenario=="guard" ? -1 : 17;
+    const int tx = scenario=="guard" ? -1 : 18;
+#else
+    const int rx = -1, tx = -1;
+#endif
+    require(event("console-rx",rx,0)==2,"wrong console RX or early external pin enable");
+    require(event("console-tx",tx,0)==3,"wrong console TX or early external pin enable");
 }
 void check(bool spi) {
     checkConsole();
