@@ -106,3 +106,13 @@ Hardware PR #1 and DX PR #2 were merged, in that order, using merge commits. Rev
 - Pyrefly: https://pyrefly.org/en/docs/configuration/
 - complexipy: https://complexipy.com/usage-guide/
 - Tach interfaces: https://docs.gauge.sh/usage/interfaces/
+
+## Native schematic checks
+
+`uv run --locked python -m tools.check --schematic` requires KiCad 9.0.2 and its
+pinned footprint libraries. It runs the ordinary gate, full-severity native ERC,
+fresh XML/PDF/CSV exports, independent connectivity/BOM checks, and CAD fault
+regressions. It writes a source/artifact-hashed `SCHEMATIC_CHECK.json` only after
+success, with hardware/release/body flags false. The ordinary and existing
+native simulation selections do not silently substitute for this CAD request.
+See `REV_A_SCHEMATIC.md` for source closure, fixture scope and remaining review.

@@ -353,13 +353,12 @@
         "R_START_DN",
         "R_SCLK_DN",
         "R_DIN_DN",
-        "R_DAISY_DN",
         "R_GPIO1_DN",
         "R_GPIO2_DN",
         "R_GPIO3_DN",
         "R_GPIO4_DN"
       ],
-      "quantity": 13,
+      "quantity": 12,
       "population": "fit",
       "planning_unit_usd": "0.06",
       "source_ids": [
