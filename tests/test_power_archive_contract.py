@@ -78,8 +78,8 @@ def test_complete_wrong_plateau_is_distinct_from_incomplete_integration(
     def trace(
         _netlist: Path, _out: Path, *, columns: int, expected_stop_s: float | None = None
     ) -> tuple[FloatArray, FloatArray]:
-        stop = 0.02 if columns == 2 else 10e-6
-        return np.linspace(0.0, stop, 201), np.zeros((201, columns))
+        assert expected_stop_s is not None
+        return np.linspace(0.0, expected_stop_s, 201), np.zeros((201, columns))
 
     archive = _archive(tmp_path, monkeypatch, _ORIGINAL)
     monkeypatch.setattr("lab.rev_a_power.shutil.which", executable)
