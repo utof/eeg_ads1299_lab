@@ -194,9 +194,7 @@ def _switch_probe(root: Path, variant: _Switch, control: float) -> dict[str, obj
 def _input_waveform(falling: bool) -> str:
     """Keep rise, fall and observation times identical across the four controls."""
     return (
-        "PWL(0 0 1m 0 1.01m 5 15m 5 15.01m 0 20m 0)"
-        if falling
-        else "PWL(0 0 1m 0 1.01m 5 20m 5)"
+        "PWL(0 0 1m 0 1.01m 5 15m 5 15.01m 0 20m 0)" if falling else "PWL(0 0 1m 0 1.01m 5 20m 5)"
     )
 
 
@@ -204,7 +202,8 @@ def _vendor_netlist(library: Path, stimulus: _VendorStimulus, normalized: bool) 
     if any(c in str(library) for c in ('"', "\n", "\r")):
         raise ValueError("unsupported library path characters")
     return (
-        f"TPS7A20 {stimulus.name} compatibility ONLY; switch normalization={normalized}\n"
+        f"TPS7A20 {stimulus.name} compatibility ONLY; "
+        f"experimental switch normalization={normalized}\n"
         f'.param V_out=3.3\n.include "{library}"\n'
         f"Vin in 0 {_input_waveform(stimulus.supply_off)}\n"
         f"Venable en 0 {_input_waveform(stimulus.enable_off)}\n"
