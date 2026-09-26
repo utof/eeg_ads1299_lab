@@ -4,6 +4,7 @@ import math
 import shutil
 import subprocess
 from pathlib import Path
+from typing import Literal
 
 import numpy as np
 
@@ -101,13 +102,21 @@ def _execute_ngspice(
 
 
 def run_ngspice(netlist: str | Path, output_dir: str | Path) -> tuple[FloatArray, ComplexArray]:
-    """Run an AC netlist with a deadline and read its real/imaginary output."""
+    """Read the lab's frequency/hr/hi export, not arbitrary three-column data.
+
+    Frequencies must be positive and strictly increasing; at least two rows are
+    required. Named columns identify exporter intent, not simulator authenticity,
+    internal circuit wiring, or completion of an independently requested sweep.
+    """
     output = _execute_ngspice(netlist, output_dir, "ac.txt")
-    data: FloatArray = np.loadtxt(output, skiprows=1, dtype=np.float64)
-    if data.ndim != 2 or data.shape[1] != 3 or not np.all(np.isfinite(data)):
-        raise RuntimeError("Unexpected ngspice wrdata format (expected f, real, imag)")
+    data = _read_wrdata_table(output, 2, ("hr", "hi"), analysis="AC")
+    if data.shape[0] < 2 or data.shape[1] != 3 or not np.all(np.isfinite(data)):
+        raise RuntimeError("Invalid ngspice AC table shape or values")
+    frequency = data[:, 0]
+    if np.any(frequency <= 0) or np.any(np.diff(frequency) <= 0):
+        raise RuntimeError("Invalid ngspice AC frequency axis")
     response: ComplexArray = data[:, 1] + 1j * data[:, 2]
-    return data[:, 0], response
+    return frequency, response
 
 
 def run_ngspice_transient(
@@ -140,7 +149,7 @@ def run_ngspice_transient(
     )
     if expected_stop_s is not None:
         _verify_native_window(output.parent / "transient-window.txt", expected_stop_s)
-    data = _read_transient_table(output, columns, expected_vectors)
+    data = _read_wrdata_table(output, columns, expected_vectors, analysis="transient")
     if data.shape[0] < 2 or data.shape[1] != columns + 1 or not np.all(np.isfinite(data)):
         raise RuntimeError("Invalid ngspice transient table shape or values")
     times = data[:, 0]
@@ -163,22 +172,29 @@ def _validate_expected_vectors(vectors: tuple[str, ...] | None, columns: int) ->
         raise ValueError("expected_vectors must contain distinct names")
 
 
-def _read_transient_table(path: Path, columns: int, vectors: tuple[str, ...] | None) -> FloatArray:
+def _read_wrdata_table(
+    path: Path,
+    columns: int,
+    vectors: tuple[str, ...] | None,
+    *,
+    analysis: Literal["AC", "transient"],
+) -> FloatArray:
     """Read names and values from one descriptor; do not silently reorder signals."""
+    scale = "frequency" if analysis == "AC" else "time"
     try:
         with path.open(encoding="utf-8") as stream:
             names = tuple(stream.readline().split())
-            if len(names) != columns + 1 or names[0] != "time":
+            if len(names) != columns + 1 or names[0] != scale:
                 raise RuntimeError(
-                    "Unexpected ngspice transient vectors: expected time then columns"
+                    f"Unexpected ngspice {analysis} vectors: expected {scale} then columns"
                 )
             if vectors is not None and names[1:] != vectors:
                 raise RuntimeError(
-                    f"Unexpected ngspice transient vectors: expected {vectors!r}, got {names[1:]!r}"
+                    f"Unexpected ngspice {analysis} vectors: expected {vectors!r}, got {names[1:]!r}"
                 )
             data: FloatArray = np.loadtxt(stream, dtype=np.float64, ndmin=2)
     except (OSError, UnicodeError, ValueError, UserWarning) as exc:
-        raise RuntimeError("Invalid ngspice transient table") from exc
+        raise RuntimeError(f"Invalid ngspice {analysis} table") from exc
     return data
 
 
