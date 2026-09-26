@@ -444,3 +444,30 @@ def test_shared_source_transient_matches_independent_nodal_exponential() -> None
         ),
     )
     np.testing.assert_allclose(rail_response(case, times), expected, rtol=1e-13, atol=1e-13)
+
+
+@pytest.mark.parametrize("shared", [0.0, 0.1])
+def test_netlist_edge_timing_and_named_output_are_explicit(shared: float) -> None:
+    case = replace(SupplyCase(), shared_r_ohm=shared)
+    lines = supply_netlist(case).splitlines()
+    for prefix, expected in (
+        ("Vsource source 0 ", [0.0, 0.0, 0.001, 0.0, 0.001000001, 4.95, 0.02, 4.95]),
+        (
+            "Vburst control 0 ",
+            [0.0, 0.0, 0.008, 0.0, 0.008000001, 1.0, 0.012, 1.0, 0.012000001, 0.0, 0.02, 0.0],
+        ),
+    ):
+        line = next(line for line in lines if line.startswith(prefix))
+        waveform = line.removeprefix(prefix)
+        assert waveform.startswith("PWL(") and waveform.endswith(")")
+        points = [float(value) for value in waveform[4:-1].split()]
+        # Explicit independently enumerated breakpoints, not production constants.
+        np.testing.assert_allclose(points, expected, rtol=0, atol=1e-16)
+    exports = [line for line in lines if line.startswith("wrdata ")]
+    assert exports == ["wrdata transient.txt v(avdd)"]
+    if shared == 0:
+        assert "Vshared source bus 0" in lines
+        assert not any(line.startswith("Rshared ") for line in lines)
+    else:
+        line = next(line for line in lines if line.startswith("Rshared source bus "))
+        assert float(line.split()[-1]) == shared
