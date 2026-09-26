@@ -90,7 +90,11 @@ class BaselineTests(unittest.TestCase):
 
     def test_powerup_control_contract_is_explicit(self) -> None:
         signals = {row["signal"]: row for row in self.profile["spi"]["signals"]}
-        self.assertEqual(\n            signals["CLKSEL"],\n            {"signal": "CLKSEL", "gpio": 8, "ads_pin": 52, "direction_from_mcu": "out"},\n        )\n        self.assertEqual(self.profile["interface_headers"]["J_DIG"]["pin_map"]["19"], "CLKSEL")
+        self.assertEqual(
+            signals["CLKSEL"],
+            {"signal": "CLKSEL", "gpio": 8, "ads_pin": 52, "direction_from_mcu": "out"},
+        )
+        self.assertEqual(self.profile["interface_headers"]["J_DIG"]["pin_map"]["19"], "CLKSEL")
         straps = next(row for row in self.bom["line_items"] if row["id"] == "straps")
         self.assertIn("R_CS_DN", straps["references"])
         self.assertIn("R_CLKSEL_DN", straps["references"])
