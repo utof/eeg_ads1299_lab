@@ -42,7 +42,7 @@ jobs:
           import numpy as np
 
           from lab.analog import run_ngspice_transient
-          from lab.rev_a_power import prepare_library, run_pilot
+          from lab.rev_a_power import prepare_library
 
           root = Path('reports/interaction')
           results = []
@@ -98,8 +98,11 @@ jobs:
                   base = raw.decode('latin-1')
                   statements = re.sub(r'\r?\n\s*\+', ' ', base).splitlines(keepends=True)
                   calls = [line for line in statements if re.match(r'^\s*X\S+\s', line, re.I)
-                           and line.split()[-1].upper() == 'COMPHYS_BASIC_GEN']
+                           and 'COMPHYS_BASIC_GEN' in [token.upper() for token in line.split()]]
                   metadata['comparator_calls'] = [line.split() for line in calls]
+                  library = private / 'baseline.lib'
+                  library.write_bytes(raw)
+                  probe('baseline', library)
                   candidates = [line for line in calls if line.split()[1].upper() == 'EN']
                   if len(candidates) != 1:
                       raise ValueError(f'Expected exactly one EN comparator, found {len(candidates)}')
@@ -107,7 +110,6 @@ jobs:
                   tokens = call.split()
                   output = tokens[4]
                   metadata['enable_output'] = output
-                  # Record only interface/connectivity metadata, never library implementation.
                   metadata['consumers'] = [
                       {'device': line.split()[0],
                        'voltage_dependencies': re.findall(r'V\(([^)]+)\)', line, re.I)}
@@ -115,18 +117,14 @@ jobs:
                       and line != call and re.search(r'(?<![\w])' + re.escape(output) + r'(?![\w])', line, re.I)
                   ]
                   joined = ''.join(statements)
-                  library = private / 'baseline.lib'
-                  library.write_bytes(raw)
-                  probe('baseline', library, (f'xreg.{output}',))
-                  # Algebraic unity buffering preserves DC gain but isolates port loading.
+                  if joined.count(call) != 1:
+                      raise ValueError('Ambiguous comparator replacement')
                   buffered = tokens.copy()
                   buffered[4] = 'probe_en_raw'
                   replacement = ' '.join(buffered) + '\nEprobe_buffer ' + output + ' 0 probe_en_raw 0 1\n'
                   library = private / 'buffered.lib'
                   library.write_bytes(joined.replace(call, replacement).encode('latin-1'))
                   probe('buffered', library, (f'xreg.{output}', 'xreg.probe_en_raw'))
-                  # Prescribed transition controls deliberately remove hysteresis dynamics.
-                  # They locate interactions; they are NOT equivalent model implementations.
                   for width in (1e-9, 1e-8, 1e-7, 1e-6):
                       rise = 0.00100189
                       fall = 0.01500821
