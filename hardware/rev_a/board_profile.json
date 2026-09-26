@@ -98,16 +98,22 @@
         "gpio": 7,
         "ads_pin": 35,
         "direction_from_mcu": "out"
+      },
+      {
+        "signal": "CLKSEL",
+        "gpio": 8,
+        "ads_pin": 52,
+        "direction_from_mcu": "out"
       }
     ]
   },
   "power": {
     "topology": "unipolar_bench",
-    "external_source_nominal_v": 5.0,
+    "external_source_nominal_v": 5,
     "external_source_tolerance_fraction": 0.01,
-    "external_source_capacity_a": 1.0,
-    "avss_v": 0.0,
-    "avdd_design_v": 5.0,
+    "external_source_capacity_a": 1,
+    "avss_v": 0,
+    "avdd_design_v": 5,
     "avdd_operating_min_v": 4.75,
     "avdd_operating_max_v": 5.25,
     "analog_feed_resistance_ohm": 10,
@@ -124,12 +130,12 @@
     "channels": 4,
     "topology": "two_series_resistors_and_one_differential_cap_per_channel",
     "series_resistance_each_ohm": 4990,
-    "differential_capacitance_f": 4.7e-09,
-    "common_mode_capacitance_fitted_f": 0.0,
+    "differential_capacitance_f": 4.7e-9,
+    "common_mode_capacitance_fitted_f": 0,
     "clamp_population": "dnp",
     "nominal_dummy_common_mode_v": 2.5,
     "bias_feedback_resistance_ohm": 1000000,
-    "bias_feedback_capacitance_f": 1.5e-09,
+    "bias_feedback_capacitance_f": 1.5e-9,
     "bias_output_series_resistance_ohm": 1000000
   },
   "interface_headers": {
@@ -154,7 +160,7 @@
         "16": "DGND",
         "17": "VIN_5V_AFE",
         "18": "DGND",
-        "19": "DVDD_SENSE_DO_NOT_POWER_MCU",
+        "19": "CLKSEL",
         "20": "DGND"
       }
     },
@@ -195,5 +201,14 @@
     "requires_explicit_s3_firmware_profile": true,
     "do_not_remove_existing_target_guard": true,
     "this_json_is_not_loaded_by_existing_firmware": true
+  },
+  "powerup_controls": {
+    "SCLK": 0,
+    "MOSI": 0,
+    "CS": 0,
+    "RESET": 0,
+    "START": 0,
+    "PWDN": 0,
+    "CLKSEL": 0
   }
 }
