@@ -97,7 +97,7 @@ remains 1 for the internal oscillator; firmware must make that transition only
 after the supply-stable boundary. This contract does not claim that rail timing
 has been measured.
 
-This map is **proposed, not bench-verified**. The current firmware does not load `hardware/rev_a/board_profile.json`; an explicit S3 firmware profile is a later commit. Do not remove the existing target/review guard just to make the build pass.
+The current firmware does not load `hardware/rev_a/board_profile.json`; an explicit S3 firmware profile is a later commit. Do not remove the existing target/review guard just to make the build pass.
 
 ## Fail-closed gates
 
