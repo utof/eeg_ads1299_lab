@@ -25,12 +25,12 @@ jobs:
           sudo apt-get install --yes --no-install-recommends ngspice
           python -m pip install uv==0.12.18
           uv sync --locked --all-extras
-      - name: Reduce enable gate and downstream interaction
+      - name: Record counterfactual convergence controls
         run: |
           mkdir -p reports/interaction
           git archive --format=tar HEAD > reports/interaction/repository.tar
           cat > reports/interaction/experiment.py <<'PY'
-          """Disposable counterfactual controls; NOT proposed model repairs."""
+          """Counterfactual convergence observations, not model repairs or causal isolation."""
           import hashlib
           import json
           import re
@@ -42,119 +42,108 @@ jobs:
           import numpy as np
 
           from lab.analog import run_ngspice_transient
-          from lab.rev_a_power import prepare_library
+          from lab.rev_a_power import prepare_library, switch_netlist
 
           root = Path('reports/interaction')
           results = []
-          metadata = {}
 
-          def execute(name, library, circuit, nodes):
+
+          def execute(name, library, circuit):
               path = root / name
               path.mkdir()
-              text = ('Independent interaction experiment; NOT VALIDATION\n'
-                      f'.param V_out=3.3\n.include "{library}"\n' + circuit +
+              (path / 'network.cir').write_text(circuit)
+              init = path / '.spiceinit'
+              init.write_text('set ngbehavior=psa\n')
+              result = {'name': name, 'library_sha256': hashlib.sha256(library.read_bytes()).hexdigest(),
+                        'window_complete': False, 'power_model_validated': False}
+              try:
+                  times, volts = run_ngspice_transient(path / 'network.cir', path, columns=3, expected_stop_s=0.02)
+                  result.update({'window_complete': True, 'execution': 'complete',
+                                 'last_time_s': float(times[-1]), 'final_vout_v': float(volts[-1, 2]),
+                                 'min_vout_v': float(np.min(volts[:, 2]))})
+              except (RuntimeError, ValueError) as exc:
+                  numerical = str(exc).startswith('Incomplete native integration window:')
+                  result.update({'execution': 'numerical_incomplete' if numerical else 'execution_error',
+                                 'reason': str(exc)})
+              finally:
+                  init.rename(path / 'spiceinit.txt')
+              results.append(result)
+
+
+          def netlist(library):
+              return ('Counterfactual enable convergence experiment; NOT VALIDATION\n'
+                      f'.param V_out=3.3\n.include "{library}"\n'
+                      'Vin in 0 PWL(0 0 1m 0 1.01m 5 20m 5)\n'
+                      'Venable en 0 PWL(0 0 1m 0 1.01m 5 15m 5 15.01m 0 20m 0)\n'
+                      'Xreg in 0 en nc out TPS7A20_ADJ_TRANS\n'
+                      'Cin in 0 1u\nCout out 0 1u\nRnc nc 0 1e12\nRbase out 0 1100\n'
+                      'Vload ctl 0 PWL(0 0 8m 0 8.01m 1 12m 1 12.01m 0 20m 0)\n'
+                      'Bload out 0 I={v(out)*v(ctl)*(0.010-0.003)/3.3}\n'
                       '.options reltol=1e-5 abstol=1e-10 vntol=1e-7 method=gear\n'
                       '.control\nset wr_singlescale\nset wr_vecnames\nset numdgt=15\n'
                       'tran 1u 20m 0 1u\n'
                       'let integration_start = time[0]\n'
                       'let integration_stop = time[length(time)-1]\n'
                       'print integration_start integration_stop > transient-window.txt\n'
-                      'wrdata transient.txt ' + ' '.join(f'v({n})' for n in nodes) +
-                      '\nquit\n.endc\n.end\n')
-              (path / 'network.cir').write_text(text)
-              init = path / '.spiceinit'
-              init.write_text('set ngbehavior=psa\n')
-              result = {'name': name, 'library_sha256': hashlib.sha256(library.read_bytes()).hexdigest(),
-                        'nodes': nodes, 'window_complete': False, 'power_model_validated': False}
-              try:
-                  times, volts = run_ngspice_transient(path / 'network.cir', path,
-                                                       columns=len(nodes), expected_stop_s=0.02)
-                  result.update({'window_complete': True, 'last_time_s': float(times[-1]),
-                                 'final_volts': volts[-1].tolist(),
-                                 'min_volts': np.min(volts, axis=0).tolist(),
-                                 'max_volts': np.max(volts, axis=0).tolist()})
-              except (RuntimeError, ValueError) as exc:
-                  result['reason'] = str(exc)
-              finally:
-                  init.rename(path / 'spiceinit.txt')
-              results.append(result)
-              print(json.dumps(result))
+                      'wrdata transient.txt v(in) v(en) v(out)\nquit\n.endc\n.end\n')
 
-          def edge(width, amplitude=1.0, rise=0.00100189, fall=0.01500821):
-              return (f'PWL(0 0 {rise:.12g} 0 {rise+width:.12g} {amplitude:.12g} '
-                      f'{fall:.12g} {amplitude:.12g} {fall+width:.12g} 0 20m 0)')
 
-          full = ('Vin in 0 PWL(0 0 1m 0 1.01m 5 20m 5)\n'
-                  'Venable en 0 PWL(0 0 1m 0 1.01m 5 15m 5 15.01m 0 20m 0)\n'
-                  'Xreg in 0 en nc out TPS7A20_ADJ_TRANS\n'
-                  'Cin in 0 1u\nCout out 0 1u\nRnc nc 0 1e12\nRbase out 0 1100\n'
-                  'Vload ctl 0 PWL(0 0 8m 0 8.01m 1 12m 1 12.01m 0 20m 0)\n'
-                  'Bload out 0 I={v(out)*v(ctl)*(0.010-0.003)/3.3}\n')
           try:
+              control = root / 'execution_control'
+              control.mkdir()
+              (control / 'network.cir').write_text(switch_netlist('usual', 0.001))
+              (control / '.spiceinit').write_text('set ngbehavior=psa\n')
+              try:
+                  t, v = run_ngspice_transient(control / 'network.cir', control, columns=1, expected_stop_s=1e-5)
+                  if abs(float(v[-1, 0]) - 3.3) > 1e-5:
+                      raise RuntimeError('Handwritten execution control endpoint failed')
+              finally:
+                  (control / '.spiceinit').rename(control / 'spiceinit.txt')
               with TemporaryDirectory(prefix='private-ti-interaction-') as temporary:
                   private = Path(temporary)
                   archive = private / 'sbvm961.zip'
                   with urllib.request.urlopen('https://www.ti.com/lit/zip/sbvm961', timeout=30) as source:
                       archive.write_bytes(source.read(4_000_001))
-                  original = prepare_library(archive, normalize_switch=False)
-                  normalized = prepare_library(archive, normalize_switch=True)
-                  statements = re.sub(r'\r?\n\s*\+', ' ', normalized.decode('latin-1')).splitlines(keepends=True)
-                  signatures = {line.split()[1].upper(): line.split()[2:]
-                                for line in statements if line.lstrip().upper().startswith('.SUBCKT ')}
-                  matches = [line for line in statements if line.split() and line.split()[0] == 'X_U1_U4']
-                  if len(matches) != 1:
-                      raise ValueError('Expected previously observed X_U1_U4 consumer')
-                  call = matches[0]
+                  raw = prepare_library(archive, normalize_switch=True)
+                  statements = re.sub(r'\r?\n\s*\+', ' ', raw.decode('latin-1')).splitlines(keepends=True)
+                  calls = [line for line in statements if line.split()[:2] == ['X_U1_U1', 'EN_INT']]
+                  if len(calls) != 1 or 'COMPHYS_BASIC_GEN' not in calls[0].split():
+                      raise ValueError('Pinned comparator interface changed')
+                  call = calls[0]
                   tokens = call.split()
-                  model_index = next(i for i, token in enumerate(tokens) if token.upper() in signatures)
-                  pins, model = tokens[1:model_index], tokens[model_index]
-                  output = pins[-1]
-                  metadata['gate_call'] = tokens
-                  metadata['gate_signature'] = signatures[model.upper()]
-                  metadata['output_consumers'] = [
-                      {'device': line.split()[0],
-                       'voltage_dependencies': re.findall(r'V\(([^)]+)\)', line, re.I)}
-                      for line in statements if line.strip() and not line.lstrip().startswith('*')
-                      and line != call and re.search(r'(?<![\w])' + re.escape(output) + r'(?![\w])', line, re.I)
-                  ]
-                  if 'U1_EN_PRE' not in pins[:-1]:
-                      raise ValueError('Gate input contract changed')
+                  output = tokens[4]
                   joined = ''.join(statements)
-                  library = private / 'normalized.lib'
-                  library.write_bytes(normalized)
-                  nodes = ('en', 'out', 'xreg.en_int', 'xreg.u1_en_pre', f'xreg.{output}')
-                  execute('full_baseline', library, full, nodes)
-                  library = private / 'format-only.lib'
-                  library.write_bytes(joined.encode('latin-1'))
-                  execute('full_format_only', library, full, nodes)
-                  for width in (1e-9, 1e-7, 1e-6):
-                      replacement = f'Vprobe_gate {output} 0 {edge(width)}\n'
-                      library = private / f'gate-{width:g}.lib'
-                      library.write_bytes(joined.replace(call, replacement).encode('latin-1'))
-                      execute(f'full_prescribed_gate_{width:g}', library, full, nodes)
-                  # Unmodified library helpers, externally driven and loaded.
-                  library = private / 'original.lib'
-                  library.write_bytes(original)
-                  mapped = ['control' if pin == 'U1_EN_PRE' else 'high' for pin in pins[:-1]] + ['gateout']
-                  instance = 'Xgate ' + ' '.join([*mapped, *tokens[model_index:]]) + '\n'
-                  load = 'Vhigh high 0 1\nRload gateout 0 1meg\n'
-                  for width in (1e-9, 1e-8, 1e-7, 1e-6):
-                      circuit = f'Vcontrol control 0 {edge(width)}\n' + instance + load
-                      execute(f'isolated_gate_{width:g}', library, circuit, ('control', 'gateout'))
-                  circuit = ('Vsignal signal 0 ' + edge(1e-5, amplitude=5, rise=0.001, fall=0.015) + '\n'
-                             'Vreference reference 0 0.92\nVhys hyst 0 0.025\n'
-                             'Xcomp signal reference hyst control COMPHYS_BASIC_GEN PARAMS: VDD=1 VSS=0 VTHRESH=0.5\n'
-                             + instance + load)
-                  execute('isolated_comparator_and_gate', library, circuit, ('signal', 'control', 'gateout'))
+                  if joined.count(call) != 1:
+                      raise ValueError('Ambiguous comparator replacement')
+                  variants = [('baseline', raw), ('format_only', joined.encode('latin-1'))]
+                  buffered = tokens.copy()
+                  buffered[4] = 'probe_en_raw'
+                  replacement = ' '.join(buffered) + f'\nEprobe_buffer {output} 0 probe_en_raw 0 1\n'
+                  variants.append(('buffered', joined.replace(call, replacement).encode('latin-1')))
+                  for width, resistance in ((1e-9, 0), (1e-8, 0), (1e-7, 0), (1e-6, 0), (1e-7, 1), (1e-7, 100)):
+                      rise, fall = 0.00100189, 0.01500821
+                      node = output if resistance == 0 else 'probe_drive'
+                      replacement = (f'Vprobe_enable {node} 0 PWL(0 0 {rise:.12g} 0 {rise+width:.12g} 1 '
+                                     f'{fall:.12g} 1 {fall+width:.12g} 0 20m 0)\n')
+                      if resistance:
+                          replacement += f'Rprobe_drive probe_drive {output} {resistance:g}\n'
+                      variants.append((f'prescribed_{width:g}_r{resistance:g}',
+                                       joined.replace(call, replacement).encode('latin-1')))
+                  for name, data in variants:
+                      library = private / f'{name}.lib'
+                      library.write_bytes(data)
+                      execute(name, library, netlist(library))
           finally:
               summary = {'source_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
-                         'results': results, 'metadata': metadata, 'hardware_validated': False,
-                         'scope': 'counterfactual controls, not qualified model edits'}
+                         'results': results, 'expected_probe_count': 9, 'hardware_validated': False,
+                         'scope': 'counterfactual convergence observations; no causal attribution or qualified edit'}
               (root / 'summary.json').write_text(json.dumps(summary, indent=2) + '\n')
               files = {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
                        for p in root.rglob('*') if p.is_file()}
               (root / 'manifest.json').write_text(json.dumps(files, indent=2) + '\n')
               print(json.dumps(summary, indent=2))
+          if len(results) != 9 or any(item['execution'] == 'execution_error' for item in results):
+              raise RuntimeError('Required diagnostic executions failed; evidence retained')
           PY
           uv run --locked python reports/interaction/experiment.py
       - name: Retain handwritten experiments and diagnostics, never private libraries
