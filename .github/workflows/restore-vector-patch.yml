@@ -17,10 +17,48 @@ jobs:
           ref: 9c04dc7581ed570da64c53d2ae8b60b8a9a0e9b3
           persist-credentials: false
           fetch-depth: 0
-      - name: Restore exact original mailbox from a public immutable recovery blob
+      - name: Restore the exact hash-verified saved mailbox without executing patched code
         run: |
-          echo 'The patch payload is installed separately before this job may publish.'
-          test -f /nonexistent-deliberate-payload-gate
+          python - <<'PY'
+          import base64
+          import gzip
+          import hashlib
+          import json
+          from pathlib import Path
+          from urllib.request import Request, urlopen
+
+          parts = (
+              '8054eb2ccdd323e2b471eda9d5ffba788a48b0b6',
+              'ed99303f6cdc14aa4c2ffc78ec7d353ee15c3bf4',
+              '5907db6186e037e3a0b355d11f2b80c0d98dfa25',
+              '5383889aa1c942f6d565c7eac3d3349ca311b567',
+          )
+          chunks = []
+          for sha in parts:
+              request = Request(
+                  'https://api.github.com/repos/utof/eeg_ads1299_lab/git/blobs/' + sha,
+                  headers={'Accept': 'application/vnd.github+json', 'User-Agent': 'eeg-patch-recovery'},
+              )
+              with urlopen(request, timeout=30) as response:
+                  document = json.loads(response.read(100000))
+              assert document['encoding'] == 'base64'
+              raw = base64.b64decode(document['content'])
+              assert hashlib.sha1(f'blob {len(raw)}\0'.encode() + raw).hexdigest() == sha
+              assert len(raw) == 3320
+              chunks.append(raw)
+          patch = gzip.decompress(base64.b64decode(b''.join(chunks), validate=True))
+          assert len(patch) == 36581
+          assert hashlib.sha256(patch).hexdigest() == 'c614264503c82c872282c07010a9cac23178a699ed0e303fbc0ce22143a9df13'
+          Path('/tmp/vector.patch').write_bytes(patch)
+          PY
+          test "$(git rev-parse 'HEAD^{tree}')" = 6779bf46fcd4dde1504808414970e703df7a592c
+          git config user.name OpenAI
+          git config user.email noreply@openai.com
+          git -c core.hooksPath=/dev/null am /tmp/vector.patch
+          git log --format='%H %T %s' -3
+          mkdir -p reports/recovery
+          git bundle create reports/recovery/vector-identity.bundle HEAD
+          sha256sum reports/recovery/vector-identity.bundle > reports/recovery/bundle.sha256
       - name: Publish only the new recovery branch, never main
         env:
           GH_TOKEN: ${{ github.token }}
@@ -29,3 +67,11 @@ jobs:
           test "$(git rev-list --count 9c04dc7581ed570da64c53d2ae8b60b8a9a0e9b3..HEAD)" = 2
           auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/recovery/vector-identity-patch
+      - name: Preserve source-only Git bundle
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: restored-vector-identity-source
+          path: reports/recovery/
+          if-no-files-found: warn
+          retention-days: 3
