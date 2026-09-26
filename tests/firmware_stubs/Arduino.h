@@ -11,6 +11,7 @@
 #define OUTPUT 1
 #define INPUT 0
 #define FALLING 2
+constexpr unsigned SERIAL_8N1=0x800001c;
 using portMUX_TYPE = int;
 constexpr int portMUX_INITIALIZER_UNLOCKED = 0;
 #define portENTER_CRITICAL_ISR(p) ((void)(p))
@@ -29,7 +30,12 @@ void record(const std::string& kind, int pin = -1, int value = 0);
 void printed(const char* text);
 }
 struct SerialDouble {
-    void begin(unsigned) {}
+    void begin(unsigned baud,unsigned config=SERIAL_8N1,int rx=-1,int tx=-1) {
+        hostbench::record("console-baud",-1,static_cast<int>(baud));
+        hostbench::record("console-format",-1,static_cast<int>(config));
+        hostbench::record("console-rx",rx);
+        hostbench::record("console-tx",tx);
+    }
     int available() { return static_cast<int>(hostbench::input.size()); }
     int read() {
         if(hostbench::input.empty())return -1;

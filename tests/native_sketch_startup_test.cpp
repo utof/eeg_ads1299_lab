@@ -34,14 +34,24 @@ std::size_t event(const std::string& kind,int pin,int value,std::size_t start=0)
     }
     throw std::runtime_error("required actual-sketch event missing");
 }
+void checkConsole() {
+    using namespace hostbench;
+    require(events.size()>=4,"console initialization missing");
+    require(event("console-baud",-1,460800)==0,"console baud or initialization order differs");
+    require(event("console-format",-1,SERIAL_8N1)==1,"console format differs");
+    require(event("console-rx",17,0)==2,"console RX is not separate GPIO17");
+    require(event("console-tx",18,0)==3,"console TX is not separate GPIO18");
+}
 void check(bool spi) {
+    checkConsole();
     using namespace hostbench;
     if(scenario=="guard") {
-        require(!spi && events.empty(),"review guard allowed hardware operations");return;
+        require(!spi && events.size()==4,"review guard allowed hardware operations");return;
     }
     if(scenario=="gpio-failure") {
         require(!spi,"GPIO failure allowed SPI");
-        for(const auto& e:events)require(e.kind=="latch" && e.value==0,"GPIO failure enabled an output");
+        for(std::size_t i=4;i<events.size();++i)
+            require(events[i].kind=="latch" && events[i].value==0,"GPIO failure enabled an output");
         return;
     }
     const auto rails=event("prompt",-1,'R');
