@@ -193,3 +193,25 @@ def _break_dependency(cad_copy: Path, fault: str) -> None:
                 .replace("/SWAP.pretty", "/Capacitor_SMD.pretty")
             )
         path.write_text(text)
+
+
+@pytest.mark.parametrize(
+    ("before", "after"),
+    [
+        ('(name "IN1P"', '(name "UNREVIEWED_PIN_NAME"'),
+        ('(number "16"', '(number "99"'),
+        ("(pin power_out line", "(pin passive line"),
+        ("(at -20.32 43.18 0)", "(at -20.32 43.18 180)"),
+        ('(property "Value" "TPS7A2033"', '(property "Value" "WRONG_DEVICE"'),
+    ],
+    ids=["pin-function", "pin-number", "pin-type", "pin-position", "part-default"],
+)
+def test_local_symbol_drift_must_not_be_hidden_by_sheet_caches(
+    cad_copy: Path, before: str, after: str
+) -> None:
+    path = cad_copy / "RevA.kicad_sym"
+    old = path.read_text()
+    assert before in old
+    path.write_text(old.replace(before, after, 1))
+    with pytest.raises(ValueError, match="symbol"):
+        schematic_source_snapshot(cad_copy)

@@ -1,6 +1,8 @@
 """Software-only gate doubles. They do not establish native CAD execution."""
 
+import csv
 import gzip
+import io
 import json
 import shutil
 from collections.abc import Sequence
@@ -13,6 +15,7 @@ from lab.validation import read_object
 from tools.check import main
 
 ROOT = Path(__file__).resolve().parents[1]
+BOM_CSV = (ROOT / "tests/fixtures/rev_a_bom.csv").read_text()
 FIXTURE = gzip.decompress((ROOT / "tests/fixtures/rev_a_netlist.xml.gz").read_bytes()).decode()
 
 
@@ -84,7 +87,20 @@ def _fake_output(name: str, path: Path, fault: str) -> None:
     elif name == "schematic-pdf":
         path.write_bytes(b"SOFTWARE PDF DOUBLE")
     elif name == "schematic-bom":
-        path.write_text("" if fault == "empty-bom" else "SOFTWARE CSV DOUBLE")
+        path.write_text(_bom_output(fault))
+
+
+def _bom_output(fault: str) -> str:
+    if fault == "empty-bom":
+        return ""
+    rows = list(csv.reader(io.StringIO(BOM_CSV)))
+    if fault == "partial-bom":
+        rows.pop()
+    elif fault == "wrong-bom-flag":
+        next(row for row in rows if row[0] == "D1")[6] = ""
+    result = io.StringIO(newline="")
+    csv.writer(result).writerows(rows)
+    return result.getvalue()
 
 
 def _change_dependency(root: Path, fault: str) -> None:
@@ -113,6 +129,8 @@ def _change_dependency(root: Path, fault: str) -> None:
         "wrong-wiring",
         "no-pdf",
         "empty-bom",
+        "partial-bom",
+        "wrong-bom-flag",
         "change-child",
         "change-library",
         "change-footprint",
