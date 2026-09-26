@@ -25,6 +25,7 @@ SIGNALS = {
     "RESET": (5, 36, "out"),
     "START": (6, 38, "out"),
     "PWDN": (7, 35, "out"),
+    "CLKSEL": (8, 52, "out"),
 }
 # Deliberately conservative exclusions for the selected N8R8 devkit, not a
 # universal description of all ESP32-S3 variants.
@@ -61,6 +62,12 @@ GATES = {
 }
 
 
+class ClockInputPull(TypedDict):
+    ads_pin: int
+    reference: str
+    return_net: str
+
+
 class AfeProfile(TypedDict):
     mpn: str
     channels: int
@@ -71,6 +78,7 @@ class AfeProfile(TypedDict):
     clock: str
     clock_hz_nominal: int
     clk_sel_level: int
+    clock_input_pull: ClockInputPull
     clock_output_enabled: bool
     daisy_chain: bool
     frame_status_bytes: int
@@ -152,6 +160,16 @@ class SpiProfile(TypedDict):
     signals: list[SpiSignal]
 
 
+class PowerupControls(TypedDict):
+    SCLK: int
+    MOSI: int
+    CS: int
+    RESET: int
+    START: int
+    PWDN: int
+    CLKSEL: int
+
+
 class InterfaceHeader(TypedDict):
     mpn: str
     pin_map: dict[str, str]
@@ -168,6 +186,7 @@ class BoardProfile(TypedDict):
     spi: SpiProfile
     power: PowerProfile
     input_network: InputProfile
+    powerup_controls: PowerupControls
     interface_headers: dict[str, InterfaceHeader]
     integration: IntegrationProfile
 
@@ -445,6 +464,7 @@ def validate(profile: BoardProfile, bom: BillOfMaterials, sources: SourcesDocume
             "do not buy/count the devkit module twice",
         )
 
+        _validate_clock_input(profile, parts, require)
         _validate_afe(profile, parts, require)
         _validate_network(profile, parts, require)
         _validate_power(profile, parts, bom, require)
@@ -452,6 +472,26 @@ def validate(profile: BoardProfile, bom: BillOfMaterials, sources: SourcesDocume
     except (KeyError, TypeError, ValueError, InvalidOperation, AttributeError) as exc:
         errors.append(f"malformed or incomplete design document: {exc}")
     return errors
+
+
+def _validate_clock_input(
+    profile: BoardProfile,
+    parts: dict[str, BomItem],
+    require: Callable[[bool, str], None],
+) -> None:
+    pull = profile["afe"]["clock_input_pull"]
+    require(
+        pull == {"ads_pin": 37, "reference": "R_CLK_DN", "return_net": "DGND"},
+        "clock input must terminate ADS pin 37 through R_CLK_DN to DGND",
+    )
+    straps = parts["straps"]
+    require(
+        "R_CLK_DN" in straps["references"]
+        and straps["population"] == "fit"
+        and straps["spec"]["resistance_ohm"] == 10000,
+        "clock input requires a fitted 10 kohm pulldown",
+    )
+    require(profile["afe"]["clock_output_enabled"] is False, "clock output must stay disabled")
 
 
 def _validate_afe(
@@ -497,6 +537,16 @@ def _validate_afe(
     require(
         profile["spi"]["mode"] == 1 and profile["spi"]["clock_hz"] == 1000000,
         "SPI contract drift",
+    )
+    require(
+        set(profile["powerup_controls"])
+        == {"SCLK", "MOSI", "CS", "RESET", "START", "PWDN", "CLKSEL"}
+        and all(level == 0 for level in profile["powerup_controls"].values()),
+        "ADS digital inputs must remain low through power-up",
+    )
+    require(
+        afe["clk_sel_level"] == 1,
+        "internal clock operation requires CLKSEL high only after supplies stabilize",
     )
     signal_rows = profile["spi"]["signals"]
     actual = {s["signal"]: (s["gpio"], s["ads_pin"], s["direction_from_mcu"]) for s in signal_rows}
@@ -581,7 +631,19 @@ def _validate_network(
         parts["decap_1u"]["spec"]["rated_voltage_v"] >= 16,
         "VCAP3 bypass needs suitable voltage rating",
     )
-    require(parts["straps"]["quantity"] == 12, "digital strap count drift")
+    straps = parts["straps"]
+    require(straps["quantity"] == 13, "digital strap count drift")
+    require(
+        "R_CS_DN" in straps["references"]
+        and "R_CLKSEL_DN" in straps["references"]
+        and "R_CS_UP" not in straps["references"]
+        and "R_CLKSEL_UP" not in straps["references"],
+        "CS and CLKSEL must use low-safe power-up straps",
+    )
+    require(
+        profile["interface_headers"]["J_DIG"]["pin_map"]["19"] == "CLKSEL",
+        "J_DIG pin 19 must expose controlled CLKSEL instead of a passive DVDD sense",
+    )
     require(parts["headers"]["quantity"] == 2, "header count drift")
     for header in profile["interface_headers"].values():
         require(header["mpn"] == parts["headers"]["mpn"], "header MPN drift")

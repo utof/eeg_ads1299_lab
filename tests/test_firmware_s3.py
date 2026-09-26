@@ -30,7 +30,8 @@ def test_explicit_s3_header_matches_selected_pin_map() -> None:
     assert "BOARD_PROFILE_REVIEWED = false" in config
     assert "USE_WIFI_UDP=false" in config
     sketch = (FIRMWARE / "esp32_ads1299_bench.ino").read_text()
-    assert sketch.index("if(!BOARD_PROFILE_REVIEWED)") < sketch.index("pinMode(")
+    setup = sketch.split("void setup() {", 1)[1].split("\nvoid loop()", 1)[0]
+    assert setup.index("if(!BOARD_PROFILE_REVIEWED)") < setup.index("pinMode(")
 
 
 def test_requested_firmware_gate_rejects_missing_tool(

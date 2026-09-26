@@ -11,7 +11,7 @@ flashing command is part of the workflow.
 
 The new `board_config_rev_a_s3.h` contains the proposed GPIOs from the existing
 validated hardware JSON: SCLK 12, MISO 13, MOSI 11, CS 10, DRDY 4, RESET 5,
-START 6 and PWDN 7. Tests compare every pin with the hardware source of truth.
+START 6, PWDN 7 and controlled CLKSEL 8. Tests compare every pin with the hardware source of truth.
 The header also requires the selected four-channel ADS1299 variant at runtime.
 That check is reachable only after the separate wiring-review gate is approved;
 this change does not approve it.
@@ -27,6 +27,15 @@ The baseline JSON's original `existing_firmware_modified: false` records the
 scope of the historical hardware-baseline commit. This later, explicitly scoped
 firmware PR supplies the planned S3 profile without changing that baseline or
 setting `firmware_port_validated`, `board_profile_reviewed`, or any other gate.
+
+## Controlled startup candidate
+
+The later startup correction adds `rev_a_startup.h`, invoked only by the
+explicit S3 path and only after the unchanged review guard. Read
+[`REV_A_STARTUP_SEQUENCE.md`](REV_A_STARTUP_SEQUENCE.md): two fresh operator
+acknowledgments separate stable-rail/passive-fixture setup and measured VCAP1
+from clock enable/reset. These are not sensed voltages or physical validation.
+The legacy ESP32 path retains its prior startup behavior.
 
 ## Reproducible toolchain
 

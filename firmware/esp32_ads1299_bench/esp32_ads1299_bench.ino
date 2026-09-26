@@ -14,6 +14,10 @@
 #include <WiFiUdp.h>
 #include "board_config.h"
 #include "portable_core.h"
+#if defined(EEGLAB_REV_A_S3)
+#include <driver/gpio.h>
+#include "rev_a_startup.h"
+#endif
 
 // Target guards live with the explicit profile selection in board_config.h.
 
@@ -56,6 +60,36 @@ void checkedReg(uint8_t addr,uint8_t value,uint8_t mask=0xff) {
     writeReg(addr,value);
     if((readReg(addr)&mask)!=(value&mask))fail("Register readback mismatch; inspect supply/clock/SPI.");
 }
+#if defined(EEGLAB_REV_A_S3)
+void awaitBenchKey(char key, const char* message) {
+    // Ignore queued acknowledgments: each measurement needs a fresh response.
+    while(Serial.available()>0)Serial.read();
+    Serial.println(message);
+    while(true) {
+        if(Serial.available()>0 && Serial.read()==key)return;
+        delay(10);
+    }
+}
+struct RevAStartupIo {
+    void level(int pin, int value) {
+        // ESP-IDF permits setting the output latch before pinMode enables it.
+        // Arduino digitalWrite before pinMode is not a portable substitute.
+        if(gpio_set_level(static_cast<gpio_num_t>(pin),value)!=ESP_OK) {
+            Serial.println("HALTED: GPIO latch operation failed.");
+            while(true)delay(1000);
+        }
+    }
+    void output(int pin) { pinMode(pin,OUTPUT); }
+    void waitMs(unsigned value) { delay(value); }
+    void waitUs(unsigned value) { delayMicroseconds(value); }
+    void confirmRailsAndInputs() {
+        awaitBenchKey('R',"BENCH: verify ADS rails stable and passive startup fixture holds analog inputs low; then type R. No body or powered source.");
+    }
+    void confirmVcap1() {
+        awaitBenchKey('V',"BENCH: measure VCAP1 > 1.1 V with ADS rails still stable; then type V. This firmware does not sense those voltages.");
+    }
+};
+#endif
 void setup() {
     Serial.begin(460800);delay(500);
     Serial.println("ADS1299 learning lab. BENCH ONLY; remove ALL body electrodes.");
@@ -64,13 +98,20 @@ void setup() {
         Serial.println("Set BOARD_PROFILE_REVIEWED only after reviewing your exact board and power rails.");
         while(true)delay(1000);
     }
+#if defined(EEGLAB_REV_A_S3)
+    RevAStartupIo startup;
+    eeglab::startRevA(startup);
+#else
     pinMode(PIN_CS,OUTPUT);digitalWrite(PIN_CS,HIGH);
     pinMode(PIN_START,OUTPUT);digitalWrite(PIN_START,LOW);
     pinMode(PIN_RESET,OUTPUT);digitalWrite(PIN_RESET,LOW);
     pinMode(PIN_PWDN,OUTPUT);digitalWrite(PIN_PWDN,HIGH);
+#endif
     pinMode(PIN_DRDY,INPUT);
     SPI.begin(PIN_SCLK,PIN_MISO,PIN_MOSI,PIN_CS);
+#if !defined(EEGLAB_REV_A_S3)
     delay(500);digitalWrite(PIN_RESET,HIGH);delay(500);
+#endif
     command(0x11); // SDATAC: stop read-data-continuous before register access
     command(0x0a); // STOP: pin START is held low; START/STOP commands control conversion
     const uint8_t id=readReg(0);

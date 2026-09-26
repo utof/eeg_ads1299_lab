@@ -345,8 +345,9 @@
       "description": "Control defaults and unused digital input termination",
       "package": "0603",
       "references": [
-        "R_CS_UP",
-        "R_CLKSEL_UP",
+        "R_CS_DN",
+        "R_CLKSEL_DN",
+        "R_CLK_DN",
         "R_RESET_DN",
         "R_PWDN_DN",
         "R_START_DN",
@@ -358,14 +359,14 @@
         "R_GPIO3_DN",
         "R_GPIO4_DN"
       ],
-      "quantity": 12,
+      "quantity": 13,
       "population": "fit",
       "planning_unit_usd": "0.06",
       "source_ids": [
         "TI_EVM",
         "TI_ADS_DS"
       ],
-      "evidence": "exact MPN appears in EVM; proposed strap population is a new design decision",
+      "evidence": "exact MPN appears in EVM; proposed low-safe power-up strap population follows ADS1299 power-up sequencing and remains a new design decision",
       "spec": {
         "resistance_ohm": 10000,
         "tolerance_fraction": 0.01,

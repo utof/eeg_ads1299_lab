@@ -31,11 +31,11 @@ The machine-readable source of truth is [`hardware/rev_a/bom.json`](../hardware/
 | `GRM188R71H104KA93D` | 7 | FIT | $0.70 |
 | `GRM219R61A106KE44D` | 4 | FIT | $1.40 |
 | `RC0603FR-0710RL` | 1 | FIT | $0.08 |
-| `RC0603FR-0710KL` | 12 | FIT | $0.72 |
+| `RC0603FR-0710KL` | 13 | FIT | $0.78 |
 | `TSW-110-07-T-D` | 2 | FIT | $1.80 |
 | `BAV199,215` | 8 | DNP | $2.40 |
 
-Fitted components: **$74.14**. Bare-PCB reserve: **$15.00**. Harness/mating reserve: **$3.00**. **Planning subtotal: $92.14**. Optional BAV199 population adds $2.40. Shipping, tax/VAT/import charges, assembly/stencil/setup, tools, bench instrumentation, battery/charger, enclosure, and any patient-safety hardware are excluded. Obtain one delivered basket/assembly quote before purchasing.
+Fitted components: **$74.20**. Bare-PCB reserve: **$15.00**. Harness/mating reserve: **$3.00**. **Planning subtotal: $92.20**. Optional BAV199 population adds $2.40. Shipping, tax/VAT/import charges, assembly/stencil/setup, tools, bench instrumentation, battery/charger, enclosure, and any patient-safety hardware are excluded. Obtain one delivered basket/assembly quote before purchasing.
 
 ## Electrical contract
 
@@ -82,8 +82,37 @@ Use the ADS1299 internal reference and clock. The selected baseline includes 100
 | RESET | 5 | 36 |
 | START | 6 | 38 |
 | PWDN | 7 | 35 |
+| CLKSEL | 8 | 52 |
 
-This map is **proposed, not bench-verified**. The current firmware does not load `hardware/rev_a/board_profile.json`; an explicit S3 firmware profile is a later commit. Do not remove the existing target/review guard just to make the build pass.
+This map is **proposed, not bench-verified**. GPIO8 is exposed on the official
+DevKitC-1 v1.1 header and is reserved here for CLKSEL so the ADS input can stay
+low during rail startup and be asserted only after supplies stabilize. J_DIG pin
+19 carries CLKSEL; the former passive DVDD sense assignment is removed.
+
+The ADS1299 power-up sequence requires its digital and analog inputs low until
+the supplies stabilize. Therefore SCLK, DIN/MOSI, CS, RESET, START, PWDN and
+CLKSEL all have a declared power-up level of 0 in `board_profile.json`. CS and
+CLKSEL use 10 kΩ pulldowns, not pullups. The intended operational CLKSEL level
+remains 1 for the internal oscillator; firmware must make that transition only
+after the supply-stable boundary. This contract does not claim that rail timing
+has been measured. CLK itself (ADS pin 37, not pin 51) has a fitted 10 kΩ
+`R_CLK_DN` to DGND: CLKSEL low selects that external-clock input during startup.
+This adds one instance of the already selected resistor, a $0.06 planning allowance,
+not a new part family. Clock output remains disabled.
+
+The firmware does not load `hardware/rev_a/board_profile.json`; the explicit
+`EEGLAB_REV_A_S3` header is checked against it in tests. Its reviewed path now
+executes the controlled startup sequence in
+[`REV_A_STARTUP_SEQUENCE.md`](REV_A_STARTUP_SEQUENCE.md). The review gate stays
+false; a successful build does not authorize changing it.
+
+**Analog startup remains a physical precondition, not a digital-GPIO result.**
+The passive R/C input network does not hold a floating external input low. Before
+any reviewed power-up, a separately reviewed passive startup fixture must hold
+the used analog inputs low; no person or powered source may be attached. The
+serial rail/fixture confirmation is only an operator acknowledgment. It neither
+measures those inputs nor supplies an automatic back-powering interlock. Do not
+claim that this contract alone satisfies the complete datasheet startup rule.
 
 ## Fail-closed gates
 

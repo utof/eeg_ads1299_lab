@@ -41,8 +41,8 @@ class BaselineTests(unittest.TestCase):
 
     def test_costs_and_optional_exclusion(self) -> None:
         result = totals(self.bom)
-        self.assertEqual(result["fitted"], Decimal("74.14"))
-        self.assertEqual(result["planning_total"], Decimal("92.14"))
+        self.assertEqual(result["fitted"], Decimal("74.20"))
+        self.assertEqual(result["planning_total"], Decimal("92.20"))
         self.assertEqual(result["dnp_options"], Decimal("2.40"))
 
     def test_every_gate_is_fail_closed(self) -> None:
@@ -87,6 +87,34 @@ class BaselineTests(unittest.TestCase):
     def test_unknown_source(self) -> None:
         self.bom["line_items"][0]["source_ids"] = ["INVENTED"]
         self.assert_rejected("unknown source")
+
+    def test_powerup_control_contract_is_explicit(self) -> None:
+        signals = {row["signal"]: row for row in self.profile["spi"]["signals"]}
+        self.assertEqual(
+            signals["CLKSEL"],
+            {"signal": "CLKSEL", "gpio": 8, "ads_pin": 52, "direction_from_mcu": "out"},
+        )
+        self.assertEqual(self.profile["interface_headers"]["J_DIG"]["pin_map"]["19"], "CLKSEL")
+        straps = next(row for row in self.bom["line_items"] if row["id"] == "straps")
+        self.assertIn("R_CS_DN", straps["references"])
+        self.assertIn("R_CLKSEL_DN", straps["references"])
+        self.assertNotIn("R_CS_UP", straps["references"])
+        self.assertNotIn("R_CLKSEL_UP", straps["references"])
+
+    def test_powerup_control_mutations_are_rejected(self) -> None:
+        for signal, value, message in (
+            ("CLKSEL", 9, "pin map"),
+            ("CS", 1, "power-up"),
+        ):
+            with self.subTest(signal=signal):
+                changed = copy.deepcopy(self.profile)
+                row = next(item for item in changed["spi"]["signals"] if item["signal"] == signal)
+                if signal == "CLKSEL":
+                    row["gpio"] = value
+                else:
+                    changed["powerup_controls"][signal] = value
+                errors = validate(changed, self.bom, self.sources)
+                self.assertTrue(any(message in error for error in errors), errors)
 
     def test_radio_supply_rejected(self) -> None:
         self.profile["power"]["dvdd_regulator_supplies_mcu"] = True
