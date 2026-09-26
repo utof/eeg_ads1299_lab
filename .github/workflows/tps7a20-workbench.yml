@@ -25,14 +25,14 @@ jobs:
           sudo apt-get install --yes --no-install-recommends ngspice
           python -m pip install uv==0.12.18
           uv sync --locked --all-extras
-      - name: Perturb enable timing and capacitor separately
+      - name: Exercise comparator subcircuits without distributing their implementation
         run: |
           mkdir -p reports/workbench
-          git archive --format=tar HEAD > reports/workbench/repository.tar
           cat > reports/workbench/experiment.py <<'PY'
-          """Disposable control experiment; neither a model repair nor a qualification."""
+          """Read private vendor symbols; retain only port metadata and black-box stimuli."""
           import hashlib
           import json
+          import re
           import subprocess
           import urllib.request
           from pathlib import Path
@@ -40,7 +40,7 @@ jobs:
 
           import numpy as np
 
-          from lab.rev_a_power import _run, _vendor_netlist, prepare_library
+          from lab.rev_a_power import _run, prepare_library
 
           root = Path('reports/workbench')
           results = []
@@ -48,57 +48,71 @@ jobs:
               private = Path(temporary)
               archive = private / 'sbvm961.zip'
               with urllib.request.urlopen('https://www.ti.com/lit/zip/sbvm961', timeout=30) as source:
-                  raw = source.read(4_000_001)
-              archive.write_bytes(raw)
+                  archive.write_bytes(source.read(4_000_001))
+              raw = prepare_library(archive, normalize_switch=True)
               library = private / 'normalized.lib'
-              library.write_bytes(prepare_library(archive, normalize_switch=True))
-              base = _vendor_netlist(library, False, True)
-              for name, fall_at, fall_duration, capacitor, method in (
-                  ('control', 0.015, 10e-6, 'Cout out 0 1u', 'gear'),
-                  ('fast_enable', 0.015, 1e-6, 'Cout out 0 1u', 'gear'),
-                  ('slow_enable', 0.015, 100e-6, 'Cout out 0 1u', 'gear'),
-                  ('earlier_enable', 0.005, 10e-6, 'Cout out 0 1u', 'gear'),
-                  ('no_output_cap', 0.015, 10e-6, '* no output capacitor: diagnostic only', 'gear'),
-                  ('cap_1nf', 0.015, 10e-6, 'Cout out 0 1n', 'gear'),
-                  ('cap_10uf', 0.015, 10e-6, 'Cout out 0 10u', 'gear'),
-                  ('esr_0p1', 0.015, 10e-6, 'Resr out cap 0.1\nCout cap 0 1u', 'gear'),
-                  ('esr_1', 0.015, 10e-6, 'Resr out cap 1\nCout cap 0 1u', 'gear'),
-                  ('trapezoidal', 0.015, 10e-6, 'Cout out 0 1u', 'trap'),
-              ):
-                  enable = f'PWL(0 0 1m 0 1.01m 5 {fall_at:.12g} 5 {fall_at+fall_duration:.12g} 0 20m 0)'
-                  text = base.replace('Xreg in 0 in nc out', 'Venable en 0 ' + enable + '\nXreg in 0 en nc out')
-                  text = text.replace('Cout out 0 1u', capacitor).replace('method=gear', 'method=' + method)
-                  text = text.replace('v(in) v(out)', 'v(in) v(en) v(out)')
-                  result = {'case': name, 'library_edited': True, 'power_model_validated': False,
-                            'enable_fall_start_s': fall_at, 'enable_fall_duration_s': fall_duration}
+              library.write_bytes(raw)
+              symbols = []
+              instances = []
+              controls = []
+              for line in raw.decode('ascii').splitlines():
+                  fields = line.split()
+                  if not fields:
+                      continue
+                  if fields[0].lower() == '.subckt':
+                      ports = re.split(r'params:', ' '.join(fields[2:]), flags=re.I)[0].split()
+                      symbols.append({'name': fields[1], 'ports': ports})
+                  elif fields[0][0].lower() == 'x':
+                      end = next((i for i, value in enumerate(fields) if '=' in value or value.lower() == 'params:'), len(fields))
+                      instances.append({'instance': fields[0], 'nodes_and_symbol': fields[1:end]})
+                  if re.search(r'\bEN\b', line, re.I) and fields[0][0].lower() != '*':
+                      controls.append({'element': fields[0], 'voltage_dependencies': re.findall(r'V\(([^)]*)\)', line, re.I),
+                                       'uses_if': 'IF(' in line.upper(), 'uses_table': 'TABLE' in line.upper()})
+              (root / 'symbol_metadata.json').write_text(json.dumps({'subcircuits': symbols, 'instances': instances, 'enable_dependants': controls}, indent=2) + '\n')
+              for symbol in symbols:
+                  if len(symbol['ports']) != 3 or not any(word in symbol['name'].lower() for word in ('comp', 'hyst')):
+                      continue
+                  if [value.upper() for value in symbol['ports']] != ['INP', 'INM', 'OUT']:
+                      results.append({'symbol': symbol, 'skipped': 'port ordering not assumed'})
+                      continue
+                  name = symbol['name']
+                  text = (
+                      'Independent black-box comparator rise/fall fixture, not a regulator model\n'
+                      f'.param V_out=3.3\n.include "{library}"\n'
+                      'Vsignal inp 0 PWL(0 0 1m 0 1.01m 1 15m 1 15.01m 0 20m 0)\n'
+                      'Vref inm 0 0.5\n'
+                      f'Xprobe inp inm out {name}\nRload out 0 1meg\n'
+                      '.options reltol=1e-5 abstol=1e-10 vntol=1e-7 method=gear\n'
+                      '.control\nset wr_singlescale\nset wr_vecnames\nset numdgt=15\n'
+                      'tran 1u 20m 0 1u\nlet integration_start = time[0]\n'
+                      'let integration_stop = time[length(time)-1]\n'
+                      'print integration_start integration_stop > transient-window.txt\n'
+                      'wrdata transient.txt v(inp) v(out)\nquit\n.endc\n.end\n'
+                  )
+                  result = {'case': name, 'power_model_validated': False}
                   path = root / name
                   try:
-                      times, volts = _run(path, text, 3, expected_stop_s=0.02)
-                      result.update({'completed': True, 'last_time_s': float(times[-1]), 'rows': len(times),
+                      times, volts = _run(path, text, 2, expected_stop_s=0.02)
+                      result.update({'completed': True, 'last_time_s': float(times[-1]),
                                      'final_output_v': float(volts[-1, -1]),
-                                     'min_output_v': float(np.min(volts[:, -1])),
                                      'max_output_v': float(np.max(volts[:, -1]))})
                   except (RuntimeError, ValueError) as exc:
                       result.update({'completed': False, 'reason': str(exc)})
                       output = path / 'transient.txt'
                       if output.exists():
                           partial = np.loadtxt(output, skiprows=1, ndmin=2)
-                          if partial.ndim == 2 and partial.shape[1] == 4 and np.all(np.isfinite(partial)):
-                              result['diagnostic_partial_only'] = {
-                                  'last_time_s': float(partial[-1, 0]), 'vin_v': float(partial[-1, 1]),
-                                  'ven_v': float(partial[-1, 2]), 'vout_v': float(partial[-1, 3])}
+                          if partial.ndim == 2 and partial.shape[1] == 3 and np.all(np.isfinite(partial)):
+                              result['diagnostic_partial_only'] = {'last_time_s': float(partial[-1, 0]), 'input_v': float(partial[-1, 1]), 'output_v': float(partial[-1, 2])}
                   results.append(result)
-          summary = {'source_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
-                     'results': results, 'hardware_validated': False,
-                     'scope': 'one-factor perturbations; no model repair or reference-engine equivalence'}
+          summary = {'source_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(), 'results': results,
+                     'hardware_validated': False, 'scope': 'black-box helper isolation; no vendor implementation retained'}
           (root / 'summary.json').write_text(json.dumps(summary, indent=2) + '\n')
           print(json.dumps(summary, indent=2))
-          files = {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
-                   for p in root.rglob('*') if p.is_file()}
+          files = {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest() for p in root.rglob('*') if p.is_file()}
           (root / 'manifest.json').write_text(json.dumps(files, indent=2) + '\n')
           PY
           uv run --locked python reports/workbench/experiment.py
-      - name: Preserve handwritten fixtures and diagnostics only
+      - name: Preserve metadata, handwritten stimuli and diagnostics only
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
