@@ -21,9 +21,15 @@ def test_sparse_native_endpoints_cannot_publish_comparison(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fault: str
 ) -> None:
     def endpoints(
-        _netlist: Path, _out: Path, *, columns: int, expected_stop_s: float
+        _netlist: Path,
+        _out: Path,
+        *,
+        columns: int,
+        expected_stop_s: float,
+        expected_vectors: tuple[str, ...],
     ) -> tuple[FloatArray, FloatArray]:
         assert expected_stop_s == 0.035
+        assert expected_vectors == ("v(common)", "v(out)", "v(vm)")
         times = np.linspace(0.0, 0.035, 17501)
         if fault == "sparse":
             times = times[[0, -1]]

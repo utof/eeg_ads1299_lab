@@ -35,9 +35,15 @@ def test_incomplete_switch_is_rejected_not_an_incompatibility(
         return subprocess.CompletedProcess(args, 0, "ngspice test fixture", "")
 
     def trace(
-        _netlist: Path, _out: Path, *, columns: int, expected_stop_s: float | None = None
+        _netlist: Path,
+        _out: Path,
+        *,
+        columns: int,
+        expected_stop_s: float | None = None,
+        expected_vectors: tuple[str, ...] | None = None,
     ) -> tuple[FloatArray, FloatArray]:
         assert columns == 1
+        assert expected_vectors == ("v(out)",)
         if fault == "process_failure":
             raise RuntimeError("injected native execution failure")
         return np.array([0.0, 5e-6]), np.array([[0.003626], [0.003626]])

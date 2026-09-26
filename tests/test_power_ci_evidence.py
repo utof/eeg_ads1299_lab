@@ -65,9 +65,15 @@ def test_completion_gate_preserves_investigation_and_accepts_completed_mismatch(
         return subprocess.CompletedProcess(args, 0, "software fixture, not native evidence", "")
 
     def trace(
-        _netlist: Path, _out: Path, *, columns: int, expected_stop_s: float
+        _netlist: Path,
+        _out: Path,
+        *,
+        columns: int,
+        expected_stop_s: float,
+        expected_vectors: tuple[str, ...],
     ) -> tuple[FloatArray, FloatArray]:
         assert columns == 1 and expected_stop_s == 10e-6
+        assert expected_vectors == ("v(out)",)
         if not complete:
             raise RuntimeError("injected incomplete native integration window")
         # Deliberately mismatches every endpoint: completed incompatibility is
