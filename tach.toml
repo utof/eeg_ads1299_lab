@@ -45,7 +45,7 @@ depends_on = ["lab.adc", "lab.data_types", "lab.protocol"]
 
 [[modules]]
 path = "lab.inspect_capture"
-depends_on = ["lab.acquisition", "lab.adc", "lab.data_types", "lab.dsp", "lab.validation"]
+depends_on = ["lab.adc", "lab.data_types", "lab.dsp", "lab.validation"]
 
 [[modules]]
 path = "lab.pipeline"
