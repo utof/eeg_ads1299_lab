@@ -144,6 +144,11 @@ def _native(out: Path) -> None:
         out,
     )
     run_step(
+        "rev-a-supply",
+        [sys.executable, "-m", "lab.rev_a_supply", "--out", str(out / "rev_a_supply")],
+        out,
+    )
+    run_step(
         "native-tests",
         [
             sys.executable,

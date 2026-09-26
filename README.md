@@ -196,3 +196,11 @@ Read [SOURCES.md](docs/SOURCES.md) for primary references and [MODEL_SCOPE.md](d
 a stated one-pole rail/slew hypothesis with ngspice while preserving feedback
 capacitor charge. It is not measured ADS1299 overload recovery. Read
 [the scope, source limits and numerical checks](docs/REV_A_BIAS_OVERLOAD.md).
+
+### Shared-source analog-feed hypothesis
+
+Run `uv run --locked python -m lab.rev_a_supply` for five independently checked
+startup/burst cases of the selected analog-feed path. See
+[the study and its assumptions](docs/REV_A_SUPPLY_STUDY.md). A completed numerical
+comparison may expose a modeled rail-margin breach; neither outcome qualifies
+the board or the separate TPS7A20 model.

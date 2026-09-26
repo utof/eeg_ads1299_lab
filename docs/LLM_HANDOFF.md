@@ -135,3 +135,26 @@ simulation; local scoped tests are not a full locked gate. The original local
 checkpoint was not pushed or merged. Verify the current GitHub state and require
 fresh locked quality/native checks and review before adoption. This does not
 repair or validate TPS7A20 shutdown and introduces no hardware approval.
+
+## Current roadmap checkpoint: analog-feed slice (PR #35)
+
+`lab.rev_a_supply` completes the bounded shared-source/10-ohm feed hypothesis.
+Read `docs/REV_A_SUPPLY_STUDY.md`: five analytical/native cases, assumed loads and
+effective capacitance, explicit post-startup margin window, and retained failures.
+It uses the existing analog reader, not the unresolved TPS7A20 model. No physical
+or purchasing gate is changed. Require the actual final PR checks/review before
+treating a candidate as merged.
+
+Map this to the numbered hardware-baseline roadmap, not a new numbering system:
+1. Selected passive-input bridge: implemented and independently simulated.
+2. BIAS and power: bounded BIAS and shared-source supply studies implemented;
+   regulator compatibility and physical parameter justification remain open.
+3. Schematic + S3: guarded S3 target compilation implemented; exact four-channel
+   schematic/ERC and independent footprint/polarity/power/reference review are next.
+4. PCB/layout, delivered quote and staged dummy-only bench bring-up: not completed.
+5. Body-connected work: a separate later revision/review; all gates remain false.
+
+PRs #37/#38 merged the transient and AC identity contracts; the earlier candidate
+paragraph above is historical, not current merge status. The pinned local tools
+can be recovered offline when necessary, but Codex arbitrary cloud execution
+requires a configured repository environment. Its GitHub review path is separate.
