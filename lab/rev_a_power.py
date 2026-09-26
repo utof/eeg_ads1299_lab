@@ -142,7 +142,7 @@ def switch_netlist(variant: _Switch, control_v: float) -> str:
 
 
 def _run(
-    path: Path, text: str, columns: int, *, expected_stop_s: float
+    path: Path, text: str, vectors: tuple[str, ...], *, expected_stop_s: float
 ) -> tuple[FloatArray, FloatArray]:
     path.mkdir()
     (path / "network.cir").write_text(text, encoding="utf-8")
@@ -150,7 +150,11 @@ def _run(
     init.write_text("set ngbehavior=psa\n", encoding="utf-8")
     try:
         return run_ngspice_transient(
-            path / "network.cir", path, columns=columns, expected_stop_s=expected_stop_s
+            path / "network.cir",
+            path,
+            columns=len(vectors),
+            expected_stop_s=expected_stop_s,
+            expected_vectors=vectors,
         )
     finally:
         # Preserve the exact initialization bytes under a visible artifact name.
@@ -173,7 +177,9 @@ def _switch_probe(root: Path, variant: _Switch, control: float) -> dict[str, obj
         "outcome": "rejected",
     }
     try:
-        times, volts = _run(root, switch_netlist(variant, control), 1, expected_stop_s=10e-6)
+        times, volts = _run(
+            root, switch_netlist(variant, control), ("v(out)",), expected_stop_s=10e-6
+        )
         actual = float(volts[-1, 0])
         result.update({"observed_endpoint_v": actual, "last_time_s": float(times[-1])})
         if abs(float(times[-1]) - 10e-6) >= 1e-12:
@@ -233,7 +239,10 @@ def _vendor_probe(
     }
     try:
         times, volts = _run(
-            root, _vendor_netlist(library, stimulus, normalized), 3, expected_stop_s=0.02
+            root,
+            _vendor_netlist(library, stimulus, normalized),
+            ("v(in)", "v(en)", "v(out)"),
+            expected_stop_s=0.02,
         )
         result.update(
             {

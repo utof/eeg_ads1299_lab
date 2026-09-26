@@ -17,9 +17,9 @@ def test_switch_result_preserves_completion_separately_from_endpoint(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, complete: bool
 ) -> None:
     def fake_run(
-        _path: Path, _text: str, columns: int, *, expected_stop_s: float
+        _path: Path, _text: str, vectors: tuple[str, ...], *, expected_stop_s: float
     ) -> tuple[FloatArray, FloatArray]:
-        assert columns == 1 and expected_stop_s == 10e-6
+        assert vectors == ("v(out)",) and expected_stop_s == 10e-6
         stop = 10e-6 if complete else 5e-6
         # First fixture: usual switch at 0 V. An incomplete but numerically
         # correct endpoint must not be interpreted as a completed comparison.

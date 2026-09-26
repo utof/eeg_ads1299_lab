@@ -34,8 +34,10 @@ def test_native_grid_cannot_omit_pulse_or_switching_evidence(
         *,
         columns: int,
         expected_stop_s: float | None = None,
+        expected_vectors: tuple[str, ...] | None = None,
     ) -> tuple[FloatArray, FloatArray]:
         assert columns == 3 and expected_stop_s in (None, 0.035)
+        assert expected_vectors == ("v(common)", "v(out)", "v(vm)")
         # Values match the requested model exactly, but the sampling contract is wrong.
         times = np.linspace(0, 0.035, 17501)
         if grid == "endpoints":

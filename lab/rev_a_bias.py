@@ -502,7 +502,13 @@ def _compare_bias_step(netlist: Path, model: BiasModel) -> dict[str, float | int
     Both a logarithmic early-time selection and a uniform whole-trace selection
     are checked; the uniform interpolated native table is retained. Not all rows are checked.
     """
-    times, actual = run_ngspice_transient(netlist, netlist.parent, columns=2, expected_stop_s=0.1)
+    times, actual = run_ngspice_transient(
+        netlist,
+        netlist.parent,
+        columns=2,
+        expected_stop_s=0.1,
+        expected_vectors=("v(common)", "v(out)"),
+    )
     if times[0] > 1e-6 or abs(float(times[-1]) - 0.1) > 1e-12:
         raise RuntimeError("BIAS transient does not cover the requested time window")
     grid = np.linspace(0, 0.1, 50001)
