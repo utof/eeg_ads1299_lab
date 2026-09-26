@@ -144,12 +144,32 @@ These are call-order tests, not UART or voltage emulation. The actual S3 build
 remains a separate hosted target-compilation job.
 
 The native schematic gate derives `harness.json` from the freshly validated
-netlist/profile/BOM and the console header. It retains the file's hash with the
-ERC/XML/PDF/CSV evidence. Both the derivation and console header are in the
-before/after source snapshot. Header parsing checks the closed literal contract;
-it is not a C++ evaluator. Executed host tests and target compilation separately
-cover the actual call. No new registry, simulator, dependency or verification
-orchestrator is introduced.
+netlist/profile/BOM and the console header. Before publishing it, even standalone
+`--schematic` requires a C++ compiler and runs the existing 22 focused native
+cases: actual-sketch startup/console cases plus the CDC header checks. These
+are a subset of the 88 native/integration cases, not 22 new tests. A missing
+compiler or failed route proof prevents the harness/success marker. Compiler
+version, logs, JUnit and disposable test inputs are retained. The schematic CI
+job installs g++ explicitly; no ngspice dependency is added to that job.
+
+The 43-input before/after snapshot binds the actual sketch, all six local
+firmware source files, toolchain settings, the two invoked test files, native
+C++ oracle, five stub headers, pytest configuration and prior CAD/contract inputs.
+The five main artifacts remain ERC/XML/PDF/CSV/harness. Header parsing still
+checks only a closed literal contract, not C++ semantics; executing the real
+sketch is what ties those literals to the claimed application route. This is
+host call-order evidence, not peripheral or electrical behavior. The separate
+pinned S3 target build remains required. No new registry, simulator, dependency
+or verification orchestrator is introduced.
+
+This ordering fixes an independent-review finding on the first candidate: a
+standalone native schematic run could publish GPIO17/18 even after the sketch's
+explicit pin arguments were removed. A real KiCad diagnostic reproduced that
+false positive (ordinary stages were omitted to isolate the native path). Four
+new software gate regressions then failed before correction: ignored route
+failure, missing compiler, changed sketch and changed S3 profile. The corrected
+path reuses the existing executable oracle instead of adding a text-only
+`Serial.begin` assertion or claiming that source hashes prove execution.
 
 Still required before any live setup: actual PCB/module revision confirmation;
 qualified interface/cable and pin-one orientation; unpowered continuity and

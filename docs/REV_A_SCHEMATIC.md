@@ -162,8 +162,10 @@ specification. In particular its VREFP-to-3.3-V recommendation was not adopted.
 The native gate additionally derives `harness.json` from the freshly checked
 XML/profile/BOM and the explicit firmware console header. It gives qualified
 AFE/DevKit header-pad identities, all20 J_DIG contacts, separate application
-UART RX17/TX18 and common supply/return groups. The 28-input snapshot includes
-the new derivation and console header; the five retained artifacts include this
-worksheet. Historical counts above describe their earlier source revisions.
+UART RX17/TX18 and common supply/return groups. The 43-input snapshot binds
+the new derivation, route-defining firmware and executed host oracle; the five retained artifacts include this
+worksheet. Standalone schematic checks require g++/clang++ and execute the
+existing focused sketch/CDC tests before publishing the harness. Historical
+counts above describe their earlier source revisions.
 See `REV_A_BENCH_HARNESS.md`: these are document-derived endpoints, not a
 qualified cable or interface. The CAD source and its logical MOD1 remain unchanged.

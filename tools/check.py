@@ -328,10 +328,31 @@ def _schematic_snapshot(cad: Path, footprints: Path) -> dict[str, str]:
     result["tools/check.py"] = hashlib.sha256(
         read_schematic_file(ROOT / "tools/check.py").encode()
     ).hexdigest()
-    path = ROOT / "firmware/esp32_ads1299_bench/bench_console.h"
-    result["firmware/bench_console.h"] = hashlib.sha256(
-        read_schematic_file(path).encode()
-    ).hexdigest()
+    # Bind the route-defining source AND the host oracle used by this gate.
+    # This list describes the existing focused test inputs, not a new pin map.
+    for name in (
+        "firmware/toolchain.json",
+        "pyproject.toml",
+        "tests/test_firmware_sketch_startup.py",
+        "tests/test_bench_harness.py",
+        "tests/native_sketch_startup_test.cpp",
+        *(
+            "firmware/esp32_ads1299_bench/" + name
+            for name in (
+                "bench_console.h",
+                "board_config.h",
+                "board_config_rev_a_s3.h",
+                "esp32_ads1299_bench.ino",
+                "portable_core.h",
+                "rev_a_startup.h",
+            )
+        ),
+        *(
+            "tests/firmware_stubs/" + name
+            for name in ("Arduino.h", "SPI.h", "WiFi.h", "WiFiUdp.h", "driver/gpio.h")
+        ),
+    ):
+        result[name] = hashlib.sha256(read_schematic_file(ROOT / name).encode()).hexdigest()
     return result
 
 
@@ -436,6 +457,7 @@ def _schematic(out: Path) -> None:
         out,
     )
     validate_schematic_bom(read_schematic_file(build / "bom.csv"), netlist)
+    _harness_console_proof(out)
     harness = bench_harness(
         netlist,
         profile,
@@ -474,6 +496,34 @@ def _schematic(out: Path) -> None:
     if _schematic_snapshot(cad, footprints) != before:
         raise RuntimeError("A schematic source/dependency changed during native checks")
     _schematic_marker(out, build, source_commit, before, len(netlist.parts), len(netlist.nets))
+
+
+def _harness_console_proof(out: Path) -> None:
+    """The standalone CAD gate must execute its claimed firmware route too.
+
+    Reuse existing real-sketch host tests. This is not target/peripheral evidence;
+    it does not require ngspice or run unrelated native studies a second time.
+    """
+    compiler = shutil.which("g++") or shutil.which("clang++")
+    if compiler is None:
+        raise RuntimeError("Harness route checks require g++ or clang++; absence is not a pass")
+    run_step("harness-console-compiler", [compiler, "--version"], out)
+    run_step(
+        "harness-console-tests",
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_firmware_sketch_startup.py",
+            "tests/test_bench_harness.py",
+            "-m",
+            "native",
+            f"--junitxml={out / 'harness-console-pytest.xml'}",
+            f"--basetemp={out / 'harness-console-tests'}",
+        ],
+        out,
+    )
 
 
 def _schematic_marker(

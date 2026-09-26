@@ -26,3 +26,20 @@ with g++ or clang++; missing compilers produce native skips, not execution
 passes. The native CI job executes this through the existing `tools.check`
 entry point; no new orchestrator or dependency is introduced. Real target
 compilation remains the separate pinned Arduino/S3 workflow.
+
+## Physical harness continuation
+
+The actual-sketch suite now has eight normal scenarios (including legacy ESP32
+review-stop) and twelve compiling mutations. Four console operations record
+baud, frame format, RX and TX before the existing ADS startup events. Reviewed
+S3 must explicitly use RX17/TX18; false-gate S3 and legacy keep their original
+default route. New mutants swap pins, restore defaults, change baud or enable
+the header console before review. No UART voltage/timing emulation is implied.
+
+Standalone `tools.check --schematic` now requires g++/clang++ and reuses this
+suite plus the CDC header checks before it publishes the physical harness. The
+22 focused cases are part of, not additional to, the full native suite. All
+route-defining firmware, these test/oracle inputs and stub headers are included
+in its before/after snapshot. This closes the gap between declared constants
+and the route the tested sketch actually calls. Actual S3 target compilation
+and electrical interface qualification remain separate.
