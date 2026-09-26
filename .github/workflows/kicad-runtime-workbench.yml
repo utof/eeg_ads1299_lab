@@ -1,84 +1,30 @@
-name: Disposable KiCad recovery transport
+name: Disposable schematic review source export
 on:
   pull_request:
 permissions:
   contents: read
 jobs:
-  transport:
+  export:
     if: github.head_ref == 'workbench/kicad-runtime-20260926' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-24.04
     timeout-minutes: 5
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: 970ccbd914758f87edf71d932fb73e05570a5422
           fetch-depth: 0
           persist-credentials: false
-      - name: Verify recovery bytes and publish disposable Git objects only
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Verify exact tree and retain repository bundle
         run: |
-          python3 - <<'PY'
-          import base64, hashlib, io, json, os, pathlib, subprocess, tarfile, tempfile, urllib.request
-          repo = 'utof/eeg_ads1299_lab'
-          base = '20dccdb4a62af49380cc596910bd234754b10d6b'
-          expected = 'c36f21d04aa9130436a5ff44f3b06630f8927aec'
-          branch = 'workbench/recovered-schematic-objects-20260926'
-          pieces = ['bad357375fb3f2554aeef282beae9a1b15c7454b', '7ff246e751c9742f7b6b81ce298e6bd7614dbf41', '1573fc4a877aea53db79833f8621f3da2836a377', '83c8ff75c0298e003d5a0c023938620ce14754ae', '787d6fb1b93c098d23b7cf034fe35cf4a3740806']
-          headers = {'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28'}
-          data = bytearray()
-          for sha in pieces:
-              request = urllib.request.Request(f'https://api.github.com/repos/{repo}/git/blobs/{sha}', headers=headers)
-              with urllib.request.urlopen(request, timeout=30) as response:
-                  body = response.read(200001)
-              assert len(body) <= 200000
-              item = json.loads(body)
-              assert item['encoding'] == 'base64' and item['sha'] == sha
-              raw = base64.b64decode(item['content'])
-              assert hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest() == sha
-              data.extend(raw)
-          assert len(data) == 41310
-          assert hashlib.sha256(data).hexdigest() == 'caa1d5ce2798eba2e544849e2e7e0caafd58b9338ff454edb03abc6e2314dec0'
-          folder = pathlib.Path(tempfile.mkdtemp(prefix='verified-recovery-'))
-          with tarfile.open(fileobj=io.BytesIO(data), mode='r:gz') as archive:
-              members = archive.getmembers()
-              assert len(members) == 3 and {m.name for m in members} == {'candidate.patch', 'author.py', 'manifest.json'}
-              for member in members:
-                  assert member.isfile() and member.size < 400000
-                  (folder / member.name).write_bytes(archive.extractfile(member).read())
-          manifest = json.loads((folder / 'manifest.json').read_text())
-          assert manifest['base'] == base and manifest['tree'] == expected
-          for name, key in [('candidate.patch', 'transfer_patch_sha256'), ('author.py', 'author_sha256')]:
-              assert hashlib.sha256((folder / name).read_bytes()).hexdigest() == manifest[key]
-          def git(*args, cwd=None):
-              return subprocess.check_output(['git', *args], cwd=cwd, text=True, timeout=60).strip()
-          work = folder / 'source'
-          git('worktree', 'add', '--detach', str(work), base)
-          git('apply', '--index', str(folder / 'candidate.patch'), cwd=work)
-          subprocess.run(['python3', str(folder / 'author.py')], cwd=work, check=True, timeout=30)
-          git('add', 'hardware/rev_a/kicad', cwd=work)
-          actual = git('write-tree', cwd=work)
-          assert actual == expected, (actual, expected)
-          # Upload code/CAD objects only: workflow publication uses the connector separately.
-          git('rm', '--cached', '.github/workflows/schematic.yml', cwd=work)
-          object_tree = git('write-tree', cwd=work)
-          os.environ.update(GIT_AUTHOR_NAME='EEG recovery transport', GIT_AUTHOR_EMAIL='noreply@github.com', GIT_COMMITTER_NAME='EEG recovery transport', GIT_COMMITTER_EMAIL='noreply@github.com')
-          commit = git('commit-tree', object_tree, '-p', base, '-m', 'chore(workbench): retain verified schematic objects without workflow', cwd=work)
-          remote = f'https://github.com/{repo}.git'
-          credential = base64.b64encode(('x-access-token:' + os.environ['GH_TOKEN']).encode()).decode()
-          auth = 'http.https://github.com/.extraheader=AUTHORIZATION: basic ' + credential
-          check = subprocess.run(['git', '-c', auth, 'ls-remote', '--exit-code', remote, 'refs/heads/' + branch], capture_output=True, text=True, timeout=30)
-          assert check.returncode == 2, 'Disposable destination must not already exist'
-          subprocess.run(['git', '-c', auth, 'push', remote, commit + ':refs/heads/' + branch], check=True, timeout=60)
-          receipt = {'base': base, 'verified_product_tree': actual, 'object_tree_without_new_workflow': object_tree, 'object_commit': commit, 'disposable_branch': branch, 'product_branch_updated': False, 'merged': False}
-          pathlib.Path('recovery-receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
-          print(json.dumps(receipt, indent=2))
-          PY
+          test "$(git rev-parse HEAD)" = 970ccbd914758f87edf71d932fb73e05570a5422
+          test "$(git rev-parse HEAD^{tree})" = c36f21d04aa9130436a5ff44f3b06630f8927aec
+          mkdir -p /tmp/schematic-source
+          git bundle create /tmp/schematic-source/source.bundle --all HEAD
+          git rev-parse HEAD HEAD^{tree} > /tmp/schematic-source/SOURCE.txt
+          sha256sum /tmp/schematic-source/source.bundle > /tmp/schematic-source/SHA256SUMS.txt
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: recovered-schematic-object-receipt
-          path: recovery-receipt.json
+          name: schematic-review-source
+          path: /tmp/schematic-source/
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 7
