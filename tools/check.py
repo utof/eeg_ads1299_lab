@@ -25,6 +25,7 @@ from hardware.rev_a import (
     validate,
     validate_erc,
     validate_schematic,
+    validate_schematic_bom,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -315,6 +316,8 @@ def _schematic_snapshot(cad: Path, footprints: Path) -> dict[str, str]:
         "check_baseline.py",
         "check_schematic.py",
         "schematic_sources.py",
+        "schematic_symbols.py",
+        "schematic_bom.py",
         "__init__.py",
     ):
         path = cad.parent / name
@@ -343,6 +346,8 @@ def _schematic(out: Path) -> None:
     # A fresh native configuration prevents local GUI preferences hiding ERC findings.
     prefix = [
         "env",
+        "LC_ALL=C",
+        "LANG=C",
         f"KICAD_CONFIG_HOME={build / 'config'}",
         f"KICAD9_FOOTPRINT_DIR={footprints}",
         cli,
@@ -423,6 +428,7 @@ def _schematic(out: Path) -> None:
         ],
         out,
     )
+    validate_schematic_bom(read_schematic_file(build / "bom.csv"), netlist)
     run_step(
         "schematic-tests",
         [

@@ -15,6 +15,7 @@ from hardware.rev_a import (
     schematic_source_snapshot,
     validate_erc,
     validate_schematic,
+    validate_schematic_bom,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -25,7 +26,7 @@ pytestmark = pytest.mark.schematic
 def _run(cad: Path, out: Path, command: list[str]) -> None:
     cli = shutil.which("kicad-cli")
     assert cli is not None, "native schematic test requires kicad-cli"
-    env = dict(os.environ, KICAD_CONFIG_HOME=str(out / "native-config"))
+    env = dict(os.environ, KICAD_CONFIG_HOME=str(out / "native-config"), LC_ALL="C", LANG="C")
     log = out / ("-".join(command[:3]) + ".log")
     with log.open("w") as stream:
         result = subprocess.run(
@@ -71,6 +72,7 @@ def test_actual_native_erc_and_export_match_frozen_graph(tmp_path: Path) -> None
     assert validate_schematic(netlist, profile, bom) == []
     fixture = gzip.decompress((ROOT / "tests/fixtures/rev_a_netlist.xml.gz").read_bytes()).decode()
     assert netlist == parse_schematic_xml(fixture)
+    validate_schematic_bom(_export_bom(cad, tmp_path), netlist)
     assert schematic_source_snapshot(cad) == before
 
 
@@ -154,3 +156,66 @@ def test_native_net_label_rename_does_not_change_connectivity(tmp_path: Path) ->
     netlist = parse_schematic_xml(_export(cad, tmp_path))
     profile, bom, _ = load_documents()
     assert validate_schematic(netlist, profile, bom) == []
+
+
+def _export_bom(cad: Path, out: Path) -> str:
+    _run(
+        cad,
+        out,
+        [
+            "sch",
+            "export",
+            "bom",
+            "--fields",
+            "Reference,ContractRef,Value,MPN,Footprint,Population,${DNP},${EXCLUDE_FROM_BOARD}",
+            "--labels",
+            "Reference,ContractRef,Value,MPN,Footprint,Population,DNP,OffBoard",
+            "-o",
+            str(out / "bom.csv"),
+        ],
+    )
+    return read_schematic_file(out / "bom.csv")
+
+
+@pytest.mark.parametrize("fault", ["excluded-from-bom", "library-only-pin-change"])
+def test_native_erc_and_graph_do_not_hide_review_artifact_faults(
+    tmp_path: Path, fault: str
+) -> None:
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    if fault == "excluded-from-bom":
+        path = cad / "rev_a.kicad_sch"
+        text = path.read_text()
+        start = text.index('(symbol (lib_id "RevA:R")')
+        path.write_text(text[:start] + text[start:].replace("(in_bom yes)", "(in_bom no)", 1))
+    else:
+        path = cad / "RevA.kicad_sym"
+        text = path.read_text()
+        assert text.count('(name "IN1P"') == 1
+        path.write_text(text.replace('(name "IN1P"', '(name "LIBRARY_ONLY_CHANGED"', 1))
+    _run(
+        cad,
+        tmp_path,
+        [
+            "sch",
+            "erc",
+            "--format",
+            "json",
+            "--severity-all",
+            "--exit-code-violations",
+            "-o",
+            str(tmp_path / "erc.json"),
+        ],
+    )
+    validate_erc(read_schematic_file(tmp_path / "erc.json"))
+    netlist = parse_schematic_xml(_export(cad, tmp_path))
+    profile, bom, _ = load_documents()
+    assert validate_schematic(netlist, profile, bom) == []
+    assert len(netlist.parts) == 69
+    if fault == "excluded-from-bom":
+        content = _export_bom(cad, tmp_path)
+        with pytest.raises(ValueError, match="BOM CSV component inventory is incomplete"):
+            validate_schematic_bom(content, netlist)
+    else:
+        with pytest.raises(ValueError, match="embedded symbol ADS1299_4 differs"):
+            schematic_source_snapshot(cad)

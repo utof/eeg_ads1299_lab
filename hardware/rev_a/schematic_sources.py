@@ -8,6 +8,7 @@ import stat
 from pathlib import Path
 
 from .check_schematic import FOOTPRINTS
+from .schematic_symbols import validate_symbol_caches
 
 CAD_FILES = frozenset(
     {
@@ -128,6 +129,9 @@ def schematic_source_snapshot(
         raise ValueError("missing or extra native CAD source files")
     contents = {name: read_schematic_file(directory / name) for name in sorted(CAD_FILES)}
     _dependencies(contents)
+    validate_symbol_caches(
+        contents["RevA.kicad_sym"], {name: contents[name] for name in sorted(SHEET_FILES)}
+    )
     project = _object(json.loads(contents["rev_a.kicad_pro"]), "project")
     erc = _object(project.get("erc"), "erc configuration")
     if erc != {"erc_exclusions": [], "rule_severities": {}}:

@@ -54,7 +54,9 @@ uv run --locked python -m tools.check --schematic --out reports/schematic
 Linux default is `/usr/share/kicad/footprints`. The same gate runs in CI, checking
 out the explicit PR head. It first runs the ordinary checks, then requires the
 actual CLI, full-severity ERC JSON, a fresh KiCad XML netlist, project connectivity
-checks, PDF/CSV exports and the native CAD regression tests. A version string
+checks, PDF/CSV exports, CSV-to-XML inventory validation and the native CAD
+regression tests. Native commands pin `LC_ALL=C` and `LANG=C` so exported flag
+labels do not depend on the operator's desktop language. A version string
 alone is never execution evidence. Each run has a fresh output directory and an
 isolated `KICAD_CONFIG_HOME`. Missing tools/artifacts, failed loads, violations,
 partial reports, regression failures or changed input hashes fail the request.
@@ -89,6 +91,44 @@ The checker encodes the selected topology with independent datasheet pad numbers
 it does not infer correctness from net-label spelling or a reference board's
 unreviewed drawing. Its closed component/pin inventory makes unintended extra
 connections and apparently plausible wrong rails visible before layout.
+
+## Review corrections: BOM export and symbol-cache agreement
+
+A clean graph is not enough to approve its accompanying review artifacts. The
+first independent review found two gaps, reproduced before correction:
+
+- A component marked `in_bom no` still appears in the XML and passes the topology
+  contract, but disappears from the native CSV. The gate now parses the CSV and
+  requires each of the 69 validated XML components exactly once, with matching
+  native/contract references, value, MPN, footprint, population, DNP and off-board
+  flags. Missing, duplicated, grouped, unknown or changed rows fail. Eight DNP
+  parts and the off-board controller must remain visible; this is a review BOM,
+  not an assembly release. CSV row/header order, quoting and blank lines are
+  immaterial. The expected inventory comes from the already-validated XML, not
+  another manually maintained component list.
+- KiCad exports the embedded definitions in each sheet. Editing only the local
+  ADS library can therefore leave ERC and the graph unchanged while a later
+  library update would alter the design. Before exporting, the gate now compares
+  each used embedded definition against `RevA.kicad_sym`, ignoring whitespace
+  and only the embedded root identifier's `RevA:` prefix. The small, read-only
+  token-tree comparison checks full symbol bodies, duplicate definitions, the
+  cache/placed-instance inventory and bounded structure. It neither edits CAD
+  nor replaces KiCad's semantic parser. Symbol inheritance is unsupported, and
+  body reordering or alternate numeric spellings are conservatively rejected;
+  synchronize definitions explicitly rather than adding a suppression.
+
+Seven original regression probes failed before the fixes (five library-only
+changes and two invalid CSV outputs). Additional fixtures remove every CSV row,
+corrupt each exported field and challenge malformed syntax and cache inventory.
+Benign synchronized symbol edits, definition ordering and outside-string
+whitespace remain accepted; the checker is not a fixed source-hash allowlist.
+
+Two real KiCad cases demonstrate why both new checks are needed: an excluded
+resistor and a library-only ADC pin rename each produce zero ERC violations and
+pass the existing XML graph contract, then fail the relevant new check. The
+canonical native case also verifies the newly exported CSV. Together with the
+existing eight native cases, these form ten actual KiCad regression cases;
+software-only token/process fixtures are not counted as native execution.
 
 ## Still blocked
 
