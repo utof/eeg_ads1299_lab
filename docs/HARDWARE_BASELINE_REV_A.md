@@ -82,6 +82,20 @@ Use the ADS1299 internal reference and clock. The selected baseline includes 100
 | RESET | 5 | 36 |
 | START | 6 | 38 |
 | PWDN | 7 | 35 |
+| CLKSEL | 8 | 52 |
+
+This map is **proposed, not bench-verified**. GPIO8 is exposed on the official
+DevKitC-1 v1.1 header and is reserved here for CLKSEL so the ADS input can stay
+low during rail startup and be asserted only after supplies stabilize. J_DIG pin
+19 carries CLKSEL; the former passive DVDD sense assignment is removed.
+
+The ADS1299 power-up sequence requires its digital and analog inputs low until
+the supplies stabilize. Therefore SCLK, DIN/MOSI, CS, RESET, START, PWDN and
+CLKSEL all have a declared power-up level of 0 in `board_profile.json`. CS and
+CLKSEL use 10 kΩ pulldowns, not pullups. The intended operational CLKSEL level
+remains 1 for the internal oscillator; firmware must make that transition only
+after the supply-stable boundary. This contract does not claim that rail timing
+has been measured.
 
 This map is **proposed, not bench-verified**. The current firmware does not load `hardware/rev_a/board_profile.json`; an explicit S3 firmware profile is a later commit. Do not remove the existing target/review guard just to make the build pass.
 
