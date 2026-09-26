@@ -5,6 +5,7 @@ import hashlib
 import importlib.metadata
 import json
 import math
+import os
 import re
 import shutil
 import subprocess
@@ -15,6 +16,16 @@ import tomllib
 from collections.abc import Sequence
 from pathlib import Path
 from tempfile import mkdtemp
+
+from hardware.rev_a import (
+    load_documents,
+    parse_schematic_xml,
+    read_schematic_file,
+    schematic_source_snapshot,
+    validate,
+    validate_erc,
+    validate_schematic,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -52,7 +63,7 @@ def command_plan(out: Path) -> list[tuple[str, list[str]]]:
                 "pytest",
                 "-q",
                 "-m",
-                "not native and not integration",
+                "not native and not integration and not schematic",
                 "--cov",
                 "--cov-branch",
                 f"--cov-report=json:{out / 'coverage.json'}",
@@ -295,6 +306,168 @@ def _firmware(out: Path) -> None:
     )
 
 
+def _schematic_snapshot(cad: Path, footprints: Path) -> dict[str, str]:
+    result = schematic_source_snapshot(cad, footprints)
+    for name in (
+        "board_profile.json",
+        "bom.json",
+        "sources.json",
+        "check_baseline.py",
+        "check_schematic.py",
+        "schematic_sources.py",
+        "__init__.py",
+    ):
+        path = cad.parent / name
+        result["contract/" + name] = hashlib.sha256(read_schematic_file(path).encode()).hexdigest()
+    result["tools/check.py"] = hashlib.sha256(
+        read_schematic_file(ROOT / "tools/check.py").encode()
+    ).hexdigest()
+    return result
+
+
+def _schematic(out: Path) -> None:
+    """Fresh native ERC/export plus project contracts; never release hardware."""
+    cli = shutil.which("kicad-cli")
+    if cli is None:
+        raise RuntimeError("Schematic checks require kicad-cli; absence is not a pass")
+    cad = ROOT / "hardware/rev_a/kicad"
+    footprints = Path(
+        os.environ.get("KICAD9_FOOTPRINT_DIR", "/usr/share/kicad/footprints")
+    ).resolve()
+    before = _schematic_snapshot(cad, footprints)
+    profile, bom, sources = load_documents(cad.parent)
+    errors = validate(profile, bom, sources)
+    if errors:
+        raise ValueError("Invalid schematic baseline: " + "; ".join(errors))
+    build = Path(mkdtemp(prefix="schematic-", dir=out))
+    # A fresh native configuration prevents local GUI preferences hiding ERC findings.
+    prefix = [
+        "env",
+        f"KICAD_CONFIG_HOME={build / 'config'}",
+        f"KICAD9_FOOTPRINT_DIR={footprints}",
+        cli,
+    ]
+    run_step("kicad-version", [*prefix, "version"], out)
+    if (out / "kicad-version.log").read_text().strip() != "9.0.2":
+        raise ValueError("KiCad must match the pinned 9.0.2 version")
+    run_step("schematic-source", ["git", "rev-parse", "HEAD"], out)
+    source_commit = (out / "schematic-source.log").read_text().strip()
+    if re.fullmatch(r"[0-9a-f]{40}", source_commit) is None:
+        raise ValueError("Cannot establish schematic source commit")
+    run_step("schematic-dirty", ["git", "status", "--porcelain", "--untracked-files=normal"], out)
+    root = str(cad / "rev_a.kicad_sch")
+    run_step(
+        "schematic-erc",
+        [
+            *prefix,
+            "sch",
+            "erc",
+            "--format",
+            "json",
+            "--severity-all",
+            "--exit-code-violations",
+            "-o",
+            str(build / "erc.json"),
+            root,
+        ],
+        out,
+    )
+    validate_erc(read_schematic_file(build / "erc.json"))
+    run_step(
+        "schematic-netlist",
+        [
+            *prefix,
+            "sch",
+            "export",
+            "netlist",
+            "--format",
+            "kicadxml",
+            "-o",
+            str(build / "netlist.xml"),
+            root,
+        ],
+        out,
+    )
+    netlist = parse_schematic_xml(read_schematic_file(build / "netlist.xml"))
+    errors = validate_schematic(netlist, profile, bom)
+    if errors:
+        raise ValueError("Schematic connectivity: " + "; ".join(errors))
+    run_step(
+        "schematic-pdf",
+        [
+            *prefix,
+            "sch",
+            "export",
+            "pdf",
+            "--black-and-white",
+            "-o",
+            str(build / "schematic.pdf"),
+            root,
+        ],
+        out,
+    )
+    run_step(
+        "schematic-bom",
+        [
+            *prefix,
+            "sch",
+            "export",
+            "bom",
+            "--fields",
+            "Reference,ContractRef,Value,MPN,Footprint,Population,${DNP},${EXCLUDE_FROM_BOARD}",
+            "--labels",
+            "Reference,ContractRef,Value,MPN,Footprint,Population,DNP,OffBoard",
+            "-o",
+            str(build / "bom.csv"),
+            root,
+        ],
+        out,
+    )
+    run_step(
+        "schematic-tests",
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-q",
+            "-m",
+            "schematic",
+            f"--junitxml={out / 'schematic-pytest.xml'}",
+            f"--basetemp={out / 'schematic-tests'}",
+        ],
+        out,
+    )
+    if _schematic_snapshot(cad, footprints) != before:
+        raise RuntimeError("A schematic source/dependency changed during native checks")
+    _schematic_marker(out, build, source_commit, before, len(netlist.parts), len(netlist.nets))
+
+
+def _schematic_marker(
+    out: Path, build: Path, commit: str, inputs: dict[str, str], parts: int, pins: int
+) -> None:
+    artifacts: dict[str, str] = {}
+    for name in ("erc.json", "netlist.xml", "schematic.pdf", "bom.csv"):
+        path = build / name
+        if not path.is_file() or path.stat().st_size == 0:
+            raise RuntimeError("Native CAD command did not produce every fresh artifact")
+        artifacts[name] = hashlib.sha256(path.read_bytes()).hexdigest()
+    report = {
+        "scope": "native_erc_and_project_connectivity_only",
+        "source_commit": commit,
+        "source_dirty": bool((out / "schematic-dirty.log").read_text().strip()),
+        "kicad_version": "9.0.2",
+        "source_sha256": inputs,
+        "artifact_directory": build.name,
+        "artifact_sha256": artifacts,
+        "component_count": parts,
+        "terminal_count": pins,
+        "schematic_released": False,
+        "physical_hardware_tested": False,
+        "body_connection_authorized": False,
+    }
+    (out / "SCHEMATIC_CHECK.json").write_text(json.dumps(report, indent=2) + "\n")
+
+
 def _branch_floor() -> float:
     config = _mapping(tomllib.loads((ROOT / "pyproject.toml").read_text()), "pyproject")
     tool = _mapping(config.get("tool"), "tool")
@@ -320,6 +493,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument(
         "--firmware", action="store_true", help="Require the pinned S3 target compiler"
     )
+    parser.add_argument(
+        "--schematic",
+        action="store_true",
+        help="Require pinned native KiCad ERC/export and connectivity checks",
+    )
     parser.add_argument("--out", type=Path, default=ROOT / "reports/check")
     args = parser.parse_args(argv)
     out: Path = args.out.resolve()
@@ -328,6 +506,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     report_path.unlink(missing_ok=True)  # Never retain a stale successful status.
     if args.firmware:
         (out / "FIRMWARE_BUILD.json").unlink(missing_ok=True)
+    if args.schematic:
+        (out / "SCHEMATIC_CHECK.json").unlink(missing_ok=True)
     completed: list[str] = []
     started = time.monotonic()
     failure: str | None = None
@@ -343,6 +523,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.firmware:
             _firmware(out)
             completed.append("firmware")
+        if args.schematic:
+            _schematic(out)
+            completed.append("schematic")
     except (RuntimeError, ValueError, OSError) as exc:
         failure = str(exc)
         print(f"ERROR: {failure}", file=sys.stderr)
@@ -360,6 +543,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "elapsed_seconds": time.monotonic() - started,
         "native_requested": bool(args.native),
         "firmware_requested": bool(args.firmware),
+        "schematic_requested": bool(args.schematic),
         "physical_hardware_tested": False,
         "body_connection_authorized": False,
     }
