@@ -76,9 +76,16 @@ def test_complete_wrong_plateau_is_distinct_from_incomplete_integration(
         return subprocess.CompletedProcess(args, 0, "software fixture, not native evidence", "")
 
     def trace(
-        _netlist: Path, _out: Path, *, columns: int, expected_stop_s: float | None = None
+        _netlist: Path,
+        _out: Path,
+        *,
+        columns: int,
+        expected_stop_s: float | None = None,
+        expected_vectors: tuple[str, ...] | None = None,
     ) -> tuple[FloatArray, FloatArray]:
         assert expected_stop_s is not None
+        expected = ("v(out)",) if columns == 1 else ("v(in)", "v(en)", "v(out)")
+        assert expected_vectors == expected
         return np.linspace(0.0, expected_stop_s, 201), np.zeros((201, columns))
 
     archive = _archive(tmp_path, monkeypatch, _ORIGINAL)

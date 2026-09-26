@@ -125,3 +125,13 @@ vendor results are optional retained investigations, never a normal online CI
 dependency. PR #32's disposable workbench must close without merging. Check
 PR #33's exact head, final review and CI before claiming it merged or validated.
 Hardware, selected components, firmware guards and body-use gates are unchanged.
+
+## Transient vector-identity candidate (2026-09-26)
+
+Read `docs/TRANSIENT_VECTOR_IDENTITY.md` before accepting newly generated power
+or BIAS evidence. The candidate adds exact named-vector contracts to the existing
+shared reader and its three study consumers. Retained-output replay is not a new
+simulation; local scoped tests are not a full locked gate. The original local
+checkpoint was not pushed or merged. Verify the current GitHub state and require
+fresh locked quality/native checks and review before adoption. This does not
+repair or validate TPS7A20 shutdown and introduces no hardware approval.

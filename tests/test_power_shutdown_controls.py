@@ -31,9 +31,16 @@ def _software_pilot(
         return _SYNTHETIC
 
     def trace(
-        netlist: Path, out: Path, *, columns: int, expected_stop_s: float | None = None
+        netlist: Path,
+        out: Path,
+        *,
+        columns: int,
+        expected_stop_s: float | None = None,
+        expected_vectors: tuple[str, ...] | None = None,
     ) -> tuple[FloatArray, FloatArray]:
         assert expected_stop_s is not None
+        expected = ("v(out)",) if columns == 1 else ("v(in)", "v(en)", "v(out)")
+        assert expected_vectors == expected
         assert netlist.is_file()
         if out.name == rejected:
             raise RuntimeError("deliberately incomplete shutdown integration")
@@ -133,11 +140,22 @@ def test_native_synthetic_model_observes_each_independent_input(
         )
 
     def swapped_trace(
-        netlist: Path, out: Path, *, columns: int, expected_stop_s: float | None = None
+        netlist: Path,
+        out: Path,
+        *,
+        columns: int,
+        expected_stop_s: float | None = None,
+        expected_vectors: tuple[str, ...] | None = None,
     ) -> tuple[FloatArray, FloatArray]:
         text = netlist.read_text().replace("Xreg in 0 en nc out", "Xreg en 0 in nc out")
         netlist.write_text(text)
-        return run_ngspice_transient(netlist, out, columns=columns, expected_stop_s=expected_stop_s)
+        return run_ngspice_transient(
+            netlist,
+            out,
+            columns=columns,
+            expected_stop_s=expected_stop_s,
+            expected_vectors=expected_vectors,
+        )
 
     if swap_inputs:
         monkeypatch.setattr("lab.rev_a_power.run_ngspice_transient", swapped_trace)

@@ -173,10 +173,16 @@ def test_failed_native_cannot_publish_success(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fault: str
 ) -> None:
     def bad_trace(
-        _netlist: Path, _out: Path, *, columns: int, expected_stop_s: float
+        _netlist: Path,
+        _out: Path,
+        *,
+        columns: int,
+        expected_stop_s: float,
+        expected_vectors: tuple[str, ...],
     ) -> tuple[FloatArray, FloatArray]:
         assert columns == 3
         assert expected_stop_s == 0.035
+        assert expected_vectors == ("v(common)", "v(out)", "v(vm)")
         times = np.linspace(0, 0.035, 17501)
         if fault == "early_stop":
             times[-1] = 0.02

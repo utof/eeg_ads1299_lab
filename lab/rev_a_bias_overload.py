@@ -387,7 +387,13 @@ def _write_json(path: Path, value: object) -> None:
 def _native_compare(
     netlist: Path, model: BiasModel, pulse: InterferencePulse, limits: OutputLimits
 ) -> dict[str, object]:
-    times, actual = run_ngspice_transient(netlist, netlist.parent, columns=3, expected_stop_s=0.035)
+    times, actual = run_ngspice_transient(
+        netlist,
+        netlist.parent,
+        columns=3,
+        expected_stop_s=0.035,
+        expected_vectors=("v(common)", "v(out)", "v(vm)"),
+    )
     if times[0] != 0 or abs(float(times[-1]) - 0.035) > 1e-12:
         raise RuntimeError("overload transient does not cover the requested time window")
     grid = np.linspace(0, 0.035, 17501)

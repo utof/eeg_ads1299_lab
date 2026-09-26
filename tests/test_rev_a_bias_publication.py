@@ -85,9 +85,15 @@ def test_failed_transient_cannot_publish_completion(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fault: str
 ) -> None:
     def invalid_transient(
-        _netlist: str | Path, _output: str | Path, *, columns: int, expected_stop_s: float
+        _netlist: str | Path,
+        _output: str | Path,
+        *,
+        columns: int,
+        expected_stop_s: float,
+        expected_vectors: tuple[str, ...],
     ) -> tuple[FloatArray, FloatArray]:
         assert columns == 2
+        assert expected_vectors == ("v(common)", "v(out)")
         assert expected_stop_s == 0.1
         times = np.linspace(0, 0.1, 50001)
         if fault == "late_start":

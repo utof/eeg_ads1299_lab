@@ -11,6 +11,7 @@ import numpy as np
 import pytest
 
 from lab.analog import run_ngspice_transient
+from lab.data_types import FloatArray
 from lab.rev_a_power import run_pilot
 from lab.validation import read_object
 
@@ -62,8 +63,15 @@ def test_named_transient_rejects_reordered_duplicate_or_unexpected_vectors(
 
 @pytest.mark.parametrize(
     "vectors",
-    [(), ("v(out)",), ("", "v(out)"), ("v(common) v(out)", "v(out)"),
-     ("v(out)", "v(out)"), ("v(common)", 42), ["v(common)", "v(out)"]],
+    [
+        (),
+        ("v(out)",),
+        ("", "v(out)"),
+        ("v(common) v(out)", "v(out)"),
+        ("v(out)", "v(out)"),
+        ("v(common)", 42),
+        ["v(common)", "v(out)"],
+    ],
 )
 def test_vector_contract_is_validated_before_filesystem_or_process_work(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, vectors: object
@@ -74,7 +82,9 @@ def test_vector_contract_is_validated_before_filesystem_or_process_work(
     monkeypatch.setattr("shutil.which", forbidden)
     with pytest.raises(ValueError, match="expected_vectors"):
         run_ngspice_transient(
-            tmp_path / "network.cir", tmp_path, columns=2,
+            tmp_path / "network.cir",
+            tmp_path,
+            columns=2,
             expected_vectors=cast(tuple[str, ...], vectors),
         )
     assert not list(tmp_path.iterdir())
@@ -100,7 +110,7 @@ def _power_process(monkeypatch: pytest.MonkeyPatch, faulty_header: str) -> None:
         header = "time v(out)" if switch else "time v(in) v(en) v(out)"
         if root.name == "supply_only":
             header = faulty_header
-        data = np.column_stack((times, np.full((201, columns), 3.3)))
+        data: FloatArray = np.column_stack((times, np.full((201, columns), 3.3, dtype=np.float64)))
         stream = io.StringIO()
         np.savetxt(stream, data, header=header, comments="")
         (root / "transient.txt").write_text(stream.getvalue(), encoding="utf-8")
@@ -116,9 +126,14 @@ def _power_process(monkeypatch: pytest.MonkeyPatch, faulty_header: str) -> None:
 
 @pytest.mark.parametrize(
     "header",
-    ["time v(en) v(in) v(out)", "time v(out) v(en) v(in)",
-     "time v(in) v(en) v(en)", "time v(in) v(en) v(other)",
-     "frequency v(in) v(en) v(out)", "time v(in) v(en)"],
+    [
+        "time v(en) v(in) v(out)",
+        "time v(out) v(en) v(in)",
+        "time v(in) v(en) v(en)",
+        "time v(in) v(en) v(other)",
+        "frequency v(in) v(en) v(out)",
+        "time v(in) v(en)",
+    ],
 )
 def test_power_report_rejects_mislabeled_trace_and_retains_its_peers(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, header: str
@@ -166,4 +181,5 @@ def test_native_vector_identity_catches_reordered_outputs(tmp_path: Path, swappe
         _, volts = run_ngspice_transient(
             path, tmp_path, columns=2, expected_vectors=("v(a)", "v(b)")
         )
-        np.testing.assert_allclose(volts, np.tile([1.0, 2.0], (len(volts), 1)), rtol=0, atol=1e-12)
+        np.testing.assert_allclose(volts[:, 0], 1.0, rtol=0, atol=1e-12)
+        np.testing.assert_allclose(volts[:, 1], 2.0, rtol=0, atol=1e-12)
