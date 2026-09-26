@@ -42,9 +42,9 @@ Do not provide invented power, reference, bias or electrode connections for an u
 
 PR #11 has been merged at `9400c797003fe7610e8710b5954bab2851bdd66d` after its final three checks passed. Its selected-component passive study is implemented; do not describe that bridge as still unstarted. Source/contact impedances and ADC-node parasitics remain illustrative, not measurements of the owned MCScap leads.
 
-Read `docs/MODEL_REUSE_REVIEW.md` before expanding the models. Actual TI TINA subsystem examples were located: `ADS1299_BIAS_MEAS.TSC` and a four-channel electrode/lead-off example. Their attachment downloads failed; they were not imported or simulated here. Retrieve/inspect them before claiming reuse. Reuse TI's SBAA188 RLD/BIAS topology and analysis; TI specifically connects it to ADS1299. The TPS7A20 vendor PSpice transient model still needs an actual compatibility smoke test. Do not launch a full ADS1299 transistor/macromodel implementation. Keep BIAS and power studies focused, parameter-bounded, and separate from the passive transfer solver.
+Read `docs/MODEL_REUSE_REVIEW.md` before expanding the models. Actual TI TINA subsystem examples were located: `ADS1299_BIAS_MEAS.TSC` and a four-channel electrode/lead-off example. Their attachment downloads failed; they were not imported or simulated here. Retrieve/inspect them before claiming reuse. Reuse TI's SBAA188 RLD/BIAS topology and analysis; TI specifically connects it to ADS1299. The TPS7A20 vendor PSpice transient model has an executable optional compatibility pilot, but shutdown remains unresolved; read `docs/TPS7A20_COMPATIBILITY.md` and its independent controls. Do not launch a full ADS1299 transistor/macromodel implementation. Keep BIAS and power studies focused, parameter-bounded, and separate from the passive transfer solver.
 
-Subsequent work is the exact four-channel schematic/ERC and independent footprint/polarity review, then the explicit ESP32-S3 firmware profile/compile tests with existing guards preserved. PCB/layout and an actual delivered build quote follow those gates. The planning subtotal is not a verified complete delivered under-$100 build.
+The guarded explicit ESP32-S3 target build is implemented in PR #28. Subsequent hardware work is the exact four-channel schematic/ERC and independent footprint/polarity review; target compilation does not replace those reviews. PCB/layout and an actual delivered build quote follow those gates. The planning subtotal is not a verified complete delivered under-$100 build.
 
 Before physical work, obtain the exact board schematic/revision and header photographs, verify the actual MCU and the electrode catalogue/lead details, and review power/reference/clock/digital compatibility. Complete internal-test/internal-short bench recordings without anyone connected. External dummy inputs require their own board-specific input/common-mode/protection review; a wearable stage requires a competent body-interface review.
 
@@ -105,3 +105,23 @@ All physical and human-use gates remain unchanged; issue #17 remains open.
 The failed-turn recovery retained merged PR #23 (independent linear BIAS transients) and PR #24 (bounded output rail/slew hypotheses). PR #27 merged the shared raw integration-window check and exact observation-grid checks, including the actual 25 ms integration / 35 ms interpolated-export false-positive regression. Read `docs/REV_A_BIAS_OVERLOAD.md`: these are unmeasured output-limit hypotheses, not ADS1299 recovery specifications.
 
 The next compile-only increment is PR #28. `tools.check --firmware` requires the pinned Arduino CLI/core and creates a fresh, source/digest-bound target-build record. The dedicated Firmware workflow checks out the explicit PR head, unlike the normal integration checks that use GitHub's merge test checkout. Read the actual PR status before calling it merged or compiled. All hardware, wiring-review, purchasing and human-use gates remain false. PR #26 separately investigates TPS7A20 model compatibility; its retained failed probes are not regulator validation.
+
+## Independent power shutdown controls (PR #33)
+
+Read `docs/TPS7A20_COMPATIBILITY.md`. The optional pilot now uses four immutable
+VIN/EN stimuli in the existing power module, report schema 2 and explicit
+VIN/EN/VOUT columns; no new simulator runner or vendor patch was introduced.
+Normalized-model EN deassertion fails near 0.895 V even with VIN held high;
+supply-only collapse completes, without establishing physical output accuracy.
+Five isolated four-pin comparator controls completed with the unmodified TI
+library, so the comparator alone is not a reproduced failure. Investigate its
+interaction with the full model or compare the same fixture in a reference
+engine; do not treat a threshold correlation as proof of a comparator defect.
+The 10 uF perturbation failed at startup, not at that falling threshold.
+
+The six new software tests were observed failing before implementation in locked
+CI; a separate native test uses only a synthetic algebraic wiring double. Actual
+vendor results are optional retained investigations, never a normal online CI
+dependency. PR #32's disposable workbench must close without merging. Check
+PR #33's exact head, final review and CI before claiming it merged or validated.
+Hardware, selected components, firmware guards and body-use gates are unchanged.
