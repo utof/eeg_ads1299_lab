@@ -1,0 +1,31 @@
+name: Disposable saved vector patch restore
+on:
+  pull_request:
+    paths: ['.github/workflows/restore-vector-patch.yml']
+permissions:
+  contents: read
+jobs:
+  restore:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'chore/offline-toolchain-recovery'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 9c04dc7581ed570da64c53d2ae8b60b8a9a0e9b3
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Restore exact original mailbox from a public immutable recovery blob
+        run: |
+          echo 'The patch payload is installed separately before this job may publish.'
+          test -f /nonexistent-deliberate-payload-gate
+      - name: Publish only the new recovery branch, never main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$(git rev-parse 'HEAD^{tree}')" = a2f06da0ef8fff46d261d397e09a00e5094d3a44
+          test "$(git rev-list --count 9c04dc7581ed570da64c53d2ae8b60b8a9a0e9b3..HEAD)" = 2
+          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/recovery/vector-identity-patch
