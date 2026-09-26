@@ -511,7 +511,8 @@ def _validate_afe(
         "SPI contract drift",
     )
     require(
-        set(profile["powerup_controls"]) == {"SCLK", "MOSI", "CS", "RESET", "START", "PWDN", "CLKSEL"}
+        set(profile["powerup_controls"])
+        == {"SCLK", "MOSI", "CS", "RESET", "START", "PWDN", "CLKSEL"}
         and all(level == 0 for level in profile["powerup_controls"].values()),
         "ADS digital inputs must remain low through power-up",
     )
