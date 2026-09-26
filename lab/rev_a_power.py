@@ -16,6 +16,7 @@ import stat
 import subprocess
 import sys
 import zipfile
+from dataclasses import dataclass
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Literal
@@ -31,6 +32,23 @@ LIBRARY_SHA256 = "154acfdd2199ac44259908b90b07d15bc7e535a45c8c51d1413894c900718b
 _Switch = Literal["usual", "inverse", "normalized"]
 _OLD = b"_S2 VSWITCH Roff=1e-6 Ron=1E6 Voff=0 Von=1m"
 _NEW = b"_S2 VSWITCH Roff=1E6 Ron=1e-6 Voff=1m Von=0"
+
+
+@dataclass(frozen=True)
+class _VendorStimulus:
+    """One fixed control experiment, not an editable hardware configuration."""
+
+    name: str
+    supply_off: bool
+    enable_off: bool
+
+
+_VENDOR_STIMULI = (
+    _VendorStimulus("startup_load", supply_off=False, enable_off=False),
+    _VendorStimulus("shutdown", supply_off=True, enable_off=True),
+    _VendorStimulus("enable_only", supply_off=False, enable_off=True),
+    _VendorStimulus("supply_only", supply_off=True, enable_off=False),
+)
 
 
 _ARCHIVE_LIMIT = 4_000_000
@@ -173,35 +191,49 @@ def _switch_probe(root: Path, variant: _Switch, control: float) -> dict[str, obj
     return result
 
 
-def _vendor_netlist(library: Path, shutdown: bool, normalized: bool) -> str:
+def _input_waveform(falling: bool) -> str:
+    """Keep rise, fall and observation times identical across the four controls."""
+    return (
+        "PWL(0 0 1m 0 1.01m 5 15m 5 15.01m 0 20m 0)" if falling else "PWL(0 0 1m 0 1.01m 5 20m 5)"
+    )
+
+
+def _vendor_netlist(library: Path, stimulus: _VendorStimulus, normalized: bool) -> str:
     if any(c in str(library) for c in ('"', "\n", "\r")):
         raise ValueError("unsupported library path characters")
-    vin = (
-        "PWL(0 0 1m 0 1.01m 5 15m 5 15.01m 0 20m 0)" if shutdown else "PWL(0 0 1m 0 1.01m 5 20m 5)"
-    )
     return (
-        f"TPS7A20 compatibility ONLY; experimental switch normalization={normalized}\n"
-        f'.param V_out=3.3\n.include "{library}"\nVin in 0 {vin}\n'
-        "Xreg in 0 in nc out TPS7A20_ADJ_TRANS\nCin in 0 1u\nCout out 0 1u\nRnc nc 0 1e12\n"
+        f"TPS7A20 {stimulus.name} compatibility ONLY; "
+        f"experimental switch normalization={normalized}\n"
+        f'.param V_out=3.3\n.include "{library}"\n'
+        f"Vin in 0 {_input_waveform(stimulus.supply_off)}\n"
+        f"Venable en 0 {_input_waveform(stimulus.enable_off)}\n"
+        "Xreg in 0 en nc out TPS7A20_ADJ_TRANS\nCin in 0 1u\nCout out 0 1u\nRnc nc 0 1e12\n"
         "Rbase out 0 1100\nVload ctl 0 PWL(0 0 8m 0 8.01m 1 12m 1 12.01m 0 20m 0)\n"
         "Bload out 0 I={v(out)*v(ctl)*(0.010-0.003)/3.3}\n"
         ".options reltol=1e-5 abstol=1e-10 vntol=1e-7 method=gear\n"
         ".control\nset wr_singlescale\nset wr_vecnames\nset numdgt=15\n"
         "tran 1u 20m 0 1u\n"
         + _RAW_WINDOW
-        + "wrdata transient.txt v(in) v(out)\nquit\n.endc\n.end\n"
+        + "wrdata transient.txt v(in) v(en) v(out)\nquit\n.endc\n.end\n"
     )
 
 
-def _vendor_probe(root: Path, library: Path, shutdown: bool, normalized: bool) -> dict[str, object]:
+def _vendor_probe(
+    root: Path, library: Path, stimulus: _VendorStimulus, normalized: bool
+) -> dict[str, object]:
+    shutdown = stimulus.supply_off or stimulus.enable_off
     result: dict[str, object] = {
+        "case": stimulus.name,
+        "supply_collapse_requested": stimulus.supply_off,
+        "enable_deassertion_requested": stimulus.enable_off,
         "shutdown_requested": shutdown,
+        "voltage_columns": ["vin_v", "enable_v", "vout_v"],
         "library_edited": normalized,
         "window_complete": False,
     }
     try:
         times, volts = _run(
-            root, _vendor_netlist(library, shutdown, normalized), 2, expected_stop_s=0.02
+            root, _vendor_netlist(library, stimulus, normalized), 3, expected_stop_s=0.02
         )
         result.update(
             {
@@ -255,8 +287,8 @@ def _vendor_results(
         path = Path(temporary) / "vendor.lib"
         path.write_bytes(library)
         return [
-            _vendor_probe(root / name, path, shutdown, normalize_switch)
-            for name, shutdown in (("startup_load", False), ("shutdown", True))
+            _vendor_probe(root / stimulus.name, path, stimulus, normalize_switch)
+            for stimulus in _VENDOR_STIMULI
         ]
 
 
@@ -308,7 +340,7 @@ def run_pilot(
     source = repository / "docs/references/ti/tps7a20/source_record.json"
     (root / "source_record.json").write_bytes(source.read_bytes())
     report: dict[str, object] = {
-        "schema_version": 1,
+        "schema_version": 2,
         "purpose": "compatibility_investigation_including_failures",
         "ngspice_version": version,
         "ngbehavior": "psa",
@@ -330,6 +362,7 @@ def run_pilot(
             "No Cadence reference run or physical comparison was performed.",
             "The 1uF capacitors and conductance load are fixtures, not a validated power design.",
             "Completing this investigation does not mean every probe passed.",
+            "Shutdown controls isolate stimuli; completion does not qualify output decay.",
             "Vendor archive/library are not included; retrieve the exact hashed source separately.",
         ],
     }

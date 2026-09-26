@@ -88,7 +88,7 @@ def test_power_investigation_retains_all_launch_rejections(
             if category == "switch_probes":
                 assert probe["compatible_endpoint"] is None
             count += 1
-    assert count == (8 if include_vendor else 6)
+    assert count == (10 if include_vendor else 6)
     logs = list(root.rglob("ngspice.log"))
     assert len(logs) == count
     assert all("injected post-version launch denial" in log.read_text() for log in logs)
