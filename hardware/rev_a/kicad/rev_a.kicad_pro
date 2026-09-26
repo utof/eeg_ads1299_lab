@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "filename": "rev_a.kicad_pro",
+    "version": 1
+  },
+  "erc": {
+    "erc_exclusions": [],
+    "rule_severities": {}
+  },
+  "schematic": {}
+}

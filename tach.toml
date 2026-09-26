@@ -117,7 +117,7 @@ expose = ["load_data", "make_plots", "run_demo", "save_data"]
 
 [[interfaces]]
 from = ["hardware.rev_a"]
-expose = ["BillOfMaterials", "BoardProfile", "CostTotals", "SourcesDocument", "load_documents", "totals", "validate"]
+expose = ["BillOfMaterials", "BoardProfile", "CostTotals", "SchematicNetlist", "SchematicPart", "SourcesDocument", "load_documents", "parse_schematic_xml", "read_schematic_file", "schematic_source_snapshot", "totals", "validate", "validate_erc", "validate_schematic", "validate_schematic_bom"]
 
 [[interfaces]]
 from = ["tools.run_loopback"]
@@ -125,7 +125,7 @@ expose = ["ROOT", "main"]
 
 [[modules]]
 path = "tools.check"
-depends_on = []
+depends_on = ["hardware.rev_a"]
 
 [[interfaces]]
 from = ["tools.check"]

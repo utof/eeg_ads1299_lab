@@ -31,11 +31,11 @@ The machine-readable source of truth is [`hardware/rev_a/bom.json`](../hardware/
 | `GRM188R71H104KA93D` | 7 | FIT | $0.70 |
 | `GRM219R61A106KE44D` | 4 | FIT | $1.40 |
 | `RC0603FR-0710RL` | 1 | FIT | $0.08 |
-| `RC0603FR-0710KL` | 13 | FIT | $0.78 |
+| `RC0603FR-0710KL` | 12 | FIT | $0.72 |
 | `TSW-110-07-T-D` | 2 | FIT | $1.80 |
 | `BAV199,215` | 8 | DNP | $2.40 |
 
-Fitted components: **$74.20**. Bare-PCB reserve: **$15.00**. Harness/mating reserve: **$3.00**. **Planning subtotal: $92.20**. Optional BAV199 population adds $2.40. Shipping, tax/VAT/import charges, assembly/stencil/setup, tools, bench instrumentation, battery/charger, enclosure, and any patient-safety hardware are excluded. Obtain one delivered basket/assembly quote before purchasing.
+Fitted components: **$74.14**. Bare-PCB reserve: **$15.00**. Harness/mating reserve: **$3.00**. **Planning subtotal: $92.14**. Optional BAV199 population adds $2.40. Shipping, tax/VAT/import charges, assembly/stencil/setup, tools, bench instrumentation, battery/charger, enclosure, and any patient-safety hardware are excluded. Obtain one delivered basket/assembly quote before purchasing.
 
 ## Electrical contract
 
@@ -171,3 +171,13 @@ These checks verify the declarative BOM/profile contract, quantities, pin confli
 ## Provenance
 
 Detailed primary-source URLs, the two research-report hashes, verification notes, and the inspected upstream SHA are in [`hardware/rev_a/sources.json`](../hardware/rev_a/sources.json). Dynamic stock/pricing should be rechecked at purchasing time.
+
+## Native schematic correction
+
+The schematic slice removes `R_DAISY_DN`: unused DAISY_IN (pad 41) connects
+directly to DGND, following TI SBAS499C section 10.1.1. The separate CLK pad 37
+pulldown remains fitted. This retires one instance, not a part family, and reduces
+the preceding planning total by $0.06. These are allowances, not supplier quotes.
+
+The native schematic and its independent exported-netlist checker are described
+in `REV_A_SCHEMATIC.md`. All physical review, purchasing and body-use gates stay false.

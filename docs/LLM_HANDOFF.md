@@ -158,3 +158,21 @@ PRs #37/#38 merged the transient and AC identity contracts; the earlier candidat
 paragraph above is historical, not current merge status. The pinned local tools
 can be recovered offline when necessary, but Codex arbitrary cloud execution
 requires a configured repository environment. Its GitHub review path is separate.
+
+## Native schematic recovery checkpoint (PR #43)
+
+PR #39 and #42 were merged before this recovery. PR #43 began with only the
+initial red tests on GitHub; the failed session's unpublished CAD and mutation
+counts were not recoverable and must not be used as evidence. This continuation
+reconstructs the three native sheets and the exported-netlist checker. Read
+`REV_A_SCHEMATIC.md` and the **current exact-head** Schematic, Quality and Firmware
+jobs before calling the candidate checked or merged. The native gate is
+`uv run --locked python -m tools.check --schematic`; actual CAD faults run only
+under its explicit marker. Reports and execution identities stay in `reports/`.
+
+This advances hardware-baseline roadmap Step 3, not Step 4 purchasing/bring-up.
+Next is independent package/polarity/pin-one and board-specific electrical review,
+then PCB/layout/DRC with schematic parity. The fixed part families, internal-only
+firmware modes and all false approval gates remain. DAISY_IN now connects
+directly to DGND, retiring one redundant resistor; the separate CLK pulldown stays.
+Do not merge disposable tool-export PR #44. PR #40 remains red evidence only.

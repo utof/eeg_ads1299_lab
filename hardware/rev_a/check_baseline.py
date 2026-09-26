@@ -632,7 +632,11 @@ def _validate_network(
         "VCAP3 bypass needs suitable voltage rating",
     )
     straps = parts["straps"]
-    require(straps["quantity"] == 13, "digital strap count drift")
+    require(straps["quantity"] == 12, "digital strap count drift")
+    require(
+        "R_DAISY_DN" not in straps["references"] and profile["afe"]["daisy_chain"] is False,
+        "unused daisy input must connect directly to DGND, not through a strap",
+    )
     require(
         "R_CS_DN" in straps["references"]
         and "R_CLKSEL_DN" in straps["references"]

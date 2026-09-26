@@ -45,6 +45,7 @@ addopts = "-ra --strict-config --strict-markers --import-mode=importlib"
 markers = [
     "native: requires a native compiler, Node, or external simulator",
     "integration: uses real processes or localhost sockets",
+    "schematic: requires pinned native KiCad and footprint libraries",
 ]
 filterwarnings = ["error"]
 
