@@ -122,12 +122,13 @@ def test_native_synthetic_model_observes_each_independent_input(
 ) -> None:
     # Continuous algebraic test double. It has no regulator dynamics and is
     # deliberately NOT the TI macro-model or a physically valid device model.
+    # Unequal input weights make swapped pin identities observable natively.
     def library(_archive: Path, *, normalize_switch: bool) -> bytes:
         assert normalize_switch is False
         return (
             b"* Synthetic wiring fixture only\n"
             b".SUBCKT TPS7A20_ADJ_TRANS VIN GND EN NC VOUT\n"
-            b"Bfixture VOUT GND V={3.3*V(VIN,GND)*V(EN,GND)/25}\n"
+            b"Bfixture VOUT GND V={0.2*V(VIN,GND)+0.46*V(EN,GND)}\n"
             b".ENDS TPS7A20_ADJ_TRANS\n"
         )
 
@@ -159,8 +160,9 @@ def test_native_synthetic_model_observes_each_independent_input(
         assert data[-1, 0] == pytest.approx(0.02, abs=1e-12)
         assert data[-1, 1:3] == pytest.approx([supply, enable])
         outputs.append(float(data[-1, 3]))
-    expected = [3.3, 0.0, 0.0, 0.0]
+    expected = [3.3, 0.0, 1.0, 2.3]
     if swap_inputs:
         assert outputs != pytest.approx(expected), "oracle must detect swapped model inputs"
+        assert outputs == pytest.approx([3.3, 0.0, 2.3, 1.0])
     else:
         assert outputs == pytest.approx(expected)
