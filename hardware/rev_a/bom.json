@@ -120,7 +120,7 @@
       ],
       "evidence": "report MPN retained as design selection; supplier and manufacturer part-specific data check pending",
       "spec": {
-        "capacitance_f": 4.7e-09,
+        "capacitance_f": 4.7e-9,
         "dielectric": "C0G",
         "rated_voltage_v": 50,
         "tolerance_fraction": 0.05
@@ -167,7 +167,7 @@
       ],
       "evidence": "engineering selection; verify current orderability before purchase",
       "spec": {
-        "capacitance_f": 1.5e-09,
+        "capacitance_f": 1.5e-9,
         "dielectric": "C0G",
         "rated_voltage_v": 50,
         "tolerance_fraction": 0.05
@@ -215,7 +215,7 @@
       ],
       "evidence": "manufacturer series ordering/rating table verified; ref loading/settling remains to be measured",
       "spec": {
-        "capacitance_f": 2.2e-05,
+        "capacitance_f": 0.000022,
         "dielectric": "solid tantalum",
         "rated_voltage_v": 16,
         "tolerance_fraction": 0.1
@@ -254,7 +254,7 @@
       ],
       "evidence": "exact MPN appears in EVM; effective capacitance versus bias must be checked",
       "spec": {
-        "capacitance_f": 1e-06,
+        "capacitance_f": 0.000001,
         "dielectric": "X5R",
         "rated_voltage_v": 25,
         "tolerance_fraction": 0.1
@@ -284,7 +284,7 @@
       ],
       "evidence": "exact MPN appears in EVM",
       "spec": {
-        "capacitance_f": 1e-07,
+        "capacitance_f": 1e-7,
         "dielectric": "X7R",
         "rated_voltage_v": 50,
         "tolerance_fraction": 0.1
@@ -310,7 +310,7 @@
       ],
       "evidence": "exact MPN appears in EVM; effective capacitance versus bias must be checked",
       "spec": {
-        "capacitance_f": 1e-05,
+        "capacitance_f": 0.00001,
         "dielectric": "X5R",
         "rated_voltage_v": 10,
         "tolerance_fraction": 0.1
@@ -345,8 +345,8 @@
       "description": "Control defaults and unused digital input termination",
       "package": "0603",
       "references": [
-        "R_CS_UP",
-        "R_CLKSEL_UP",
+        "R_CS_DN",
+        "R_CLKSEL_DN",
         "R_RESET_DN",
         "R_PWDN_DN",
         "R_START_DN",
@@ -365,7 +365,7 @@
         "TI_EVM",
         "TI_ADS_DS"
       ],
-      "evidence": "exact MPN appears in EVM; proposed strap population is a new design decision",
+      "evidence": "exact MPN appears in EVM; proposed low-safe power-up strap population follows ADS1299 power-up sequencing and remains a new design decision",
       "spec": {
         "resistance_ohm": 10000,
         "tolerance_fraction": 0.01,
