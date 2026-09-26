@@ -7,7 +7,7 @@ jobs:
   native-export:
     if: github.head_ref == 'workbench/startup-offline-20260926'
     runs-on: ubuntu-24.04
-    container: debian:trixie
+    container: debian:trixie@sha256:9cc080028c43b27d2074d63a5f9caf7166d731494965616c1a6d2827a004585c
     timeout-minutes: 20
     steps:
       - name: Install distribution-native inspection tools
@@ -21,10 +21,11 @@ jobs:
           persist-credentials: false
       - name: Retain portable binaries and exact provenance
         run: |
+          set -x
           mkdir -p /tmp/eeg-native/bin /tmp/eeg-native/lib /tmp/eeg-native/symbols /tmp/eeg-native/out
           cp /usr/bin/ngspice /usr/bin/kicad-cli /tmp/eeg-native/bin/
           python3 - <<'PY'
-          import pathlib, re, shutil, subprocess
+          import json, pathlib, re, shutil, subprocess
           root = pathlib.Path('/tmp/eeg-native')
           for exe in ('/usr/bin/ngspice', '/usr/bin/kicad-cli'):
               output = subprocess.check_output(['ldd', exe], text=True)
@@ -33,19 +34,26 @@ jobs:
                   path = pathlib.Path(name)
                   if path.name not in {'libc.so.6', 'libm.so.6', 'libpthread.so.0', 'libdl.so.2', 'librt.so.1'}:
                       shutil.copy2(path, root / 'lib' / path.name)
-          for name in ('Device.kicad_sym', 'Connector_Generic.kicad_sym', 'Analog_ADC.kicad_sym', 'Regulator_Linear.kicad_sym', 'power.kicad_sym'):
+          for name in ('Device.kicad_sym', 'Connector_Generic.kicad_sym', 'Analog_ADC.kicad_sym', 'Regulator_Linear.kicad_sym', 'Diode.kicad_sym', 'power.kicad_sym'):
               source = pathlib.Path('/usr/share/kicad/symbols') / name
               if source.exists(): shutil.copy2(source, root / 'symbols' / name)
+          results = []
+          for name, args in [('NGSPICE_VERSION', ['ngspice', '--version']), ('KICAD_VERSION', ['kicad-cli', 'version']), ('ERC_HELP', ['kicad-cli', 'sch', 'erc', '--help'])]:
+              run = subprocess.run(args, capture_output=True, text=True, timeout=30)
+              (root / (name + '.txt')).write_text(run.stdout + run.stderr)
+              results.append({'command': args, 'returncode': run.returncode})
+          (root / 'COMMAND_STATUS.json').write_text(json.dumps(results, indent=2))
+          print(json.dumps(results, indent=2))
+          assert 'ngspice' in (root / 'NGSPICE_VERSION.txt').read_text().lower()
+          assert (root / 'KICAD_VERSION.txt').read_text().strip()
           PY
-          ngspice --version > /tmp/eeg-native/NGSPICE_VERSION.txt
-          kicad-cli version > /tmp/eeg-native/KICAD_VERSION.txt
-          kicad-cli sch erc --help > /tmp/eeg-native/ERC_HELP.txt
           dpkg-query -W > /tmp/eeg-native/PACKAGES.txt
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git bundle create /tmp/eeg-native/out/source.bundle --all
-          tar -C /tmp -czf /tmp/eeg-native/out/native-tools.tar.gz eeg-native/bin eeg-native/lib eeg-native/symbols eeg-native/NGSPICE_VERSION.txt eeg-native/KICAD_VERSION.txt eeg-native/ERC_HELP.txt eeg-native/PACKAGES.txt eeg-native/ngspice-ldd.txt eeg-native/kicad-cli-ldd.txt
+          tar -C /tmp -czf /tmp/eeg-native/out/native-tools.tar.gz eeg-native/bin eeg-native/lib eeg-native/symbols eeg-native/NGSPICE_VERSION.txt eeg-native/KICAD_VERSION.txt eeg-native/ERC_HELP.txt eeg-native/PACKAGES.txt eeg-native/COMMAND_STATUS.json eeg-native/ngspice-ldd.txt eeg-native/kicad-cli-ldd.txt
           sha256sum /tmp/eeg-native/out/* > /tmp/eeg-native/out/SHA256SUMS.txt
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
         with:
           name: native-cad-simulator-environment
           path: /tmp/eeg-native/out/
