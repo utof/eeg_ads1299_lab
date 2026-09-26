@@ -45,7 +45,7 @@ depends_on = ["lab.adc", "lab.data_types", "lab.protocol"]
 
 [[modules]]
 path = "lab.inspect_capture"
-depends_on = ["lab.adc", "lab.data_types", "lab.dsp", "lab.validation"]
+depends_on = ["lab.acquisition", "lab.adc", "lab.data_types", "lab.dsp", "lab.validation"]
 
 [[modules]]
 path = "lab.pipeline"
@@ -73,7 +73,7 @@ depends_on = ["lab.acquisition", "lab.analog", "lab.inspect_capture", "lab.pipel
 
 [[modules]]
 path = "tests"
-depends_on = ["lab.rev_a_power", "lab.rev_a_bias_overload", "lab.rev_a_bias", "lab.rev_a", "hardware.rev_a", "lab.acquisition", "lab.adc", "lab.analog", "lab.data_types", "lab.dsp", "lab.inspect_capture", "lab.pipeline", "lab.protocol", "lab.signals", "lab.validation", "tools.check", "tools.commit_messages", "run_lab"]
+depends_on = ["lab.rev_a_supply", "lab.rev_a_power", "lab.rev_a_bias_overload", "lab.rev_a_bias", "lab.rev_a", "hardware.rev_a", "lab.acquisition", "lab.adc", "lab.analog", "lab.data_types", "lab.dsp", "lab.inspect_capture", "lab.pipeline", "lab.protocol", "lab.signals", "lab.validation", "tools.check", "tools.commit_messages", "run_lab"]
 
 [[interfaces]]
 from = ["lab.data_types"]
@@ -182,3 +182,11 @@ depends_on = ["lab.analog", "lab.data_types"]
 [[interfaces]]
 from = ["lab.rev_a_power"]
 expose = ["ARCHIVE_SHA256", "LIBRARY_SHA256", "prepare_library", "assess_trace", "switch_netlist", "run_pilot", "main"]
+
+[[modules]]
+path = "lab.rev_a_supply"
+depends_on = ["lab.data_types"]
+
+[[interfaces]]
+from = ["lab.rev_a_supply"]
+expose = ["SupplyCase", "steady_state", "rail_response", "supply_netlist", "run_supply_study", "main"]
