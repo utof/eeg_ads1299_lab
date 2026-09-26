@@ -91,7 +91,18 @@ struct RevAStartupIo {
 };
 #endif
 void setup() {
-    Serial.begin(460800);delay(500);
+#if defined(EEGLAB_REV_A_S3)
+    // The distributed false review gate retains the onboard UART console.
+    // External-console pins are not configured before exact interface review.
+    if(BOARD_PROFILE_REVIEWED) {
+        Serial.begin(CONSOLE_BAUD, SERIAL_8N1, CONSOLE_RX, CONSOLE_TX);
+    } else {
+        Serial.begin(460800);
+    }
+#else
+    Serial.begin(460800);
+#endif
+    delay(500);
     Serial.println("ADS1299 learning lab. BENCH ONLY; remove ALL body electrodes.");
     if(!BOARD_PROFILE_REVIEWED) {
         // No ADS control pin is configured until this gate is acknowledged.

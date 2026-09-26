@@ -14,10 +14,12 @@ import sysconfig
 import time
 import tomllib
 from collections.abc import Sequence
+from dataclasses import asdict
 from pathlib import Path
 from tempfile import mkdtemp
 
 from hardware.rev_a import (
+    bench_harness,
     load_documents,
     parse_schematic_xml,
     read_schematic_file,
@@ -318,12 +320,17 @@ def _schematic_snapshot(cad: Path, footprints: Path) -> dict[str, str]:
         "schematic_sources.py",
         "schematic_symbols.py",
         "schematic_bom.py",
+        "harness.py",
         "__init__.py",
     ):
         path = cad.parent / name
         result["contract/" + name] = hashlib.sha256(read_schematic_file(path).encode()).hexdigest()
     result["tools/check.py"] = hashlib.sha256(
         read_schematic_file(ROOT / "tools/check.py").encode()
+    ).hexdigest()
+    path = ROOT / "firmware/esp32_ads1299_bench/bench_console.h"
+    result["firmware/bench_console.h"] = hashlib.sha256(
+        read_schematic_file(path).encode()
     ).hexdigest()
     return result
 
@@ -429,6 +436,27 @@ def _schematic(out: Path) -> None:
         out,
     )
     validate_schematic_bom(read_schematic_file(build / "bom.csv"), netlist)
+    harness = bench_harness(
+        netlist,
+        profile,
+        bom,
+        sources,
+        read_schematic_file(ROOT / "firmware/esp32_ads1299_bench/bench_console.h"),
+    )
+    (build / "harness.json").write_text(
+        json.dumps(
+            {
+                "scope": "document_derived_terminal_groups_not_physical_validation",
+                "devkit_revision": "v1.1",
+                "physical_wiring_approved": False,
+                "console_interface_qualified": False,
+                "body_connection_authorized": False,
+                "groups": [asdict(group) for group in harness],
+            },
+            indent=2,
+        )
+        + "\n"
+    )
     run_step(
         "schematic-tests",
         [
@@ -452,7 +480,7 @@ def _schematic_marker(
     out: Path, build: Path, commit: str, inputs: dict[str, str], parts: int, pins: int
 ) -> None:
     artifacts: dict[str, str] = {}
-    for name in ("erc.json", "netlist.xml", "schematic.pdf", "bom.csv"):
+    for name in ("erc.json", "netlist.xml", "schematic.pdf", "bom.csv", "harness.json"):
         path = build / name
         if not path.is_file() or path.stat().st_size == 0:
             raise RuntimeError("Native CAD command did not produce every fresh artifact")

@@ -156,3 +156,14 @@ person-disconnected bench bring-up. TPS7A20 reference-engine work remains parall
 
 External research was treated as questions to verify, not a replacement circuit
 specification. In particular its VREFP-to-3.3-V recommendation was not adopted.
+
+## Physical harness continuation
+
+The native gate additionally derives `harness.json` from the freshly checked
+XML/profile/BOM and the explicit firmware console header. It gives qualified
+AFE/DevKit header-pad identities, all20 J_DIG contacts, separate application
+UART RX17/TX18 and common supply/return groups. The 28-input snapshot includes
+the new derivation and console header; the five retained artifacts include this
+worksheet. Historical counts above describe their earlier source revisions.
+See `REV_A_BENCH_HARNESS.md`: these are document-derived endpoints, not a
+qualified cable or interface. The CAD source and its logical MOD1 remain unchanged.

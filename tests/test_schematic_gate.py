@@ -21,6 +21,7 @@ FIXTURE = gzip.decompress((ROOT / "tests/fixtures/rev_a_netlist.xml.gz").read_by
 
 def _fake_project(root: Path) -> Path:
     shutil.copytree(ROOT / "hardware/rev_a", root / "hardware/rev_a")
+    shutil.copytree(ROOT / "firmware/esp32_ads1299_bench", root / "firmware/esp32_ads1299_bench")
     (root / "tools").mkdir()
     shutil.copyfile(ROOT / "tools/check.py", root / "tools/check.py")
     shutil.copyfile(ROOT / "pyproject.toml", root / "pyproject.toml")
@@ -107,6 +108,7 @@ def _change_dependency(root: Path, fault: str) -> None:
     files = {
         "change-child": root / "hardware/rev_a/kicad/power.kicad_sch",
         "change-library": root / "hardware/rev_a/kicad/RevA.kicad_sym",
+        "change-console": root / "firmware/esp32_ads1299_bench/bench_console.h",
     }
     if fault == "change-footprint":
         files[fault] = next((root / "footprints").rglob("*.kicad_mod"))
@@ -133,6 +135,7 @@ def _change_dependency(root: Path, fault: str) -> None:
         "wrong-bom-flag",
         "change-child",
         "change-library",
+        "change-console",
         "change-footprint",
         "missing-dependency",
         "native-tests-fail",
@@ -178,7 +181,12 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
         assert report["physical_hardware_tested"] is False
         assert report["body_connection_authorized"] is False
         assert report["schematic_released"] is False
-        assert len(read_object(report["source_sha256"], "hashes")) == 26
+        assert len(read_object(report["source_sha256"], "hashes")) == 28
+        directory = out / str(report["artifact_directory"])
+        harness = read_object(json.loads((directory / "harness.json").read_text()), "harness")
+        assert harness["physical_wiring_approved"] is False
+        assert harness["console_interface_qualified"] is False
+        assert "harness.json" in read_object(report["artifact_sha256"], "artifacts")
     else:
         assert not marker.exists()
 

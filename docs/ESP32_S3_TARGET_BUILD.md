@@ -88,3 +88,14 @@ Target compilation does not validate SPI timing, ISR latency, serial throughput,
 reference/power wiring, regulator behavior, signal quality or body-interface
 safety. A physical port remains unvalidated. The next step remains schematic/
 pin review and person-disconnected bench testing, not connecting electrodes.
+
+## Physical header console continuation
+
+The S3 FQBN now pins `CDCOnBoot=default`. The false review-stop path retains
+the existing onboard UART0 diagnostic; the reviewed path explicitly remaps the
+application UART to RX17/TX18, 460800 8N1, on DevKit J1 pads10/11. An enabled
+USB CDC build is rejected. This avoids sharing the onboard bridge's output or
+combining normal USB power with the external bench rail. See
+`REV_A_BENCH_HARNESS.md` for the separate programming/acquisition arrangements,
+interface qualification still required and physical-evidence limits. Host call
+traces and target compilation are not actual adapter/baud validation.
