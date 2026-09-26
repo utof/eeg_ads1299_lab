@@ -25,21 +25,18 @@ jobs:
           sudo apt-get install --yes --no-install-recommends ngspice
           python -m pip install uv==0.12.18
           uv sync --locked --all-extras
-      - name: Exercise comparator subcircuits without distributing their implementation
+      - name: Test the actual four-pin comparator interface in isolation
         run: |
           mkdir -p reports/workbench
           cat > reports/workbench/experiment.py <<'PY'
-          """Read private vendor symbols; retain only port metadata and black-box stimuli."""
+          """Black-box helper stimulus, not a regulator or an edited vendor model."""
           import hashlib
           import json
-          import re
           import subprocess
           import urllib.request
           from pathlib import Path
           from tempfile import TemporaryDirectory
-
           import numpy as np
-
           from lab.rev_a_power import _run, prepare_library
 
           root = Path('reports/workbench')
@@ -49,39 +46,22 @@ jobs:
               archive = private / 'sbvm961.zip'
               with urllib.request.urlopen('https://www.ti.com/lit/zip/sbvm961', timeout=30) as source:
                   archive.write_bytes(source.read(4_000_001))
-              raw = prepare_library(archive, normalize_switch=True)
-              library = private / 'normalized.lib'
+              raw = prepare_library(archive, normalize_switch=False)
+              library = private / 'original.lib'
               library.write_bytes(raw)
-              symbols = []
-              instances = []
-              controls = []
-              for line in raw.decode('latin-1').splitlines():
-                  fields = line.split()
-                  if not fields:
-                      continue
-                  if fields[0].lower() == '.subckt':
-                      ports = re.split(r'params:', ' '.join(fields[2:]), flags=re.I)[0].split()
-                      symbols.append({'name': fields[1], 'ports': ports})
-                  elif fields[0][0].lower() == 'x':
-                      end = next((i for i, value in enumerate(fields) if '=' in value or value.lower() == 'params:'), len(fields))
-                      instances.append({'instance': fields[0], 'nodes_and_symbol': fields[1:end]})
-                  if re.search(r'\bEN\b', line, re.I) and fields[0][0].lower() != '*':
-                      controls.append({'element': fields[0], 'voltage_dependencies': re.findall(r'V\(([^)]*)\)', line, re.I),
-                                       'uses_if': 'IF(' in line.upper(), 'uses_table': 'TABLE' in line.upper()})
-              (root / 'symbol_metadata.json').write_text(json.dumps({'subcircuits': symbols, 'instances': instances, 'enable_dependants': controls}, indent=2) + '\n')
-              for symbol in symbols:
-                  if len(symbol['ports']) != 3 or not any(word in symbol['name'].lower() for word in ('comp', 'hyst')):
-                      continue
-                  if [value.upper() for value in symbol['ports']] != ['INP', 'INM', 'OUT']:
-                      results.append({'symbol': symbol, 'skipped': 'port ordering not assumed'})
-                      continue
-                  name = symbol['name']
+              for name, reference, hysteresis, falling in (
+                  ('as_used_enable', 0.92, 0.025, True),
+                  ('rise_only', 0.92, 0.025, False),
+                  ('zero_hysteresis', 0.92, 0.0, True),
+                  ('shifted_reference', 0.5, 0.025, True),
+                  ('smaller_hysteresis', 0.92, 0.01, True),
+              ):
+                  wave = 'PWL(0 0 1m 0 1.01m 5 15m 5 15.01m 0 20m 0)' if falling else 'PWL(0 0 1m 0 1.01m 5 20m 5)'
                   text = (
-                      'Independent black-box comparator rise/fall fixture, not a regulator model\n'
+                      'Independent isolated comparator fixture; not a regulator model\n'
                       f'.param V_out=3.3\n.include "{library}"\n'
-                      'Vsignal inp 0 PWL(0 0 1m 0 1.01m 1 15m 1 15.01m 0 20m 0)\n'
-                      'Vref inm 0 0.5\n'
-                      f'Xprobe inp inm out {name}\nRload out 0 1meg\n'
+                      f'Vsignal inp 0 {wave}\nVref inm 0 {reference:g}\nVhys hys 0 {hysteresis:g}\n'
+                      'Xprobe inp inm hys out COMPHYS_BASIC_GEN\nRload out 0 1meg\n'
                       '.options reltol=1e-5 abstol=1e-10 vntol=1e-7 method=gear\n'
                       '.control\nset wr_singlescale\nset wr_vecnames\nset numdgt=15\n'
                       'tran 1u 20m 0 1u\nlet integration_start = time[0]\n'
@@ -89,7 +69,8 @@ jobs:
                       'print integration_start integration_stop > transient-window.txt\n'
                       'wrdata transient.txt v(inp) v(out)\nquit\n.endc\n.end\n'
                   )
-                  result = {'case': name, 'power_model_validated': False}
+                  result = {'case': name, 'reference_v': reference, 'hysteresis_v': hysteresis,
+                            'power_model_validated': False, 'library_edited': False}
                   path = root / name
                   try:
                       times, volts = _run(path, text, 2, expected_stop_s=0.02)
@@ -102,17 +83,21 @@ jobs:
                       if output.exists():
                           partial = np.loadtxt(output, skiprows=1, ndmin=2)
                           if partial.ndim == 2 and partial.shape[1] == 3 and np.all(np.isfinite(partial)):
-                              result['diagnostic_partial_only'] = {'last_time_s': float(partial[-1, 0]), 'input_v': float(partial[-1, 1]), 'output_v': float(partial[-1, 2])}
+                              result['diagnostic_partial_only'] = {'last_time_s': float(partial[-1, 0]),
+                                  'input_v': float(partial[-1, 1]), 'output_v': float(partial[-1, 2])}
                   results.append(result)
-          summary = {'source_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(), 'results': results,
-                     'hardware_validated': False, 'scope': 'black-box helper isolation; no vendor implementation retained'}
+          summary = {'source_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+                     'ngspice_version': subprocess.check_output(['ngspice', '--version'], text=True),
+                     'library_sha256': hashlib.sha256(raw).hexdigest(), 'library_edited': False,
+                     'results': results, 'hardware_validated': False,
+                     'scope': 'isolated four-pin helper; no vendor implementation retained'}
           (root / 'summary.json').write_text(json.dumps(summary, indent=2) + '\n')
           print(json.dumps(summary, indent=2))
           files = {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest() for p in root.rglob('*') if p.is_file()}
           (root / 'manifest.json').write_text(json.dumps(files, indent=2) + '\n')
           PY
           uv run --locked python reports/workbench/experiment.py
-      - name: Preserve metadata, handwritten stimuli and diagnostics only
+      - name: Preserve handwritten stimuli and diagnostics only
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
