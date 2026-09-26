@@ -64,6 +64,15 @@ def _fake_native_step(name: str, command: Sequence[str], out: Path, root: Path, 
         _fake_output(name, path, fault)
     if name == "schematic-netlist":
         _change_dependency(root, fault)
+    if name == "harness-console-tests":
+        assert "tests/test_firmware_sketch_startup.py" in command
+        assert "tests/test_bench_harness.py" in command
+        assert command[command.index("-m", 3) + 1] == "native"
+        assert not list(out.glob("schematic-*/harness.json")), (
+            "harness published before console proof"
+        )
+        if fault == "console-route-fails":
+            raise RuntimeError("injected actual-sketch route failure")
     if name == "schematic-tests" and fault == "native-tests-fail":
         raise RuntimeError("injected native regression failure")
 
@@ -109,6 +118,8 @@ def _change_dependency(root: Path, fault: str) -> None:
         "change-child": root / "hardware/rev_a/kicad/power.kicad_sch",
         "change-library": root / "hardware/rev_a/kicad/RevA.kicad_sym",
         "change-console": root / "firmware/esp32_ads1299_bench/bench_console.h",
+        "change-sketch": root / "firmware/esp32_ads1299_bench/esp32_ads1299_bench.ino",
+        "change-profile": root / "firmware/esp32_ads1299_bench/board_config_rev_a_s3.h",
     }
     if fault == "change-footprint":
         files[fault] = next((root / "footprints").rglob("*.kicad_mod"))
@@ -136,6 +147,10 @@ def _change_dependency(root: Path, fault: str) -> None:
         "change-child",
         "change-library",
         "change-console",
+        "change-sketch",
+        "change-profile",
+        "console-route-fails",
+        "missing-console-compiler",
         "change-footprint",
         "missing-dependency",
         "native-tests-fail",
@@ -160,7 +175,9 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
     def coverage(_path: Path, _minimum: float) -> float:
         return 80.0
 
-    def tool(_name: str) -> str:
+    def tool(name: str) -> str | None:
+        if fault == "missing-console-compiler" and name in {"g++", "clang++"}:
+            return None
         return "/software-double/kicad-cli"
 
     def step(name: str, command: Sequence[str], out: Path, timeout: float = 300) -> None:
