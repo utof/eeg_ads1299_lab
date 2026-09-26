@@ -27,7 +27,7 @@ constexpr int PIN_PWDN=33;
 // Only the internal mux paths exist in this starter. External EEG acquisition
 // needs a board-specific protection, bias and reference design/review first.
 constexpr bool USE_INTERNAL_TEST=true; // false = internal input-short noise test
-constexpr bool USE_WIFI_UDP=false;    // false = USB serial, BENCH ONLY
+constexpr bool USE_WIFI_UDP=false;    // false = serial console (S3 header UART), BENCH ONLY
 constexpr char WIFI_SSID[]="EDIT_ME";
 constexpr char WIFI_PASSWORD[]="EDIT_ME";
 constexpr char UDP_HOST[]="192.168.1.2"; // replace with private-LAN computer IP

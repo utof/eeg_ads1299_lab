@@ -13,3 +13,5 @@ constexpr int PIN_START = 6;
 constexpr int PIN_PWDN = 7;
 constexpr int PIN_CLKSEL = 8;
 constexpr int EXPECTED_ADS_CHANNELS = 4;
+
+#include "bench_console.h"

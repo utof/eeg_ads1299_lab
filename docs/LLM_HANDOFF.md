@@ -176,3 +176,18 @@ then PCB/layout/DRC with schematic parity. The fixed part families, internal-onl
 firmware modes and all false approval gates remain. DAISY_IN now connects
 directly to DGND, retiring one redundant resistor; the separate CLK pulldown stays.
 Do not merge disposable tool-export PR #44. PR #40 remains red evidence only.
+
+## Current checkpoint: merged schematic and physical harness continuation
+
+PR #43 merged at159e590 (reviewed226f618) with three native KiCad sheets, full
+connectivity checks, cross-export BOM and local/embedded symbol agreement. Do
+not reconstruct the schematic. The next slice derives physical AFE/DevKit
+header endpoints and gives the reviewed S3 application console RX17/TX18, not
+the onboard bridge's UART pins. Read `REV_A_BENCH_HARNESS.md`; the distributed
+false review-stop still uses the original onboard console and does not configure
+external-console pins. The external 3.3 V interface is specified but not selected
+or electrically qualified; no live setup, price or hardware approval follows.
+Issue #45 still owns actual package geometry/polarity/mating review, physical
+interface/cable qualification and boot/brownout/back-power measurements before
+layout. Firmware and native evidence for the new revision must be checked on
+its own head, not inferred from #43's historical results.

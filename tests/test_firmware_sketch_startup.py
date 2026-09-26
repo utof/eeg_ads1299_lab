@@ -19,6 +19,7 @@ STUBS = ROOT / "tests/firmware_stubs"
             (scenario, "", "")
             for scenario in (
                 "guard",
+                "legacy-guard",
                 "no-input",
                 "queued",
                 "only-R",
@@ -47,9 +48,26 @@ STUBS = ROOT / "tests/firmware_stubs"
             "SPI.begin(PIN_SCLK,PIN_MISO,PIN_MOSI,PIN_CS);",
             "SPI.begin(PIN_SCLK,PIN_MISO,PIN_MOSI,PIN_CLKSEL);",
         ),
+        (
+            "fresh",
+            "Serial.begin(CONSOLE_BAUD, SERIAL_8N1, CONSOLE_RX, CONSOLE_TX);",
+            "Serial.begin(CONSOLE_BAUD, SERIAL_8N1, CONSOLE_TX, CONSOLE_RX);",
+        ),
+        (
+            "fresh",
+            "Serial.begin(CONSOLE_BAUD, SERIAL_8N1, CONSOLE_RX, CONSOLE_TX);",
+            "Serial.begin(CONSOLE_BAUD);",
+        ),
+        (
+            "fresh",
+            "Serial.begin(CONSOLE_BAUD, SERIAL_8N1, CONSOLE_RX, CONSOLE_TX);",
+            "Serial.begin(115200, SERIAL_8N1, CONSOLE_RX, CONSOLE_TX);",
+        ),
+        ("guard", "if(BOARD_PROFILE_REVIEWED)", "if(true)"),
     ],
     ids=[
         "guard",
+        "legacy-guard",
         "no-input",
         "queued",
         "only-R",
@@ -64,6 +82,10 @@ STUBS = ROOT / "tests/firmware_stubs"
         "mutant-swapped-spi-data",
         "mutant-wrong-spi-clock",
         "mutant-wrong-spi-cs",
+        "mutant-swapped-console",
+        "mutant-default-console",
+        "mutant-console-baud",
+        "mutant-early-external-console",
     ],
 )
 def test_actual_sketch_startup(tmp_path: Path, scenario: str, before: str, after: str) -> None:
@@ -77,7 +99,7 @@ def test_actual_sketch_startup(tmp_path: Path, scenario: str, before: str, after
     config = tmp_path / "board_config.h"
     original = config.read_text()
     assert original.count("BOARD_PROFILE_REVIEWED = false") == 1
-    if scenario != "guard":
+    if scenario not in {"guard", "legacy-guard"}:
         config.write_text(
             original.replace("BOARD_PROFILE_REVIEWED = false", "BOARD_PROFILE_REVIEWED = true")
         )
@@ -86,6 +108,8 @@ def test_actual_sketch_startup(tmp_path: Path, scenario: str, before: str, after
         text = sketch.read_text()
         assert text.count(before) == 1
         sketch.write_text(text.replace(before, after))
+    target = "ESP32" if scenario == "legacy-guard" else "ESP32S3"
+    profile_flags = [] if target == "ESP32" else ["-DEEGLAB_REV_A_S3"]
     executable = tmp_path / "sketch-test"
     compiled = subprocess.run(
         [
@@ -95,8 +119,8 @@ def test_actual_sketch_startup(tmp_path: Path, scenario: str, before: str, after
             "-Wextra",
             "-Werror",
             "-pedantic",
-            "-DCONFIG_IDF_TARGET_ESP32S3=1",
-            "-DEEGLAB_REV_A_S3",
+            f"-DCONFIG_IDF_TARGET_{target}=1",
+            *profile_flags,
             "-I",
             str(tmp_path),
             "-I",
@@ -110,7 +134,12 @@ def test_actual_sketch_startup(tmp_path: Path, scenario: str, before: str, after
         timeout=30,
     )
     assert compiled.returncode == 0, compiled.stderr
-    run = subprocess.run([str(executable), scenario], capture_output=True, text=True, timeout=5)
+    run = subprocess.run(
+        [str(executable), "guard" if scenario == "legacy-guard" else scenario],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    )
     assert (run.returncode == 0) is (not before), run.stdout + run.stderr
     if before:
         assert "SKETCH_ASSERTION:" in run.stderr

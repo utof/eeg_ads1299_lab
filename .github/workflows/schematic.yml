@@ -18,7 +18,7 @@ jobs:
       - name: Install pinned native CAD engine and libraries
         run: |
           apt-get update -qq
-          apt-get install --yes --no-install-recommends ca-certificates git python3 python3-pip python3-venv kicad=9.0.2+dfsg-1 kicad-symbols=9.0.2-1 kicad-footprints=9.0.2-1 > /tmp/cad-install.log 2>&1 || { tail -60 /tmp/cad-install.log; exit 1; }
+          apt-get install --yes --no-install-recommends ca-certificates git g++ python3 python3-pip python3-venv kicad=9.0.2+dfsg-1 kicad-symbols=9.0.2-1 kicad-footprints=9.0.2-1 > /tmp/cad-install.log 2>&1 || { tail -60 /tmp/cad-install.log; exit 1; }
           python3 -m pip install --break-system-packages uv==0.12.18
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:

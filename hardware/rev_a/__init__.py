@@ -15,6 +15,7 @@ from .check_schematic import (
     parse_schematic_xml,
     validate_schematic,
 )
+from .harness import HarnessNet, bench_harness
 from .schematic_bom import validate_schematic_bom
 from .schematic_sources import read_schematic_file, schematic_source_snapshot, validate_erc
 
@@ -22,9 +23,11 @@ __all__ = [
     "BillOfMaterials",
     "BoardProfile",
     "CostTotals",
+    "HarnessNet",
     "SchematicNetlist",
     "SchematicPart",
     "SourcesDocument",
+    "bench_harness",
     "load_documents",
     "parse_schematic_xml",
     "read_schematic_file",

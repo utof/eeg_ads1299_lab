@@ -14,10 +14,12 @@ import sysconfig
 import time
 import tomllib
 from collections.abc import Sequence
+from dataclasses import asdict
 from pathlib import Path
 from tempfile import mkdtemp
 
 from hardware.rev_a import (
+    bench_harness,
     load_documents,
     parse_schematic_xml,
     read_schematic_file,
@@ -318,6 +320,7 @@ def _schematic_snapshot(cad: Path, footprints: Path) -> dict[str, str]:
         "schematic_sources.py",
         "schematic_symbols.py",
         "schematic_bom.py",
+        "harness.py",
         "__init__.py",
     ):
         path = cad.parent / name
@@ -325,6 +328,31 @@ def _schematic_snapshot(cad: Path, footprints: Path) -> dict[str, str]:
     result["tools/check.py"] = hashlib.sha256(
         read_schematic_file(ROOT / "tools/check.py").encode()
     ).hexdigest()
+    # Bind the route-defining source AND the host oracle used by this gate.
+    # This list describes the existing focused test inputs, not a new pin map.
+    for name in (
+        "firmware/toolchain.json",
+        "pyproject.toml",
+        "tests/test_firmware_sketch_startup.py",
+        "tests/test_bench_harness.py",
+        "tests/native_sketch_startup_test.cpp",
+        *(
+            "firmware/esp32_ads1299_bench/" + name
+            for name in (
+                "bench_console.h",
+                "board_config.h",
+                "board_config_rev_a_s3.h",
+                "esp32_ads1299_bench.ino",
+                "portable_core.h",
+                "rev_a_startup.h",
+            )
+        ),
+        *(
+            "tests/firmware_stubs/" + name
+            for name in ("Arduino.h", "SPI.h", "WiFi.h", "WiFiUdp.h", "driver/gpio.h")
+        ),
+    ):
+        result[name] = hashlib.sha256(read_schematic_file(ROOT / name).encode()).hexdigest()
     return result
 
 
@@ -429,6 +457,28 @@ def _schematic(out: Path) -> None:
         out,
     )
     validate_schematic_bom(read_schematic_file(build / "bom.csv"), netlist)
+    _harness_console_proof(out)
+    harness = bench_harness(
+        netlist,
+        profile,
+        bom,
+        sources,
+        read_schematic_file(ROOT / "firmware/esp32_ads1299_bench/bench_console.h"),
+    )
+    (build / "harness.json").write_text(
+        json.dumps(
+            {
+                "scope": "document_derived_terminal_groups_not_physical_validation",
+                "devkit_revision": "v1.1",
+                "physical_wiring_approved": False,
+                "console_interface_qualified": False,
+                "body_connection_authorized": False,
+                "groups": [asdict(group) for group in harness],
+            },
+            indent=2,
+        )
+        + "\n"
+    )
     run_step(
         "schematic-tests",
         [
@@ -448,11 +498,39 @@ def _schematic(out: Path) -> None:
     _schematic_marker(out, build, source_commit, before, len(netlist.parts), len(netlist.nets))
 
 
+def _harness_console_proof(out: Path) -> None:
+    """The standalone CAD gate must execute its claimed firmware route too.
+
+    Reuse existing real-sketch host tests. This is not target/peripheral evidence;
+    it does not require ngspice or run unrelated native studies a second time.
+    """
+    compiler = shutil.which("g++") or shutil.which("clang++")
+    if compiler is None:
+        raise RuntimeError("Harness route checks require g++ or clang++; absence is not a pass")
+    run_step("harness-console-compiler", [compiler, "--version"], out)
+    run_step(
+        "harness-console-tests",
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_firmware_sketch_startup.py",
+            "tests/test_bench_harness.py",
+            "-m",
+            "native",
+            f"--junitxml={out / 'harness-console-pytest.xml'}",
+            f"--basetemp={out / 'harness-console-tests'}",
+        ],
+        out,
+    )
+
+
 def _schematic_marker(
     out: Path, build: Path, commit: str, inputs: dict[str, str], parts: int, pins: int
 ) -> None:
     artifacts: dict[str, str] = {}
-    for name in ("erc.json", "netlist.xml", "schematic.pdf", "bom.csv"):
+    for name in ("erc.json", "netlist.xml", "schematic.pdf", "bom.csv", "harness.json"):
         path = build / name
         if not path.is_file() or path.stat().st_size == 0:
             raise RuntimeError("Native CAD command did not produce every fresh artifact")

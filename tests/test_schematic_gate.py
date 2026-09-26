@@ -21,6 +21,9 @@ FIXTURE = gzip.decompress((ROOT / "tests/fixtures/rev_a_netlist.xml.gz").read_by
 
 def _fake_project(root: Path) -> Path:
     shutil.copytree(ROOT / "hardware/rev_a", root / "hardware/rev_a")
+    shutil.copytree(ROOT / "firmware/esp32_ads1299_bench", root / "firmware/esp32_ads1299_bench")
+    shutil.copyfile(ROOT / "firmware/toolchain.json", root / "firmware/toolchain.json")
+    shutil.copytree(ROOT / "tests", root / "tests", ignore=shutil.ignore_patterns("__pycache__"))
     (root / "tools").mkdir()
     shutil.copyfile(ROOT / "tools/check.py", root / "tools/check.py")
     shutil.copyfile(ROOT / "pyproject.toml", root / "pyproject.toml")
@@ -63,6 +66,15 @@ def _fake_native_step(name: str, command: Sequence[str], out: Path, root: Path, 
         _fake_output(name, path, fault)
     if name == "schematic-netlist":
         _change_dependency(root, fault)
+    if name == "harness-console-tests":
+        assert "tests/test_firmware_sketch_startup.py" in command
+        assert "tests/test_bench_harness.py" in command
+        assert command[command.index("-m", 3) + 1] == "native"
+        assert not list(out.glob("schematic-*/harness.json")), (
+            "harness published before console proof"
+        )
+        if fault == "console-route-fails":
+            raise RuntimeError("injected actual-sketch route failure")
     if name == "schematic-tests" and fault == "native-tests-fail":
         raise RuntimeError("injected native regression failure")
 
@@ -107,6 +119,9 @@ def _change_dependency(root: Path, fault: str) -> None:
     files = {
         "change-child": root / "hardware/rev_a/kicad/power.kicad_sch",
         "change-library": root / "hardware/rev_a/kicad/RevA.kicad_sym",
+        "change-console": root / "firmware/esp32_ads1299_bench/bench_console.h",
+        "change-sketch": root / "firmware/esp32_ads1299_bench/esp32_ads1299_bench.ino",
+        "change-profile": root / "firmware/esp32_ads1299_bench/board_config_rev_a_s3.h",
     }
     if fault == "change-footprint":
         files[fault] = next((root / "footprints").rglob("*.kicad_mod"))
@@ -133,6 +148,11 @@ def _change_dependency(root: Path, fault: str) -> None:
         "wrong-bom-flag",
         "change-child",
         "change-library",
+        "change-console",
+        "change-sketch",
+        "change-profile",
+        "console-route-fails",
+        "missing-console-compiler",
         "change-footprint",
         "missing-dependency",
         "native-tests-fail",
@@ -157,7 +177,9 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
     def coverage(_path: Path, _minimum: float) -> float:
         return 80.0
 
-    def tool(_name: str) -> str:
+    def tool(name: str) -> str | None:
+        if fault == "missing-console-compiler" and name in {"g++", "clang++"}:
+            return None
         return "/software-double/kicad-cli"
 
     def step(name: str, command: Sequence[str], out: Path, timeout: float = 300) -> None:
@@ -178,7 +200,12 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
         assert report["physical_hardware_tested"] is False
         assert report["body_connection_authorized"] is False
         assert report["schematic_released"] is False
-        assert len(read_object(report["source_sha256"], "hashes")) == 26
+        assert len(read_object(report["source_sha256"], "hashes")) == 43
+        directory = out / str(report["artifact_directory"])
+        harness = read_object(json.loads((directory / "harness.json").read_text()), "harness")
+        assert harness["physical_wiring_approved"] is False
+        assert harness["console_interface_qualified"] is False
+        assert "harness.json" in read_object(report["artifact_sha256"], "artifacts")
     else:
         assert not marker.exists()
 
