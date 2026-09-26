@@ -12,8 +12,8 @@ jobs:
     steps:
       - name: Install exact distribution schematic engine
         run: |
-          apt-get update
-          apt-get install --yes --no-install-recommends ca-certificates git python3 kicad=9.0.2+dfsg-1 kicad-symbols=9.0.2-1 kicad-footprints
+          apt-get update -qq
+          apt-get install --yes --no-install-recommends ca-certificates git python3 kicad=9.0.2+dfsg-1 kicad-symbols=9.0.2-1 kicad-footprints=9.0.2-1 > /tmp/install.log 2>&1 || { tail -60 /tmp/install.log; exit 1; }
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           fetch-depth: 0
@@ -26,7 +26,7 @@ jobs:
           import pathlib, re, shutil, subprocess
           root=pathlib.Path('/tmp/kicad-export')
           files=subprocess.check_output(['dpkg','-L','kicad'],text=True).splitlines()
-          engines=[pathlib.Path(p) for p in files if p.endswith('_eeschema.kiface') or p.endswith('/kicad-cli')]
+          engines={pathlib.Path(p).resolve() for p in files if p.endswith('_eeschema.kiface') or p.endswith('/kicad-cli')}
           assert len(engines)==2, engines
           for engine in engines:
               shutil.copy2(engine,root/'bin'/engine.name)
@@ -38,9 +38,12 @@ jobs:
                       shutil.copy2(path,root/'lib'/path.name)
           for name in ('Package_QFP','Package_TO_SOT_SMD','Resistor_SMD','Capacitor_SMD','Capacitor_Tantalum_SMD','Connector_PinHeader_2.54mm'):
               path=pathlib.Path('/usr/share/kicad/footprints')/(name+'.pretty')
-              if path.exists(): shutil.copytree(path,root/'footprints'/path.name)
+              assert path.is_dir(), path
+              shutil.copytree(path,root/'footprints'/path.name)
           (root/'PACKAGES.txt').write_text(subprocess.check_output(['dpkg-query','-W'],text=True))
-          (root/'VERSION.txt').write_text(subprocess.check_output(['kicad-cli','version'],text=True))
+          run=subprocess.run(['kicad-cli','version'],capture_output=True,text=True,timeout=30)
+          (root/'VERSION.txt').write_text(run.stdout+run.stderr)
+          assert run.returncode==0 and run.stdout.strip()=='9.0.2', (run.returncode,run.stdout,run.stderr)
           PY
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git bundle create /tmp/kicad-out/source.bundle --all
