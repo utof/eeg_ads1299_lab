@@ -62,6 +62,12 @@ GATES = {
 }
 
 
+class ClockInputPull(TypedDict):
+    ads_pin: int
+    reference: str
+    return_net: str
+
+
 class AfeProfile(TypedDict):
     mpn: str
     channels: int
@@ -72,6 +78,7 @@ class AfeProfile(TypedDict):
     clock: str
     clock_hz_nominal: int
     clk_sel_level: int
+    clock_input_pull: ClockInputPull
     clock_output_enabled: bool
     daisy_chain: bool
     frame_status_bytes: int
@@ -457,6 +464,7 @@ def validate(profile: BoardProfile, bom: BillOfMaterials, sources: SourcesDocume
             "do not buy/count the devkit module twice",
         )
 
+        _validate_clock_input(profile, parts, require)
         _validate_afe(profile, parts, require)
         _validate_network(profile, parts, require)
         _validate_power(profile, parts, bom, require)
@@ -464,6 +472,26 @@ def validate(profile: BoardProfile, bom: BillOfMaterials, sources: SourcesDocume
     except (KeyError, TypeError, ValueError, InvalidOperation, AttributeError) as exc:
         errors.append(f"malformed or incomplete design document: {exc}")
     return errors
+
+
+def _validate_clock_input(
+    profile: BoardProfile,
+    parts: dict[str, BomItem],
+    require: Callable[[bool, str], None],
+) -> None:
+    pull = profile["afe"]["clock_input_pull"]
+    require(
+        pull == {"ads_pin": 37, "reference": "R_CLK_DN", "return_net": "DGND"},
+        "clock input must terminate ADS pin 37 through R_CLK_DN to DGND",
+    )
+    straps = parts["straps"]
+    require(
+        "R_CLK_DN" in straps["references"]
+        and straps["population"] == "fit"
+        and straps["spec"]["resistance_ohm"] == 10000,
+        "clock input requires a fitted 10 kohm pulldown",
+    )
+    require(profile["afe"]["clock_output_enabled"] is False, "clock output must stay disabled")
 
 
 def _validate_afe(
@@ -604,7 +632,7 @@ def _validate_network(
         "VCAP3 bypass needs suitable voltage rating",
     )
     straps = parts["straps"]
-    require(straps["quantity"] == 12, "digital strap count drift")
+    require(straps["quantity"] == 13, "digital strap count drift")
     require(
         "R_CS_DN" in straps["references"]
         and "R_CLKSEL_DN" in straps["references"]

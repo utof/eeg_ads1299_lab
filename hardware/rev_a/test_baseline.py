@@ -41,8 +41,8 @@ class BaselineTests(unittest.TestCase):
 
     def test_costs_and_optional_exclusion(self) -> None:
         result = totals(self.bom)
-        self.assertEqual(result["fitted"], Decimal("74.14"))
-        self.assertEqual(result["planning_total"], Decimal("92.14"))
+        self.assertEqual(result["fitted"], Decimal("74.20"))
+        self.assertEqual(result["planning_total"], Decimal("92.20"))
         self.assertEqual(result["dnp_options"], Decimal("2.40"))
 
     def test_every_gate_is_fail_closed(self) -> None:

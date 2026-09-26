@@ -347,6 +347,7 @@
       "references": [
         "R_CS_DN",
         "R_CLKSEL_DN",
+        "R_CLK_DN",
         "R_RESET_DN",
         "R_PWDN_DN",
         "R_START_DN",
@@ -358,7 +359,7 @@
         "R_GPIO3_DN",
         "R_GPIO4_DN"
       ],
-      "quantity": 12,
+      "quantity": 13,
       "population": "fit",
       "planning_unit_usd": "0.06",
       "source_ids": [

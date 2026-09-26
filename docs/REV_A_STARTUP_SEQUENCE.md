@@ -113,3 +113,20 @@ including startup pulldowns, reference/VCAP, unused pins, inputs, BIAS, connecto
 and GPIO mapping. The analog startup fixture and loss-of-rail behavior remain
 explicit electrical-review items. The TPS7A20 engine-compatibility investigation
 remains separate; no vendor model is modified here.
+
+## Review correction: CLK is distinct from CLKSEL
+
+The exact-head review of `0595d45` found that CLKSEL low selects the external
+clock path while the separate CLK pin was unterminated in the BOM. Its cited
+pin number was wrong: TI's Rev. C pages 5–6 identify **CLK = 37**, **DGND = 51**.
+The pin diagram and table were checked directly rather than accepting the review
+verbatim. `afe.clock_input_pull` now names pin 37, `R_CLK_DN` and DGND; the BOM
+fits one additional instance of the existing 10 kΩ MPN. Planning costs increase
+by $0.06, with purchasing still unapproved. No GPIO is added for this board-only
+termination and clock output remains disabled.
+
+The test-only commit `bec5272` retains six intended failures before the change.
+Faults include absent/wrong-direction/DNP/zero-ohm pull configurations and an
+accidentally enabled clock output. The forthcoming native netlist check must
+prove the declared resistor actually reaches pin 37 and DGND. The declaration
+alone, including its tests, is not evidence of physical connectivity.

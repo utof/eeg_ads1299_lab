@@ -33,7 +33,12 @@
     "lead_off_enabled": false,
     "bias_drive_enabled": false,
     "srb1_enabled": false,
-    "srb2_enabled": false
+    "srb2_enabled": false,
+    "clock_input_pull": {
+      "ads_pin": 37,
+      "reference": "R_CLK_DN",
+      "return_net": "DGND"
+    }
   },
   "mcu": {
     "board_mpn": "ESP32-S3-DevKitC-1-N8R8",

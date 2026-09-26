@@ -31,11 +31,11 @@ The machine-readable source of truth is [`hardware/rev_a/bom.json`](../hardware/
 | `GRM188R71H104KA93D` | 7 | FIT | $0.70 |
 | `GRM219R61A106KE44D` | 4 | FIT | $1.40 |
 | `RC0603FR-0710RL` | 1 | FIT | $0.08 |
-| `RC0603FR-0710KL` | 12 | FIT | $0.72 |
+| `RC0603FR-0710KL` | 13 | FIT | $0.78 |
 | `TSW-110-07-T-D` | 2 | FIT | $1.80 |
 | `BAV199,215` | 8 | DNP | $2.40 |
 
-Fitted components: **$74.14**. Bare-PCB reserve: **$15.00**. Harness/mating reserve: **$3.00**. **Planning subtotal: $92.14**. Optional BAV199 population adds $2.40. Shipping, tax/VAT/import charges, assembly/stencil/setup, tools, bench instrumentation, battery/charger, enclosure, and any patient-safety hardware are excluded. Obtain one delivered basket/assembly quote before purchasing.
+Fitted components: **$74.20**. Bare-PCB reserve: **$15.00**. Harness/mating reserve: **$3.00**. **Planning subtotal: $92.20**. Optional BAV199 population adds $2.40. Shipping, tax/VAT/import charges, assembly/stencil/setup, tools, bench instrumentation, battery/charger, enclosure, and any patient-safety hardware are excluded. Obtain one delivered basket/assembly quote before purchasing.
 
 ## Electrical contract
 
@@ -95,7 +95,10 @@ CLKSEL all have a declared power-up level of 0 in `board_profile.json`. CS and
 CLKSEL use 10 kΩ pulldowns, not pullups. The intended operational CLKSEL level
 remains 1 for the internal oscillator; firmware must make that transition only
 after the supply-stable boundary. This contract does not claim that rail timing
-has been measured.
+has been measured. CLK itself (ADS pin 37, not pin 51) has a fitted 10 kΩ
+`R_CLK_DN` to DGND: CLKSEL low selects that external-clock input during startup.
+This adds one instance of the already selected resistor, a $0.06 planning allowance,
+not a new part family. Clock output remains disabled.
 
 The firmware does not load `hardware/rev_a/board_profile.json`; the explicit
 `EEGLAB_REV_A_S3` header is checked against it in tests. Its reviewed path now
