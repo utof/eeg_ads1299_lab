@@ -73,6 +73,12 @@ void check(bool spi) {
     const auto low=event("latch",5,0,released+1);
     const auto high=event("latch",5,1,low+1);
     const auto spiAt=event("spi",-1,0);
+    // Independent expected tuple, not the production constants under test.
+    const int expectedSpiPins[]={12,13,11,10};
+    for(int i=0;i<4;++i) {
+        const auto argument=event("spi-pin",i,expectedSpiPins[i]);
+        require(high<argument && argument<spiAt,"SPI pin tuple or boundary order differs");
+    }
     require(vcap<low && low<high && high<spiAt,"actual reset/SPI ordering differs");
     require(events[high].us-events[low].us>=2,"actual reset pulse too short");
     require(events[spiAt].us-events[high].us>=10,"actual reset recovery too short");

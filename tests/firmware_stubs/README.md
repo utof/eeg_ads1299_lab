@@ -14,9 +14,11 @@ process, preventing state or serial replies from leaking between runs.
 
 Seven scenarios cover the unchanged guard, no reply, prequeued replies, only a
 fresh R, an early/queued V, both fresh replies and an injected GPIO latch failure.
-Five deliberate source mutations must compile and then fail behavioral checks:
+Eight deliberate source mutations must compile and then fail behavioral checks:
 remove the review stop, accept queued replies, skip the sequence, request the
-wrong VCAP key, or ignore GPIO failure. They supplement—not replace—the timing
+wrong VCAP key, ignore GPIO failure, swap SPI MISO/MOSI, or use the wrong SCLK/CS.
+The SPI double records all four initialization arguments before stopping; the
+oracle checks the independent expected tuple (12, 13, 11, 10). They supplement—not replace—the timing
 and pin-operation mutants in `test_firmware_startup.py`.
 
 Run `uv run --locked python -m pytest tests/test_firmware_sketch_startup.py -q`
