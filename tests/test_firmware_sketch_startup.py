@@ -32,6 +32,21 @@ STUBS = ROOT / "tests/firmware_stubs"
         ("fresh", "eeglab::startRevA(startup);", "(void)startup;"),
         ("fresh", "awaitBenchKey('V'", "awaitBenchKey('R'"),
         ("gpio-failure", ")!=ESP_OK)", ")==9999)"),
+        (
+            "fresh",
+            "SPI.begin(PIN_SCLK,PIN_MISO,PIN_MOSI,PIN_CS);",
+            "SPI.begin(PIN_SCLK,PIN_MOSI,PIN_MISO,PIN_CS);",
+        ),
+        (
+            "fresh",
+            "SPI.begin(PIN_SCLK,PIN_MISO,PIN_MOSI,PIN_CS);",
+            "SPI.begin(PIN_START,PIN_MISO,PIN_MOSI,PIN_CS);",
+        ),
+        (
+            "fresh",
+            "SPI.begin(PIN_SCLK,PIN_MISO,PIN_MOSI,PIN_CS);",
+            "SPI.begin(PIN_SCLK,PIN_MISO,PIN_MOSI,PIN_CLKSEL);",
+        ),
     ],
     ids=[
         "guard",
@@ -46,6 +61,9 @@ STUBS = ROOT / "tests/firmware_stubs"
         "mutant-no-sequence",
         "mutant-wrong-vcap-key",
         "mutant-ignored-gpio-failure",
+        "mutant-swapped-spi-data",
+        "mutant-wrong-spi-clock",
+        "mutant-wrong-spi-cs",
     ],
 )
 def test_actual_sketch_startup(tmp_path: Path, scenario: str, before: str, after: str) -> None:
