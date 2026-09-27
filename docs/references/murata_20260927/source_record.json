@@ -1,0 +1,176 @@
+{
+  "scope": "dated_manufacturer_evidence_not_a_bom_or_live_readiness_gate",
+  "captured_date_utc": "2026-09-27",
+  "manufacturer_pcn_obtained": false,
+  "discontinuation_dates_verified": false,
+  "assembly_qualified": false,
+  "minimum_effective_capacitance_qualified": false,
+  "replacement_selected": false,
+  "catalog": {
+    "url": "https://ds.murata.com/simsurfing_data/data/mlcc.zip",
+    "utc": "2026-09-27T05:31:48Z",
+    "sha256": "ec2182dffe5dc04424e03838bac799591298faae48ab449570f55ae31e9eb899",
+    "csv_sha256": "149339606adaeb8bd7251ee43bec06d0069ff20f6a169864acdde5aecebe434a"
+  },
+  "status_legend": {
+    "url": "https://ds.murata.com/simsurfing/img/supply_status/supply_status_info_en-us.png",
+    "sha256": "80afd23f976db4148668f87d06ddb3caaa7a20179e362119c082d9e1cc0513f4",
+    "codes": {
+      "B": "In Production",
+      "C": "To be discontinued",
+      "D": "Discontinued"
+    }
+  },
+  "selected_parts": {
+    "GRM1885C1H152JA01D": {
+      "part_number": "GRM1885C1H152JA01",
+      "public_part_number": "GRM1885C1H152JA01#",
+      "channel_code": "jp",
+      "production_status_ja": "B",
+      "production_status_en-us": "B",
+      "production_status_zh-cn": "B",
+      "L": "1.6±0.1",
+      "W": "0.8±0.1",
+      "size_thickness_max": "0.9",
+      "LWSize_mm_inch": "1608M/0603",
+      "tempchar": "C0G",
+      "rvol": "50",
+      "tolerance": "±5%",
+      "capacitance_pu": "1500pF",
+      "Condition": "1kHz / 1Vrms",
+      "TC_Condition": "1kHz / 1Vrms",
+      "technical_pdf": {
+        "url": "https://ds.murata.com/simserve/characteristics?ReqType=TechPDF&partnumber=GRM1885C1H152JA01&techpdfname=technical_pdf_Capacitor01&lang=en",
+        "captured_utc": "2026-09-27T05:37:47Z",
+        "sha256": "a17f7d7050cbe42d215fb7ee21eb61d886fe7475b2f5dafe52ea693aaef107b7",
+        "typical_only": true,
+        "sheet_as_of": "Sep. 2026",
+        "thickness_mm": "0.8±0.1"
+      }
+    },
+    "GRM1885C1H472JA01D": {
+      "part_number": "GRM1885C1H472JA01",
+      "public_part_number": "GRM1885C1H472JA01#",
+      "channel_code": "jp",
+      "production_status_ja": "B",
+      "production_status_en-us": "B",
+      "production_status_zh-cn": "B",
+      "L": "1.6±0.1",
+      "W": "0.8±0.1",
+      "size_thickness_max": "0.9",
+      "LWSize_mm_inch": "1608M/0603",
+      "tempchar": "C0G",
+      "rvol": "50",
+      "tolerance": "±5%",
+      "capacitance_pu": "4700pF",
+      "Condition": "1kHz / 1Vrms",
+      "TC_Condition": "1kHz / 1Vrms",
+      "technical_pdf": {
+        "url": "https://ds.murata.com/simserve/characteristics?ReqType=TechPDF&partnumber=GRM1885C1H472JA01&techpdfname=technical_pdf_Capacitor01&lang=en",
+        "captured_utc": "2026-09-27T05:41:24Z",
+        "sha256": "a01240e039dfa78d49cae7e0242261aa4be33957773c093403abd7c1cdeb9388",
+        "typical_only": true,
+        "sheet_as_of": "Sep. 2026",
+        "thickness_mm": "0.8±0.1"
+      }
+    },
+    "GRM188R61E105KA12D": {
+      "part_number": "GRM188R61E105KA12",
+      "public_part_number": "GRM188R61E105KA12#",
+      "channel_code": "jp",
+      "production_status_ja": "C",
+      "production_status_en-us": "C",
+      "production_status_zh-cn": "C",
+      "L": "1.6±0.1",
+      "W": "0.8±0.1",
+      "size_thickness_max": "0.9",
+      "LWSize_mm_inch": "1608M/0603",
+      "tempchar": "X5R",
+      "rvol": "25",
+      "tolerance": "±10%",
+      "capacitance_pu": "1μF",
+      "Condition": "1kHz / 1Vrms",
+      "TC_Condition": "1kHz / 1Vrms",
+      "technical_pdf": {
+        "url": "https://ds.murata.com/simserve/characteristics?ReqType=TechPDF&partnumber=GRM188R61E105KA12&techpdfname=technical_pdf_Capacitor01&lang=en",
+        "captured_utc": "2026-09-27T05:37:46Z",
+        "sha256": "a173878ee0a782dcafefe6af5900fef96b3506ef16393fe44f872be0fdc0d56a",
+        "typical_only": true,
+        "sheet_as_of": "Sep. 2026",
+        "thickness_mm": "0.8±0.1"
+      }
+    },
+    "GRM188R71H104KA93D": {
+      "part_number": "GRM188R71H104KA93",
+      "public_part_number": "GRM188R71H104KA93#",
+      "channel_code": "jp",
+      "production_status_ja": "C",
+      "production_status_en-us": "C",
+      "production_status_zh-cn": "C",
+      "L": "1.6±0.1",
+      "W": "0.8±0.1",
+      "size_thickness_max": "0.9",
+      "LWSize_mm_inch": "1608M/0603",
+      "tempchar": "X7R",
+      "rvol": "50",
+      "tolerance": "±10%",
+      "capacitance_pu": "0.1μF",
+      "Condition": "1kHz / 1Vrms",
+      "TC_Condition": "1kHz / 1Vrms",
+      "technical_pdf": {
+        "url": "https://ds.murata.com/simserve/characteristics?ReqType=TechPDF&partnumber=GRM188R71H104KA93&techpdfname=technical_pdf_Capacitor01&lang=en",
+        "captured_utc": "2026-09-27T05:37:46Z",
+        "sha256": "d1f4476e2b74ccf1956a09719089fed2a7773eeabaef79a5921b82b64d27e2ae",
+        "typical_only": true,
+        "sheet_as_of": "Sep. 2026",
+        "thickness_mm": "0.8±0.1"
+      }
+    },
+    "GRM219R61A106KE44D": {
+      "part_number": "GRM219R61A106KE44",
+      "public_part_number": "GRM219R61A106KE44#",
+      "channel_code": "jp",
+      "production_status_ja": "D",
+      "production_status_en-us": "D",
+      "production_status_zh-cn": "D",
+      "L": "2±0.2",
+      "W": "1.25±0.2",
+      "size_thickness_max": "0.95",
+      "LWSize_mm_inch": "2012M/0805",
+      "tempchar": "X5R",
+      "rvol": "10",
+      "tolerance": "±10%",
+      "capacitance_pu": "10μF",
+      "Condition": "1kHz / 0.5Vrms",
+      "TC_Condition": "1kHz / 0.5Vrms",
+      "technical_pdf": {
+        "url": "https://ds.murata.com/simserve/characteristics?ReqType=TechPDF&partnumber=GRM219R61A106KE44&techpdfname=technical_pdf_Capacitor01&lang=en",
+        "captured_utc": "2026-09-27T05:37:46Z",
+        "sha256": "17b273576255d195f66bc2cd05a80022d241758a9fddb50b798a53444fcef309",
+        "typical_only": true,
+        "sheet_as_of": "Sep. 2026",
+        "thickness_mm": "0.85±0.1"
+      }
+    }
+  },
+  "capture_runs": [
+    {
+      "commit": "a4c9eed06df9718cc1a5c75787da9ebc3911d876",
+      "run_id": 36297464114,
+      "artifact_id": 10925060088,
+      "zip_sha256": "9de66226e1a79a3f075be57f4d54ef1be4fb336d77ba6d8b84d921b3f6984f0e"
+    },
+    {
+      "commit": "de404f6f0fcd10bff5a86cde50061e8ffb9a5264",
+      "run_id": 36297745881,
+      "artifact_id": 10924062182,
+      "zip_sha256": "c704485d168008f882db837a5f77de63033125050b231ca3c485f46bfd1ed140"
+    },
+    {
+      "commit": "538d643a20555c774c2fcffaf8ef4a8ccf1ff372",
+      "run_id": 36297920294,
+      "artifact_id": 10924004157,
+      "zip_sha256": "1e9a40c5a694c23ae9d227074c945abe228860260c1d1dbf1e27fcd5a1c97689"
+    }
+  ]
+}
