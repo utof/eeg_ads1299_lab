@@ -15,6 +15,7 @@ from .check_schematic import (
     parse_schematic_xml,
     validate_schematic,
 )
+from .footprint_geometry import FootprintPad, validate_footprint
 from .harness import HarnessNet, bench_harness
 from .schematic_bom import validate_schematic_bom
 from .schematic_sources import read_schematic_file, schematic_source_snapshot, validate_erc
@@ -23,6 +24,7 @@ __all__ = [
     "BillOfMaterials",
     "BoardProfile",
     "CostTotals",
+    "FootprintPad",
     "HarnessNet",
     "SchematicNetlist",
     "SchematicPart",
@@ -35,6 +37,7 @@ __all__ = [
     "totals",
     "validate",
     "validate_erc",
+    "validate_footprint",
     "validate_schematic",
     "validate_schematic_bom",
 ]

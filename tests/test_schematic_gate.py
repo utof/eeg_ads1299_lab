@@ -10,8 +10,8 @@ from pathlib import Path
 
 import pytest
 
-from hardware.rev_a import parse_schematic_xml
 from lab.validation import read_object
+from tests.footprint_fixtures import write_footprint_library
 from tools.check import main
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -27,15 +27,7 @@ def _fake_project(root: Path) -> Path:
     (root / "tools").mkdir()
     shutil.copyfile(ROOT / "tools/check.py", root / "tools/check.py")
     shutil.copyfile(ROOT / "pyproject.toml", root / "pyproject.toml")
-    footprints = root / "footprints"
-    for part in parse_schematic_xml(FIXTURE).parts.values():
-        if not part.footprint:
-            continue
-        library, name = part.footprint.split(":")
-        path = footprints / (library + ".pretty") / (name + ".kicad_mod")
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text("SOFTWARE TEST DOUBLE: NOT A NATIVE FOOTPRINT\n")
-    return footprints
+    return write_footprint_library(root / "footprints")
 
 
 def _clean_erc() -> str:
@@ -153,6 +145,7 @@ def _change_dependency(root: Path, fault: str) -> None:
         "change-profile",
         "console-route-fails",
         "missing-console-compiler",
+        "wrong-footprint-pad",
         "change-footprint",
         "missing-dependency",
         "native-tests-fail",
@@ -168,6 +161,9 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
     out.mkdir()
     marker = out / "SCHEMATIC_CHECK.json"
     marker.write_text('{"passed": true, "old": true}')
+    if fault == "wrong-footprint-pad":
+        path = footprints / "Package_QFP.pretty/TQFP-64_10x10mm_P0.5mm.kicad_mod"
+        path.write_text(path.read_text().replace('(pad "1"', '(pad "65"', 1))
     if fault == "missing-dependency":
         (root / "hardware/rev_a/kicad/RevA.kicad_sym").unlink()
 
@@ -200,7 +196,7 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
         assert report["physical_hardware_tested"] is False
         assert report["body_connection_authorized"] is False
         assert report["schematic_released"] is False
-        assert len(read_object(report["source_sha256"], "hashes")) == 43
+        assert len(read_object(report["source_sha256"], "hashes")) == 44
         directory = out / str(report["artifact_directory"])
         harness = read_object(json.loads((directory / "harness.json").read_text()), "harness")
         assert harness["physical_wiring_approved"] is False

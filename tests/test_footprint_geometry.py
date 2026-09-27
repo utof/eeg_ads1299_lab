@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from hardware.rev_a import schematic_source_snapshot
-from tests.footprint_fixtures import write_footprint_library
+from tests.footprint_fixtures import footprint_sources, write_footprint_library
 
 ROOT = Path(__file__).resolve().parents[1]
 CAD = ROOT / "hardware/rev_a/kicad"
@@ -71,3 +71,101 @@ def test_snapshot_rejects_same_name_but_wrong_pad_geometry(
 
 def test_canonical_footprints_remain_readable(tmp_path: Path) -> None:
     assert len(schematic_source_snapshot(CAD, write_footprint_library(tmp_path))) == 16
+
+
+def _footprints() -> list[tuple[str, str]]:
+    return list(footprint_sources().items())
+
+
+@pytest.mark.parametrize(("footprint", "content"), _footprints(), ids=[p[0] for p in _footprints()])
+def test_every_numbered_pad_is_independently_required(footprint: str, content: str) -> None:
+    from hardware.rev_a import validate_footprint
+
+    pads = validate_footprint(footprint, content)
+    for pad in pads:
+        changed = content.replace(f'(pad "{pad.number}"', '(pad "999"', 1)
+        assert changed != content
+        with pytest.raises(ValueError, match="footprint pad numbers"):
+            validate_footprint(footprint, changed)
+
+
+@pytest.mark.parametrize(("footprint", "content"), _footprints(), ids=[p[0] for p in _footprints()])
+def test_geometry_is_not_a_text_hash_allowlist(footprint: str, content: str) -> None:
+    from hardware.rev_a import validate_footprint
+
+    original = validate_footprint(footprint, content)
+    # Formatting, equivalent numbers and display labels are not copper geometry.
+    changed = content.replace("\t", "  ").replace('"REF**"', '"READ_ONLY_REVIEW"')
+    changed = changed.replace("(size 0.9 0.95)", "(size 9e-1 0.9500)")
+    assert validate_footprint(footprint, changed) == original
+
+
+@pytest.mark.parametrize(("footprint", "content"), _footprints(), ids=[p[0] for p in _footprints()])
+def test_only_nonpolar_components_accept_pad_one_two_swap(footprint: str, content: str) -> None:
+    from hardware.rev_a import validate_footprint
+
+    changed = content.replace('(pad "1"', '(pad "temporary"').replace('(pad "2"', '(pad "1"')
+    changed = changed.replace('(pad "temporary"', '(pad "2"')
+    nonpolar = footprint.startswith(("Capacitor_SMD:", "Resistor_SMD:"))
+    if nonpolar:
+        assert len(validate_footprint(footprint, changed)) == 2
+    else:
+        with pytest.raises(ValueError, match="geometry differs"):
+            validate_footprint(footprint, changed)
+
+
+@pytest.mark.parametrize(
+    ("before", "after"),
+    [
+        ('(footprint "C_0603_1608Metric"', '(footprint "wrong"'),
+        ('(layer "F.Cu")', '(layer "B.Cu")'),
+        ("(attr smd)", "(attr through_hole)"),
+        ("(attr smd)", "(attr smd) (attr smd)"),
+        ("(at -0.775 0)", "(at nan 0)"),
+        ("(at -0.775 0)", "(at inf 0)"),
+        ("(at -0.775 0)", "(at not-a-number 0)"),
+        ("(at -0.775 0)", "(at -0.775)"),
+        ("(at -0.775 0)", "(at -0.775 0 45)"),
+        ("(at -0.775 0)", "(at -0.775 0) (at -0.775 0)"),
+        ("(size 0.9 0.95)", "(size -0.9 0.95)"),
+        ("(size 0.9 0.95)", "(size 0 0.95)"),
+        ("(size 0.9 0.95)", "(size (hidden 0.9) 0.95)"),
+        ("(size 0.9 0.95)", "(size 0.9 0.95) (offset 2 0)"),
+        ("(roundrect_rratio 0.25)", "(roundrect_rratio 0.5)"),
+        ("smd roundrect", "smd custom"),
+        ("(attr smd)", "(attr smd) (solder_mask_margin -1)"),
+        ('(layers "F.Cu" "F.Mask" "F.Paste")', '(layers "F.Cu" "F.Mask" "F.Mask")'),
+        ('(layer "F.SilkS")', '(layer "F.Cu")'),
+    ],
+)
+def test_unsupported_or_wrong_copper_definition_fails_closed(before: str, after: str) -> None:
+    from hardware.rev_a import validate_footprint
+
+    footprint, content = _footprints()[0]
+    assert before in content
+    with pytest.raises(ValueError, match="footprint"):
+        validate_footprint(footprint, content.replace(before, after, 1))
+
+
+def test_rotated_rectangle_with_swapped_size_preserves_copper() -> None:
+    from hardware.rev_a import validate_footprint
+
+    footprint, content = _footprints()[0]
+    changed = content.replace("(at -0.775 0)", "(at -0.775 0 90)", 1)
+    changed = changed.replace("(size 0.9 0.95)", "(size 0.95 0.9)", 1)
+    assert validate_footprint(footprint, changed) == validate_footprint(footprint, content)
+
+
+@pytest.mark.parametrize("content", ["", "plain", "()", "(footprint", '"unterminated', "(" * 65])
+def test_malformed_structure_is_not_accepted(content: str) -> None:
+    from hardware.rev_a import validate_footprint
+
+    with pytest.raises(ValueError, match="footprint"):
+        validate_footprint("Capacitor_SMD:C_0603_1608Metric", content)
+
+
+def test_unknown_library_id_cannot_select_a_reviewed_pad_shape() -> None:
+    from hardware.rev_a import validate_footprint
+
+    with pytest.raises(ValueError, match="outside"):
+        validate_footprint("Unknown:C_0603_1608Metric", _footprints()[0][1])
