@@ -176,8 +176,9 @@ No new registry, runtime download, CAD generator or dependency is introduced.
 The fixture sources are unmodified KiCad files, individually gzip-compressed
 with zero timestamps. The collection retains KiCad's attribution/license.
 They are ordinary-test fixtures, never a substitute for the installed library.
-Nine actual CLI tests load and export the installed footprints to SVG and compare
-their parsed pads with the frozen fixture. The native exports were inspected;
+Nine actual CLI tests validate the installed pads against the geometry contract
+and load/export those files to SVG. The frozen fixture is not a second, stricter
+specification of native acceptance. The native exports were inspected;
 no physical package or board was measured.
 
 Two additional native controls shrink a VCAP land and a header drill in copied
@@ -236,3 +237,37 @@ Primary drawings govern the comparison above. Older research's VREFP-to-DVDD,
 BIAS and generic capacitor recommendations are not used to redesign this circuit.
 Issue #45 also retains actual interface/board identification and powered-off
 qualification. None of this authorizes connecting a person or purchasing a PCB.
+
+
+## Recovery review: distinct lands and consistent native acceptance
+
+The preserved candidate was published without reconstruction as `3855655`, with
+exactly the same tree as the archived local `c458dd4`. Further review found two
+software defects; test-only `56dffbb` retains eight observed failures and three
+passing controls before correction.
+
+The original matcher allowed each actual nonpolar pad to match *any* expected
+land, then rejected only exactly equal pad centres. Moving the second pad onto
+the first, plus a half-nanometre offset, therefore passed: both pads matched the
+same expected land within the existing representation tolerance, and the
+opposite land was absent. This is a millimetre-scale wrong relocation, not an
+argument that a half-nanometre manufacturing difference matters. The checker now
+requires a one-to-one assignment, consuming each expected land exactly once.
+Normal rounding of distinct lands still passes, as do nonpolar pin swaps.
+
+The native test had the opposite problem: its literal parsed-fixture equality
+rejected permitted nonpolar pad swaps after the geometry validator accepted them.
+Native loading/export now uses the same geometry acceptance contract rather than
+silently imposing a stricter second one. Three copied-library pin-swap controls
+reach actual KiCad export. A separate near-duplicate control also loads/exports
+in KiCad, but is rejected by the corrected geometry check. These are four new
+native regressions in addition to the earlier 21; software-only controls are
+not counted as native execution.
+
+KiCad documents a one-nanometre internal board/footprint unit and limited stored
+coordinate precision [8]. That is format context, not an assembly allowance or
+a reason to remove the checker's existing numeric tolerance. No installed
+footprint, schematic, component, firmware, rail or approval gate changed.
+
+[8] KiCad developer documentation, S-expression format, Board Coordinates.
+https://dev-docs.kicad.org/en/file-formats/sexpr-intro/#_board_coordinates

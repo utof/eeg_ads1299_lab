@@ -243,9 +243,13 @@ def validate_footprint(footprint: str, content: str) -> tuple[FootprintPad, ...]
     if len(actual) != len(expected) or {p.number for p in actual} != {p.number for p in expected}:
         raise ValueError("footprint pad numbers/count differ (including duplicates)")
     nonpolar = footprint in _NONPOLAR
+    unmatched = list(expected)
     for pad in actual:
-        if not any(_same(pad, other, nonpolar) for other in expected):
+        # Inspected lands are far apart relative to representation tolerance.
+        # Each must match exactly once; two near-coincident nonpolar pads must
+        # not both consume the same expected land and leave the other absent.
+        matches = [i for i, other in enumerate(unmatched) if _same(pad, other, nonpolar)]
+        if len(matches) != 1:
             raise ValueError(f"footprint {footprint} pad {pad.number}: inspected geometry differs")
-    if len({(p.x_mm, p.y_mm) for p in actual}) != len(actual):
-        raise ValueError("footprint has overlapping pad centres")
+        unmatched.pop(matches[0])
     return tuple(sorted(actual, key=lambda pad: int(pad.number)))

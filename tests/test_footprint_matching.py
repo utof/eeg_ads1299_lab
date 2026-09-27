@@ -54,7 +54,7 @@ def test_source_snapshot_rejects_a_near_duplicate_copper_pair(tmp_path: Path) ->
 def test_benign_nonpolar_swap_reaches_the_existing_native_check(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, footprint: str
 ) -> None:
-    from tests.test_footprint_native import test_native_library_loads_and_exports_inspected_pads
+    from tests.test_footprint_native import _inspect_and_export
 
     root = write_footprint_library(tmp_path / "footprints")
     library, name = footprint.split(":")
@@ -65,7 +65,7 @@ def test_benign_nonpolar_swap_reaches_the_existing_native_check(
     monkeypatch.setenv("KICAD9_FOOTPRINT_DIR", str(root))
     # Exercise the exact existing native path: accepting this only in the pure
     # validator is insufficient if its subsequent fixture comparison rejects it.
-    test_native_library_loads_and_exports_inspected_pads(tmp_path, footprint)
+    _inspect_and_export(tmp_path, footprint)
 
 
 @pytest.mark.schematic
