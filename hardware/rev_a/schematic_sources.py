@@ -8,6 +8,7 @@ import stat
 from pathlib import Path
 
 from .check_schematic import FOOTPRINTS
+from .footprint_geometry import validate_footprint
 from .schematic_symbols import validate_symbol_caches
 
 CAD_FILES = frozenset(
@@ -150,6 +151,7 @@ def _footprints(root: Path) -> dict[str, str]:
         if root.is_symlink() or (root / relative.parent).is_symlink():
             raise ValueError("footprint library directory must not be a link")
         text = read_schematic_file(root / relative)
+        validate_footprint(footprint, text)
         result["footprints/" + relative.as_posix()] = hashlib.sha256(text.encode()).hexdigest()
     return result
 

@@ -320,6 +320,7 @@ def _schematic_snapshot(cad: Path, footprints: Path) -> dict[str, str]:
         "schematic_sources.py",
         "schematic_symbols.py",
         "schematic_bom.py",
+        "footprint_geometry.py",
         "harness.py",
         "__init__.py",
     ):
