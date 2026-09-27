@@ -87,7 +87,16 @@ def test_native_zero_and_early_source_edges_keep_the_initial_sample(
     tmp_path: Path, source_on: float
 ) -> None:
     assert shutil.which("ngspice"), "actual early-source test requires ngspice"
-    root = run_supply_study(tmp_path, timing=SupplyTiming(source_on_s=source_on))
+    try:
+        root = run_supply_study(tmp_path, timing=SupplyTiming(source_on_s=source_on))
+    except RuntimeError:
+        # The CI upload does not include pytest's temporary directory. Surface
+        # each retained case failure before that directory disappears.
+        for report_path in tmp_path.glob("*/study.json"):
+            print(report_path.read_text())
+        for log_path in tmp_path.glob("*/*/ngspice.log"):
+            print(str(log_path), log_path.read_text()[-4000:])
+        raise
     report = read_object(json.loads((root / "study.json").read_text()), "report")
     assert report["native_comparison_passed"] is True
     assert read_object(report["timing"], "timing")["source_on_s"] == source_on
