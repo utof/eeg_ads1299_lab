@@ -162,3 +162,12 @@ https://search.murata.co.jp/Ceramy/image/img/A01X/G101/ENG/GRM21BR61C106KE15-01.
 [3] Murata HEMCG2-2560, 2015-11-05, factory-addition notice; not a target-specific
 current approval or discontinuation notice.
 https://www.farnell.com/datasheets/2006461.pdf
+
+## Explicit timing continuation
+
+`SupplyTiming` now makes source-on, pulse-on/off, integration stop and the
+observation interval explicit while preserving the original defaults and
+results above. The existing study command accepts timing flags and reports
+whether the entire configured source-tolerance range fits, separately from
+whether any mathematical source is feasible. See `REV_A_SUPPLY_TIMING.md`.
+This does not turn the historical 4..20 ms example into an ADS startup policy.
