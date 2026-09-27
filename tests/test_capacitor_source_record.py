@@ -35,7 +35,7 @@ def test_exact_bom_parts_have_dated_manufacturer_rows(
     assert line["mpn"] == core + "D"
     assert line["quantity"] == len(line["references"]) == quantity
     assert row["part_number"] == core and row["public_part_number"] == core + "#"
-    assert row["production_status_en-us"] == status
+    assert [row["production_status_" + lang] for lang in ("ja", "en-us", "zh-cn")] == [status] * 3
     assert row["Condition"] == ("1kHz / 0.5Vrms" if role == "bulk_10u" else "1kHz / 1Vrms")
     pdf = read_object(row["technical_pdf"], "technical PDF")
     assert pdf["typical_only"] is True
@@ -59,6 +59,7 @@ def test_planned_discontinuation_is_not_relabelled_as_stopped_production() -> No
 
 def test_typical_catalog_evidence_cannot_claim_qualification_or_a_pcn_date() -> None:
     data = _record()
+    assert data["scope"] == "dated_manufacturer_evidence_not_a_bom_or_live_readiness_gate"
     assert data["captured_date_utc"] == "2026-09-27"
     assert data["manufacturer_pcn_obtained"] is False
     assert data["discontinuation_dates_verified"] is False
