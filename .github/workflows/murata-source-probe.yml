@@ -7,47 +7,29 @@ jobs:
   public-sources:
     if: github.head_ref == 'investigate/murata-source-capture'
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
+    timeout-minutes: 5
     steps:
-      - name: Capture public status legend and selected technical exports
+      - name: Capture the remaining selected C0G technical sheet
         shell: python
         run: |
-          import concurrent.futures, hashlib, json, pathlib, time, urllib.parse, urllib.request
+          import hashlib, json, pathlib, time, urllib.request
           out = pathlib.Path('source-capture')
           out.mkdir()
-          urls = {
-            'status-legend.png': 'https://ds.murata.com/simsurfing/img/supply_status/supply_status_info_en-us.png',
-            'status-B.png': 'https://ds.murata.com/simsurfing/img/supply_status/status_B_en-us.png',
-            'status-C.png': 'https://ds.murata.com/simsurfing/img/supply_status/status_C_en-us.png',
-            'status-D.png': 'https://ds.murata.com/simsurfing/img/supply_status/status_D_en-us.png',
-          }
-          # Public UI clickTechPDF uses these parameters; no private ModeType,
-          # login, CAPTCHA handling or account operation is requested.
-          for core in ('GRM219R61A106KE44', 'GRM188R71H104KA93', 'GRM188R61E105KA12', 'GRM1885C1H152JA01'):
-            params = urllib.parse.urlencode({'ReqType': 'TechPDF', 'partnumber': core, 'techpdfname': 'technical_pdf_Capacitor01', 'lang': 'en'})
-            urls[core + '.pdf'] = 'https://ds.murata.com/simserve/characteristics?' + params
-          def capture(item):
-            name, url = item
-            row = {'url': url, 'utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}
-            try:
-              request = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0', 'Referer': 'https://ds.murata.com/simsurfing/mlcc.html'})
-              with urllib.request.urlopen(request, timeout=30) as response:
-                data = response.read(8_000_001)
-                if len(data) > 8_000_000:
-                  raise ValueError('source exceeds research size limit')
-                row.update(status=response.status, final_url=response.url, sha256=hashlib.sha256(data).hexdigest(), bytes=len(data), content_type=response.headers.get('Content-Type'))
-              valid = data.startswith(b'\x89PNG\r\n\x1a\n') if name.endswith('.png') else data.startswith(b'%PDF-')
-              row['expected_format_returned'] = valid
-              row['file'] = name if valid else name + '.response'
-              (out / row['file']).write_bytes(data)
-            except Exception as exc:
-              row['error'] = type(exc).__name__ + ': ' + str(exc)
-            print(json.dumps(row), flush=True)
-            return row
-          with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
-            rows = list(pool.map(capture, urls.items()))
-          (out / 'CAPTURE.json').write_text(json.dumps({'scope': 'public_document_retrieval_not_approval', 'sources': rows}, indent=2) + '\n')
-      - name: Retain public documents and retrieval failures
+          url = 'https://ds.murata.com/simserve/characteristics?ReqType=TechPDF&partnumber=GRM1885C1H472JA01&techpdfname=technical_pdf_Capacitor01&lang=en'
+          row = {'scope': 'public_technical_sheet_not_approval', 'url': url, 'utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}
+          try:
+            request = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0', 'Referer': 'https://ds.murata.com/simsurfing/mlcc.html'})
+            with urllib.request.urlopen(request, timeout=30) as response:
+              data = response.read(8_000_001)
+              if len(data) > 8_000_000 or not data.startswith(b'%PDF-'):
+                raise ValueError('missing or oversized technical PDF')
+              row.update(status=response.status, final_url=response.url, sha256=hashlib.sha256(data).hexdigest(), bytes=len(data))
+            (out / 'GRM1885C1H472JA01.pdf').write_bytes(data)
+          except Exception as exc:
+            row['error'] = type(exc).__name__ + ': ' + str(exc)
+          (out / 'CAPTURE.json').write_text(json.dumps(row, indent=2) + '\n')
+          print(json.dumps(row), flush=True)
+      - name: Retain the public sheet and retrieval evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
