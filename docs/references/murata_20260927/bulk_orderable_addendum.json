@@ -1,0 +1,85 @@
+{
+  "scope": "dated_orderable_identity_not_a_bom_change",
+  "captured_date_utc": "2026-09-27",
+  "core": "GRM21BR61C106KE15",
+  "orderable_for_qualification": "GRM21BR61C106KE15L",
+  "source": {
+    "author": "Murata Manufacturing Co., Ltd.",
+    "title": "Product Search Data Sheet GRM21BR61C106KE15#",
+    "document_date": "2023-03-19",
+    "url": "https://www.farnell.com/datasheets/3929902.pdf",
+    "manufacturer_authored_mirror": true,
+    "sha256": "10cc75d69025ba450626bfaee4937d849c40d0e9c3d2ebd9caa2bffa7dc965f0",
+    "pages_verified": [
+      1,
+      2
+    ],
+    "typical_specifications_only": true,
+    "current_approval_required_before_ordering": true
+  },
+  "packaging": {
+    "L": {
+      "mpn": "GRM21BR61C106KE15L",
+      "type": "embossed_tape",
+      "reel_diameter_mm": 180,
+      "reel_quantity": 3000
+    },
+    "K": {
+      "mpn": "GRM21BR61C106KE15K",
+      "type": "embossed_tape",
+      "reel_diameter_mm": 330,
+      "reel_quantity": 10000
+    }
+  },
+  "body_mm": {
+    "length": [
+      1.9,
+      2.1
+    ],
+    "width": [
+      1.15,
+      1.35
+    ],
+    "height": [
+      1.15,
+      1.35
+    ]
+  },
+  "terminal_geometry_mm": {
+    "external_terminal_e": [
+      0.2,
+      0.7
+    ],
+    "gap_g_min": 0.7
+  },
+  "qualified_or_authorized": {
+    "current_approval_sheet": false,
+    "termination_metallurgy": false,
+    "assembly_lands": false,
+    "minimum_effective_capacitance": false,
+    "delivered_quote": false,
+    "replacement": false,
+    "purchase": false,
+    "body_connection": false
+  },
+  "capture": {
+    "pr": 53,
+    "run": 36316510711,
+    "artifact": 10931190951,
+    "archive_sha256": "5111c54905c87cc12c23d086639ba680482b99704fb3341a461b0a62f428e0fb",
+    "run_conclusion": "failure",
+    "partial_success": "Two manufacturer-authored mirrors retrieved; the 2016-reference mirror was not a PDF. Direct old manufacturer URL returned HTTP 404 in run36316102077."
+  },
+  "excluded_evidence": {
+    "unverified_2016_reflow_table": "Parsed web text was available, but a visual/table source could not be retrieved; no land dimensions adopted.",
+    "linked_pcn": {
+      "url": "https://www.farnell.com/datasheets/2006461.pdf",
+      "sha256": "5a33b1fdd22b091f6b9738e6b9558d8d34b701552e56679c4ccd8b75c35380e5",
+      "document": "HEMCG2-2560",
+      "date": "2015-11-05",
+      "subject": "Factory addition, not a discontinuation notice",
+      "exact_target_in_extracted_mpn_list": false
+    },
+    "stock_price": "No current delivered quote or worldwide stock audit; indexed retailer stock observations conflict."
+  }
+}

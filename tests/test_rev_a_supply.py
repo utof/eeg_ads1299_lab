@@ -241,6 +241,14 @@ def test_actual_ngspice_comparison_does_not_promote_margin_breaches_to_hardware_
         "shared_1_ohm": False,
         "bulk_100uf": False,
     }
+    for entry in values:
+        row = read_object(entry, "case")
+        assert "model_source_window_v" in row
+        assert row["model_source_window_feasible"] is True
+    # Independent stiff-source settled divider: Vs/Vrail = 1 + Rfeed*Ganalog.
+    assert read_object(values[0], "stiff")["model_source_window_v"] == pytest.approx(
+        [4.75 * 1.02, 5.25 * 1.02], abs=1e-10
+    )
 
 
 @settings(max_examples=60, derandomize=True, deadline=None)

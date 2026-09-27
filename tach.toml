@@ -189,4 +189,4 @@ depends_on = ["hardware.rev_a", "lab.analog", "lab.data_types", "lab.validation"
 
 [[interfaces]]
 from = ["lab.rev_a_supply"]
-expose = ["SupplyCase", "steady_state", "rail_response", "supply_netlist", "run_supply_study", "main"]
+expose = ["SupplyCase", "steady_state", "rail_response", "source_voltage_window", "supply_netlist", "run_supply_study", "main"]
