@@ -123,3 +123,13 @@ https://content.kemet.com/datasheets/KEM_T2005_T491.pdf
 Read-only capture PR #56, run 36338113483, artifact 10937703169. Its earlier
 Murata attempt is run 36337555643 / artifact 10937348548 and contains failures
 only. The temporary branch must close without merging; it is not product code.
+
+## Independent review correction: courtyard stroke
+
+Codex independently found that endpoints and fill alone did not bind the
+rendered courtyard: a 10 mm stroke could replace 0.05 mm without rejection.
+Twelve altered, absent, duplicated, wrong-style and extra-field controls failed
+before correction on the two local patterns; two harmless numeric/order controls
+passed. The checker now requires exactly one 0.05 mm default continuous stroke
+with one width and one type. The design files themselves did not change. This
+closes a source-geometry gap, not a new manufacturing tolerance or approval.

@@ -275,6 +275,19 @@ def _t491_courtyard(footprint: str, root: _Form) -> None:
         raise ValueError("footprint T491 courtyard dimensions differ from nominal reflow")
     if _one(rectangle, "fill") != ["none"]:
         raise ValueError("footprint courtyard must be an unfilled outline")
+    _courtyard_stroke(rectangle)
+
+
+def _courtyard_stroke(rectangle: _Form) -> None:
+    strokes = _children(rectangle, "stroke")
+    if len(strokes) != 1 or len(strokes[0].items) != 3:
+        raise ValueError("footprint courtyard requires exactly one width/type stroke")
+    stroke = strokes[0]
+    (width,) = _numbers(_one(stroke, "width"), 1)
+    if not math.isclose(width, 0.05, rel_tol=0, abs_tol=1e-6):
+        raise ValueError("footprint courtyard stroke width differs from 0.05 mm")
+    if _one(stroke, "type") != ["default"]:
+        raise ValueError("footprint courtyard requires the default continuous stroke")
 
 
 def validate_footprint(footprint: str, content: str) -> tuple[FootprintPad, ...]:
