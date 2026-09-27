@@ -1,0 +1,63 @@
+name: Disposable capacitor source capture
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  public-sources:
+    if: github.head_ref == 'investigate/murata-source-capture'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Capture a bounded list of public research sources
+        shell: python
+        run: |
+          import concurrent.futures, hashlib, html, json, pathlib, re, time, urllib.request
+          out = pathlib.Path('source-capture')
+          out.mkdir()
+          urls = {
+            'murata-10u': 'https://search.murata.co.jp/Ceramy/image/img/A01X/G101/ENG/GRM219R61A106KE44-01.pdf',
+            'murata-100n': 'https://search.murata.co.jp/Ceramy/image/img/A01X/G101/ENG/GRM188R71H104KA93-01.pdf',
+            'murata-1n5': 'https://search.murata.co.jp/Ceramy/image/img/A01X/G101/ENG/GRM1885C1H152JA01-01.pdf',
+            'murata-4n7': 'https://search.murata.co.jp/Ceramy/image/img/A01X/G101/ENG/GRM1885C1H472JA01-01.pdf',
+            'murata-1u': 'https://search.murata.co.jp/Ceramy/image/img/A01X/G101/ENG/GRM188R61E105KA12-01.pdf',
+            'digikey-100n': 'https://www.digikey.com/en/products/detail/murata-electronics/GRM188R71H104KA93D/587143',
+            'digikey-10u': 'https://www.digikey.com/en/products/detail/murata-electronics/GRM219R61A106KE44D/1244325',
+            'digikey-1n5': 'https://www.digikey.com/en/products/detail/murata-electronics/GRM1885C1H152JA01D/586947',
+            'newark-10u': 'https://www.newark.com/murata/grm219r61a106ke44d/cap-10-f-10v-10-x5r-0805-reel/dp/03AC2744',
+            'farnell-1n5': 'https://ie.farnell.com/murata/grm1885c1h152ja01d/cap-1500pf-50v-5-c0g-np0-0603/dp/8819939',
+            'simsurfing-index': 'https://ds.murata.com/simsurfing/index.html?lcid=en-us',
+            'simsurfing-10u': 'https://ds.murata.com/simsurfing/mlcc.html?oripartnumbers=%5B%22GRM219R61A106KE44D%22%5D&partnumbers=%5B%22GRM219R61A106KE44%22%5D',
+          }
+          def capture(item):
+            name, url = item
+            row = {'name': name, 'requested_url': url, 'started_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}
+            try:
+              request = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (public component documentation review)'})
+              with urllib.request.urlopen(request, timeout=20) as response:
+                data = response.read(25_000_001)
+                if len(data) > 25_000_000:
+                  raise ValueError('source exceeds research size limit')
+                row.update(status=response.status, final_url=response.url, content_type=response.headers.get('Content-Type'), bytes=len(data), sha256=hashlib.sha256(data).hexdigest())
+              suffix = '.pdf' if data.startswith(b'%PDF-') else '.html'
+              (out / (name + suffix)).write_bytes(data)
+              row['file'] = name + suffix
+              if suffix == '.html':
+                text = html.unescape(data.decode('utf-8', errors='replace')).replace('\\/', '/').replace('\\u0026', '&')
+                links = sorted(set(re.findall(r'https?://[^\s\"<>]+', text)))
+                (out / (name + '-document-links.txt')).write_text('\n'.join(link for link in links if any(term in link.lower() for term in ('.pdf', 'pcn', 'grm188', 'grm219', '.js'))) + '\n')
+            except Exception as exc:
+              row['error'] = type(exc).__name__ + ': ' + str(exc)
+            print(json.dumps(row), flush=True)
+            return row
+          with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+            rows = list(pool.map(capture, urls.items()))
+          (out / 'CAPTURE.json').write_text(json.dumps({'scope': 'public_document_retrieval_only', 'hardware_qualified': False, 'sources': rows}, indent=2) + '\n')
+      - name: Retain documents, source links and failed retrievals
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: capacitor-source-capture
+          path: source-capture/
+          if-no-files-found: error
+          retention-days: 14
