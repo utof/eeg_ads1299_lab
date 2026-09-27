@@ -28,13 +28,13 @@ def _record() -> dict[str, object]:
     ("core", "status", "dielectric", "voltage", "height", "condition"), EXPECTED
 )
 def test_candidate_screen_retains_exact_core_status_and_test_conditions(
-    core: str, core_status: str, dielectric: str, voltage: str, height: str, condition: str
+    core: str, status: str, dielectric: str, voltage: str, height: str, condition: str
 ) -> None:
     candidates = read_object(_record()["candidates"], "candidates")
     row = read_object(candidates[core], "candidate")
     assert row["part_number"] == core and row["public_part_number"] == core + "#"
     assert row["channel_code"] == "jp"
-    assert [row["production_status_" + lang] for lang in ("ja", "en-us", "zh-cn")] == [core_status] * 3
+    assert [row["production_status_" + lang] for lang in ("ja", "en-us", "zh-cn")] == [status] * 3
     assert row["tempchar"] == dielectric and row["rvol"] == voltage
     assert row["size_thickness_max"] == height
     assert row["LWSize_mm_inch"] == "2012M/0805"
