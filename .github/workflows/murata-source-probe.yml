@@ -9,48 +9,51 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 8
     steps:
-      - name: Render the public catalog without login or form submission
+      - name: Read the catalog used by the public component table
         shell: python
         run: |
-          import hashlib, json, pathlib, shutil, subprocess, time, urllib.request
+          import csv, hashlib, io, json, pathlib, time, urllib.request, zipfile
           out = pathlib.Path('source-capture')
           out.mkdir()
-          url = 'https://ds.murata.com/simsurfing/mlcc.html?oripartnumbers=%5B%22GRM219R61A106KE44D%22%5D&partnumbers=%5B%22GRM219R61A106KE44%22%5D'
-          report = {'scope': 'public_catalog_render_only', 'utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), 'url': url, 'physical_hardware_tested': False}
-          chrome = shutil.which('google-chrome') or shutil.which('chromium')
-          if chrome:
-            report['browser'] = subprocess.check_output([chrome, '--version'], text=True).strip()
-            command = [chrome, '--headless', '--no-sandbox', '--disable-gpu', '--virtual-time-budget=20000', '--dump-dom', url]
-            with (out / 'rendered.html').open('w') as text, (out / 'browser.log').open('w') as log:
-              try:
-                result = subprocess.run(command, stdout=text, stderr=log, timeout=65)
-                report['browser_returncode'] = result.returncode
-              except subprocess.TimeoutExpired:
-                report['browser_error'] = 'bounded browser render timed out'
-          else:
-            report['browser_error'] = 'no browser installed'
-          sources = {}
-          for name, link in {
-            'mlcc-functions': 'https://ds.murata.com/simsurfing/muratalib/js/product/simsurfing_mlcc_func.min.js',
-            'catalog-config': 'https://ds.murata.com/simsurfing_data/simsurfing_conf.js',
-            'catalog-common': 'https://ds.murata.com/simsurfing/muratalib/js/simsurfing_common.min.js',
+          wanted = {'GRM219R61A106KE44', 'GRM188R71H104KA93', 'GRM1885C1H152JA01', 'GRM1885C1H472JA01', 'GRM188R61E105KA12'}
+          sources = []
+          for name, url in {
+            'catalog.zip': 'https://ds.murata.com/simsurfing_data/data/mlcc.zip',
+            'measurement-conditions.pdf': 'https://ds.murata.com/simsurfing_data/pdf/en-us/mlcc/sim_mlcc_measuringcond_e.pdf',
           }.items():
-            row = {'url': link}
+            row = {'url': url, 'utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}
             try:
-              request = urllib.request.Request(link, headers={'User-Agent': 'Mozilla/5.0', 'Referer': url})
-              with urllib.request.urlopen(request, timeout=15) as response:
-                data = response.read(5_000_001)
-                if len(data) > 5_000_000:
-                  raise ValueError('oversized public asset')
+              request = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0', 'Referer': 'https://ds.murata.com/simsurfing/mlcc.html'})
+              with urllib.request.urlopen(request, timeout=30) as response:
+                data = response.read(25_000_001)
+                if len(data) > 25_000_000:
+                  raise ValueError('source exceeds research size limit')
                 row.update(status=response.status, final_url=response.url, sha256=hashlib.sha256(data).hexdigest(), bytes=len(data))
-              (out / (name + '.js')).write_bytes(data)
+              if name.endswith('.zip'):
+                archive = zipfile.ZipFile(io.BytesIO(data))
+                info = archive.getinfo('mlcc.csv')
+                if info.file_size > 100_000_000:
+                  raise ValueError('catalog expansion exceeds size limit')
+                raw = archive.read(info)
+                row['csv_sha256'] = hashlib.sha256(raw).hexdigest()
+                content = raw.decode('utf-8-sig')
+                reader = csv.DictReader(io.StringIO(content))
+                rows = [record for record in reader if wanted.intersection(record.values())]
+                (out / 'selected-rows.json').write_text(json.dumps(rows, ensure_ascii=False, indent=2) + '\n')
+                row['matched_rows'] = len(rows)
+                row['columns'] = reader.fieldnames
+                # This disposable evidence export retains selected factual rows,
+                # not Murata's full catalog or JavaScript software collection.
+              else:
+                if not data.startswith(b'%PDF-'):
+                  raise ValueError('measurement URL did not return a PDF')
+                (out / name).write_bytes(data)
             except Exception as exc:
               row['error'] = type(exc).__name__ + ': ' + str(exc)
-            sources[name] = row
-          report['sources'] = sources
-          (out / 'CAPTURE.json').write_text(json.dumps(report, indent=2) + '\n')
-          print(json.dumps(report), flush=True)
-      - name: Retain public render and failed retrievals
+            sources.append(row)
+          (out / 'CAPTURE.json').write_text(json.dumps({'scope': 'selected_public_catalog_rows_not_approval', 'sources': sources}, ensure_ascii=False, indent=2) + '\n')
+          print(json.dumps(sources, ensure_ascii=False), flush=True)
+      - name: Retain selected source rows and retrieval evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
