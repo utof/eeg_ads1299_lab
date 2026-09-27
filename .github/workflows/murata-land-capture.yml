@@ -1,0 +1,64 @@
+name: Disposable Murata land guidance
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  capture:
+    if: github.head_ref == 'investigate/murata-land-guidance'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - name: Capture bounded public source pages and their displayed assets
+        shell: python
+        run: |
+          import datetime, hashlib, json, pathlib, urllib.parse, urllib.request
+          from html.parser import HTMLParser
+          out=pathlib.Path('land-capture'); out.mkdir()
+          receipts=[]
+          def fetch(url, name):
+              row={'url':url,'utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'file':name}
+              receipts.append(row)
+              try:
+                  req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'})
+                  with urllib.request.urlopen(req,timeout=25) as r:
+                      data=r.read(12_000_001)
+                      if len(data)>12_000_000: raise ValueError('source exceeds bound')
+                      row.update(status=r.status,final_url=r.url,content_type=r.headers.get('Content-Type'),bytes=len(data),sha256=hashlib.sha256(data).hexdigest())
+                  (out/name).write_bytes(data)
+                  return data
+              except Exception as exc:
+                  row['error']=type(exc).__name__+': '+str(exc)
+                  return None
+          class Assets(HTMLParser):
+              def __init__(self): super().__init__(); self.urls=[]
+              def handle_starttag(self,tag,attrs):
+                  attrs=dict(attrs)
+                  if tag in {'img','iframe','embed'}:
+                      u=attrs.get('src','')
+                      if u: self.urls.append(u)
+          sources=[
+              ('https://search.murata.co.jp/Ceramy/image/img/A01X/G101/ENG/GRM21BR61C106KE15-01.pdf','murata-reference.bin'),
+              ('https://www.murata.com/~/media/webrenewal/support/library/catalog/products/capacitor/mlcc/c02e.ashx','murata-catalog.bin'),
+              ('https://www.alldatasheet.com/html-pdf/1070405/MURATA/GRM21BR61C106KE15/6693/25/GRM21BR61C106KE15.html','mirror-land.html'),
+              ('https://www.alldatasheet.com/html-pdf/1070405/MURATA/GRM21BR61C106KE15/261/1/GRM21BR61C106KE15.html','mirror-identity.html'),
+              ('https://www.alldatasheet.com/datasheet-pdf/view/1070405/MURATA/GRM21BR61C106KE15.html','mirror-view.html'),
+          ]
+          for url,name in sources:
+              data=fetch(url,name)
+              if data and name.endswith('.html'):
+                  p=Assets(); p.feed(data.decode('utf-8',errors='replace'))
+                  assets=[]
+                  for raw in p.urls:
+                      asset=urllib.parse.urljoin(url,raw)
+                      if urllib.parse.urlparse(asset).hostname in {'www.alldatasheet.com','pdf1.alldatasheet.com','html.alldatasheet.com'} and ('1070405' in asset or '.pdf' in asset.lower()):
+                          if asset not in assets: assets.append(asset)
+                  for i,asset in enumerate(assets[:4]): fetch(asset,name+f'.asset{i}')
+          (out/'CAPTURE.json').write_text(json.dumps({'scope':'public_document_capture_not_assembly_approval','receipts':receipts},indent=2)+'\n')
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: murata-land-guidance
+          path: land-capture/
+          if-no-files-found: error
+          retention-days: 14
