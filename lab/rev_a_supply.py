@@ -137,12 +137,42 @@ quit
 """
 
 
-def _model_metrics(case: SupplyCase, limits_v: tuple[float, float]) -> dict[str, object]:
-    # Each first-order phase is monotonic; endpoints include every continuous-time
-    # extremum within this SPECIFIED post-startup window. This excludes power-up.
+def _window_extrema(case: SupplyCase) -> tuple[float, float]:
+    # Every phase is monotonic; include both event boundaries and the window ends.
     times = np.array([_MARGIN_START, _BURST_ON, _BURST_OFF, _STOP])
     volts = rail_response(case, times)
-    low, high = float(np.min(volts)), float(np.max(volts))
+    return float(np.min(volts)), float(np.max(volts))
+
+
+def source_voltage_window(case: SupplyCase, limits_v: tuple[float, float]) -> tuple[float, float]:
+    """Source interval meeting rail limits throughout the existing 4..20 ms window.
+
+    Return (required source minimum, allowed source maximum). Lower > upper
+    means EMPTY, not a reversed feasible interval. The case's source_v is ignored:
+    this linear conductance/ideal-C hypothesis is solved at unit source voltage.
+    This is neither a supply recommendation nor a capacitor/boot qualification.
+    """
+    if not isinstance(limits_v, tuple) or len(limits_v) != 2:
+        raise ValueError("limits_v must be a pair of positive ordered rail limits")
+    for value in limits_v:
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise ValueError("rail limits must be finite real numbers")
+        if not math.isfinite(value) or value <= 0:
+            raise ValueError("rail limits must be positive finite numbers")
+    if limits_v[0] > limits_v[1]:
+        raise ValueError("rail limits must be ordered")
+    low_factor, high_factor = _window_extrema(replace(case, source_v=1.0))
+    if low_factor <= 0:
+        raise ValueError("unit rail response exceeds the finite numerical domain")
+    lower, upper = limits_v[0] / low_factor, limits_v[1] / high_factor
+    if not math.isfinite(lower) or not math.isfinite(upper):
+        raise ValueError("source interval exceeds the finite numerical domain")
+    return lower, upper
+
+
+def _model_metrics(case: SupplyCase, limits_v: tuple[float, float]) -> dict[str, object]:
+    low, high = _window_extrema(case)
+    source_low, source_high = source_voltage_window(case, limits_v)
     idle_v, idle_tau = steady_state(case)
     burst_v, burst_tau = steady_state(case, burst=True)
     return {
@@ -153,6 +183,8 @@ def _model_metrics(case: SupplyCase, limits_v: tuple[float, float]) -> dict[str,
         "model_window_min_v": low,
         "model_window_max_v": high,
         "model_lower_margin_v": low - limits_v[0],
+        "model_source_window_v": [source_low, source_high],
+        "model_source_window_feasible": source_low <= source_high,
         "model_margin_ok": limits_v[0] <= low and high <= limits_v[1],
     }
 
