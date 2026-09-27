@@ -192,3 +192,25 @@ This preserves the default near-zero rule while binding it to the requested
 schedule. Two real ngspice study controls, at source-on zero and 2 ns, still
 pass with their initial samples intact. No event, trajectory, model parameter
 or physical startup policy was changed to make those controls pass.
+
+
+## Hosted-engine correction: no repeated zero-time source vertex
+
+The first strict initial-observation correction passed the local ngspice 44.2
+runs but failed the actual ngspice 42 CI zero-time-source case. The retained
+per-case diagnostics showed NaN node voltages during initialization, zero
+transient rows and a warning about non-increasing PWL times. The source exporter
+had emitted the origin twice when source-on was zero: `(0, 0), (0, 0), ...`.
+Local 44.2 accepted that input with the same warning; that did not establish
+portable validity. No artifact was treated as a successful run after failure.
+
+A separate structural regression failed for the repeated timestamp while the
+early/default controls passed. The exporter now emits that origin only once
+when source-on is zero. All positive-source-on netlists, including the historical
+defaults, are byte-unchanged. Source amplitude, ramp duration, ideal trajectory
+and the stricter first-sample requirement are unchanged. The native zero/early
+cases remain required; no exception, invented sample or larger tolerance hides
+the failure. This is a correction to our generated input, not a vendor model
+patch, a solver upgrade, or proof of a general ngspice defect. The test now prints
+retained per-case failures and bounded log tails because CI does not upload
+pytest's temporary directory.

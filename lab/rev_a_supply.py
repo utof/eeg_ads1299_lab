@@ -153,8 +153,11 @@ def supply_netlist(case: SupplyCase, *, timing: SupplyTiming = _DEFAULT_TIMING) 
         if case.shared_r_ohm == 0
         else f"Rshared source bus {case.shared_r_ohm:.17g}"
     )
+    # A source at zero already supplies the origin vertex. Repeating (0, 0)
+    # triggers non-increasing PWL points and fails initialization in ngspice 42.
+    source_origin = "0 0 " if timing.source_on_s > 0 else ""
     return f"""Assumed shared-source analog feed -- NOT a hardware validation
-Vsource source 0 PWL(0 0 {timing.source_on_s:.17g} 0 {timing.source_on_s + _EDGE:.17g} {case.source_v:.17g} {timing.stop_s:.17g} {case.source_v:.17g})
+Vsource source 0 PWL({source_origin}{timing.source_on_s:.17g} 0 {timing.source_on_s + _EDGE:.17g} {case.source_v:.17g} {timing.stop_s:.17g} {case.source_v:.17g})
 {shared}
 Rfeed bus avdd {case.feed_r_ohm:.17g}
 Vburst control 0 PWL(0 0 {timing.burst_on_s:.17g} 0 {timing.burst_on_s + _EDGE:.17g} 1 {timing.burst_off_s:.17g} 1 {timing.burst_off_s + _EDGE:.17g} 0 {timing.stop_s:.17g} 0)
