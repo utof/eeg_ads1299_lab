@@ -245,7 +245,10 @@ def _model_metrics(
 
 
 def _check_observation_window(times: FloatArray, timing: SupplyTiming) -> None:
-    if times[0] > 1e-8 or not math.isclose(
+    # Retain the near-zero rule without allowing an early source transition
+    # to occur before the first observation. A source at zero needs time zero.
+    latest_initial_sample = min(1e-8, timing.source_on_s)
+    if times[0] > latest_initial_sample or not math.isclose(
         float(times[-1]), timing.stop_s, rel_tol=0, abs_tol=1e-12
     ):
         raise RuntimeError("incomplete observed supply window")

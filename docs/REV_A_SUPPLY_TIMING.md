@@ -176,3 +176,19 @@ Sources and prior evidence: `REV_A_SOURCE_VOLTAGE_WINDOW.md`,
 https://www.ti.com/lit/ds/symlink/ads1299.pdf
 Espressif module RF-mode/test-condition information (not a DevKit burst trace):
 https://documentation.espressif.com/esp32-s3-wroom-1_wroom-1u_datasheet_en.html
+
+## Independent review correction: initial observation versus early turn-on
+
+The first candidate retained the old absolute 10 ns allowance for the first
+observed sample. With an explicitly earlier source event, that could accept a
+trace starting after source-on and its finite edge. Two process-double regressions
+reproduced this false completeness claim before correction; five controls
+preserved earlier/at-event samples and the historical bound. These doubles
+isolate completeness and are not actual simulations.
+
+The first observed sample must now be no later than the smaller of 10 ns and
+source-on. A source starting at zero therefore requires a zero-time sample.
+This preserves the default near-zero rule while binding it to the requested
+schedule. Two real ngspice study controls, at source-on zero and 2 ns, still
+pass with their initial samples intact. No event, trajectory, model parameter
+or physical startup policy was changed to make those controls pass.
