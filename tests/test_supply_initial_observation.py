@@ -3,6 +3,7 @@
 import json
 import shutil
 from dataclasses import replace
+from itertools import pairwise
 from pathlib import Path
 from typing import cast
 
@@ -105,3 +106,22 @@ def test_native_zero_and_early_source_edges_keep_the_initial_sample(
     for path in files:
         first = float(path.read_text().splitlines()[1].split(",")[0])
         assert 0 <= first <= min(1e-8, source_on)
+
+
+@pytest.mark.parametrize("source_on", [0.0, 2e-9, 0.001])
+def test_source_pwl_has_strictly_increasing_time_points(source_on: float) -> None:
+    from lab.rev_a_supply import supply_netlist
+
+    line = next(
+        line
+        for line in supply_netlist(
+            SupplyCase(), timing=SupplyTiming(source_on_s=source_on)
+        ).splitlines()
+        if line.startswith("Vsource ")
+    )
+    values = [float(value) for value in line.split("PWL(", 1)[1].removesuffix(")").split()]
+    times, volts = values[::2], values[1::2]
+    assert times[0] == 0 and volts[0] == 0
+    assert all(later > earlier for earlier, later in pairwise(times))
+    assert times[-2:] == [source_on + 1e-9, 0.02]
+    assert volts[-2:] == [4.95, 4.95]
