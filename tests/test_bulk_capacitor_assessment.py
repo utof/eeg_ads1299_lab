@@ -100,6 +100,11 @@ def test_typical_curve_comparisons_remain_conditioned_and_incomplete() -> None:
     assert curves["kind"] == "coarse_visual_typical_not_a_guaranteed_minimum"
     assert curves["dc_bias_v"] == 5.0 and curves["measurement_conditions_identical"] is False
     assert curves["temperature_curve_missing_for"] == ["GRM21BZ71C106KE15"]
+    assert curves["estimated_capacitance_uf"] == {
+        "GRM21BR61C106KE15": "about 5",
+        "GRM21BR61E106KA73": "about 5",
+        "GRM21BZ71C106KE15": "about 6 to 6.5",
+    }
     assert data["open_qualification"] == [
         "exact_orderable_mpn_and_packaging",
         "approval_termination_and_assembly_lands",
