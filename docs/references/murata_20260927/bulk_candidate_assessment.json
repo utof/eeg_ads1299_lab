@@ -1,0 +1,169 @@
+{
+  "scope": "bulk_candidate_screen_not_bom_or_assembly_approval",
+  "captured_date_utc": "2026-09-27",
+  "preferred_for_qualification": "GRM21BR61C106KE15",
+  "preference_basis": "Bounded first qualification target: in-production core, same nominal capacitance/tolerance/X5R class and 0805 lateral size; not a measured performance or sourcing ranking.",
+  "replacement_orderable_mpn": null,
+  "replacement_selected": false,
+  "purchase_approved": false,
+  "assembly_qualified": false,
+  "body_connection_authorized": false,
+  "effective_capacitance_minimum_qualified": false,
+  "simulator_recalibrated": false,
+  "baseline": {
+    "mpn": "GRM219R61A106KE44D",
+    "quantity": 4,
+    "nominal_capacitance_f": 1e-05,
+    "core_maximum_height_mm": 0.95
+  },
+  "bulk_nodes": {
+    "C_VIN_BULK": "VIN_5V_AFE",
+    "C_AVDD_BULK": "AVDD",
+    "C_AVDD1_BULK": "AVDD",
+    "C_DVDD_BULK": "DVDD"
+  },
+  "catalog": {
+    "url": "https://ds.murata.com/simsurfing_data/data/mlcc.zip",
+    "captured_utc": "2026-09-27T08:47:17.236804+00:00",
+    "sha256": "ec2182dffe5dc04424e03838bac799591298faae48ab449570f55ae31e9eb899",
+    "csv_sha256": "149339606adaeb8bd7251ee43bec06d0069ff20f6a169864acdde5aecebe434a",
+    "selected_rows": 4,
+    "channel_scope": "jp; not worldwide orderable suffix or stock evidence"
+  },
+  "capture": {
+    "pr": 51,
+    "commit": "b10e72a6c7c13e6dba0c1c88835ff1e92a1190f5",
+    "run": 36307294448,
+    "artifact": 10927837094,
+    "artifact_sha256": "fca4a85b1dbf9670e6127b83770532aad4c486b5daf91c11039fe7c8b4445192",
+    "read_only": true
+  },
+  "candidates": {
+    "GRM21BR61A106KE19": {
+      "part_number": "GRM21BR61A106KE19",
+      "public_part_number": "GRM21BR61A106KE19#",
+      "channel_code": "jp",
+      "production_status_ja": "C",
+      "production_status_en-us": "C",
+      "production_status_zh-cn": "C",
+      "L": "2±0.1",
+      "W": "1.25±0.1",
+      "size_thickness_max": "1.35",
+      "LWSize_mm_inch": "2012M/0805",
+      "tempchar": "X5R",
+      "rvol": "10",
+      "tolerance": "±10%",
+      "capacitance_pu": "10μF",
+      "Condition": "1kHz / 0.5Vrms",
+      "TC_Condition": "1kHz / 0.5Vrms",
+      "technical_pdf": {
+        "url": "https://ds.murata.com/simserve/characteristics?ReqType=TechPDF&partnumber=GRM21BR61A106KE19&techpdfname=technical_pdf_Capacitor01&lang=en",
+        "captured_utc": "2026-09-27T08:47:18.706782+00:00",
+        "sha256": "efa0bc729b763f54c060df0455916d50091265aaa6bf057290ec4c23aefecfeb",
+        "typical_only": true,
+        "date_label": "Sep. 2026",
+        "visually_checked": true
+      }
+    },
+    "GRM21BR61C106KE15": {
+      "part_number": "GRM21BR61C106KE15",
+      "public_part_number": "GRM21BR61C106KE15#",
+      "channel_code": "jp",
+      "production_status_ja": "B",
+      "production_status_en-us": "B",
+      "production_status_zh-cn": "B",
+      "L": "2±0.1",
+      "W": "1.25±0.1",
+      "size_thickness_max": "1.35",
+      "LWSize_mm_inch": "2012M/0805",
+      "tempchar": "X5R",
+      "rvol": "16",
+      "tolerance": "±10%",
+      "capacitance_pu": "10μF",
+      "Condition": "1kHz / 0.5Vrms",
+      "TC_Condition": "1kHz / 0.5Vrms",
+      "technical_pdf": {
+        "url": "https://ds.murata.com/simserve/characteristics?ReqType=TechPDF&partnumber=GRM21BR61C106KE15&techpdfname=technical_pdf_Capacitor01&lang=en",
+        "captured_utc": "2026-09-27T08:47:19.050185+00:00",
+        "sha256": "c908f3d5c6926681081cbc1a2435e058ce75160e12f709e429c11ef3ad6eed71",
+        "typical_only": true,
+        "date_label": "Sep. 2026",
+        "visually_checked": true
+      }
+    },
+    "GRM21BR61E106KA73": {
+      "part_number": "GRM21BR61E106KA73",
+      "public_part_number": "GRM21BR61E106KA73#",
+      "channel_code": "jp",
+      "production_status_ja": "B",
+      "production_status_en-us": "B",
+      "production_status_zh-cn": "B",
+      "L": "2±0.15",
+      "W": "1.25±0.15",
+      "size_thickness_max": "1.4",
+      "LWSize_mm_inch": "2012M/0805",
+      "tempchar": "X5R",
+      "rvol": "25",
+      "tolerance": "±10%",
+      "capacitance_pu": "10μF",
+      "Condition": "1kHz / 1Vrms",
+      "TC_Condition": "1kHz / 1Vrms",
+      "technical_pdf": {
+        "url": "https://ds.murata.com/simserve/characteristics?ReqType=TechPDF&partnumber=GRM21BR61E106KA73&techpdfname=technical_pdf_Capacitor01&lang=en",
+        "captured_utc": "2026-09-27T08:47:19.381308+00:00",
+        "sha256": "88764b81d60fcf5215f11b4fccc17be788b4332e0aa8e7902a0e4ba7480d7def",
+        "typical_only": true,
+        "date_label": "Sep. 2026",
+        "visually_checked": true
+      }
+    },
+    "GRM21BZ71C106KE15": {
+      "part_number": "GRM21BZ71C106KE15",
+      "public_part_number": "GRM21BZ71C106KE15#",
+      "channel_code": "jp",
+      "production_status_ja": "B",
+      "production_status_en-us": "B",
+      "production_status_zh-cn": "B",
+      "L": "2±0.2",
+      "W": "1.25±0.2",
+      "size_thickness_max": "1.45",
+      "LWSize_mm_inch": "2012M/0805",
+      "tempchar": "X7R",
+      "rvol": "16",
+      "tolerance": "±10%",
+      "capacitance_pu": "10μF",
+      "Condition": "1kHz / 1Vrms",
+      "TC_Condition": "1kHz / 1Vrms",
+      "technical_pdf": {
+        "url": "https://ds.murata.com/simserve/characteristics?ReqType=TechPDF&partnumber=GRM21BZ71C106KE15&techpdfname=technical_pdf_Capacitor01&lang=en",
+        "captured_utc": "2026-09-27T08:47:19.747038+00:00",
+        "sha256": "d1015828fc9c3c78d5c22f92679cb2089e6ba2f91e21121dc25cc2e6822f65fc",
+        "typical_only": true,
+        "date_label": "Sep. 2026",
+        "visually_checked": true
+      }
+    }
+  },
+  "visual_curve_estimates": {
+    "kind": "coarse_visual_typical_not_a_guaranteed_minimum",
+    "dc_bias_v": 5.0,
+    "measurement_conditions_identical": false,
+    "temperature_curve_missing_for": [
+      "GRM21BZ71C106KE15"
+    ],
+    "estimated_capacitance_uf": {
+      "GRM21BR61C106KE15": "about 5",
+      "GRM21BR61E106KA73": "about 5",
+      "GRM21BZ71C106KE15": "about 6 to 6.5"
+    },
+    "comparison_limit": "Separate typical curves with different AC excitation, not a controlled cross-part ranking or a joint operating-envelope minimum."
+  },
+  "open_qualification": [
+    "exact_orderable_mpn_and_packaging",
+    "approval_termination_and_assembly_lands",
+    "height_clearance_and_process",
+    "effective_capacitance_at_each_node_over_operating_envelope",
+    "esr_esl_and_regulator_output_network",
+    "sourcing_and_delivered_quote"
+  ]
+}
