@@ -20,9 +20,9 @@ def cad_copy(tmp_path: Path) -> Path:
     return target
 
 
-def test_all_seven_native_inputs_are_snapshotted(cad_copy: Path) -> None:
+def test_all_nine_native_inputs_are_snapshotted(cad_copy: Path) -> None:
     snapshot = schematic_source_snapshot(cad_copy)
-    assert len(snapshot) == 7
+    assert len(snapshot) == 9
     for name in ("power.kicad_sch", "RevA.kicad_sym", "rev_a.kicad_pro"):
         path = cad_copy / name
         old = path.read_text()

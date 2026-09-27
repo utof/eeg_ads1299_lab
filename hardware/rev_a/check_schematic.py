@@ -48,8 +48,8 @@ FOOTPRINTS = {
     "decap_1u": "Capacitor_SMD:C_0603_1608Metric",
     "decap_100n": "Capacitor_SMD:C_0603_1608Metric",
     "bulk_10u": "Capacitor_SMD:C_0805_2012Metric",
-    "vcap1": "Capacitor_Tantalum_SMD:CP_EIA-7343-31_Kemet-D",
-    "vref": "Capacitor_Tantalum_SMD:CP_EIA-3528-21_Kemet-B",
+    "vcap1": "RevA_Passives:T491D_7343_DensityB",
+    "vref": "RevA_Passives:T491B_3528_DensityB",
     "headers": "Connector_PinHeader_2.54mm:PinHeader_2x10_P2.54mm_Vertical",
     "clamps": "Package_TO_SOT_SMD:SOT-23",
 }

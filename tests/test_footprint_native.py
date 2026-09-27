@@ -10,6 +10,7 @@ import pytest
 from hardware.rev_a import read_schematic_file, validate_footprint
 from tests.footprint_fixtures import footprint_sources
 
+CAD = Path(__file__).resolve().parents[1] / "hardware/rev_a/kicad"
 SOURCES = footprint_sources()
 NAMES = list(SOURCES)
 
@@ -25,7 +26,8 @@ def _inspect_and_export(tmp_path: Path, footprint: str) -> None:
     assert cli is not None, "actual footprint export requires KiCad"
     root = Path(os.environ.get("KICAD9_FOOTPRINT_DIR", "/usr/share/kicad/footprints"))
     library, name = footprint.split(":")
-    path = root / (library + ".pretty") / (name + ".kicad_mod")
+    base = CAD if library == "RevA_Passives" else root
+    path = base / (library + ".pretty") / (name + ".kicad_mod")
     # The geometry contract permits nonpolar swaps and representation tolerance.
     # A literal dataclass comparison to the fixture would impose a second,
     # stricter rule and reject those benign changes before native export.
@@ -63,8 +65,8 @@ def _inspect_and_export(tmp_path: Path, footprint: str) -> None:
     ("footprint", "before", "after"),
     [
         (
-            "Capacitor_Tantalum_SMD:CP_EIA-7343-31_Kemet-D",
-            "(size 2.07 2.59)",
+            "RevA_Passives:T491D_7343_DensityB",
+            "(size 2.37 2.43)",
             "(size 0.2 0.2)",
         ),
         (
@@ -89,20 +91,23 @@ def test_native_erc_and_netlist_do_not_qualify_pad_geometry(
 
     installed = Path(os.environ.get("KICAD9_FOOTPRINT_DIR", "/usr/share/kicad/footprints"))
     copies = tmp_path / "footprints"
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
     for identifier in NAMES:
         library, name = identifier.split(":")
+        if library == "RevA_Passives":
+            continue
         relative = Path(library + ".pretty") / (name + ".kicad_mod")
         target = copies / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(installed / relative, target)
     library, name = footprint.split(":")
-    path = copies / (library + ".pretty") / (name + ".kicad_mod")
+    base = cad if library == "RevA_Passives" else copies
+    path = base / (library + ".pretty") / (name + ".kicad_mod")
     content = path.read_text()
     assert before in content
     path.write_text(content.replace(before, after, 1))
     monkeypatch.setenv("KICAD9_FOOTPRINT_DIR", str(copies))
-    cad = tmp_path / "cad"
-    shutil.copytree(CAD, cad)
     _run(
         cad,
         tmp_path,

@@ -1,5 +1,6 @@
 """Pad geometry must be checked, not merely hashed under a plausible filename."""
 
+import shutil
 from pathlib import Path
 
 import pytest
@@ -19,13 +20,13 @@ FIXTURES = ROOT / "tests/fixtures/footprints"
         ("Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod", '(pad "5"', '(pad "6"'),
         ("Package_TO_SOT_SMD.pretty/SOT-23.kicad_mod", '(pad "3"', '(pad "4"'),
         (
-            "Capacitor_Tantalum_SMD.pretty/CP_EIA-3528-21_Kemet-B.kicad_mod",
-            "(at -1.54 0)",
-            "(at 1.54 0)",
+            "RevA_Passives.pretty/T491B_3528_DensityB.kicad_mod",
+            "(at -1.46 0)",
+            "(at 1.46 0)",
         ),
         (
-            "Capacitor_Tantalum_SMD.pretty/CP_EIA-7343-31_Kemet-D.kicad_mod",
-            "(size 2.07 2.59)",
+            "RevA_Passives.pretty/T491D_7343_DensityB.kicad_mod",
+            "(size 2.37 2.43)",
             "(size 0.2 0.2)",
         ),
         (
@@ -61,12 +62,14 @@ def test_snapshot_rejects_same_name_but_wrong_pad_geometry(
     tmp_path: Path, relative: str, before: str, after: str
 ) -> None:
     library = write_footprint_library(tmp_path / "footprints")
-    path = library / relative
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    path = (cad if relative.startswith("RevA_Passives.pretty/") else library) / relative
     text = path.read_text()
     assert before in text
     path.write_text(text.replace(before, after, 1))
     with pytest.raises(ValueError, match="footprint"):
-        schematic_source_snapshot(CAD, library)
+        schematic_source_snapshot(cad, library)
 
 
 def test_canonical_footprints_remain_readable(tmp_path: Path) -> None:
