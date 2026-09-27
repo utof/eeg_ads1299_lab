@@ -1,9 +1,10 @@
 """Closed pad-layout regression check for the nine inspected library footprints.
 
 Numbers/pitch/orientation are compared with package drawings; exact land sizes
-below are the inspected KiCad 9.0.2-1 choice, NOT manufacturer approval. Several
+below are seven inspected KiCad choices plus two local T491 nominal reflow
+patterns, NOT assembly approval. Several
 land patterns differ from manufacturer examples: see REV_A_FOOTPRINT_REVIEW.md.
-This reads no PCB, validates no assembly process, and does not inspect graphics.
+This reads no PCB, validates no assembly process, and only checks courtyard graphics for the two local T491 patterns.
 """
 
 from __future__ import annotations
@@ -32,9 +33,19 @@ class FootprintPad:
 _NONPOLAR = {FOOTPRINTS[key] for key in ("input_r", "input_c", "bulk_10u")}
 
 
-def _two_pads(x: float, width: float, height: float, radius: float = 0.25) -> list[FootprintPad]:
+def _two_pads(
+    x: float, width: float, height: float, radius: float | None = 0.25
+) -> list[FootprintPad]:
     return [
-        FootprintPad(str(n), sign * x, 0, width, height, radius_ratio=radius)
+        FootprintPad(
+            str(n),
+            sign * x,
+            0,
+            width,
+            height,
+            shape="rect" if radius is None else "roundrect",
+            radius_ratio=radius,
+        )
         for n, sign in ((1, -1), (2, 1))
     ]
 
@@ -45,8 +56,8 @@ def _expected(footprint: str) -> list[FootprintPad]:
         FOOTPRINTS["input_r"]: (0.825, 0.8, 0.95, 0.25),
         FOOTPRINTS["input_c"]: (0.775, 0.9, 0.95, 0.25),
         FOOTPRINTS["bulk_10u"]: (0.95, 1.0, 1.45, 0.25),
-        FOOTPRINTS["vref"]: (1.54, 1.34, 2.39, 0.186567),
-        FOOTPRINTS["vcap1"]: (3.12, 2.07, 2.59, 0.120773),
+        FOOTPRINTS["vref"]: (1.46, 1.80, 2.23, None),
+        FOOTPRINTS["vcap1"]: (3.12, 2.37, 2.43, None),
     }
     if footprint in pairs:
         return _two_pads(*pairs[footprint])
@@ -123,11 +134,14 @@ def _numbers(values: list[str], count: int) -> tuple[float, ...]:
     return numbers
 
 
-def _pad_fields(form: _Form, technology: str) -> None:
+def _pad_fields(form: _Form, technology: str, shape: str) -> None:
     expected_fields = {"at", "size", "layers"}
-    expected_fields |= (
-        {"drill", "remove_unused_layers"} if technology == "thru_hole" else {"roundrect_rratio"}
-    )
+    if technology == "thru_hole":
+        expected_fields |= {"drill", "remove_unused_layers"}
+    elif technology == "smd" and shape == "roundrect":
+        expected_fields.add("roundrect_rratio")
+    elif technology != "smd" or shape != "rect":
+        raise ValueError("footprint pad technology/shape is unsupported")
     fields = form.items[4:]
     if (
         len(fields) != len(expected_fields)
@@ -140,7 +154,7 @@ def _pad(form: _Form) -> FootprintPad:
     if len(form.items) < 4 or any(not isinstance(item, str) for item in form.items[:4]):
         raise ValueError("footprint pad declaration is malformed")
     number, technology, shape = _atoms(_Form(form.items[:4]))
-    _pad_fields(form, technology)
+    _pad_fields(form, technology, shape)
     position = _one(form, "at")
     if len(position) == 2:
         position.append("0")
@@ -161,7 +175,7 @@ def _pad(form: _Form) -> FootprintPad:
         (drill,) = _numbers(_one(form, "drill"), 1)
         if _one(form, "remove_unused_layers") != ["no"]:
             raise ValueError("footprint through-hole copper removal is unsupported")
-    else:
+    elif shape == "roundrect":
         (radius,) = _numbers(_one(form, "roundrect_rratio"), 1)
     return FootprintPad(number, x, y, width, height, technology, shape, drill, radius)
 
@@ -200,6 +214,7 @@ def _root(footprint: str, content: str) -> _Form:
     ]:
         raise ValueError("footprint side or mounting technology differs")
     _root_fields(root)
+    _t491_courtyard(footprint, root)
     return root
 
 
@@ -216,6 +231,7 @@ def _root_fields(root: _Form) -> None:
             "property",
             "attr",
             "fp_line",
+            "fp_rect",
             "fp_poly",
             "fp_text",
             "pad",
@@ -223,10 +239,55 @@ def _root_fields(root: _Form) -> None:
             "embedded_fonts",
         }:
             raise ValueError("footprint has an unsupported root geometry/override")
-        if child.items[0] in {"fp_line", "fp_poly", "fp_text", "property"} and any(
+        if child.items[0] in {"fp_line", "fp_rect", "fp_poly", "fp_text", "property"} and any(
             "Cu" in layer for layer in _one(child, "layer")
         ):
             raise ValueError("footprint contains non-pad copper graphics")
+
+
+def _t491_courtyard(footprint: str, root: _Form) -> None:
+    """Closed local rectangular courtyard, independent of land dimensions.
+
+    V1/V2 are full envelope dimensions from KEMET Table 2, density B.
+    Other library graphics remain outside this geometry contract.
+    """
+    dimensions = {FOOTPRINTS["vref"]: (5.22, 3.50), FOOTPRINTS["vcap1"]: (9.12, 5.10)}
+    if footprint not in dimensions:
+        return
+    outlines = [
+        child
+        for child in root.items[2:]
+        if isinstance(child, _Form)
+        and _children(child, "layer")
+        and _one(child, "layer") == ["F.CrtYd"]
+    ]
+    if len(outlines) != 1 or outlines[0].items[0] != "fp_rect":
+        raise ValueError("footprint requires one closed rectangular T491 courtyard")
+    rectangle = outlines[0]
+    width, height = dimensions[footprint]
+    start = _numbers(_one(rectangle, "start"), 2)
+    end = _numbers(_one(rectangle, "end"), 2)
+    wanted = (-width / 2, -height / 2, width / 2, height / 2)
+    if any(
+        not math.isclose(a, b, rel_tol=0, abs_tol=1e-6)
+        for a, b in zip((*start, *end), wanted, strict=True)
+    ):
+        raise ValueError("footprint T491 courtyard dimensions differ from nominal reflow")
+    if _one(rectangle, "fill") != ["none"]:
+        raise ValueError("footprint courtyard must be an unfilled outline")
+    _courtyard_stroke(rectangle)
+
+
+def _courtyard_stroke(rectangle: _Form) -> None:
+    strokes = _children(rectangle, "stroke")
+    if len(strokes) != 1 or len(strokes[0].items) != 3:
+        raise ValueError("footprint courtyard requires exactly one width/type stroke")
+    stroke = strokes[0]
+    (width,) = _numbers(_one(stroke, "width"), 1)
+    if not math.isclose(width, 0.05, rel_tol=0, abs_tol=1e-6):
+        raise ValueError("footprint courtyard stroke width differs from 0.05 mm")
+    if _one(stroke, "type") != ["default"]:
+        raise ValueError("footprint courtyard requires the default continuous stroke")
 
 
 def validate_footprint(footprint: str, content: str) -> tuple[FootprintPad, ...]:

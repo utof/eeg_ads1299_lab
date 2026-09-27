@@ -7,17 +7,18 @@ The explicit schematic gate re-exports the actual source with the native CLI;
 its native regression compares the parsed graph to this fixture. Neither the
 fixture nor a matching graph approves physical hardware.
 
-Uncompressed SHA-256: `7fd9dcd3cf7c8a07c90d22866c942743316491769d9f521802fb8011a0899c48`.
+## Updated native export for local T491 land selection
 
-## Native BOM CSV fixture
+Generated with actual KiCad 9.0.2 on 2026-09-27 after introducing the two local
+T491 nominal reflow footprints. The complete parsed graph differs from the
+previous fixture only in C_REF/C_VCAP1 footprint IDs. All nets, terminals and
+other component fields are unchanged; see `docs/REV_A_TANTALUM_LANDS.md`.
 
-`rev_a_bom.csv` is the unmodified KiCad 9.0.2 CSV from the first hosted
-Schematic run for PR #43 at `970ccbd914758f87edf71d932fb73e05570a5422`
-(run `36261244786`, artifact `10911929888`). It contains 69 component rows,
-including eight DNP diode packages and the explicitly off-board controller.
-SHA-256: `15bf930be3c86fa1dbff665a9219194e73167535a67aad9ac4012eabeda6c683`.
+Uncompressed XML SHA-256: `ca9ccef463e1ab31426ae3afdc9744bd085a6b5bfde18fe231871228ce91fea2`.
 
-Ordinary tests use this frozen export only as a fixture, corrupting/omitting
-rows and fields. The native gate independently exports a fresh CSV and compares
-all its fields to the already-validated XML inventory; no fixture is accepted
-as evidence about a later source revision. No assembly or purchase is approved.
+`rev_a_bom.csv` is the corresponding unmodified native CSV: 69 rows, eight DNP
+packages and off-board MOD1. SHA-256:
+`87460b3c87d06f3ad077e5521f7b06665c0a19cd4e16f3d25169e1603e2c3c22`.
+
+Prior PR #43 fixture provenance remains in Git history. These updated fixtures
+are not fresh-run evidence about a later checkout and approve no assembly.

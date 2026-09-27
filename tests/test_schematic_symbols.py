@@ -99,7 +99,7 @@ def test_symbol_comparison_is_not_a_fixed_hash_allowlist(tmp_path: Path) -> None
                 path.read_text().replace('"Value" "R"', r'"Value" "R (reviewed) \"label\""')
             )
     after = schematic_source_snapshot(target)
-    assert len(after) == 7 and after != before
+    assert len(after) == 9 and after != before
 
 
 def test_definition_order_and_external_whitespace_are_immaterial(tmp_path: Path) -> None:
@@ -115,4 +115,4 @@ def test_definition_order_and_external_whitespace_are_immaterial(tmp_path: Path)
     path.write_text(f"(kicad_symbol_lib\n\t{LOCAL}\n {second})\n")
     after = schematic_source_snapshot(target)
     assert after["RevA.kicad_sym"] != before["RevA.kicad_sym"]
-    assert len(after) == 7
+    assert len(after) == 9

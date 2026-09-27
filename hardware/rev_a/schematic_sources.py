@@ -29,7 +29,7 @@ FOOTPRINT_LIBRARIES = frozenset(
         "Package_TO_SOT_SMD",
         "Resistor_SMD",
         "Capacitor_SMD",
-        "Capacitor_Tantalum_SMD",
+        "RevA_Passives",
         "Connector_PinHeader_2.54mm",
     }
 )
@@ -77,6 +77,11 @@ def _strings(pattern: str, content: str) -> list[str]:
     return result
 
 
+def _footprint_uri(name: str) -> str:
+    variable = "KIPRJMOD" if name == "RevA_Passives" else "KICAD9_FOOTPRINT_DIR"
+    return f"${{{variable}}}/{name}.pretty"
+
+
 def _dependencies(contents: dict[str, str]) -> None:
     declared = _strings(r'\(property\s+"Sheetfile"', contents["rev_a.kicad_sch"])
     if sorted(declared) != ["digital.kicad_sch", "power.kicad_sch"]:
@@ -96,7 +101,7 @@ def _dependencies(contents: dict[str, str]) -> None:
     footprints = contents["fp-lib-table"]
     names = _strings(r"\(name", footprints)
     uris = _strings(r"\(uri", footprints)
-    expected = {f"${{KICAD9_FOOTPRINT_DIR}}/{name}.pretty" for name in FOOTPRINT_LIBRARIES}
+    expected = {_footprint_uri(name) for name in FOOTPRINT_LIBRARIES}
     if (
         set(names) != FOOTPRINT_LIBRARIES
         or len(names) != len(expected)
@@ -104,10 +109,7 @@ def _dependencies(contents: dict[str, str]) -> None:
         or len(uris) != len(expected)
     ):
         raise ValueError("unexpected footprint library dependency")
-    if any(
-        uri != f"${{KICAD9_FOOTPRINT_DIR}}/{name}.pretty"
-        for name, uri in zip(names, uris, strict=True)
-    ):
+    if any(uri != _footprint_uri(name) for name, uri in zip(names, uris, strict=True)):
         raise ValueError("footprint library name is paired with the wrong URI")
 
 
@@ -138,14 +140,38 @@ def schematic_source_snapshot(
     if erc != {"erc_exclusions": [], "rule_severities": {}}:
         raise ValueError("ERC exclusions/severity overrides are not permitted in this candidate")
     result = {name: hashlib.sha256(text.encode()).hexdigest() for name, text in contents.items()}
+    result.update(_local_footprints(directory))
     if footprint_root is not None:
         result.update(_footprints(footprint_root))
+    return result
+
+
+def _local_footprints(cad: Path) -> dict[str, str]:
+    library = cad / "RevA_Passives.pretty"
+    expected = {
+        name.split(":")[1] + ".kicad_mod"
+        for name in FOOTPRINTS.values()
+        if name.startswith("RevA_Passives:")
+    }
+    if library.is_symlink() or not library.is_dir():
+        raise ValueError("local footprint library must be a real directory")
+    if {path.name for path in library.iterdir()} != expected:
+        raise ValueError("local footprint inventory is incomplete or contains extras")
+    result = {}
+    for name in sorted(expected):
+        content = read_schematic_file(library / name)
+        validate_footprint("RevA_Passives:" + name.removesuffix(".kicad_mod"), content)
+        result["footprints/RevA_Passives.pretty/" + name] = hashlib.sha256(
+            content.encode()
+        ).hexdigest()
     return result
 
 
 def _footprints(root: Path) -> dict[str, str]:
     result: dict[str, str] = {}
     for footprint in sorted(set(FOOTPRINTS.values()) - {""}):
+        if footprint.startswith("RevA_Passives:"):
+            continue
         library, name = footprint.split(":")
         relative = Path(library + ".pretty") / (name + ".kicad_mod")
         if root.is_symlink() or (root / relative.parent).is_symlink():

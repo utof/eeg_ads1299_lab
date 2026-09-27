@@ -169,3 +169,13 @@ existing focused sketch/CDC tests before publishing the harness. Historical
 counts above describe their earlier source revisions.
 See `REV_A_BENCH_HARNESS.md`: these are document-derived endpoints, not a
 qualified cable or interface. The CAD source and its logical MOD1 remain unchanged.
+
+## Local T491 land selection
+
+C_REF and C_VCAP1 now select the two native project-local RevA_Passives
+footprints described in `REV_A_TANTALUM_LANDS.md`. The seven existing top-level
+CAD files plus two local footprint files are always snapshotted; seven other
+selected definitions remain in the installed library. The full gate still
+hashes44 inputs. Only these two footprint IDs change in the fresh XML/CSV
+fixtures; electrical connectivity, MPNs and all false approval gates remain.
+This is a nominal reflow design choice, not an assembled-board qualification.

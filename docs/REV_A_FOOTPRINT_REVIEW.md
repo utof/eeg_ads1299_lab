@@ -1,5 +1,9 @@
 # Rev A footprint review: pin geometry checked, assembly decisions still open
 
+**Historical inspection: 2026-09-27, PR #47.** The two generic tantalum
+footprints described below have since been superseded by the explicit local
+nominal reflow choice in `REV_A_TANTALUM_LANDS.md`; other comparisons remain open.
+
 **Review date: 2026-09-27.** This is the footprint subset of issue #45 after
 merged PR #46. The nine distinct footprint definitions cover 68 daughterboard
 instances (60 fitted, eight DNP); MOD1 remains off-board. Their unique pad sets
