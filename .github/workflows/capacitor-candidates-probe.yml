@@ -1,0 +1,59 @@
+name: Disposable capacitor candidate evidence
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  capture:
+    if: github.head_ref == 'investigate/capacitor-candidates-20260927'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - name: Read public manufacturer catalog and four exact-core technical sheets
+        shell: python
+        run: |
+          import csv, datetime, hashlib, io, json, pathlib, urllib.request, zipfile
+          out = pathlib.Path('candidate-capture'); out.mkdir()
+          receipts=[]
+          def fetch(url, name=None):
+              record={'url':url,'utc':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+              receipts.append(record)
+              try:
+                  request=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0 (component documentation review)'})
+                  with urllib.request.urlopen(request,timeout=35) as response:
+                      data=response.read(30_000_001)
+                      if len(data)>30_000_000: raise ValueError('bounded source exceeded')
+                      record.update(final_url=response.url,status=response.status,bytes=len(data),sha256=hashlib.sha256(data).hexdigest())
+                  if name: (out/name).write_bytes(data); record['file']=name
+                  return data
+              except Exception as exc:
+                  record['error']=type(exc).__name__+': '+str(exc)
+                  return None
+          cores=['GRM21BR61A106KE19','GRM21BR61C106KE15','GRM21BR61E106KA73','GRM21BZ71C106KE15']
+          data=fetch('https://ds.murata.com/simsurfing_data/data/mlcc.zip')
+          if data:
+              with zipfile.ZipFile(io.BytesIO(data)) as z:
+                  names=[n for n in z.namelist() if n.endswith('mlcc.csv')]
+                  assert len(names)==1, names
+                  assert z.getinfo(names[0]).file_size<120_000_000
+                  raw=z.read(names[0])
+              rows=list(csv.DictReader(io.StringIO(raw.decode('utf-8-sig'))))
+              fields=['part_number','public_part_number','channel_code','production_status_ja','production_status_en-us','production_status_zh-cn','L','W','size_thickness_max','LWSize_mm_inch','tempchar','rvol','tolerance','capacitance_pu','Condition','TC_Condition']
+              selected=[]; eligible=[]
+              for row in rows:
+                  if row['part_number'] in cores: selected.append({k:row.get(k) for k in fields})
+                  if row.get('capacitance_pu') in {'10μF','10uF','10µF'} and row.get('LWSize_mm_inch')=='2012M/0805' and row.get('production_status_en-us')=='B' and row.get('tolerance')=='±10%' and row.get('tempchar') in {'X5R','X7R'} and float(row.get('rvol') or 0)>=10:
+                      eligible.append({k:row.get(k) for k in fields})
+              (out/'selected-rows.json').write_text(json.dumps({'csv_sha256':hashlib.sha256(raw).hexdigest(),'selected':selected,'screen_in_production_0805_10uf_10percent':eligible[:30],'screen_count':len(eligible)},indent=2)+'\n')
+          for core in cores:
+              url='https://ds.murata.com/simserve/characteristics?ReqType=TechPDF&partnumber='+core+'&techpdfname=technical_pdf_Capacitor01&lang=en'
+              fetch(url,core+'.pdf')
+          fetch('https://ds.murata.com/simsurfing/img/supply_status/supply_status_info_en-us.png','status-legend.png')
+          (out/'CAPTURE.json').write_text(json.dumps({'scope':'public_research_only_no_component_or_purchase_approval','receipts':receipts},indent=2)+'\n')
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: capacitor-candidate-sources
+          path: candidate-capture/
+          if-no-files-found: error
+          retention-days: 14
