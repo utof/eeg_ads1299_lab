@@ -9,43 +9,48 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 8
     steps:
-      - name: Capture current public catalog assets and exact document mirrors
+      - name: Render the public catalog without login or form submission
         shell: python
         run: |
-          import concurrent.futures, hashlib, html, json, pathlib, re, time, urllib.request
+          import hashlib, json, pathlib, shutil, subprocess, time, urllib.request
           out = pathlib.Path('source-capture')
           out.mkdir()
-          urls = {
-            'mlcc-functions': 'https://ds.murata.com/simsurfing/muratalib/js/product/simsurfing_mlcc_func.min.js?md5=dce82b9c5a5cb53b52ec16e0c9feddafs',
-            'catalog-config': 'https://ds.murata.com/simsurfing_data/simsurfing_conf.js?md5=857433f75c563b984e7518979e11f185s',
-            'catalog-common': 'https://ds.murata.com/simsurfing/muratalib/js/simsurfing_common.min.js?md5=fb16a55c682ab93638bdbc96ca36ba04s',
-            'catalog-graph': 'https://ds.murata.com/simsurfing/muratalib/js/simsurfing_graph.min.js?md5=1f3232d10b6bdf43006d3b13cc26bfe6s',
-            'mirror-1n5': 'https://www.alldatasheet.com/datasheet-pdf/pdf/1100425/MURATA/GRM1885C1H152JA01.html',
-            'mirror-100n': 'https://www.alldatasheet.com/datasheet-pdf/pdf/1457196/MURATA1/GRM188R71H104KA93D.html',
-          }
-          def capture(item):
-            name, url = item
-            row = {'name': name, 'requested_url': url, 'started_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}
+          url = 'https://ds.murata.com/simsurfing/mlcc.html?oripartnumbers=%5B%22GRM219R61A106KE44D%22%5D&partnumbers=%5B%22GRM219R61A106KE44%22%5D'
+          report = {'scope': 'public_catalog_render_only', 'utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), 'url': url, 'physical_hardware_tested': False}
+          chrome = shutil.which('google-chrome') or shutil.which('chromium')
+          if chrome:
+            report['browser'] = subprocess.check_output([chrome, '--version'], text=True).strip()
+            command = [chrome, '--headless', '--no-sandbox', '--disable-gpu', '--virtual-time-budget=20000', '--dump-dom', url]
+            with (out / 'rendered.html').open('w') as text, (out / 'browser.log').open('w') as log:
+              try:
+                result = subprocess.run(command, stdout=text, stderr=log, timeout=65)
+                report['browser_returncode'] = result.returncode
+              except subprocess.TimeoutExpired:
+                report['browser_error'] = 'bounded browser render timed out'
+          else:
+            report['browser_error'] = 'no browser installed'
+          sources = {}
+          for name, link in {
+            'mlcc-functions': 'https://ds.murata.com/simsurfing/muratalib/js/product/simsurfing_mlcc_func.min.js',
+            'catalog-config': 'https://ds.murata.com/simsurfing_data/simsurfing_conf.js',
+            'catalog-common': 'https://ds.murata.com/simsurfing/muratalib/js/simsurfing_common.min.js',
+          }.items():
+            row = {'url': link}
             try:
-              with urllib.request.urlopen(url, timeout=20) as response:
-                data = response.read(10_000_001)
-                if len(data) > 10_000_000:
-                  raise ValueError('source exceeds research size limit')
-                row.update(status=response.status, final_url=response.url, content_type=response.headers.get('Content-Type'), bytes=len(data), sha256=hashlib.sha256(data).hexdigest())
-              suffix = '.pdf' if data.startswith(b'%PDF-') else '.txt'
-              (out / (name + suffix)).write_bytes(data)
-              row['file'] = name + suffix
-              text = html.unescape(data.decode('utf-8', errors='replace')).replace('\\/', '/')
-              links = sorted(set(re.findall(r'(?:https?://|//)[^\s\"<>]+', text)))
-              (out / (name + '-links.txt')).write_text('\n'.join(links) + '\n')
+              request = urllib.request.Request(link, headers={'User-Agent': 'Mozilla/5.0', 'Referer': url})
+              with urllib.request.urlopen(request, timeout=15) as response:
+                data = response.read(5_000_001)
+                if len(data) > 5_000_000:
+                  raise ValueError('oversized public asset')
+                row.update(status=response.status, final_url=response.url, sha256=hashlib.sha256(data).hexdigest(), bytes=len(data))
+              (out / (name + '.js')).write_bytes(data)
             except Exception as exc:
               row['error'] = type(exc).__name__ + ': ' + str(exc)
-            print(json.dumps(row), flush=True)
-            return row
-          with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
-            rows = list(pool.map(capture, urls.items()))
-          (out / 'CAPTURE.json').write_text(json.dumps({'scope': 'public_document_retrieval_only', 'hardware_qualified': False, 'sources': rows}, indent=2) + '\n')
-      - name: Retain documents, source links and failed retrievals
+            sources[name] = row
+          report['sources'] = sources
+          (out / 'CAPTURE.json').write_text(json.dumps(report, indent=2) + '\n')
+          print(json.dumps(report), flush=True)
+      - name: Retain public render and failed retrievals
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
