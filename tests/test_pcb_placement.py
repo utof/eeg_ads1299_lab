@@ -112,3 +112,16 @@ def test_native_placement_and_completed_input_routes(tmp_path: Path, fault: str)
     elif fault == "missing-input-track":
         assert _input_airwire(report)
     assert report["unconnected_items"]  # Do not call this a routed or fabrication-ready board.
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize("net", ["VREFP", "VCAP1", "VCAP2", "VCAP3", "VCAP4"])
+def test_reference_and_pump_capacitor_nets_have_no_airwires(tmp_path: Path, net: str) -> None:
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    shutil.copyfile(BOARD, cad / "rev_a.kicad_pcb")
+    report = _native_report(cad)
+    assert report["schematic_parity"] == []
+    assert report["violations"] == []
+    assert f"[{net}]" not in json.dumps(report["unconnected_items"])
+
