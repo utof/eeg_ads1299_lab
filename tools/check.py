@@ -321,6 +321,7 @@ def _schematic_snapshot(cad: Path, footprints: Path) -> dict[str, str]:
         "schematic_symbols.py",
         "schematic_bom.py",
         "footprint_geometry.py",
+        "pcb_seed.py",
         "harness.py",
         "__init__.py",
     ):
