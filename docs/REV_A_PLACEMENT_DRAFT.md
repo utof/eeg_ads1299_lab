@@ -184,3 +184,14 @@ https://www.ti.com/lit/ds/symlink/ads1299.pdf
 KiCad 9 CLI documentation: native `pcb drc --schematic-parity`, JSON reporting and
 violation exit status. The actual execution pin is 9.0.2, not the latest release.
 https://docs.kicad.org/9.0/en/cli/cli.html
+
+### Recovered source-gate fault correction
+
+The full local gate also exposed a pre-existing software-test issue: its generic
+`rglob` selection could modify an unused installed shadow of a project-local
+T491 footprint instead of a consumed input. The old expected-failure case then
+correctly did not invalidate a snapshot of unchanged inputs. The test now chooses
+the exact installed QFP file and has a separate project-local T491 fault case.
+Both failures were observed before correction; all gate-double cases pass after
+it. No production source boundary, error tolerance, DRC rule or approval was
+relaxed. Filesystem iteration order is no longer mistaken for dependency identity.

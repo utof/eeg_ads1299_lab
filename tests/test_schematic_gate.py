@@ -116,9 +116,13 @@ def _change_dependency(root: Path, fault: str) -> None:
         "change-console": root / "firmware/esp32_ads1299_bench/bench_console.h",
         "change-sketch": root / "firmware/esp32_ads1299_bench/esp32_ads1299_bench.ino",
         "change-profile": root / "firmware/esp32_ads1299_bench/board_config_rev_a_s3.h",
+        "change-local-footprint": root
+        / "hardware/rev_a/kicad/RevA_Passives.pretty/T491B_3528_DensityB.kicad_mod",
     }
     if fault == "change-footprint":
-        files[fault] = next((root / "footprints").rglob("*.kicad_mod"))
+        # Pick an actually consumed installed definition, never a shadow copy of
+        # a project-local library. Filesystem iteration order is not a contract.
+        files[fault] = root / "footprints/Package_QFP.pretty/TQFP-64_10x10mm_P0.5mm.kicad_mod"
     path = files.get(fault)
     if path is not None:
         path.write_text(path.read_text() + "\n")
