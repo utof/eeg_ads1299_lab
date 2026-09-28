@@ -1,0 +1,225 @@
+"""Netlist serialization and the bounded external-simulator process boundary."""
+
+import math
+import shutil
+import subprocess
+from pathlib import Path
+from typing import Literal
+
+import numpy as np
+
+from ..data_types import ComplexArray, FloatArray
+from ._model import Drive, InputNetwork
+
+_DEFAULT_CONFIG = InputNetwork()
+
+
+def export_spice(
+    path: str | Path, network: InputNetwork = _DEFAULT_CONFIG, drive: Drive = "differential"
+) -> Path:
+    """Write a self-contained AC netlist; only passive parts and sources."""
+    if drive not in ("differential", "common"):
+        raise ValueError("Unknown drive")
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    p = network
+    # Negative amplitude expressed as 180-degree phase, portable AC syntax.
+    sources = ("AC 0.5", "AC 0.5 180") if drive == "differential" else ("AC 1", "AC 1")
+    text = f"""Illustrative EEG passive input network -- NOT A HUMAN-USE SCHEMATIC
+* 0 denotes local analog midpoint for small-signal AC, NOT protective earth.
+* No ADS1299 silicon, input clamps, body-bias loop, or safety analysis included.
+Vp skinp 0 {sources[0]}
+Vn skinn 0 {sources[1]}
+Rep skinp ep {p.r_electrode_p:.12g}
+Cep skinp ep {p.c_electrode_p:.12g}
+Ren skinn en {p.r_electrode_n:.12g}
+Cen skinn en {p.c_electrode_n:.12g}
+Rsp ep inp {p.r_series_p:.12g}
+Rsn en inn {p.r_series_n:.12g}
+Rip inp 0 {p.r_input_p:.12g}
+Rin inn 0 {p.r_input_n:.12g}
+Ccp inp 0 {p.c_common_p:.12g}
+Ccn inn 0 {p.c_common_n:.12g}
+Cd inp inn {p.c_differential:.12g}
+.control
+set wr_singlescale
+set wr_vecnames
+set numdgt=15
+ac dec 40 0.1 100000
+let h = v(inp)-v(inn)
+let hr = real(h)
+let hi = imag(h)
+wrdata ac.txt hr hi
+quit
+.endc
+.end
+"""
+    path.write_text(text)
+    return path
+
+
+def _log_text(value: str | bytes | None) -> str:
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return value or ""
+
+
+def _execute_ngspice(
+    netlist: str | Path, output_dir: str | Path, filename: str, *, window_required: bool = False
+) -> Path:
+    """Shared bounded process boundary; callers select a fixed output filename."""
+    exe = shutil.which("ngspice")
+    if not exe:
+        raise RuntimeError("ngspice executable is absent; install it, then rerun --require-ngspice")
+    output_dir = Path(output_dir).resolve()
+    output_dir.mkdir(parents=True, exist_ok=True)
+    netlist = Path(netlist).resolve()
+    output = output_dir / filename
+    log = output_dir / "ngspice.log"
+    # A successful exit without NEW output must not validate a previous run.
+    output.unlink(missing_ok=True)
+    if window_required:
+        (output_dir / "transient-window.txt").unlink(missing_ok=True)
+    try:
+        result = subprocess.run(
+            [exe, "-b", str(netlist)],
+            cwd=output_dir,
+            capture_output=True,
+            text=True,
+            timeout=45,
+            check=False,
+        )
+    except subprocess.TimeoutExpired as exc:
+        log.write_text(_log_text(exc.stdout) + "\n" + _log_text(exc.stderr), encoding="utf-8")
+        raise RuntimeError(f"ngspice timed out: see {log}") from exc
+    except OSError as exc:
+        log.write_text(f"ngspice could not start: {exc}\n", encoding="utf-8")
+        raise RuntimeError(f"ngspice could not start: see {log}") from exc
+    log.write_text(result.stdout + "\n" + result.stderr, encoding="utf-8")
+    if result.returncode != 0 or not output.exists():
+        raise RuntimeError(f"ngspice failed: see {log}")
+    return output
+
+
+def run_ngspice(netlist: str | Path, output_dir: str | Path) -> tuple[FloatArray, ComplexArray]:
+    """Read the lab's frequency/hr/hi export, not arbitrary three-column data.
+
+    Frequencies must be positive and strictly increasing; at least two rows are
+    required. Named columns identify exporter intent, not simulator authenticity,
+    internal circuit wiring, or completion of an independently requested sweep.
+    """
+    output = _execute_ngspice(netlist, output_dir, "ac.txt")
+    data = _read_wrdata_table(output, 2, ("hr", "hi"), analysis="AC")
+    if data.shape[0] < 2 or data.shape[1] != 3 or not np.all(np.isfinite(data)):
+        raise RuntimeError("Invalid ngspice AC table shape or values")
+    frequency = data[:, 0]
+    if np.any(frequency <= 0) or np.any(np.diff(frequency) <= 0):
+        raise RuntimeError("Invalid ngspice AC frequency axis")
+    response: ComplexArray = data[:, 1] + 1j * data[:, 2]
+    return frequency, response
+
+
+def run_ngspice_transient(
+    netlist: str | Path,
+    output_dir: str | Path,
+    *,
+    columns: int,
+    expected_stop_s: float | None = None,
+    expected_vectors: tuple[str, ...] | None = None,
+) -> tuple[FloatArray, FloatArray]:
+    """Read a fresh transient.txt: increasing nonnegative seconds, then real columns.
+
+    Exporters must use wr_singlescale/wr_vecnames. The header must name time
+    followed by the requested number of real vectors. expected_vectors additionally
+    checks their exact names and order; omitting it preserves count-only callers.
+    Headers describe exporter intent, not authenticated simulator or node identity.
+    Adaptive timesteps need not include t=0. Without expected_stop_s this verifies
+    format/execution only.
+    With it, require a fresh transient-window.txt recorded from the active time
+    vector BEFORE linearize. An interpolated endpoint cannot prove completion.
+    The window is integrity evidence from our exporter, not authenticated proof.
+    """
+    if isinstance(columns, bool) or not isinstance(columns, int) or columns < 1:
+        raise ValueError("transient columns must be a positive integer")
+    _validate_expected_vectors(expected_vectors, columns)
+    if expected_stop_s is not None:
+        _validate_stop(expected_stop_s)
+    output = _execute_ngspice(
+        netlist, output_dir, "transient.txt", window_required=expected_stop_s is not None
+    )
+    if expected_stop_s is not None:
+        _verify_native_window(output.parent / "transient-window.txt", expected_stop_s)
+    data = _read_wrdata_table(output, columns, expected_vectors, analysis="transient")
+    if data.shape[0] < 2 or data.shape[1] != columns + 1 or not np.all(np.isfinite(data)):
+        raise RuntimeError("Invalid ngspice transient table shape or values")
+    times = data[:, 0]
+    if np.any(times < 0) or np.any(np.diff(times) <= 0):
+        raise RuntimeError("Invalid ngspice transient time axis")
+    return times, data[:, 1:]
+
+
+def _validate_expected_vectors(vectors: tuple[str, ...] | None, columns: int) -> None:
+    """Reject ambiguous or malformed caller contracts before process/filesystem work."""
+    if vectors is None:
+        return
+    if (
+        not isinstance(vectors, tuple)
+        or len(vectors) != columns
+        or any(not isinstance(name, str) or name.split() != [name] for name in vectors)
+    ):
+        raise ValueError("expected_vectors must contain one nonempty single-token name per column")
+    if len(set(vectors)) != columns:
+        raise ValueError("expected_vectors must contain distinct names")
+
+
+def _read_wrdata_table(
+    path: Path,
+    columns: int,
+    vectors: tuple[str, ...] | None,
+    *,
+    analysis: Literal["AC", "transient"],
+) -> FloatArray:
+    """Read names and values from one descriptor; do not silently reorder signals."""
+    scale = "frequency" if analysis == "AC" else "time"
+    try:
+        with path.open(encoding="utf-8") as stream:
+            names = tuple(stream.readline().split())
+            if len(names) != columns + 1 or names[0] != scale:
+                raise RuntimeError(
+                    f"Unexpected ngspice {analysis} vectors: expected {scale} then columns"
+                )
+            if vectors is not None and names[1:] != vectors:
+                raise RuntimeError(
+                    f"Unexpected ngspice {analysis} vectors: expected {vectors!r}, got {names[1:]!r}"
+                )
+            data: FloatArray = np.loadtxt(stream, dtype=np.float64, ndmin=2)
+    except (OSError, UnicodeError, ValueError, UserWarning) as exc:
+        raise RuntimeError(f"Invalid ngspice {analysis} table") from exc
+    return data
+
+
+def _validate_stop(stop: float) -> None:
+    if isinstance(stop, bool) or not isinstance(stop, (int, float)):
+        raise ValueError("expected transient stop must be a positive finite real number")
+    if not math.isfinite(stop) or stop <= 0:
+        raise ValueError("expected transient stop must be a positive finite real number")
+
+
+def _verify_native_window(path: Path, expected_stop: float) -> None:
+    """Read the raw time-vector endpoints, not linearize's requested output grid."""
+    try:
+        rows = [line.split() for line in path.read_text(encoding="utf-8").splitlines()]
+        if len(rows) != 2 or any(len(row) != 3 or row[1] != "=" for row in rows):
+            raise ValueError("two named scalar endpoints required")
+        if [row[0] for row in rows] != ["integration_start", "integration_stop"]:
+            raise ValueError("unexpected endpoint names")
+        start, stop = (float(row[2]) for row in rows)
+    except (OSError, UnicodeError, ValueError) as exc:
+        raise RuntimeError("Missing or invalid native integration window") from exc
+    if not math.isfinite(start) or not math.isfinite(stop) or not 0 <= start < stop:
+        raise RuntimeError("Invalid native integration window values")
+    if not math.isclose(stop, expected_stop, rel_tol=0, abs_tol=1e-12):
+        raise RuntimeError(
+            f"Incomplete native integration window: stopped at {stop:g}s; "
+            f"requested {expected_stop:g}s"
+        )

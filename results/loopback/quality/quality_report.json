@@ -1,0 +1,49 @@
+{
+  "kind": "bench_signal_quality_not_human_EEG_validation",
+  "source": "capture.csv",
+  "recording_mode": "synthetic",
+  "samples": 2248,
+  "channels": 4,
+  "fs_hz": 250,
+  "assumed_vref_v": 4.5,
+  "gap_boundaries": 2,
+  "longest_contiguous_seconds": 4.0,
+  "mean_uV_by_channel": [
+    0.0,
+    -0.002764138886937043,
+    -0.0001789730214563553,
+    -0.004712956231684023
+  ],
+  "raw_peak_to_peak_uV_by_channel": [
+    22.30703830718994,
+    22.28468656539917,
+    22.239983081817627,
+    22.239983081817627
+  ],
+  "rail_code_samples_by_channel": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "four_second_spectral_windows": 1,
+  "cautions": [
+    "ADC rail-code check cannot detect every analog common-mode violation.",
+    "Internal-short spectra are not electrode-connected system noise.",
+    "No gaps interpolated; incomplete four-second windows excluded.",
+    "DC offsets are reported before detrending. Spectrum alone hides DC.",
+    "Voltage scale uses supplied reference and gain, not bench calibration."
+  ],
+  "rms_0p5_40_Hz_uV_by_channel": [
+    7.895723798376995,
+    7.892344870894605,
+    7.891095823984312,
+    7.892885670193165
+  ],
+  "peak_0p5_40_Hz_by_channel": [
+    10.0,
+    10.0,
+    10.0,
+    10.0
+  ]
+}

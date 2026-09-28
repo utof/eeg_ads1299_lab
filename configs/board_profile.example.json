@@ -1,0 +1,22 @@
+{
+  "purpose": "Hardware review worksheet; not automatically consumed by firmware",
+  "body_connection_approved": false,
+  "digital_bench_reviewed": false,
+  "esp32_exact_model": null,
+  "ads_board_manufacturer_and_model": null,
+  "board_revision": null,
+  "schematic_source": null,
+  "physical_ads_variant_4_6_or_8": null,
+  "board_input_supply_voltage": null,
+  "measured_avdd_minus_avss_v": null,
+  "measured_dvdd_v": null,
+  "external_reference_connected": null,
+  "internal_reference_capacitors_populated": null,
+  "clock_source_and_clksel": null,
+  "start_reset_pwdn_straps": null,
+  "input_protection_review": null,
+  "bias_output_current_limit_review": null,
+  "bias_feedback_stability_review": null,
+  "battery_and_enclosure_review": null,
+  "firmware_pin_map_checked_against_headers": false
+}

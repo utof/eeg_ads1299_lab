@@ -1,0 +1,241 @@
+"""Software-only gate doubles. They do not establish native CAD execution."""
+
+import csv
+import gzip
+import io
+import json
+import shutil
+from collections.abc import Sequence
+from pathlib import Path
+
+import pytest
+
+from lab.validation import read_object
+from tests.footprint_fixtures import write_footprint_library
+from tools.check import main
+
+ROOT = Path(__file__).resolve().parents[1]
+BOM_CSV = (ROOT / "tests/fixtures/rev_a_bom.csv").read_text()
+FIXTURE = gzip.decompress((ROOT / "tests/fixtures/rev_a_netlist.xml.gz").read_bytes()).decode()
+
+
+def _fake_project(root: Path) -> Path:
+    shutil.copytree(ROOT / "hardware/rev_a", root / "hardware/rev_a")
+    shutil.copytree(ROOT / "firmware/esp32_ads1299_bench", root / "firmware/esp32_ads1299_bench")
+    shutil.copyfile(ROOT / "firmware/toolchain.json", root / "firmware/toolchain.json")
+    shutil.copytree(ROOT / "tests", root / "tests", ignore=shutil.ignore_patterns("__pycache__"))
+    (root / "tools").mkdir()
+    shutil.copyfile(ROOT / "tools/check.py", root / "tools/check.py")
+    shutil.copyfile(ROOT / "pyproject.toml", root / "pyproject.toml")
+    return write_footprint_library(root / "footprints")
+
+
+def _clean_erc() -> str:
+    return json.dumps(
+        {
+            "kicad_version": "9.0.2",
+            "source": "rev_a.kicad_sch",
+            "sheets": [
+                {"path": name, "violations": list[object]()}
+                for name in ("/", "/POWER/", "/DIGITAL/")
+            ],
+        }
+    )
+
+
+def _fake_native_step(name: str, command: Sequence[str], out: Path, root: Path, fault: str) -> None:
+    text = "software-only process double, not native execution"
+    if name == "kicad-version":
+        text = "9.0.1" if fault == "wrong-version" else "9.0.2"
+    elif name == "schematic-source":
+        text = "bad" if fault == "bad-source" else "a" * 40
+    elif name == "schematic-dirty":
+        text = " M candidate-source"
+    (out / (name + ".log")).write_text(text)
+    if name in {"schematic-erc", "schematic-netlist", "schematic-pdf", "schematic-bom"}:
+        path = Path(command[command.index("-o") + 1])
+        assert not path.exists(), "gate reused an earlier native artifact"
+        _fake_output(name, path, fault)
+    if name == "schematic-netlist":
+        _change_dependency(root, fault)
+    if name == "harness-console-tests":
+        assert "tests/test_firmware_sketch_startup.py" in command
+        assert "tests/test_bench_harness.py" in command
+        assert command[command.index("-m", 3) + 1] == "native"
+        assert not list(out.glob("schematic-*/harness.json")), (
+            "harness published before console proof"
+        )
+        if fault == "console-route-fails":
+            raise RuntimeError("injected actual-sketch route failure")
+    if name == "schematic-tests" and fault == "native-tests-fail":
+        raise RuntimeError("injected native regression failure")
+
+
+def _fake_output(name: str, path: Path, fault: str) -> None:
+    missing = {
+        "no-erc": "schematic-erc",
+        "no-netlist": "schematic-netlist",
+        "no-pdf": "schematic-pdf",
+    }
+    if missing.get(fault) == name:
+        return
+    if name == "schematic-erc":
+        if fault == "erc-nonzero":
+            raise RuntimeError("injected ERC exit 5")
+        path.write_text("{}" if fault == "bad-erc" else _clean_erc())
+    elif name == "schematic-netlist":
+        text = "<export" if fault == "bad-xml" else FIXTURE
+        if fault == "wrong-wiring":
+            text = text.replace("<value>4.7n</value>", "<value>4.7u</value>", 1)
+        path.write_text(text)
+    elif name == "schematic-pdf":
+        path.write_bytes(b"SOFTWARE PDF DOUBLE")
+    elif name == "schematic-bom":
+        path.write_text(_bom_output(fault))
+
+
+def _bom_output(fault: str) -> str:
+    if fault == "empty-bom":
+        return ""
+    rows = list(csv.reader(io.StringIO(BOM_CSV)))
+    if fault == "partial-bom":
+        rows.pop()
+    elif fault == "wrong-bom-flag":
+        next(row for row in rows if row[0] == "D1")[6] = ""
+    result = io.StringIO(newline="")
+    csv.writer(result).writerows(rows)
+    return result.getvalue()
+
+
+def _change_dependency(root: Path, fault: str) -> None:
+    files = {
+        "change-child": root / "hardware/rev_a/kicad/power.kicad_sch",
+        "change-board": root / "hardware/rev_a/layout/rev_a.kicad_pcb",
+        "change-board-test": root / "tests/test_pcb_placement.py",
+        "change-library": root / "hardware/rev_a/kicad/RevA.kicad_sym",
+        "change-console": root / "firmware/esp32_ads1299_bench/bench_console.h",
+        "change-sketch": root / "firmware/esp32_ads1299_bench/esp32_ads1299_bench.ino",
+        "change-profile": root / "firmware/esp32_ads1299_bench/board_config_rev_a_s3.h",
+    }
+    if fault == "change-footprint":
+        files[fault] = next((root / "footprints").rglob("*.kicad_mod"))
+    path = files.get(fault)
+    if path is not None:
+        path.write_text(path.read_text() + "\n")
+
+
+@pytest.mark.parametrize(
+    "fault",
+    [
+        "none",
+        "wrong-version",
+        "bad-source",
+        "no-erc",
+        "bad-erc",
+        "erc-nonzero",
+        "no-netlist",
+        "bad-xml",
+        "wrong-wiring",
+        "no-pdf",
+        "empty-bom",
+        "partial-bom",
+        "wrong-bom-flag",
+        "change-child",
+        "change-board",
+        "change-board-test",
+        "change-library",
+        "change-console",
+        "change-sketch",
+        "change-profile",
+        "console-route-fails",
+        "missing-console-compiler",
+        "wrong-footprint-pad",
+        "change-footprint",
+        "missing-dependency",
+        "native-tests-fail",
+    ],
+)
+def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fault: str
+) -> None:
+    root = tmp_path / "repo"
+    root.mkdir()
+    footprints = _fake_project(root)
+    out = tmp_path / "reports"
+    out.mkdir()
+    marker = out / "SCHEMATIC_CHECK.json"
+    marker.write_text('{"passed": true, "old": true}')
+    if fault == "wrong-footprint-pad":
+        path = footprints / "Package_QFP.pretty/TQFP-64_10x10mm_P0.5mm.kicad_mod"
+        path.write_text(path.read_text().replace('(pad "1"', '(pad "65"', 1))
+    if fault == "missing-dependency":
+        (root / "hardware/rev_a/kicad/RevA.kicad_sym").unlink()
+
+    def plan(_out: Path) -> list[tuple[str, list[str]]]:
+        return []
+
+    def coverage(_path: Path, _minimum: float) -> float:
+        return 80.0
+
+    def tool(name: str) -> str | None:
+        if fault == "missing-console-compiler" and name in {"g++", "clang++"}:
+            return None
+        return "/software-double/kicad-cli"
+
+    def step(name: str, command: Sequence[str], out: Path, timeout: float = 300) -> None:
+        _fake_native_step(name, command, out, root, fault)
+
+    monkeypatch.setattr("tools.check.ROOT", root)
+    monkeypatch.setattr("tools.check.command_plan", plan)
+    monkeypatch.setattr("tools.check.check_branch_coverage", coverage)
+    monkeypatch.setattr("tools.check.run_step", step)
+    monkeypatch.setattr(shutil, "which", tool)
+    monkeypatch.setenv("KICAD9_FOOTPRINT_DIR", str(footprints))
+    assert main(["--schematic", "--out", str(out)]) == (0 if fault == "none" else 1)
+    if fault == "none":
+        report = read_object(json.loads(marker.read_text()), "schematic")
+        assert report["source_commit"] == "a" * 40
+        assert report["source_dirty"] is True
+        assert report["component_count"] == 69 and report["terminal_count"] == 256
+        assert report["physical_hardware_tested"] is False
+        assert report["body_connection_authorized"] is False
+        assert report["schematic_released"] is False
+        assert len(read_object(report["source_sha256"], "hashes")) == 47
+        directory = out / str(report["artifact_directory"])
+        harness = read_object(json.loads((directory / "harness.json").read_text()), "harness")
+        assert harness["physical_wiring_approved"] is False
+        assert harness["console_interface_qualified"] is False
+        assert "harness.json" in read_object(report["artifact_sha256"], "artifacts")
+    else:
+        assert not marker.exists()
+
+
+def test_ordinary_failure_invalidates_previous_schematic_marker(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def failed(_out: Path) -> list[tuple[str, list[str]]]:
+        raise RuntimeError("ordinary check failed before CAD work")
+
+    marker = tmp_path / "SCHEMATIC_CHECK.json"
+    marker.write_text('{"stale": true}')
+    monkeypatch.setattr("tools.check.command_plan", failed)
+    assert main(["--schematic", "--out", str(tmp_path)]) == 1
+    assert not marker.exists()
+
+
+def test_requested_schematic_gate_fails_without_native_tool(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def plan(_out: Path) -> list[tuple[str, list[str]]]:
+        return []
+
+    def coverage(_path: Path, _minimum: float) -> float:
+        return 80.0
+
+    def missing(_name: str) -> None:
+        return None
+
+    monkeypatch.setattr("tools.check.command_plan", plan)
+    monkeypatch.setattr("tools.check.check_branch_coverage", coverage)
+    monkeypatch.setattr(shutil, "which", missing)
+    assert main(["--schematic", "--out", str(tmp_path)]) == 1

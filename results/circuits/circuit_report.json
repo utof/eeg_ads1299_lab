@@ -1,0 +1,30 @@
+{
+  "model": "independent linear nodal solve; passive network only",
+  "parameters": {
+    "r_electrode_p": 10000,
+    "r_electrode_n": 10000,
+    "c_electrode_p": 1e-07,
+    "c_electrode_n": 1e-07,
+    "r_series_p": 10000,
+    "r_series_n": 10000,
+    "r_input_p": 1000000000.0,
+    "r_input_n": 1000000000.0,
+    "c_common_p": 1e-10,
+    "c_common_n": 1e-10,
+    "c_differential": 1e-09
+  },
+  "differential_gain_10hz": 0.9998940055817275,
+  "balanced_cm_leakage_50hz": 9.215718466126788e-18,
+  "mismatch_cm_leakage_50hz": 0.0006384305211956509,
+  "mismatch_differential_uV_for_100mV_common": 63.843052119565094,
+  "monte_carlo_trials": 200,
+  "tolerance_gain_10hz_minmax": [
+    0.9998859361586336,
+    0.9999001512762924
+  ],
+  "ngspice": {
+    "status": "not_run",
+    "reason": "ngspice not installed"
+  },
+  "safety_validation": false
+}

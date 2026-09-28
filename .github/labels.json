@@ -1,0 +1,82 @@
+[
+  {
+    "name": "type/bug",
+    "description": "Incorrect behavior or invalid scientific evidence",
+    "color": "d73a4a"
+  },
+  {
+    "name": "type/feature",
+    "description": "New user-facing capability",
+    "color": "7057ff"
+  },
+  {
+    "name": "type/refactor",
+    "description": "Simplify structure while preserving intended behavior",
+    "color": "7057ff"
+  },
+  {
+    "name": "type/chore",
+    "description": "Repository upkeep and development ergonomics",
+    "color": "7057ff"
+  },
+  {
+    "name": "type/docs",
+    "description": "Documentation and learning material",
+    "color": "7057ff"
+  },
+  {
+    "name": "type/test",
+    "description": "Regression, property, or integration coverage",
+    "color": "7057ff"
+  },
+  {
+    "name": "type/ci",
+    "description": "Continuous integration and repository automation",
+    "color": "7057ff"
+  },
+  {
+    "name": "priority/high",
+    "description": "Correctness, safety-boundary, or evidence-integrity blocker",
+    "color": "d73a4a"
+  },
+  {
+    "name": "priority/medium",
+    "description": "Important work without an immediate correctness blocker",
+    "color": "fbca04"
+  },
+  {
+    "name": "priority/low",
+    "description": "Useful improvement that can follow higher-priority work",
+    "color": "c2e0c6"
+  },
+  {
+    "name": "area/dx",
+    "description": "Tooling, contributor workflow, and architecture enforcement",
+    "color": "0075ca"
+  },
+  {
+    "name": "area/hardware",
+    "description": "Static Rev A contracts, BOM, and schematic planning",
+    "color": "0075ca"
+  },
+  {
+    "name": "area/simulation",
+    "description": "Analog models and independent simulator comparisons",
+    "color": "0075ca"
+  },
+  {
+    "name": "area/acquisition",
+    "description": "Capture, packet transport, and decoding",
+    "color": "0075ca"
+  },
+  {
+    "name": "area/analysis",
+    "description": "Recording semantics, DSP, and experimental analysis",
+    "color": "0075ca"
+  },
+  {
+    "name": "area/firmware",
+    "description": "Guarded MCU code and target-specific builds",
+    "color": "0075ca"
+  }
+]

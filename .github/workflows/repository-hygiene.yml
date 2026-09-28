@@ -1,0 +1,67 @@
+name: Repository hygiene
+on:
+  push:
+    branches: [main]
+    paths: ['.github/labels.json', '.github/workflows/repository-hygiene.yml']
+  pull_request:
+    types: [closed]
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: repository-hygiene
+  cancel-in-progress: false
+jobs:
+  labels:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Synchronize the trusted-main label manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          jq -c '.[]' .github/labels.json | while IFS= read -r item; do
+            name=$(jq -r '.name' <<< "$item")
+            color=$(jq -r '.color' <<< "$item")
+            description=$(jq -r '.description' <<< "$item")
+            gh label create "$name" --color "$color" --description "$description" --force
+          done
+  merged-branches:
+    if: github.event_name == 'push' || (github.event.pull_request.merged && github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Delete only unchanged heads of already merged local PRs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --paginate "repos/$GITHUB_REPOSITORY/pulls?state=closed&base=main&per_page=100" \
+            --jq '.[] | select(.merged_at != null and .head.repo.full_name == .base.repo.full_name) | [.head.ref, .head.sha] | @tsv' > /tmp/merged-heads.tsv
+          while IFS=$'\t' read -r branch expected; do
+            ref="refs/heads/$branch"
+            git check-ref-format "$ref"
+            test "$branch" != main || continue
+            current=$(git ls-remote --refs origin "$ref" | cut -f1)
+            if test "$current" != "$expected"; then
+              echo "Retain absent or changed branch: $branch"; continue
+            fi
+            if ! git merge-base --is-ancestor "$expected" HEAD; then
+              echo "Retain branch not contained in trusted main: $branch"; continue
+            fi
+            git push --force-with-lease="$ref:$expected" origin ":$ref"
+          done < /tmp/merged-heads.tsv

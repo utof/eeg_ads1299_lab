@@ -1,0 +1,192 @@
+# Public package APIs and dependency direction are checked in CI.
+# No unchecked modules, implicit consumers, or ignored TYPE_CHECKING imports.
+source_roots = ["."]
+root_module = "forbid"
+exact = true
+forbid_circular_dependencies = true
+ignore_type_checking_imports = false
+exclude = ["^reports/", "^results/", "^\\.venv/", "^build/", "^dist/"]
+
+[[modules]]
+path = "lab"
+depends_on = []
+
+[[modules]]
+path = "lab.data_types"
+depends_on = []
+
+[[modules]]
+path = "lab.validation"
+depends_on = ["lab.data_types"]
+
+[[modules]]
+path = "lab.adc"
+depends_on = ["lab.data_types", "lab.validation"]
+
+[[modules]]
+path = "lab.analog"
+depends_on = ["lab.data_types"]
+
+[[modules]]
+path = "lab.signals"
+depends_on = ["lab.adc", "lab.data_types", "lab.validation"]
+
+[[modules]]
+path = "lab.dsp"
+depends_on = ["lab.adc", "lab.data_types", "lab.recording", "lab.validation"]
+
+[[modules]]
+path = "lab.protocol"
+depends_on = ["lab.adc", "lab.data_types"]
+
+[[modules]]
+path = "lab.acquisition"
+depends_on = ["lab.adc", "lab.data_types", "lab.protocol"]
+
+[[modules]]
+path = "lab.inspect_capture"
+depends_on = ["lab.adc", "lab.data_types", "lab.dsp", "lab.validation"]
+
+[[modules]]
+path = "lab.pipeline"
+depends_on = ["lab.adc", "lab.analog", "lab.data_types", "lab.dsp", "lab.recording", "lab.signals"]
+
+[[modules]]
+path = "hardware"
+depends_on = []
+
+[[modules]]
+path = "hardware.rev_a"
+depends_on = []
+
+[[modules]]
+path = "tools"
+depends_on = []
+
+[[modules]]
+path = "tools.run_loopback"
+depends_on = ["lab.acquisition", "lab.inspect_capture"]
+
+[[modules]]
+path = "run_lab"
+depends_on = ["lab.acquisition", "lab.analog", "lab.inspect_capture", "lab.pipeline", "lab.signals", "tools.check"]
+
+[[modules]]
+path = "tests"
+depends_on = ["lab.rev_a_supply", "lab.rev_a_power", "lab.rev_a_bias_overload", "lab.rev_a_bias", "lab.rev_a", "hardware.rev_a", "lab.acquisition", "lab.adc", "lab.analog", "lab.data_types", "lab.dsp", "lab.inspect_capture", "lab.pipeline", "lab.protocol", "lab.signals", "lab.validation", "tools.check", "tools.commit_messages", "run_lab"]
+
+[[interfaces]]
+from = ["lab.data_types"]
+expose = ["AnalysisReport", "BoolArray", "BoolResult", "CaptureSummary", "CodeArray", "CodeResult", "ComplexArray", "CrossValidationReport", "EpochRow", "FloatArray", "FloatResult", "FoldReport", "InspectionReport", "IntArray", "QualityFlags", "Recording", "SyntheticMetadata", "TrackerInfo", "TrackerSummary"]
+
+[[interfaces]]
+from = ["lab.validation"]
+expose = ["Scalar", "boolean", "float_array", "integer", "number", "read_object", "stored_array", "text"]
+
+[[interfaces]]
+from = ["lab.adc"]
+expose = ["ADCConfig", "GAINS", "MAX_CODE", "MIN_CODE", "RATES", "behavioral_decimate", "headroom_valid", "quantize", "sinc3_magnitude", "to_volts"]
+
+[[interfaces]]
+from = ["lab.analog"]
+expose = ["CircuitReport", "Drive", "InputNetwork", "circuit_report", "export_spice", "run_ngspice", "run_ngspice_transient", "transfer"]
+
+[[interfaces]]
+from = ["lab.signals"]
+expose = ["SyntheticConfig", "generate", "parse_metadata"]
+
+[[interfaces]]
+from = ["lab.dsp"]
+expose = ["BANDS", "analyze", "bandpower", "epoch_features", "psd", "quality_flags"]
+
+[[interfaces]]
+from = ["lab.protocol"]
+expose = ["CHANNELS", "FLAG_OVERRUN", "FLAG_SHORT", "FLAG_SYNTHETIC", "FLAG_TEST", "HEADER", "MAGIC", "Packet", "StreamDecoder", "Tracker", "VERSION", "native_frame", "parse_native", "signed24"]
+
+[[interfaces]]
+from = ["lab.acquisition"]
+expose = ["capture_serial", "capture_udp", "decode_capture", "replay_packets"]
+
+[[interfaces]]
+from = ["lab.inspect_capture"]
+expose = ["inspect_capture"]
+
+[[interfaces]]
+from = ["lab.pipeline"]
+expose = ["load_data", "make_plots", "run_demo", "save_data"]
+
+[[interfaces]]
+from = ["hardware.rev_a"]
+expose = ["BillOfMaterials", "BoardProfile", "CostTotals", "FootprintPad", "HarnessNet", "SchematicNetlist", "SchematicPart", "SourcesDocument", "bench_harness", "load_documents", "make_pcb_seed", "parse_schematic_xml", "read_schematic_file", "schematic_source_snapshot", "totals", "validate", "validate_erc", "validate_footprint", "validate_schematic", "validate_schematic_bom"]
+
+[[interfaces]]
+from = ["tools.run_loopback"]
+expose = ["ROOT", "main"]
+
+[[modules]]
+path = "tools.check"
+depends_on = ["hardware.rev_a"]
+
+[[interfaces]]
+from = ["tools.check"]
+expose = ["main", "command_plan", "run_step", "check_branch_coverage", "require_native_tools"]
+
+[[interfaces]]
+from = ["run_lab"]
+expose = ["main"]
+
+[[modules]]
+path = "lab.recording"
+depends_on = ["lab.adc", "lab.data_types", "lab.signals", "lab.validation"]
+
+[[interfaces]]
+from = ["lab.recording"]
+expose = ["load_data", "save_data", "validate_recording"]
+
+[[modules]]
+path = "tools.commit_messages"
+depends_on = []
+
+[[interfaces]]
+from = ["tools.commit_messages"]
+expose = ["valid_subject", "check_range", "main"]
+
+[[modules]]
+path = "lab.rev_a"
+depends_on = ["hardware.rev_a", "lab.analog", "lab.data_types", "lab.validation"]
+
+[[interfaces]]
+from = ["lab.rev_a"]
+expose = ["RevABaseline", "CaseResult", "AnalyticOnly", "NativeCompared", "StudyReport", "load_baseline", "study", "read_study", "main"]
+
+[[modules]]
+path = "lab.rev_a_bias"
+depends_on = ["hardware.rev_a", "lab.analog", "lab.data_types"]
+
+[[interfaces]]
+from = ["lab.rev_a_bias"]
+expose = ["state_matrices", "bias_network_lines", "BiasModel", "BiasResponse", "load_bias_model", "ideal_controller", "response", "closed_poles", "step_response", "step_voltages", "export_bias_spice", "scenarios", "run_bias_study", "main"]
+
+[[modules]]
+path = "lab.rev_a_bias_overload"
+depends_on = ["lab.rev_a_bias", "lab.analog", "lab.data_types"]
+
+[[interfaces]]
+from = ["lab.rev_a_bias_overload"]
+expose = ["OutputLimits", "InterferencePulse", "OverloadTrace", "overload_response", "export_overload_spice", "run_overload_study", "main"]
+
+[[modules]]
+path = "lab.rev_a_power"
+depends_on = ["lab.analog", "lab.data_types"]
+
+[[interfaces]]
+from = ["lab.rev_a_power"]
+expose = ["ARCHIVE_SHA256", "LIBRARY_SHA256", "prepare_library", "assess_trace", "switch_netlist", "run_pilot", "main"]
+
+[[modules]]
+path = "lab.rev_a_supply"
+depends_on = ["hardware.rev_a", "lab.analog", "lab.data_types", "lab.validation"]
+
+[[interfaces]]
+from = ["lab.rev_a_supply"]
+expose = ["SupplyCase", "SupplyTiming", "steady_state", "rail_response", "source_voltage_window", "supply_netlist", "run_supply_study", "main"]
