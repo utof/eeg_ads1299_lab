@@ -1,0 +1,48 @@
+name: Disposable native zone-fill tool recovery
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  package:
+    if: github.head_ref == 'workbench/kicad9-zone-fill-runtime'
+    runs-on: ubuntu-24.04
+    container: debian:trixie@sha256:9cc080028c43b27d2074d63a5f9caf7166d731494965616c1a6d2827a004585c
+    timeout-minutes: 10
+    steps:
+      - name: Install the existing pinned CAD version and retain native authoring bindings
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y --no-install-recommends ca-certificates python3 kicad=9.0.2+dfsg-1 > /tmp/install.log 2>&1 || { tail -60 /tmp/install.log; exit 1; }
+          mkdir -p zone-fill-runtime/modules zone-fill-runtime/lib
+          python3 - <<'PY'
+          import hashlib, json, pathlib, shutil, subprocess, sys
+          import pcbnew
+          import _pcbnew
+          out=pathlib.Path('zone-fill-runtime')
+          for module in (pcbnew, _pcbnew):
+              source=pathlib.Path(module.__file__)
+              shutil.copy2(source,out/'modules'/source.name)
+          text=subprocess.check_output(['ldd',_pcbnew.__file__],text=True)
+          (out/'ldd.txt').write_text(text)
+          for line in text.splitlines():
+              fields=line.split()
+              if '=>' not in fields: continue
+              path=pathlib.Path(fields[fields.index('=>')+1])
+              if path.is_absolute() and path.is_file(): shutil.copy2(path,out/'lib'/path.name)
+          board=pcbnew.BOARD()
+          print('native version:',pcbnew.Version(),'zone filler:',pcbnew.ZONE_FILLER)
+          record={'scope':'native_tool_recovery_not_board_validation','kicad_version':pcbnew.Version(),'python':sys.version,'files':{str(p.relative_to(out)):hashlib.sha256(p.read_bytes()).hexdigest() for p in out.rglob('*') if p.is_file()}}
+          (out/'TOOL_RECEIPT.json').write_text(json.dumps(record,indent=2)+'\n')
+          PY
+          dpkg-query -W kicad python3 > zone-fill-runtime/PACKAGES.txt
+          cp /tmp/install.log zone-fill-runtime/install.log
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: pinned-zone-fill-runtime
+          path: zone-fill-runtime/
+          if-no-files-found: error
+          retention-days: 7
