@@ -151,6 +151,7 @@ def _change_dependency(root: Path, fault: str) -> None:
         "missing-console-compiler",
         "wrong-footprint-pad",
         "change-footprint",
+        "change-local-footprint",
         "missing-dependency",
         "native-tests-fail",
     ],
