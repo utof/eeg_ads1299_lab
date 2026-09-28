@@ -17,6 +17,7 @@ from .check_schematic import (
 )
 from .footprint_geometry import FootprintPad, validate_footprint
 from .harness import HarnessNet, bench_harness
+from .pcb_seed import make_pcb_seed
 from .schematic_bom import validate_schematic_bom
 from .schematic_sources import read_schematic_file, schematic_source_snapshot, validate_erc
 
@@ -31,6 +32,7 @@ __all__ = [
     "SourcesDocument",
     "bench_harness",
     "load_documents",
+    "make_pcb_seed",
     "parse_schematic_xml",
     "read_schematic_file",
     "schematic_source_snapshot",
