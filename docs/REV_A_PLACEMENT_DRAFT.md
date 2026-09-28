@@ -1,4 +1,4 @@
-# Rev A native placement and ADC-side input routing draft
+# Rev A placement, input and reference/VCAP routing draft
 
 **2026-09-28.** This is a real editable PCB source at
 `hardware/rev_a/layout/rev_a.kicad_pcb`, continuing merged PR #58's checked import.
@@ -23,17 +23,19 @@ stackup, impedance calculation, or an implemented return plane. **There are no
 zones or planes in this draft.** Neither the source nor the tests claim otherwise.
 
 The eight ADC-side nets `IN1P/N` through `IN4P/N` now connect each ADS pad to its
-series resistor, differential capacitor and optional-clamp signal pad. The draft
-contains 56 track segments and 16 through vias. The main resistor/capacitor-to-ADC
+series resistor, differential capacitor and optional-clamp signal pad. The first input-only draft
+contained 56 track segments and 16 through vias. The current draft contains
+140 track segments and 36 through vias after the reference/VCAP continuation below. The main resistor/capacitor-to-ADC
 fanout is front copper; each DNP clamp branch uses a short back-copper crossing
 under its series resistor. This is a layout choice needing parasitic/return-path
 review, not a claim that those stubs are electrically ideal or that fitting the
 clamps is approved. The eight clamps remain DNP.
 
-**The input connector-to-resistor nets are still unrouted.** Power, reference,
-VCAP, BIAS, ground and digital interconnects also remain unfinished. There is no
-complete powered circuit or external-input acquisition path yet. Net names must
-not be confused with a claim that the entire input path or board is complete.
+**The input connector-to-resistor nets are still unrouted.** Main power, BIAS,
+board-wide ground and digital interconnects remain unfinished. VREFP and VCAP1-4
+now have complete positive-side copper and the local returns described below;
+that does not make the whole power or ground system complete. There is no
+complete powered circuit or external-input acquisition path yet.
 
 ## Preserved electrical and package identity
 
@@ -53,7 +55,7 @@ are unchanged. Updating the placed footprints from the original library can
 reintroduce the small text; rerun the native checks after any such update.
 Silkscreen designators and assembly readability are not finalized by this draft.
 
-## Independent native evidence and its limits
+## Initial input-routing evidence (before the reference/VCAP continuation)
 
 The existing `tools.check --schematic` runs four new native cases on copies of
 this PCB and the current schematic. KiCad 9.0.2 checks both DRC and schematic
@@ -80,6 +82,67 @@ join that gate's before/after input snapshot (47 inputs). The test doubles are
 not described as native execution. There is no new production verification
 framework or altered numerical/coverage threshold.
 
+## Reference and VCAP routing continuation — 28 September 2026
+
+This slice completes five previously unrouted positive-side nets: VREFP and
+VCAP1, VCAP2, VCAP3 and VCAP4. All of their copper stays on F.Cu without a via
+between the chip and capacitor. The already selected capacitor values and
+reference/VCAP pin assignments are unchanged. The existing ADC-side input tracks
+and vias are preserved byte-for-byte.
+
+Eight capacitor negative terminals now have short front-copper spokes to ground
+vias and an explicit In1.Cu return-trace network joining the chip's GND pins.
+This includes VREFN (pin 25), the AVSS pins and the existing DGND/unused-input
+returns. **This is routed copper, not a filled ground plane.** Board-wide ground
+is still unfinished; these local paths must not be represented as an operational
+or low-impedance-qualified return system. The return vias and inner traces are
+explicitly part of the provisional routing, not proof of compliance with TI's
+same-layer/no-via bypass guidance for a complete current loop. Final continuous
+plane fill and loop/return-impedance review remain required before release.
+
+The two placement edits affect only previously unrouted components. C24, the
+100 nF VCAP3 bypass, moves from (48, 21.8) to (51.5, 28.65) mm at 90 degrees,
+beside C9. C10, the VCAP4 1 uF capacitor, moves from (49.6, 45.35) to
+(49.8, 46) mm at 270 degrees to clear the pin escape. No footprint library,
+local pad or courtyard geometry, symbol link, population, MPN, value or net
+assignment changes. The board outline, four enabled copper layers, layer-stack
+limitations and original DNP clamp/input route qualifications remain unchanged.
+
+The first copper candidate failed actual KiCad checks: premature diagonal
+fanout crossed neighboring pad clearances, a ground via crowded a VCAP trace,
+and acute inner-return branches produced sliver findings. The route geometry
+and two placements were corrected; no clearance setting, rule, error severity
+or exclusion was changed to obtain a pass. These failure logs are retained.
+
+On the corrected draft KiCad 9.0.2 reports:
+
+| Native DRC result | Input-only draft | Reference/VCAP draft |
+|---|---:|---:|
+| Schematic parity findings | 0 | 0 |
+| Other violations (clearance, shorts, courtyard, mask, silkscreen, etc.) | 0 | 0 |
+| Unconnected items | 163 | 134 |
+
+Both boards return exit 5 because of genuine unfinished connections. The count
+is an observation, not a routing-completion percentage or fabrication allowance.
+No remaining airwire is on an ADC-side input, VREFP or VCAP1-4 net. AVDD, DVDD,
+VIN, digital, BIAS and other ground/input-connector routes still need work.
+
+Five native missing-connection tests failed on the untouched input-only board
+before routing, while its prior placement checks passed. Thirteen additional
+fault controls challenge the completed result: deleting one positive trace from
+each of the five sensitive nets creates the corresponding native airwire;
+deleting each of the eight capacitor return spokes adds a GND airwire at that
+negative terminal even though its positive net stays complete. All preserve
+schematic parity, demonstrating why parity alone cannot prove routed connectivity.
+These are finite physical-route fault probes, not an exhaustive mutation score.
+The existing board/test source snapshots and orchestration are reused; no new
+production Python module, runtime dependency or model is introduced.
+
+The source patch and openable project are local design deliverables pending
+publication, independent review and hosted checks. A prior import review cannot
+be reused as approval of these new tracks. Purchasing, hardware-release and
+body-connection gates remain false.
+
 ## Open and verify without duplicating the schematic
 
 Repository storage keeps the editable board separate from the existing closed
@@ -103,16 +166,17 @@ has its original five output artifacts and does not certify a routed PCB.
 
 Close the pending ceramic part and console/power-loss/interface decisions in
 issues #45/#48 before freezing those affected routes. Complete the intended
-stackup, ground returns and placement optimization, especially local supply,
-reference and VCAP routes. Then route the remaining required nets and resolve
+stackup, continuous ground returns and placement optimization, especially the
+remaining AVDD/DVDD supply routes. Review local reference/VCAP loop impedance
+with the final plane fill; the current routed ground network is not that plane. Then route the remaining required nets and resolve
 all DRC/parity findings. Mounting, mating clearance, final silkscreen/assembly
 views, source-consistent fabrication exports and an actual delivered quote remain
 required. No ordering, flashing, power-up or body connection is authorized here.
 
 ## Primary design/tool basis
 
-TI ADS1299 SBAS499C, printed pages 72-73, section 12 and Figures 79-80, visually
-checked in this continuation: analog/digital separation, return-path attention,
+TI ADS1299 SBAS499C, printed page 7 pin table and page 72 section 12/Figure 79,
+visually checked for the reference/VCAP continuation: analog/digital separation, return-path attention,
 near-pin same-layer bypassing, and differential input capacitors. The provisional
 outline, coordinates and routing above are our design choices, not TI dimensions.
 https://www.ti.com/lit/ds/symlink/ads1299.pdf

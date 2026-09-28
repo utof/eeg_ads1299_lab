@@ -125,3 +125,66 @@ def test_reference_and_pump_capacitor_nets_have_no_airwires(tmp_path: Path, net:
     assert report["violations"] == []
     assert f"[{net}]" not in json.dumps(report["unconnected_items"])
 
+
+# Test fault locations in this authored board, not an alternate connectivity spec.
+# Removing just these spokes must isolate a negative terminal without changing
+# the completed positive net or pretending that board-wide ground is finished.
+RETURN_SPOKES = {
+    "C7": "7238da55-d8e3-5c43-93f2-54970a1f37d7",
+    "C6": "794dffa4-2e2d-5940-8365-10e563a6755c",
+    "C25": "0e1a4992-f7d4-5cc6-8526-eec9034846bb",
+    "C10": "318fe669-2bdf-5909-9b64-240c431360f7",
+    "C23": "2e5d3978-51af-538c-8adb-917643a77c7b",
+    "C8": "223dd54d-bd9b-5e49-954e-f7f1f14b4492",
+    "C9": "9ef13bc9-c831-5927-a31f-0863f423ce26",
+    "C24": "716f2854-f089-5388-b821-d1e4e5e88928",
+}
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize("reference", list(RETURN_SPOKES))
+def test_a_broken_capacitor_return_is_not_hidden_by_a_completed_positive_net(
+    tmp_path: Path, reference: str
+) -> None:
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    board = BOARD.read_text()
+    target = cad / "rev_a.kicad_pcb"
+    target.write_text(board)
+    before = _native_report(cad)
+    assert before["violations"] == [] and before["schematic_parity"] == []
+    # These per-item UUIDs identify exactly which copper is removed in the fault.
+    # KiCad, not this test, decides whether removing it electrically opens the path.
+    spoke = next(line for line in board.splitlines() if RETURN_SPOKES[reference] in line)
+    assert spoke.startswith("(segment ") and '(layer "F.Cu")' in spoke
+    target.write_text(board.replace(spoke, "", 1))
+    after = _native_report(cad)
+    assert after["schematic_parity"] == []
+    old = before["unconnected_items"]
+    new = after["unconnected_items"]
+    assert isinstance(old, list) and isinstance(new, list)
+    assert len(new) == len(old) + 1
+    assert f"Pad 2 [GND] of {reference} on F.Cu" in json.dumps(new)
+    for net in ("VREFP", "VCAP1", "VCAP2", "VCAP3", "VCAP4"):
+        assert f"[{net}]" not in json.dumps(new)
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize("net", ["VREFP", "VCAP1", "VCAP2", "VCAP3", "VCAP4"])
+def test_native_connectivity_detects_a_cut_sensitive_capacitor_trace(
+    tmp_path: Path, net: str
+) -> None:
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    board = BOARD.read_text()
+    code = re.search(r'\(net (\d+) "' + net + r'"\)', board)
+    assert code is not None
+    track = next(
+        line
+        for line in board.splitlines()
+        if line.startswith("(segment ") and f"(net {code.group(1)})" in line
+    )
+    (cad / "rev_a.kicad_pcb").write_text(board.replace(track, "", 1))
+    report = _native_report(cad)
+    assert report["schematic_parity"] == []
+    assert f"[{net}]" in json.dumps(report["unconnected_items"])
