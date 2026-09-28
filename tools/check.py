@@ -339,6 +339,7 @@ def _schematic_snapshot(cad: Path, footprints: Path) -> dict[str, str]:
         "tests/test_firmware_sketch_startup.py",
         "tests/test_bench_harness.py",
         "tests/test_pcb_placement.py",
+        "tests/test_pcb_power.py",
         "tests/native_sketch_startup_test.cpp",
         *(
             "firmware/esp32_ads1299_bench/" + name

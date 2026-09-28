@@ -207,7 +207,7 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
         assert report["physical_hardware_tested"] is False
         assert report["body_connection_authorized"] is False
         assert report["schematic_released"] is False
-        assert len(read_object(report["source_sha256"], "hashes")) == 47
+        assert len(read_object(report["source_sha256"], "hashes")) == 48
         directory = out / str(report["artifact_directory"])
         harness = read_object(json.loads((directory / "harness.json").read_text()), "harness")
         assert harness["physical_wiring_approved"] is False

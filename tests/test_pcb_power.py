@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from tests.test_pcb_placement import BOARD, CAD, _native_report
+from tests.test_pcb_placement import native_placement as native_placement
 
 
 def test_ground_plane_is_present_as_filled_copper_not_only_an_outline() -> None:
@@ -20,15 +21,16 @@ def test_ground_plane_is_present_as_filled_copper_not_only_an_outline() -> None:
 
 @pytest.mark.schematic
 @pytest.mark.parametrize("net", ["GND", "VIN_5V_AFE", "AVDD", "DVDD"])
-def test_ground_and_supply_nets_have_no_native_airwires(tmp_path: Path, net: str) -> None:
-    cad = tmp_path / "cad"
-    shutil.copytree(CAD, cad)
-    shutil.copyfile(BOARD, cad / "rev_a.kicad_pcb")
-    report = _native_report(cad)
+def test_ground_and_supply_nets_have_no_native_airwires(
+    native_placement: tuple[Path, dict[str, object]], net: str
+) -> None:
+    cad, report = native_placement
     assert report["violations"] == []
     assert report["schematic_parity"] == []
     assert f"[{net}]" not in json.dumps(report["unconnected_items"])
     assert report["unconnected_items"]  # Digital/connector/BIAS remain unfinished.
+    fill = json.loads((cad / "zone-fill.json").read_text())
+    assert fill["zones"] == [{"net": "GND", "layers": ["In1.Cu"], "regions": [1]}]
 
 
 @pytest.mark.schematic
@@ -79,7 +81,7 @@ def test_removed_or_clipped_plane_cannot_reuse_the_old_connected_copper(
 POWER_CUTS = {
     "VIN_5V_AFE": "cbe11a7d-6cba-5df4-9035-6b083f60480b",
     "AVDD": "9175220e-5398-514e-af89-e387e8137756",
-    "DVDD": "e4a8deae-2e52-5410-b311-d50ded12ad3b",
+    "DVDD": "f4c0a95a-ec70-5293-9724-6d039eb9a369",
 }
 
 

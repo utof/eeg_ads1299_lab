@@ -23,12 +23,51 @@ def test_editable_placement_is_a_tracked_design_not_a_parking_grid() -> None:
     assert '(1 "In1.Cu" power)' in text and '(2 "In2.Cu" signal)' in text
     assert "(segment " in text
     assert "PLACEMENT DRAFT - NOT FOR FABRICATION" in text
-    assert "(zone " not in text  # Planes and their returns have NOT been implemented.
+    assert len(re.findall(r"\(zone\s", text)) == 1  # One native-filled ground region.
+
+
+# KiCad's system Python binding is native authoring/check tooling, not a new
+# project Python dependency. The subprocess is required even if cached copper
+# exists: modified test boards must never borrow the original filled polygon.
+_FILL_SCRIPT = """
+import json, sys
+from pathlib import Path
+import pcbnew as p
+assert p.Version() == "9.0.2", "unexpected native zone engine"
+path = Path(sys.argv[1])
+b = p.LoadBoard(str(path))
+b.BuildConnectivity()
+assert p.ZONE_FILLER(b).Fill(b.Zones()), "native zone fill failed"
+p.SaveBoard(str(path), b)
+rows = [
+    {"net": z.GetNetname(), "layers": [b.GetLayerName(l) for l in z.GetLayerSet().Seq()],
+     "regions": [z.GetFilledPolysList(l).OutlineCount() for l in z.GetLayerSet().Seq()]}
+    for z in b.Zones()
+]
+(path.parent / "zone-fill.json").write_text(json.dumps(
+    {"kicad_version": p.Version(), "python": sys.version, "zones": rows}, indent=2) + "\\n")
+"""
+
+
+def _refill_zones(cad: Path) -> None:
+    board = cad / "rev_a.kicad_pcb"
+    if re.search(r"\(zone\s", board.read_text()) is None:
+        return  # The plane-removal fault must reach DRC without invented copper.
+    result = subprocess.run(
+        [os.environ.get("KICAD_PYTHON", "/usr/bin/python3"), "-c", _FILL_SCRIPT, str(board)],
+        capture_output=True,
+        text=True,
+        timeout=45,
+        env=dict(os.environ, KICAD_CONFIG_HOME=str(cad / "config"), LC_ALL="C", LANG="C"),
+    )
+    (cad / "zone-fill.log").write_text(result.stdout + result.stderr)
+    assert result.returncode == 0, "native refill failed: " + result.stdout + result.stderr
 
 
 def _native_report(cad: Path) -> dict[str, object]:
     cli = shutil.which("kicad-cli")
     assert cli is not None, "actual placement validation requires KiCad"
+    _refill_zones(cad)
     output = cad / "placement-drc.json"
     result = subprocess.run(
         [
@@ -54,6 +93,19 @@ def _native_report(cad: Path) -> dict[str, object]:
     report: object = json.loads(output.read_text())
     assert isinstance(report, dict)
     return report
+
+
+@pytest.fixture(scope="module")
+def native_placement(tmp_path_factory: pytest.TempPathFactory) -> tuple[Path, dict[str, object]]:
+    """One immutable canonical native report per test module, never a fault result.
+
+    Mutated boards are separate copies and are independently refilled/checked.
+    Repeating the unchanged canonical fill for every pad adds no fault evidence.
+    """
+    cad = tmp_path_factory.mktemp("canonical-placement") / "cad"
+    shutil.copytree(CAD, cad)
+    shutil.copyfile(BOARD, cad / "rev_a.kicad_pcb")
+    return cad, _native_report(cad)
 
 
 def _input_airwire(report: dict[str, object]) -> bool:
@@ -116,11 +168,10 @@ def test_native_placement_and_completed_input_routes(tmp_path: Path, fault: str)
 
 @pytest.mark.schematic
 @pytest.mark.parametrize("net", ["VREFP", "VCAP1", "VCAP2", "VCAP3", "VCAP4"])
-def test_reference_and_pump_capacitor_nets_have_no_airwires(tmp_path: Path, net: str) -> None:
-    cad = tmp_path / "cad"
-    shutil.copytree(CAD, cad)
-    shutil.copyfile(BOARD, cad / "rev_a.kicad_pcb")
-    report = _native_report(cad)
+def test_reference_and_pump_capacitor_nets_have_no_airwires(
+    native_placement: tuple[Path, dict[str, object]], net: str
+) -> None:
+    _, report = native_placement
     assert report["schematic_parity"] == []
     assert report["violations"] == []
     assert f"[{net}]" not in json.dumps(report["unconnected_items"])
@@ -128,7 +179,7 @@ def test_reference_and_pump_capacitor_nets_have_no_airwires(tmp_path: Path, net:
 
 # Test fault locations in this authored board, not an alternate connectivity spec.
 # Removing just these spokes must isolate a negative terminal without changing
-# the completed positive net or pretending that board-wide ground is finished.
+# the completed positive net. A plane cannot repair a missing front-pad spoke.
 RETURN_SPOKES = {
     "C7": "7238da55-d8e3-5c43-93f2-54970a1f37d7",
     "C6": "794dffa4-2e2d-5940-8365-10e563a6755c",
@@ -144,14 +195,13 @@ RETURN_SPOKES = {
 @pytest.mark.schematic
 @pytest.mark.parametrize("reference", list(RETURN_SPOKES))
 def test_a_broken_capacitor_return_is_not_hidden_by_a_completed_positive_net(
-    tmp_path: Path, reference: str
+    tmp_path: Path, reference: str, native_placement: tuple[Path, dict[str, object]]
 ) -> None:
     cad = tmp_path / "cad"
     shutil.copytree(CAD, cad)
     board = BOARD.read_text()
     target = cad / "rev_a.kicad_pcb"
-    target.write_text(board)
-    before = _native_report(cad)
+    _, before = native_placement
     assert before["violations"] == [] and before["schematic_parity"] == []
     # These per-item UUIDs identify exactly which copper is removed in the fault.
     # KiCad, not this test, decides whether removing it electrically opens the path.
