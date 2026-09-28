@@ -1,0 +1,50 @@
+name: One-time verified native board publication
+on:
+  push:
+    branches: [workbench/publish-reference-board]
+permissions:
+  contents: write
+jobs:
+  known-blob-only:
+    if: github.repository == 'utof/eeg_ads1299_lab' && github.ref == 'refs/heads/workbench/publish-reference-board'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Serialize only the exact already-tested board
+        run: PYTHONPATH="$PWD" python3 .github/board-publish/author_once.py
+      - name: Store the verified blob only, without moving any branch
+        shell: python
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          import hashlib, json, os, pathlib, urllib.request
+          data = pathlib.Path('hardware/rev_a/layout/rev_a.kicad_pcb').read_bytes()
+          sha256 = hashlib.sha256(data).hexdigest()
+          blob = hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+          assert len(data) == 266161
+          assert sha256 == 'd0b08a12aa90265e6ec4a9339fe6306668ed43795148a437ad1a66ed06264aaf'
+          assert blob == 'b988bdfd8f3206ee9186c1b9b998fae8b18ca5cd'
+          request = urllib.request.Request(
+              'https://api.github.com/repos/utof/eeg_ads1299_lab/git/blobs',
+              data=json.dumps({'content':data.decode(),'encoding':'utf-8'}).encode(),
+              headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'], 'Accept':'application/vnd.github+json', 'Content-Type':'application/json'},
+              method='POST')
+          with urllib.request.urlopen(request, timeout=30) as response:
+              result = json.loads(response.read(1000000))
+          assert result['sha'] == blob, result
+          out = pathlib.Path('publication'); out.mkdir()
+          (out/'receipt.json').write_text(json.dumps({'scope':'known_native_blob_only_no_branch_movement_or_approval','job_commit':os.environ['GITHUB_SHA'],'bytes':len(data),'sha256':sha256,'git_blob':blob},indent=2)+'\n')
+          print('Verified native blob:', blob)
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: verified-reference-board
+          path: |
+            publication/
+            hardware/rev_a/layout/rev_a.kicad_pcb
+          if-no-files-found: error
+          retention-days: 14
