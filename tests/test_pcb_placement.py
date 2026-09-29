@@ -811,3 +811,107 @@ def test_boundary_track_side_branch_is_distinguished_from_post_capacitor_feed(
         exits: object = row["pre_bypass_exits"]
         assert isinstance(exits, list)
         assert bool(exits) is (before and cap == "C27")
+
+
+# Local layout decision after PR63, not a manufacturer trace-length/noise limit:
+# outputs may escape on In2 only in the ADC-side rectangle; their long runs must
+# be on F. Both face the single In1 GND plane. No B routing or extra layer pair.
+_OUTPUT_REFERENCE_SCRIPT = r"""
+import json, sys
+import pcbnew as p
+assert p.Version() == "9.0.2"
+b = p.LoadBoard(sys.argv[1])
+b.BuildConnectivity()
+planes = [z for z in b.Zones() if z.GetNetname() == "GND" and z.IsOnLayer(p.In1_Cu)]
+assert len(planes) == 1
+reference = planes[0].GetFilledPolysList(p.In1_Cu)
+assert reference.OutlineCount() == 1
+error = p.FromMM(0.005)
+
+def shape(item, clearance=0):
+    poly = p.SHAPE_POLY_SET()
+    item.TransformShapeToPolygon(poly, item.GetLayer(), clearance, error, p.ERROR_OUTSIDE)
+    return poly
+
+rows = {}
+for name in ("MISO", "DRDY"):
+    items = [t for t in b.GetTracks() if t.GetNetname() == name]
+    vias = [t for t in items if t.Type() == p.PCB_VIA_T]
+    traces = [t for t in items if t.Type() != p.PCB_VIA_T]
+    layers = sorted({b.GetLayerName(t.GetLayer()) for t in traces})
+    inner = [t for t in traces if t.GetLayer() == p.In2_Cu]
+    # Exempt only the unavoidable voids at THIS signal's own through contacts.
+    # 25um over the existing 0.20mm zone clearance covers polygon approximation;
+    # it is not a general tolerance for gaps beneath the route.
+    allowed = p.SHAPE_POLY_SET(reference)
+    terminals = [pad for f in b.GetFootprints() for pad in f.Pads()
+                 if pad.GetNetname() == name and pad.IsOnLayer(p.In1_Cu)]
+    for contact in vias + terminals:
+        allowed.BooleanAdd(shape(contact, p.FromMM(0.225)))
+    uncovered = p.SHAPE_POLY_SET()
+    for track in traces:
+        projected = shape(track)
+        projected.BooleanSubtract(allowed)
+        uncovered.BooleanAdd(projected)
+    bounds_ok = all(50 <= p.ToMM(v.x) <= 56 and 29.5 <= p.ToMM(v.y) <= 36.5
+                    for t in inner for v in (t.GetStart(), t.GetEnd()))
+    rows[name] = {
+        "layers": layers, "segments": len(traces), "vias": len(vias),
+        "inner_trace_mm": sum(p.ToMM(t.GetLength()) for t in inner),
+        "inner_in_escape_rectangle": bounds_ok,
+        "unreferenced_projection_mm2": uncovered.Area() / 1e12,
+    }
+print(json.dumps(rows))
+"""
+
+
+def _output_reference(board: Path) -> dict[str, object]:
+    result = subprocess.run(
+        [
+            os.environ.get("KICAD_PYTHON", "/usr/bin/python3"),
+            "-c",
+            _OUTPUT_REFERENCE_SCRIPT,
+            str(board),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=45,
+        env=dict(os.environ, KICAD_CONFIG_HOME=str(board.parent / "output-config")),
+    )
+    (board.parent / "output-reference.log").write_text(result.stdout + result.stderr)
+    assert result.returncode == 0, result.stdout + result.stderr
+    rows: object = json.loads(result.stdout)
+    assert isinstance(rows, dict)
+    (board.parent / "output-reference.json").write_text(json.dumps(rows, indent=2) + "\n")
+    return rows
+
+
+def _output_reference_ok(row: object) -> bool:
+    assert isinstance(row, dict)
+    assert isinstance(row["segments"], int) and isinstance(row["vias"], int)
+    assert isinstance(row["inner_trace_mm"], (int, float))
+    assert isinstance(row["unreferenced_projection_mm2"], (int, float))
+    return (
+        row["layers"] in (["F.Cu"], ["F.Cu", "In2.Cu"])
+        and row["segments"] > 0
+        and row["vias"] <= 2
+        and row["inner_trace_mm"] <= 10.0
+        and row["inner_in_escape_rectangle"] is True
+        # Boolean clipping in native integer coordinates, not point sampling.
+        and row["unreferenced_projection_mm2"] <= 0.00001
+    )
+
+
+@pytest.fixture(scope="module")
+def output_reference(native_placement: tuple[Path, dict[str, object]]) -> dict[str, object]:
+    cad, report = native_placement
+    assert all(report[k] == [] for k in ("violations", "schematic_parity", "unconnected_items"))
+    return _output_reference(cad / "rev_a.kicad_pcb")
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize("net", ["MISO", "DRDY"])
+def test_output_corridor_uses_front_runs_and_local_ground_referenced_escapes(
+    output_reference: dict[str, object], net: str
+) -> None:
+    assert _output_reference_ok(output_reference[net]), output_reference[net]
