@@ -1,0 +1,60 @@
+name: Publish output arc review history
+on:
+  push:
+    branches: [workbench/digital-output-repair]
+    paths: [.github/workflows/publish-output-arc.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Verify original data-only bundle before Git import
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64, hashlib, pathlib, subprocess
+          expected = [
+            '0fefac998fd76e3deacceaed8bcf99690cadd24ca36ff7bff58eb5544eb1cd46',
+            '4dfe2ace5a866b921e113b7a8081c0e61276b0a7de6bdbc6dc1f1fd5ada22075',
+            '3822ddc4d72fb9ecd1b693f79a044485b97163c14009df67dfc14674d66c7326',
+            'ce4a9be5060a3909aef43c2c9297d8cbff8a78a6df2e7e3281bfe8f928037933',
+          ]
+          parts = [pathlib.Path(f'transfer/arc{i:02d}.b64').read_bytes() for i in range(4)]
+          assert [hashlib.sha256(p).hexdigest() for p in parts] == expected
+          data = base64.b64decode(b''.join(p.strip() for p in parts), validate=True)
+          assert len(data) == 4025
+          assert hashlib.sha256(data).hexdigest() == '35cd2c17b26518f8eded39d068aa14758d3014f48d3ef0aad0a37001c60a17bb'
+          path = pathlib.Path('/tmp/arc-review.bundle'); path.write_bytes(data)
+          subprocess.run(['git','bundle','verify',str(path)],check=True)
+          subprocess.run(['git','fetch',str(path),'refs/heads/fix/digital-output-corridor'],check=True)
+          PY
+          test "$(git rev-parse FETCH_HEAD)" = 91a443c41dcda349b7017e3ef8423feb0e4b0303
+          test "$(git rev-parse FETCH_HEAD^{tree})" = 5d070eb752fb16753c2291414b47ce407d8a349a
+          git merge-base --is-ancestor 8bde876ea1b21258ecc3e0f191a356457f24b80f FETCH_HEAD
+          test "$(git rev-list --count 8bde876e..FETCH_HEAD)" = 3
+          git diff --exit-code 8bde876e FETCH_HEAD -- hardware firmware lab tools pyproject.toml uv.lock .github
+          git push origin 91a443c41dcda349b7017e3ef8423feb0e4b0303:refs/heads/archive/output-arc-review-91a443c
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: archive/output-arc-review-91a443c
+          fetch-depth: 0
+          path: fresh
+          persist-credentials: false
+      - name: Verify independent checkout from GitHub
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd fresh
+          test "$(git rev-parse HEAD)" = 91a443c41dcda349b7017e3ef8423feb0e4b0303
+          test "$(git rev-parse HEAD^{tree})" = 5d070eb752fb16753c2291414b47ce407d8a349a
+          printf '%s  %s\n' 232b7c68a63ae13aebcf71f8c0b1f210421c30452a1afc7b7c86dc1c118b23a3 hardware/rev_a/layout/rev_a.kicad_pcb | sha256sum -c -
+          test -z "$(git status --porcelain)"
+          git rev-parse HEAD HEAD^{tree}
+          git log -3 --oneline
