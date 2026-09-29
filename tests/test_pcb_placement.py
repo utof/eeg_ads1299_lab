@@ -442,12 +442,14 @@ def route(start, target):
                 heapq.heappush(queue, (candidate, ident))
     return {"trace_mm": None, "items": [], "pads": []}
 
-def pre_bypass_exits(start, capacitors):
+def pre_bypass_exits(start, capacitors, target):
     # Conservative native item-adjacency boundary, not a field solver: traverse
-    # the device branch until a track contacts a designated bypass pad. Inspect
-    # vias/foreign pads on that boundary track too, but do not traverse beyond it.
+    # the device branch to THIS capacitor, not merely the first in its bank.
+    # Other bank pads are allowed contacts, not stopping points. Inspect vias
+    # and foreign pads on the target-contacting boundary track too.
     # A future arbitrary overlapping/long boundary track still needs review.
     targets = {identity(pad) for pad in capacitors}
+    boundary = identity(target)
     sid = identity(start)
     queue, seen, exits = [start], set(), set()
     while queue:
@@ -464,7 +466,7 @@ def pre_bypass_exits(start, capacitors):
         for pad in contacts:
             if identity(pad) not in targets | {sid}:
                 exits.add("pad:" + pad.GetParentFootprint().GetReference() + "." + pad.GetNumber())
-        if any(identity(pad) in targets for pad in contacts):
+        if any(identity(pad) == boundary for pad in contacts):
             continue
         queue.extend(t for t in tracks if t.Type() != p.PCB_VIA_T and t.GetLayer() == p.F_Cu)
     return sorted(exits)
@@ -473,7 +475,8 @@ rows = {}
 for pin, cap, terminal in json.loads(sys.argv[2]):
     group = ("C9", "C24") if pin == "55" else ("C16", "C27")
     row = route(pads["U1", pin], pads[cap, terminal])
-    row["pre_bypass_exits"] = pre_bypass_exits(pads["U1", pin], [pads[r, terminal] for r in group])
+    row["pre_bypass_exits"] = pre_bypass_exits(
+        pads["U1", pin], [pads[r, terminal] for r in group], pads[cap, terminal])
     rows[pin + ":" + cap + ":" + terminal] = row
 print(json.dumps(rows))
 """
@@ -602,16 +605,27 @@ def test_globally_connected_backdoor_does_not_replace_the_local_bypass(
 
 
 @pytest.mark.schematic
-def test_benign_track_subdivision_and_reversal_preserve_local_paths(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    "track_id",
+    [
+        _BYPASS_BACKDOORS["54"][0],
+        "b1e992da-b6ea-529d-be35-8c9c2e062ead",
+        "71a8e185-29b0-58ec-b001-1fbad324e95f",
+    ],
+    ids=["device-entry", "positive-between-capacitors", "return-between-capacitors"],
+)
+def test_benign_track_subdivision_and_reversal_preserve_local_paths(
+    tmp_path: Path, track_id: str
+) -> None:
     cad = tmp_path / "cad"
     shutil.copytree(CAD, cad)
     text = BOARD.read_text()
     board = cad / "rev_a.kicad_pcb"
     board.write_text(text)
     before = _front_paths(board)
-    # Divide and reverse the entry track. The checker uses native adjacency,
+    # Divide and reverse an entry or inter-capacitor track using native adjacency,
     # not a fixed item count, source hash or route UUID allowlist.
-    key = _BYPASS_BACKDOORS["54"][0]
+    key = track_id
     track = next(line for line in text.splitlines() if key in line)
     a = re.search(r"\(start ([^)]+)\)", track)
     z = re.search(r"\(end ([^)]+)\)", track)
