@@ -17,6 +17,19 @@ logs may be artifacts, but a chat ZIP or expiring artifact must not be the only
 copy needed to continue. Clearly report unpublished work or unavailable tools.
 Keep unfinished work discoverable in its open PR; never imply it is already main.
 
+## Completion reports
+
+For every meaningful slice, start the user-facing report with a short **TLDR**:
+what actually changed, whether it is published/merged, and the important limit
+or blocker. Follow it with a glanceable roadmap table containing **category**,
+**estimated remaining substantial chat turns**, **done/status**, and **next slice
+or blocker**. Keep `docs/REV_A_COMPLETION_ROADMAP.md` current and use it as the
+starting point. Estimates are ranges, not promises or percentages of safety;
+exclude manufacturing wait time and identify work needing physical measurements
+or user decisions. End the substantive report with the specific next bounded
+step. Include useful technical/test evidence after the overview, tied to exact
+source heads; do not substitute test-count growth for engineering progress.
+
 ## Non-negotiable scope
 
 Keep the selected Rev A components, board profile, BOM, firmware target guards, and all safety gates unchanged unless the task explicitly calls for a reviewed change. Software checks, SPICE, and native C++ helper tests do not authorize body connection or establish physical hardware safety. Do not reopen component selection as part of simulation or DX work. Do not claim a target firmware build because the portable helper compiled.
