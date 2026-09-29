@@ -762,3 +762,49 @@ def test_capacitor_pad_contact_is_traversed_before_the_distal_boundary(
         exits: object = row["pre_bypass_exits"]
         assert isinstance(exits, list)
         assert bool(exits) is (with_exit and cap == "C27")
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize(
+    "pin,x,end,y,before",
+    [
+        ("54", "49.925", "50.7", "28.2", True),
+        ("54", "49.925", "50.6", "26.375", False),
+        ("53", "51.475", "50.7", "28.2", True),
+        ("53", "51.475", "52.3", "26.375", False),
+    ],
+)
+def test_boundary_track_side_branch_is_distinguished_from_post_capacitor_feed(
+    tmp_path: Path, pin: str, x: str, end: str, y: str, before: bool
+) -> None:
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    net = "1" if pin == "54" else "18"
+    # A real F.Cu spur separates its via from the capacitor-contacting item.
+    # Same-net endpoints after the bank are benign controls, not failures.
+    patch = f"""
+(segment (start {x} {y}) (end {end} {y}) (width 0.2) (layer "F.Cu") (net {net}) (uuid "58bd2f2a-4491-4454-924c-7d7c1f7c3e6d"))
+(via (at {end} {y}) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net {net}) (uuid "1b2a439c-eb5c-42d5-ac41-7b08e51eb939"))
+"""
+    if pin == "54":
+        patch += f"""
+(segment (start {end} 26.375) (end 49.925 26.375) (width 0.25) (layer "In2.Cu") (net 1) (uuid "f8f4c1a1-f947-4f51-93a5-7cae70460b8e"))
+"""
+        if before:
+            patch += f"""
+(segment (start {end} {y}) (end {end} 26.375) (width 0.25) (layer "In2.Cu") (net 1) (uuid "f5ebd00f-cff0-4f01-97d1-41a67e2edac9"))
+"""
+    board = cad / "rev_a.kicad_pcb"
+    board.write_text(BOARD.read_text().rstrip()[:-1] + patch + ")\n")
+    report = _native_report(cad)
+    assert all(report[k] == [] for k in ("violations", "schematic_parity", "unconnected_items"))
+    rows = _front_paths(board)
+    terminal = "1" if pin == "54" else "2"
+    for cap in ("C16", "C27"):
+        row = rows[f"{pin}:{cap}:{terminal}"]
+        assert isinstance(row, dict)
+        assert isinstance(row["trace_mm"], (float, int))
+        assert row["trace_mm"] <= _BYPASS_LIMITS[pin, cap, terminal]
+        exits: object = row["pre_bypass_exits"]
+        assert isinstance(exits, list)
+        assert bool(exits) is (before and cap == "C27")
