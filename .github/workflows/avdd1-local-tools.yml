@@ -30,6 +30,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           /tmp/manager/bin/uv sync --locked --all-extras
           mkdir -p /tmp/deliver/source /tmp/deliver/native /tmp/deliver/cache
           git branch offline-avdd1-base HEAD
