@@ -1,0 +1,44 @@
+name: Publish AVDD1 repair review record
+on:
+  push:
+    branches: [workbench/avdd1-retry-publication]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Verify exact documentation bundle and preserved board
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat transfer/docs.part0 transfer/docs.part1 transfer/docs.part2 > "$RUNNER_TEMP/docs.bundle"
+          test "$(wc -c < "$RUNNER_TEMP/docs.bundle")" = 8272
+          printf '%s  %s\n' dac95a09a367e98ed787c3d341e73b9e07601ea784237f4cfc2f585ea9ab7669 "$RUNNER_TEMP/docs.bundle" | sha256sum -c -
+          git bundle verify "$RUNNER_TEMP/docs.bundle"
+          git fetch "$RUNNER_TEMP/docs.bundle" HEAD
+          test "$(git rev-parse FETCH_HEAD)" = 189a6e606b376224735ae05bc9c820fe74bcbed0
+          test "$(git rev-parse FETCH_HEAD^{tree})" = fd13dc03fefc10bbe43caf2c1cd0d06babd0b18c
+          git merge-base --is-ancestor a19bfc4514d7923aba33e8ee5c1d0009e3c5e931 FETCH_HEAD
+          git diff --exit-code a19bfc4514d7923aba33e8ee5c1d0009e3c5e931 FETCH_HEAD -- hardware firmware lab tests tools pyproject.toml uv.lock
+          git push origin 189a6e606b376224735ae05bc9c820fe74bcbed0:refs/heads/fix/rev-a-avdd1-local-bypass-retry
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: fix/rev-a-avdd1-local-bypass-retry
+          fetch-depth: 0
+          path: fresh-source
+          persist-credentials: false
+      - name: Verify separate GitHub checkout, not native CAD execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd fresh-source
+          test "$(git rev-parse HEAD)" = 189a6e606b376224735ae05bc9c820fe74bcbed0
+          test "$(git rev-parse HEAD^{tree})" = fd13dc03fefc10bbe43caf2c1cd0d06babd0b18c
+          printf '%s  %s\n' 611218bae6559fb2488309fc80eee20ce2d6b5855977d52d600f947099179b43 hardware/rev_a/layout/rev_a.kicad_pcb | sha256sum -c -
+          test -z "$(git status --porcelain)"
