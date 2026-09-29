@@ -406,9 +406,10 @@ def identity(item):
 
 def neighbours(item):
     # KiCad supplies physical adjacency, including pad contact and T-junctions.
+    # Connectivity exposes PCB_TRACK proxies for vias: use native Type(), not isinstance.
     # A via/plane/other layer must not substitute for the local front-side loop.
     for t in c.GetConnectedTracks(item):
-        if not isinstance(t, p.PCB_VIA) and t.GetLayer() == p.F_Cu:
+        if t.Type() != p.PCB_VIA_T and t.GetLayer() == p.F_Cu:
             yield t
     for pad in c.GetConnectedPads(item):
         if pad.IsOnLayer(p.F_Cu):
@@ -441,9 +442,39 @@ def route(start, target):
                 heapq.heappush(queue, (candidate, ident))
     return {"trace_mm": None, "items": [], "pads": []}
 
+def pre_bypass_exits(start, capacitors):
+    # Conservative native item-adjacency boundary, not a field solver: traverse
+    # the device branch until a track contacts a designated bypass pad. Inspect
+    # vias/foreign pads on that boundary track too, but do not traverse beyond it.
+    # A future arbitrary overlapping/long boundary track still needs review.
+    targets = {identity(pad) for pad in capacitors}
+    sid = identity(start)
+    queue, seen, exits = [start], set(), set()
+    while queue:
+        item = queue.pop()
+        key = identity(item)
+        if key in seen:
+            continue
+        seen.add(key)
+        tracks = list(c.GetConnectedTracks(item))
+        contacts = list(c.GetConnectedPads(item))
+        for track in tracks:
+            if track.Type() == p.PCB_VIA_T:
+                exits.add("via:" + identity(track))
+        for pad in contacts:
+            if identity(pad) not in targets | {sid}:
+                exits.add("pad:" + pad.GetParentFootprint().GetReference() + "." + pad.GetNumber())
+        if any(identity(pad) in targets for pad in contacts):
+            continue
+        queue.extend(t for t in tracks if t.Type() != p.PCB_VIA_T and t.GetLayer() == p.F_Cu)
+    return sorted(exits)
+
 rows = {}
 for pin, cap, terminal in json.loads(sys.argv[2]):
-    rows[pin + ":" + cap + ":" + terminal] = route(pads["U1", pin], pads[cap, terminal])
+    group = ("C9", "C24") if pin == "55" else ("C16", "C27")
+    row = route(pads["U1", pin], pads[cap, terminal])
+    row["pre_bypass_exits"] = pre_bypass_exits(pads["U1", pin], [pads[r, terminal] for r in group])
+    rows[pin + ":" + cap + ":" + terminal] = row
 print(json.dumps(rows))
 """
 
@@ -488,6 +519,7 @@ def test_local_bypass_uses_a_bounded_front_path_without_vias(
     pin, cap, terminal = connection
     row = front_bypass_paths[":".join(connection)]
     assert isinstance(row, dict)
+    assert row["pre_bypass_exits"] == [], "supply/return joins shared copper before the bypass"
     distance: object = row["trace_mm"]
     assert isinstance(distance, (float, int)), f"no direct front path: U1.{pin} to {cap}.{terminal}"
     assert distance <= limit, f"local design target exceeded: {distance} > {limit} mm"
@@ -608,6 +640,7 @@ def test_benign_track_subdivision_and_reversal_preserve_local_paths(tmp_path: Pa
         assert len(parts) == 3
         assert other["trace_mm"] <= _BYPASS_LIMITS[parts[0], parts[1], parts[2]]
         assert other["pads"] == row["pads"]
+        assert other["pre_bypass_exits"] == row["pre_bypass_exits"] == []
 
 
 @pytest.mark.schematic
