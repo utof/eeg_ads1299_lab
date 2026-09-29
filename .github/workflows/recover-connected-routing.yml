@@ -1,0 +1,60 @@
+name: Recover preserved routing source
+on:
+  push:
+    branches: [recovery/connected-routing-07edcacc]
+    paths:
+      - recovery/**
+      - .github/workflows/recover-connected-routing.yml
+permissions:
+  contents: read
+jobs:
+  recover:
+    if: github.repository == 'utof/eeg_ads1299_lab'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Verify base and import data-only original objects
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          test "$(git rev-parse FETCH_HEAD)" = d2ee2964c14ef558a919eab77eb5eb153c4fdbc0
+          python3 recovery/restore.py | tee "$RUNNER_TEMP/source-import.json"
+          git diff --exit-code HEAD
+      - name: Publish only the preserved original history to its archive branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git push origin 07edcacc4c22bfd2ae5aa053c658d6c480b75f5e:refs/heads/archive/connected-routing-local-07edcacc
+      - name: Fetch a separate complete checkout from GitHub
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: archive/connected-routing-local-07edcacc
+          fetch-depth: 0
+          path: fresh-from-github
+          persist-credentials: false
+      - name: Verify original candidate solely from the new GitHub checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd fresh-from-github
+          test "$(git rev-parse HEAD)" = 07edcacc4c22bfd2ae5aa053c658d6c480b75f5e
+          python3 "$GITHUB_WORKSPACE/recovery/restore.py" --verify-only | tee "$RUNNER_TEMP/fresh-checkout.json"
+          git diff --exit-code HEAD
+          test -z "$(git status --porcelain)"
+      - name: Retain transfer verification, not native CAD test evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: recovered-source-verification
+          path: |
+            ${{ runner.temp }}/source-import.json
+            ${{ runner.temp }}/fresh-checkout.json
+          if-no-files-found: warn
+          retention-days: 30
