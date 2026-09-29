@@ -467,7 +467,10 @@ def pre_bypass_exits(start, capacitors, target):
             if identity(pad) not in targets | {sid}:
                 exits.add("pad:" + pad.GetParentFootprint().GetReference() + "." + pad.GetNumber())
         if any(identity(pad) == boundary for pad in contacts):
-            continue
+            # Stop edges that also touch the target pad, not side branches
+            # leaving this boundary item before the capacitor contact.
+            tracks = [track for track in tracks if not any(
+                identity(pad) == boundary for pad in c.GetConnectedPads(track))]
         # Disjoint track ends can be joined by the intermediate capacitor pad.
         # Traverse that pad's native contacts, never jump through the capacitor
         # dielectric to its other terminal. The requested boundary still stops.
