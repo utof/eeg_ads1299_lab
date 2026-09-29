@@ -61,8 +61,10 @@ DRDY violate the new local layer policy while canonical DRC remains0/0/0.
 The native guard is in the already-snapshotted `tests/test_pcb_placement.py`.
 It requires F-only long spans, at most two output vias, at most10mm of In2 in
 the ADC-side rectangle, and a single filled In1 GND region. Those bounds are
-local design decisions, not manufacturer frequency/noise limits. Current
-inputs are straight tracks; the rectangle test uses track endpoints.
+local design decisions, not manufacturer frequency/noise limits. The
+rectangle test uses endpoints only for straight In2 tracks; non-straight In2
+tracks are now explicitly unsupported and rejected, not silently bounded by
+their endpoints.
 
 It also subtracts the actual native filled ground polygon from each output's
 **full trace-width projection**, using integer polygon Booleans, not sparse
@@ -73,7 +75,7 @@ allowance. Other-net voids and added plane windows are not exempted. GND pads
 and tracks outside filled copper are not added to the reference mask, so the
 check can conservatively reject copper that needs explicit review.
 
-Nine new native cases pass after repair: two canonical guards, two connected
+The initial nine new native cases passed after repair: two canonical guards, two connected
 wrong-layer copies, one connected reference-window copy, and four benign
 reversal/subdivision copies. Each modified board is independently refilled
 and DRC checked. The wrong-layer copies move each short escape to B without
@@ -81,7 +83,7 @@ breaking connectivity. A small pour-only keepout beneath both long front runs
 leaves one connected ground region and normal DRC0/0/0, yet both full-width
 reference checks fail. Benign edits preserve acceptance. Existing MISO/DRDY
 cut-track probes now target the new exposed trunks; the test expectation is
-unchanged. The new nine cases are part of the full native suite, not added to
+unchanged. The initial nine cases are part of the full native suite, not added to
 its total again. No exhaustive mutation score or physical experiment is claimed.
 
 Development found and corrected native clearance collisions, an initially
@@ -90,12 +92,33 @@ getters must be copied before reversing track endpoints. Actual clearance was
 read, not relaxed; test expectations were not weakened to accept zero-length
 or colliding tracks. Intermediate failed/time-limited runs are not passes.
 
+## Independent review correction: curved-escape loophole
+
+Codex finding4139341193 on8bde876 identified that endpoints do not bound a
+curved In2 track. Test-only21f97c9 reproduced the actual native failure: a DRDY
+arc bows to y=36.8mm while both endpoints remain at y=36.4mm, inside the local
+rectangle. The whole In2 route is8.292mm, ordinary DRC is0/0/0, full-width
+reference is intact, and the old guard incorrectly accepts it.
+
+Fix1c208f6 makes `inner_tracks_straight` an explicit gate field. Non-straight
+In2 geometry is rejected until separately designed/reviewed support exists;
+this is not a claim to test an arc's complete centreline bounds. Both canonical
+outputs and the new native arc regression then passed. The final addition is
+ten native cases total (initial nine plus this arc), not ten more after nine.
+The copper is unchanged by this review fix. No length/clearance/error margin
+was enlarged to pass the arc.
+
 ## Verification and next task
 
 Fresh KiCad9.0.2 refill/DRC on the candidate has0parity/0other/0unconnected and
 exit0. The complete baseline gate passed on exactf834221a. The initial focused
-nine-case result is recorded separately from final-head verification: read the
+nine-case result and three-case review retest are separate from final-head
+verification: read the
 live PR's final local/hosted reports and independent review before merge.
+One local8bde876 combined gate reached the existing300s native-suite timeout;
+it is retained as a failed run, not a pass. Its hosted five-job gate completed
+successfully, but that earlier head does not validate the later review fix.
+No project process timeout or engineering threshold was relaxed.
 A clean source identity, green software tests and native DRC are not professional
 or physical electrical qualification. Normal final gates include the existing
 AVDD1/VCAP, all-net cut and schematic-parity controls; do not substitute only the

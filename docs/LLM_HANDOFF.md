@@ -60,9 +60,9 @@ the current delta is `REV_A_DIGITAL_OUTPUT_REPAIR.md`.
 
 Source capture36641566165 fetched exactmainf834221a from GitHub. The full
 baseline local gate passed1091ordinary+14subtests,98native and135KiCad cases.
-Two failure-first native output cases precede the repair. Nine added native
+Two failure-first native output cases precede the repair. Ten added native
 cases exercise canonical geometry, connected wrong-layer/reference-window
-faults and benign edits. Their focused result is not a final-head whole-suite
+faults, a curved-escape review regression and benign edits. Their focused result is not a final-head whole-suite
 pass: read the live repair PR's actual final checks and review. Keep durable
 summaries/source in Git; expired logs should be reproducible without a chat ZIP.
 
@@ -107,7 +107,10 @@ tracks now. Long spans run on F over In1; bounded In2 escapes beside U1 share
 that same ground conductor. Four output-via fill openings are distinct after
 native refill. Full-width projected-reference checks exempt only each output's
 own through-contact voids, not unrelated plane gaps. The local10mm/rectangle
-policy is not a manufacturer limit or a field solution.
+policy is not a manufacturer limit or a field solution. Codex4139341193 exposed
+a curved-escape loophole; a DRC-clean native arc failed before the straight-In2
+requirement fixed it. Curved In2 tracks are explicitly unsupported, not accepted
+by testing only their endpoints.
 
 The changed tradeoff is explicit: DRDY total authored segment sum grows36.499
 to44.132mm; the parallel front runs have0.30mm copper-edge separation. No

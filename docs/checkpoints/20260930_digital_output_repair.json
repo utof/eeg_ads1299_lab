@@ -716,6 +716,7 @@
       "vias": 2,
       "inner_trace_mm": 7.267945519839779,
       "inner_in_escape_rectangle": true,
+      "inner_tracks_straight": true,
       "unreferenced_projection_mm2": 0.0
     },
     "DRDY": {
@@ -727,6 +728,7 @@
       "vias": 2,
       "inner_trace_mm": 7.875352027780086,
       "inner_in_escape_rectangle": true,
+      "inner_tracks_straight": true,
       "unreferenced_projection_mm2": 0.0
     }
   },
@@ -746,14 +748,18 @@
     "native_polygon_accuracy_mm": 0.005,
     "own_terminal_clearance_margin_mm": 0.025,
     "max_unreferenced_projection_area_mm2": 1e-05,
-    "no_noise_guarantee": true
+    "no_noise_guarantee": true,
+    "In2_supported_geometry": "straight PCB_TRACE_T only"
   },
   "test_first": {
     "commit": "c33d578f17371257342c938c074dac9b9e2c80c6",
     "observed_native_failures": 2,
     "cause": "existing B.Cu output spans"
   },
-  "focused_new_native_cases": {
+  "final_head_verification": "Read live PR and its source-bound final-head artifacts, not this earlier focused checkpoint.",
+  "fabrication_ready": false,
+  "body_connection_authorized": false,
+  "initial_focused_new_native_cases": {
     "total": 9,
     "canonical": 2,
     "connected_wrong_layer": 2,
@@ -761,7 +767,26 @@
     "benign_reversal_subdivision": 4,
     "result": "passed_on_repair_worktree"
   },
-  "final_head_verification": "Read live PR and its source-bound final-head artifacts, not this earlier focused checkpoint.",
-  "fabrication_ready": false,
-  "body_connection_authorized": false
+  "review_correction": {
+    "finding": 4139341193,
+    "reviewed_head": "8bde876ea1b21258ecc3e0f191a356457f24b80f",
+    "test_first_commit": "21f97c95772247e6c724fd9bdab14158adda8f17",
+    "fix_commit": "1c208f63f4c26e236a36189415d40f881f1df53f",
+    "observed_native_failures": 1,
+    "fault_ordinary_drc": [
+      0,
+      0,
+      0
+    ],
+    "fault_In2_mm": 8.292391270265714,
+    "fault_arc_midpoint_mm": [
+      50.95,
+      36.8
+    ],
+    "canonical_and_arc_retest": {
+      "passed": 3
+    },
+    "final_new_native_cases": 10,
+    "board_unchanged": true
+  }
 }
