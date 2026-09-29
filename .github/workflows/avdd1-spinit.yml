@@ -1,0 +1,29 @@
+name: Stock ngspice initialization
+on:
+  push:
+    branches: [workbench/avdd1-spinit]
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-24.04
+    container: debian:trixie@sha256:9cc080028c43b27d2074d63a5f9caf7166d731494965616c1a6d2827a004585c
+    timeout-minutes: 5
+    steps:
+      - name: Capture unchanged distribution initialization
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y --no-install-recommends ngspice=44.2+ds-1 > /tmp/install.log 2>&1
+          mkdir -p /tmp/result
+          cp /usr/share/ngspice/scripts/spinit /tmp/result/spinit
+          dpkg-query -W ngspice > /tmp/result/version.txt
+          sha256sum /tmp/result/spinit
+          cat /tmp/result/spinit
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: stock-ngspice-init
+          path: /tmp/result/
+          retention-days: 7
+          if-no-files-found: error
