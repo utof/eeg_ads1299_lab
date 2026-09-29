@@ -759,4 +759,6 @@ def test_capacitor_pad_contact_is_traversed_before_the_distal_boundary(
         assert isinstance(row, dict)
         assert isinstance(row["trace_mm"], (float, int))
         assert row["trace_mm"] <= _BYPASS_LIMITS[pin, cap, terminal]
-        assert bool(row["pre_bypass_exits"]) is (with_exit and cap == "C27")
+        exits: object = row["pre_bypass_exits"]
+        assert isinstance(exits, list)
+        assert bool(exits) is (with_exit and cap == "C27")
