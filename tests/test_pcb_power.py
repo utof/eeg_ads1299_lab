@@ -28,7 +28,7 @@ def test_ground_and_supply_nets_have_no_native_airwires(
     assert report["violations"] == []
     assert report["schematic_parity"] == []
     assert f"[{net}]" not in json.dumps(report["unconnected_items"])
-    assert report["unconnected_items"]  # Digital/connector/BIAS remain unfinished.
+    assert report["unconnected_items"] == []  # Native connectivity, not physical approval.
     fill = json.loads((cad / "zone-fill.json").read_text())
     assert fill["zones"] == [{"net": "GND", "layers": ["In1.Cu"], "regions": [1]}]
 
