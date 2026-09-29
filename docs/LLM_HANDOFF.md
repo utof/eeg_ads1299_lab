@@ -10,12 +10,11 @@ Use the live Git/PR state; an old success report does not validate a later head.
 1. Fetch the repository and read `git status --short`, `git rev-parse HEAD`, the
    current `main`, and open PRs. Do not overwrite someone else's uncommitted work.
    Read this checkpoint on the branch you actually intend to change.
-2. Publication of the recovered board is tracked in **PR #60**, branch
-   `feat/repository-continuity`. Read its live status. While it is unmerged,
-   continue/review that PR's actual head rather than the older importer on main.
-   After merge, start from current main; do not permanently pin work to a
-   historical recovery commit. Before any merge, inspect the current diff,
-   review comments, conflicts and exact-head checks, including base drift.
+2. PR #60 is merged as `a4ac32c53e7e06eb3272db270afb1f3ac11a8c20`.
+   Start from current main and inspect open PRs before changing anything. The
+   supply-review continuation is on `review/rev-a-power-return`; read its live
+   PR/head until merged, then use main. Before any merge, inspect the current
+   diff, review comments, conflicts and exact-head checks, including base drift.
 3. Read `docs/DEVELOPMENT.md` for the pinned environment and `hardware/rev_a/`
    plus `docs/HARDWARE_BASELINE_REV_A.md` for circuit decisions. Choose the next
    bounded task below, not a recreation of already published work.
@@ -91,19 +90,43 @@ canonical tracked paths, inspect the diff and rerun the gates. Do not mistake
 changes in the copy for committed source. The native tests already assemble
 independent copies, refill zones and check actual routing/parity.
 
-## Next bounded task: independent electrical layout/return-path review
+## Current review and next bounded task: AVDD1 local bypass rework
 
-After publication/CI/review are resolved, inspect the actual routed geometry.
-Start with AVDD1 bypass loops (U1.54/53 and U1.59/58), then digital layer
-transitions/reference copper, then input P/N paths split into connector-to-R
-and R-to-ADC sections. Identify capacitors, tracks/vias, return paths, lengths
-by layer and coupling assumptions from the exact board. Compare with primary
-manufacturer guidance. Record concrete findings and separate measurements,
-calculations and hypotheses. Do not equate one GND region with low return
-impedance, or a length mismatch alone with a failed analog specification.
-Do not add arbitrary meanders or split the plane to make a schematic-looking
-star. Add a failing regression for an actual detectable defect before repair;
-no new generic simulator or approval-registry framework is needed.
+The first supply/bypass geometry review is in `REV_A_POWER_RETURN_REVIEW.md`,
+with explicit paths/UUIDs in `checkpoints/20260929_power_return_geometry.json`.
+It inspected the actual a4ac32c board recovered solely from GitHub, cross-checked
+705 track/via forms and 245 pad positions, and independently refilled/checked a
+copy with KiCad 9.0.2 (run36586282560:0/0/0,exit0). No copper was changed.
+These are source/native-CAD results, not hardware measurements or whole-board
+independent electrical approval.
+
+**Do the AVDD1 cluster rework next**, not another source-recovery or general
+warning-only pass. U1.54 reaches designated C16 through 11.936 mm of explicit
+trace centreline and two vias; its C27 path is11.036 mm. The C16/U1.53 GND-plane
+entries are9.325 mm apart. AVDD56 joins the positive trunk before those local
+bypasses; C14 is also accessible through a shorter6.486 mm/two-via shared path.
+These lengths exclude via barrels/pad spreading; plane-entry separation is not
+return-current path length or loop inductance. No universal length/noise limit
+was established. The finding is the departure from preferred direct local
+bypass-before-plane topology, not an absent capacitor or a measured noise failure.
+
+Review C16/C27 placement jointly with VCAP3 C9/C24 and neighboring C14 so that
+54-to-bypass-to53 is compact before joining shared copper. Preserve front-side
+assembly assumptions, ground-plane continuity, values/MPNs and other sensitive
+paths. Do not split GND, add ferrites, move components under U1, or silently
+transfer the detour to VCAP3. Establish the focused failing geometry/topology
+regression before the repair; rerun native fill/parity/DRC and fault tests.
+Keep any geometric target distinct from a manufacturer noise guarantee.
+
+After that, review digital layer transitions/reference copper, then input P/N
+paths split into connector-to-R and R-to-ADC sections. Record calculations,
+source measurements and hypotheses separately. Do not infer good return
+impedance from one GND region or failed analog performance from length mismatch
+alone. No new generic simulator or approval registry is required.
+
+Use `REV_A_COMPLETION_ROADMAP.md` for the current status/remaining-turn ranges.
+Every completion report now starts with TLDR plus a category/estimated-turns/
+done/next-slice table, followed by the useful evidence and specific next task.
 
 Keep **#45 and #48 open**: actual console/interface powered-off behavior,
 component lifecycle/effective capacitance and assembly lands, stackup, mounting,
