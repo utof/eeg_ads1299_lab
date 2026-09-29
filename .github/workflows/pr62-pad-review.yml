@@ -1,0 +1,52 @@
+name: Preserve PR62 pad-contact review
+on:
+  push:
+    branches: [workbench/pr62-review-continuation]
+    paths: [.github/workflows/pr62-pad-review.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Verify data-only original bundle before import
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64, hashlib, pathlib, subprocess
+          data = base64.b64decode('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', validate=True)
+          assert len(data) == 3557
+          assert hashlib.sha256(data).hexdigest() == '7beb88ab7a0ad7f8faa391768130c74dc25e69d09e860548083c856fe70de207'
+          pathlib.Path('/tmp/pad-review.bundle').write_bytes(data)
+          subprocess.run(['git', 'bundle', 'verify', '/tmp/pad-review.bundle'], check=True)
+          subprocess.run(['git', 'fetch', '/tmp/pad-review.bundle', 'HEAD'], check=True)
+          PY
+          test "$(git rev-parse FETCH_HEAD)" = 3f68c4c9e5c35009940d0a7ea168e66c325d46b4
+          test "$(git rev-parse FETCH_HEAD^{tree})" = 006c2ebae18e253764ee54e803cdcc8728218ac1
+          git merge-base --is-ancestor dd7511bb816af00054c9319a6db5a8509feb0a80 FETCH_HEAD
+          test "$(git rev-list --count dd7511bb816af00054c9319a6db5a8509feb0a80..FETCH_HEAD)" = 3
+          git diff --exit-code dd7511bb816af00054c9319a6db5a8509feb0a80 FETCH_HEAD -- hardware firmware lab pyproject.toml uv.lock
+          git push origin 3f68c4c9e5c35009940d0a7ea168e66c325d46b4:refs/heads/archive/pr62-pad-review-3f68c4c
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: archive/pr62-pad-review-3f68c4c
+          fetch-depth: 0
+          path: fresh
+          persist-credentials: false
+      - name: Verify separate GitHub checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd fresh
+          test "$(git rev-parse HEAD)" = 3f68c4c9e5c35009940d0a7ea168e66c325d46b4
+          test "$(git rev-parse HEAD^{tree})" = 006c2ebae18e253764ee54e803cdcc8728218ac1
+          printf '%s  %s\n' 611218bae6559fb2488309fc80eee20ce2d6b5855977d52d600f947099179b43 hardware/rev_a/layout/rev_a.kicad_pcb | sha256sum -c -
+          test -z "$(git status --porcelain)"
+          git rev-parse HEAD HEAD^{tree}
+          git log -3 --oneline
