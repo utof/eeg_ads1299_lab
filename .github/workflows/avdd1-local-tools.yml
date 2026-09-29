@@ -1,0 +1,89 @@
+name: Disposable AVDD1 local workbench
+on:
+  push:
+    branches: [workbench/avdd1-local-tools]
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    container: debian:trixie@sha256:9cc080028c43b27d2074d63a5f9caf7166d731494965616c1a6d2827a004585c
+    timeout-minutes: 15
+    env:
+      UV_CACHE_DIR: /tmp/uv-cache
+      UV_PYTHON_DOWNLOADS: never
+    steps:
+      - name: Install declared tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y --no-install-recommends ca-certificates git python3 python3-pip python3-venv kicad=9.0.2+dfsg-1 kicad-footprints=9.0.2-1 kicad-symbols=9.0.2-1 ngspice g++ nodejs > /tmp/install.log 2>&1 || { tail -100 /tmp/install.log; exit 1; }
+          python3 -m venv /tmp/manager
+          /tmp/manager/bin/pip install uv==0.12.18
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 1e86c049c46b52b3f1889f6bef7941763f965f79
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Prepare original source and locked cache
+        shell: bash
+        run: |
+          set -euo pipefail
+          /tmp/manager/bin/uv sync --locked --all-extras
+          mkdir -p /tmp/deliver/source /tmp/deliver/native /tmp/deliver/cache
+          git branch offline-avdd1-base HEAD
+          git bundle create /tmp/deliver/source/repository.bundle offline-avdd1-base
+          git rev-parse HEAD HEAD^{tree} > /tmp/deliver/source/identity.txt
+          tar -czf /tmp/deliver/cache/uv-cache.tar.gz -C /tmp uv-cache
+          cp /tmp/manager/bin/uv /tmp/deliver/cache/uv
+          git diff --exit-code HEAD
+      - name: Package native runtime without fonts or 3D models
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, pathlib, shutil, subprocess, sys
+          import pcbnew, _pcbnew
+          out=pathlib.Path('/tmp/native-root')
+          def copy(p):
+              p=pathlib.Path(p)
+              d=out/str(p).lstrip('/')
+              d.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copy2(p,d)
+          native=['/usr/bin/kicad-cli','/usr/bin/ngspice',pcbnew.__file__,_pcbnew.__file__]
+          for p in native:
+              copy(p)
+              if p.endswith('.py'): continue
+              for line in subprocess.check_output(['ldd',p],text=True).splitlines():
+                  f=line.split()
+                  if '=>' in f:
+                      p2=pathlib.Path(f[f.index('=>')+1])
+                      if p2.is_absolute() and p2.is_file(): copy(p2)
+          for root in ['/usr/share/kicad/schemas','/usr/share/kicad/resources','/usr/share/kicad/footprints','/usr/lib/x86_64-linux-gnu/ngspice']:
+              p=pathlib.Path(root)
+              if p.exists(): shutil.copytree(p,out/str(p).lstrip('/'),dirs_exist_ok=True)
+          rec={'scope':'tool_transport_not_validation','kicad':pcbnew.Version(),'python':sys.version,'files':{str(p.relative_to(out)):hashlib.sha256(p.read_bytes()).hexdigest() for p in out.rglob('*') if p.is_file()}}
+          pathlib.Path('/tmp/deliver/native/receipt.json').write_text(json.dumps(rec,indent=2)+'\n')
+          PY
+          tar -czf /tmp/deliver/native/native-root.tar.gz -C /tmp native-root
+          cp /tmp/install.log /tmp/deliver/native/
+          find /tmp/deliver -type f -exec sha256sum {} +
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: avdd1-source
+          path: /tmp/deliver/source/
+          retention-days: 7
+          if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: avdd1-native-tools
+          path: /tmp/deliver/native/
+          retention-days: 7
+          if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: avdd1-locked-cache
+          path: /tmp/deliver/cache/
+          retention-days: 7
+          if-no-files-found: error
