@@ -378,3 +378,436 @@ def test_native_exit_and_report_cannot_disagree(
     else:
         with pytest.raises(AssertionError):
             _native_report(tmp_path)
+
+
+# Local repair design targets, not manufacturer impedance/noise guarantees.
+# Distances count whole native track centrelines along a front-only itinerary;
+# pad spreading and via barrels are deliberately not represented as extracted L/C.
+_BYPASS_LIMITS = {
+    ("54", "C16", "1"): 4.0,
+    ("54", "C27", "1"): 6.0,
+    ("53", "C16", "2"): 4.5,
+    ("53", "C27", "2"): 6.5,
+    ("55", "C9", "1"): 3.5,
+    ("55", "C24", "1"): 6.5,
+}
+
+_FRONT_PATH_SCRIPT = r"""
+import heapq, json, sys
+import pcbnew as p
+assert p.Version() == "9.0.2"
+b = p.LoadBoard(sys.argv[1])
+b.BuildConnectivity()
+c = b.GetConnectivity()
+pads = {(f.GetReference(), t.GetNumber()): t for f in b.GetFootprints() for t in f.Pads()}
+
+def identity(item):
+    return str(item.m_Uuid.AsString())
+
+def neighbours(item):
+    # KiCad supplies physical adjacency, including pad contact and T-junctions.
+    # Connectivity exposes PCB_TRACK proxies for vias: use native Type(), not isinstance.
+    # A via/plane/other layer must not substitute for the local front-side loop.
+    for t in c.GetConnectedTracks(item):
+        if t.Type() != p.PCB_VIA_T and t.GetLayer() == p.F_Cu:
+            yield t
+    for pad in c.GetConnectedPads(item):
+        if pad.IsOnLayer(p.F_Cu):
+            yield pad
+
+def route(start, target):
+    sid, tid = identity(start), identity(target)
+    queue = [(0.0, sid)]
+    known = {sid: start}
+    best = {sid: 0.0}
+    previous = {}
+    while queue:
+        distance, key = heapq.heappop(queue)
+        if distance != best[key]:
+            continue
+        if key == tid:
+            keys = [key]
+            while key != sid:
+                key = previous[key]
+                keys.append(key)
+            return {"trace_mm": distance, "items": list(reversed(keys)),
+                    "pads": [v.GetParentFootprint().GetReference() + "." + v.GetNumber()
+                             for k in reversed(keys) if isinstance((v := known[k]), p.PAD)]}
+        for item in neighbours(known[key]):
+            ident = identity(item)
+            cost = 0.0 if isinstance(item, p.PAD) else p.ToMM(item.GetLength())
+            candidate = distance + cost
+            if candidate < best.get(ident, float("inf")):
+                best[ident], known[ident], previous[ident] = candidate, item, key
+                heapq.heappush(queue, (candidate, ident))
+    return {"trace_mm": None, "items": [], "pads": []}
+
+def pre_bypass_exits(start, capacitors, target):
+    # Conservative native item-adjacency boundary, not a field solver: traverse
+    # the device branch to THIS capacitor, not merely the first in its bank.
+    # Other bank pads are allowed contacts, not stopping points. Inspect vias
+    # and foreign pads on the target-contacting boundary track too.
+    # A future arbitrary overlapping/long boundary track still needs review.
+    targets = {identity(pad) for pad in capacitors}
+    boundary = identity(target)
+    sid = identity(start)
+    queue, seen, exits = [start], set(), set()
+    while queue:
+        item = queue.pop()
+        key = identity(item)
+        if key in seen:
+            continue
+        seen.add(key)
+        tracks = list(c.GetConnectedTracks(item))
+        contacts = list(c.GetConnectedPads(item))
+        for track in tracks:
+            if track.Type() == p.PCB_VIA_T:
+                exits.add("via:" + identity(track))
+        for pad in contacts:
+            if identity(pad) not in targets | {sid}:
+                exits.add("pad:" + pad.GetParentFootprint().GetReference() + "." + pad.GetNumber())
+        if any(identity(pad) == boundary for pad in contacts):
+            # Stop edges that also touch the target pad, not side branches
+            # leaving this boundary item before the capacitor contact.
+            tracks = [track for track in tracks if not any(
+                identity(pad) == boundary for pad in c.GetConnectedPads(track))]
+        # Disjoint track ends can be joined by the intermediate capacitor pad.
+        # Traverse that pad's native contacts, never jump through the capacitor
+        # dielectric to its other terminal. The requested boundary still stops.
+        queue.extend(pad for pad in contacts if identity(pad) in targets - {boundary})
+        queue.extend(t for t in tracks if t.Type() != p.PCB_VIA_T and t.GetLayer() == p.F_Cu)
+    return sorted(exits)
+
+rows = {}
+for pin, cap, terminal in json.loads(sys.argv[2]):
+    group = ("C9", "C24") if pin == "55" else ("C16", "C27")
+    row = route(pads["U1", pin], pads[cap, terminal])
+    row["pre_bypass_exits"] = pre_bypass_exits(
+        pads["U1", pin], [pads[r, terminal] for r in group], pads[cap, terminal])
+    rows[pin + ":" + cap + ":" + terminal] = row
+print(json.dumps(rows))
+"""
+
+
+def _front_paths(board: Path) -> dict[str, object]:
+    result = subprocess.run(
+        [
+            os.environ.get("KICAD_PYTHON", "/usr/bin/python3"),
+            "-c",
+            _FRONT_PATH_SCRIPT,
+            str(board),
+            json.dumps(list(_BYPASS_LIMITS)),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=45,
+        env=dict(
+            os.environ, KICAD_CONFIG_HOME=str(board.parent / "path-config"), LC_ALL="C", LANG="C"
+        ),
+    )
+    (board.parent / "front-paths.log").write_text(result.stdout + result.stderr)
+    assert result.returncode == 0, result.stdout + result.stderr
+    rows: object = json.loads(result.stdout)
+    assert isinstance(rows, dict)
+    (board.parent / "front-paths.json").write_text(json.dumps(rows, indent=2) + "\n")
+    return rows
+
+
+@pytest.fixture(scope="module")
+def front_bypass_paths(tmp_path_factory: pytest.TempPathFactory) -> dict[str, object]:
+    cad = tmp_path_factory.mktemp("front-bypass-paths")
+    board = cad / "rev_a.kicad_pcb"
+    shutil.copyfile(BOARD, board)
+    return _front_paths(board)
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize("connection,limit", list(_BYPASS_LIMITS.items()))
+def test_local_bypass_uses_a_bounded_front_path_without_vias(
+    front_bypass_paths: dict[str, object], connection: tuple[str, str, str], limit: float
+) -> None:
+    pin, cap, terminal = connection
+    row = front_bypass_paths[":".join(connection)]
+    assert isinstance(row, dict)
+    assert row["pre_bypass_exits"] == [], "supply/return joins shared copper before the bypass"
+    distance: object = row["trace_mm"]
+    assert isinstance(distance, (float, int)), f"no direct front path: U1.{pin} to {cap}.{terminal}"
+    assert distance <= limit, f"local design target exceeded: {distance} > {limit} mm"
+    # A shorter detour through another ADC supply terminal is not the desired path.
+    raw_pads: object = row["pads"]
+    assert isinstance(raw_pads, list)
+    path_pads: list[object] = raw_pads
+    assert all(
+        isinstance(item, str) and (not item.startswith("U1.") or item == "U1." + pin)
+        for item in path_pads
+    )
+
+
+# Deliberately restore the old plane-dependent entry while removing the new
+# direct spoke. General DRC/net connectivity should still pass; the local-loop
+# checker must not accept that as a substitute for the new front-side connection.
+# These are fault fixtures only, never an alternate canonical board generator.
+_BYPASS_BACKDOORS = {
+    "54": (
+        "29bbfcef-5358-5eb4-855e-8ab590506c7c",
+        """
+(segment (start 49.25 31.3375) (end 49.25 32.2) (width 0.2) (layer "F.Cu") (net 1) (uuid "a7168135-9b35-5086-8791-871818476c49"))
+(segment (start 49.25 32.2) (end 48.85 32.6) (width 0.2) (layer "F.Cu") (net 1) (uuid "79e7ef53-2cd2-56f0-a7ab-cb2fe94da14f"))
+(segment (start 48.85 32.6) (end 48.85 33.1) (width 0.2) (layer "F.Cu") (net 1) (uuid "65154475-b69d-5add-b414-5eff88547eb9"))
+(via (at 48.85 33.1) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net 1) (uuid "84baee1b-6160-5959-a408-2f6fed4d6025"))
+(segment (start 48.85 33.1) (end 49.05 32.9) (width 0.3) (layer "In2.Cu") (net 1) (uuid "cc139cdd-ced4-5416-82e5-64c55cb26b68"))
+(segment (start 49.05 32.9) (end 49.05 26.075) (width 0.3) (layer "In2.Cu") (net 1) (uuid "f56df49a-4c85-5301-bc8c-86436bebd3ca"))
+""",
+    ),
+    "53": (
+        "d3a24851-14f6-55c3-b3cf-89b69174c6d5",
+        """
+(segment (start 49.750000 31.337500) (end 49.750000 32.900000) (width 0.15) (layer "F.Cu") (net 18) (uuid "111afbb5-8290-5cce-ac43-629b173e4930"))
+(via (at 49.750000 32.900000) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net 18) (uuid "c6c269a6-8197-5080-8568-e60116ee585e"))
+""",
+    ),
+}
+
+
+_BYPASS_LOCAL_CUTS = {
+    "54": (
+        "29bbfcef-5358-5eb4-855e-8ab590506c7c",
+        "38b7240a-a8ff-540c-8b54-36e827e99446",
+        "11d40849-b7a3-544d-86e9-72248511563f",
+    ),
+    "53": (
+        "d3a24851-14f6-55c3-b3cf-89b69174c6d5",
+        "c5026e54-4396-5f74-a644-9786c0745f83",
+        "79bf195e-f095-582a-9a83-6abb3b961a35",
+        "be1b3293-799a-5ff4-91fb-0214730f2e2b",
+    ),
+}
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize("pin", ["54", "53"])
+def test_globally_connected_backdoor_does_not_replace_the_local_bypass(
+    tmp_path: Path, pin: str
+) -> None:
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    text = BOARD.read_text()
+    _, backdoor = _BYPASS_BACKDOORS[pin]
+    # Remove the entire device branch to avoid a dangling stub independently
+    # failing DRC. The intended fault is the bypass route, not an open supply.
+    for cut in _BYPASS_LOCAL_CUTS[pin]:
+        spoke = next(line for line in text.splitlines() if cut in line)
+        assert spoke.startswith("(segment ") and '(layer "F.Cu")' in spoke
+        text = text.replace(spoke, "", 1)
+    board = cad / "rev_a.kicad_pcb"
+    board.write_text(text.rstrip()[:-1] + backdoor + ")\n")
+    report = _native_report(cad)
+    assert all(report[k] == [] for k in ("violations", "schematic_parity", "unconnected_items"))
+    rows = _front_paths(board)
+    terminal = "1" if pin == "54" else "2"
+    for cap in ("C16", "C27"):
+        row = rows[f"{pin}:{cap}:{terminal}"]
+        assert isinstance(row, dict)
+        assert row["trace_mm"] is None, "global plane access concealed the broken local path"
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize(
+    "track_id",
+    [
+        _BYPASS_BACKDOORS["54"][0],
+        "b1e992da-b6ea-529d-be35-8c9c2e062ead",
+        "71a8e185-29b0-58ec-b001-1fbad324e95f",
+    ],
+    ids=["device-entry", "positive-between-capacitors", "return-between-capacitors"],
+)
+def test_benign_track_subdivision_and_reversal_preserve_local_paths(
+    tmp_path: Path, track_id: str
+) -> None:
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    text = BOARD.read_text()
+    board = cad / "rev_a.kicad_pcb"
+    board.write_text(text)
+    before = _front_paths(board)
+    # Divide and reverse an entry or inter-capacitor track using native adjacency,
+    # not a fixed item count, source hash or route UUID allowlist.
+    key = track_id
+    track = next(line for line in text.splitlines() if key in line)
+    a = re.search(r"\(start ([^)]+)\)", track)
+    z = re.search(r"\(end ([^)]+)\)", track)
+    assert a is not None and z is not None
+    start = [float(v) for v in a.group(1).split()]
+    end = [float(v) for v in z.group(1).split()]
+    midpoint = " ".join(f"{(x + y) / 2:.7f}" for x, y in zip(start, end, strict=True))
+    left = track.replace(a.group(), "(start " + midpoint + ")")
+    left = left.replace(z.group(), "(end " + a.group(1) + ")")
+    right = track.replace(a.group(), "(start " + midpoint + ")")
+    right = right.replace(key, "0b7c73a7-6c89-4dca-97f2-b7d7f529bb5a")
+    board.write_text(text.replace(track, left + "\n" + right, 1))
+    report = _native_report(cad)
+    assert all(report[k] == [] for k in ("violations", "schematic_parity", "unconnected_items"))
+    after = _front_paths(board)
+    for key, row in before.items():
+        other = after[key]
+        assert isinstance(row, dict) and isinstance(other, dict)
+        assert isinstance(row["trace_mm"], (float, int))
+        assert isinstance(other["trace_mm"], (float, int))
+        # Whole-track itinerary costs may shrink when a divided track ends in
+        # a pad: KiCad can reach that pad before traversing the inner fragment.
+        # The physical local path and its target must remain acceptable, not an
+        # artificial segmentation-dependent exact floating-point result.
+        parts = key.split(":")
+        assert len(parts) == 3
+        assert other["trace_mm"] <= _BYPASS_LIMITS[parts[0], parts[1], parts[2]]
+        assert other["pads"] == row["pads"]
+        assert other["pre_bypass_exits"] == row["pre_bypass_exits"] == []
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize("pin", ["54", "53"])
+def test_an_extra_pre_bypass_plane_join_is_rejected_even_with_the_local_path_intact(
+    tmp_path: Path, pin: str
+) -> None:
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    text = BOARD.read_text()
+    _, backdoor = _BYPASS_BACKDOORS[pin]
+    board = cad / "rev_a.kicad_pcb"
+    board.write_text(text.rstrip()[:-1] + backdoor + ")\n")
+    report = _native_report(cad)
+    assert all(report[k] == [] for k in ("violations", "schematic_parity", "unconnected_items"))
+    rows = _front_paths(board)
+    terminal = "1" if pin == "54" else "2"
+    for cap in ("C16", "C27"):
+        row = rows[f"{pin}:{cap}:{terminal}"]
+        assert isinstance(row, dict)
+        assert isinstance(row["trace_mm"], (float, int))
+        assert row["trace_mm"] <= _BYPASS_LIMITS[pin, cap, terminal]
+        assert row.get("pre_bypass_exits"), (
+            "upstream plane join was accepted with a local path intact"
+        )
+
+
+# Review #4137830251: a shared entry between the two parallel capacitors is
+# downstream of C16 but upstream of C27. Both direct paths still exist and
+# ordinary DRC is clean. The boundary must be evaluated for each capacitor.
+_MID_BANK_EXITS = {
+    "54": """
+(via (at 49.925 28.2) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net 1) (uuid "e5e49115-2baf-5eaf-bd74-030cf6d811db"))
+(segment (start 49.925 28.2) (end 49.925 26.375) (width 0.3) (layer "In2.Cu") (net 1) (uuid "6f4a96df-a2c3-51ca-a3c3-9b4b16e6ea3f"))
+""",
+    "53": """
+(via (at 51.475 28.2) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net 18) (uuid "75ae5ce8-44c5-55c5-a039-5d82f428bfdf"))
+""",
+}
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize("pin", ["54", "53"])
+def test_plane_join_between_capacitors_is_rejected_for_distal_capacitor(
+    tmp_path: Path, pin: str
+) -> None:
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    text = BOARD.read_text()
+    board = cad / "rev_a.kicad_pcb"
+    board.write_text(text.rstrip()[:-1] + _MID_BANK_EXITS[pin] + ")\n")
+    report = _native_report(cad)
+    assert all(report[k] == [] for k in ("violations", "schematic_parity", "unconnected_items"))
+    rows = _front_paths(board)
+    terminal = "1" if pin == "54" else "2"
+    for cap in ("C16", "C27"):
+        row = rows[f"{pin}:{cap}:{terminal}"]
+        assert isinstance(row, dict)
+        assert isinstance(row["trace_mm"], (float, int))
+        assert row["trace_mm"] <= _BYPASS_LIMITS[pin, cap, terminal]
+    near, distal = rows[f"{pin}:C16:{terminal}"], rows[f"{pin}:C27:{terminal}"]
+    assert isinstance(near, dict) and isinstance(distal, dict)
+    assert near["pre_bypass_exits"] == [], "the inserted join is after the near capacitor"
+    assert distal["pre_bypass_exits"], "the walk stopped at C16 and never guarded C27"
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize(
+    "pin,x,track_id",
+    [
+        ("54", "49.925", "b1e992da-b6ea-529d-be35-8c9c2e062ead"),
+        ("53", "51.475", "71a8e185-29b0-58ec-b001-1fbad324e95f"),
+    ],
+)
+@pytest.mark.parametrize("with_exit", [False, True])
+def test_capacitor_pad_contact_is_traversed_before_the_distal_boundary(
+    tmp_path: Path, pin: str, x: str, track_id: str, with_exit: bool
+) -> None:
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    text = BOARD.read_text()
+    track = next(line for line in text.splitlines() if track_id in line)
+    # Both ends still touch C16, but the tracks no longer touch one another.
+    # Native pad contact, not a coincident centreline endpoint, joins the bank.
+    shortened = track.replace(f"(start {x} 29)", f"(start {x} 28.65)")
+    assert shortened != track
+    text = text.replace(track, shortened, 1)
+    if with_exit:
+        text = text.rstrip()[:-1] + _MID_BANK_EXITS[pin] + ")\n"
+    board = cad / "rev_a.kicad_pcb"
+    board.write_text(text)
+    report = _native_report(cad)
+    assert all(report[k] == [] for k in ("violations", "schematic_parity", "unconnected_items"))
+    rows = _front_paths(board)
+    terminal = "1" if pin == "54" else "2"
+    for cap in ("C16", "C27"):
+        row = rows[f"{pin}:{cap}:{terminal}"]
+        assert isinstance(row, dict)
+        assert isinstance(row["trace_mm"], (float, int))
+        assert row["trace_mm"] <= _BYPASS_LIMITS[pin, cap, terminal]
+        exits: object = row["pre_bypass_exits"]
+        assert isinstance(exits, list)
+        assert bool(exits) is (with_exit and cap == "C27")
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize(
+    "pin,x,end,y,before",
+    [
+        ("54", "49.925", "50.7", "28.2", True),
+        ("54", "49.925", "50.6", "26.375", False),
+        ("53", "51.475", "50.7", "28.2", True),
+        ("53", "51.475", "52.3", "26.375", False),
+    ],
+)
+def test_boundary_track_side_branch_is_distinguished_from_post_capacitor_feed(
+    tmp_path: Path, pin: str, x: str, end: str, y: str, before: bool
+) -> None:
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    net = "1" if pin == "54" else "18"
+    # A real F.Cu spur separates its via from the capacitor-contacting item.
+    # Same-net endpoints after the bank are benign controls, not failures.
+    patch = f"""
+(segment (start {x} {y}) (end {end} {y}) (width 0.2) (layer "F.Cu") (net {net}) (uuid "58bd2f2a-4491-4454-924c-7d7c1f7c3e6d"))
+(via (at {end} {y}) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net {net}) (uuid "1b2a439c-eb5c-42d5-ac41-7b08e51eb939"))
+"""
+    if pin == "54":
+        patch += f"""
+(segment (start {end} 26.375) (end 49.925 26.375) (width 0.25) (layer "In2.Cu") (net 1) (uuid "f8f4c1a1-f947-4f51-93a5-7cae70460b8e"))
+"""
+        if before:
+            patch += f"""
+(segment (start {end} {y}) (end {end} 26.375) (width 0.25) (layer "In2.Cu") (net 1) (uuid "f5ebd00f-cff0-4f01-97d1-41a67e2edac9"))
+"""
+    board = cad / "rev_a.kicad_pcb"
+    board.write_text(BOARD.read_text().rstrip()[:-1] + patch + ")\n")
+    report = _native_report(cad)
+    assert all(report[k] == [] for k in ("violations", "schematic_parity", "unconnected_items"))
+    rows = _front_paths(board)
+    terminal = "1" if pin == "54" else "2"
+    for cap in ("C16", "C27"):
+        row = rows[f"{pin}:{cap}:{terminal}"]
+        assert isinstance(row, dict)
+        assert isinstance(row["trace_mm"], (float, int))
+        assert row["trace_mm"] <= _BYPASS_LIMITS[pin, cap, terminal]
+        exits: object = row["pre_bypass_exits"]
+        assert isinstance(exits, list)
+        assert bool(exits) is (before and cap == "C27")

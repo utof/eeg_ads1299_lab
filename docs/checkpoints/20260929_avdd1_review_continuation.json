@@ -1,0 +1,74 @@
+{
+  "scope": "PR62 review correction, not a new copper repair or electrical qualification",
+  "inherited_pr_head": "189a6e606b376224735ae05bc9c820fe74bcbed0",
+  "inherited_pr_tree": "fd13dc03fefc10bbe43caf2c1cd0d06babd0b18c",
+  "board_sha256_unchanged": "611218bae6559fb2488309fc80eee20ce2d6b5855977d52d600f947099179b43",
+  "fresh_github_source_run": 36625941842,
+  "fresh_source_artifact_sha256": "9034b4818b5308d58452a81ee07cc3bef3bca8d1f6e9fb01d9c6b594929b1e7c",
+  "review_comment": 4137830251,
+  "test_first_commit": "13c4ec2a89464010966e4778628c46240caf0eeb",
+  "test_first_native_failures": 2,
+  "both_new_faults_pass_ordinary_drc": true,
+  "fix_commit": "16fe27809f6a96d42078580929672ac1c2f70995",
+  "focused_native_passes": 15,
+  "focused_command": "uv run --locked python -m pytest tests/test_pcb_placement.py -m schematic -k 'plane_join_between or local_bypass or pre_bypass or benign_track or globally_connected_backdoor' --override-ini addopts='' -q",
+  "harmful_native_controls": {
+    "indirect_reconnections": 2,
+    "pre_bank_plane_joins": 2,
+    "inter_capacitor_plane_joins": 2
+  },
+  "benign_native_controls": [
+    "device-entry",
+    "positive-between-capacitors",
+    "return-between-capacitors"
+  ],
+  "other_chat_variant": {
+    "head": "1689234ebb49b6f8c046bff0c785753669c2a0e2",
+    "tree": "ee6dfa9eb393e54c11b9473b6aa7bbf40416dc55",
+    "archive_sha256": "d38db8ecd00a9c7096876a26ab4aeda24981b4c3454fc7af5b142b710ad1cfe8",
+    "payload_hashes_verified": 2317,
+    "not_applied_to_pr62": true
+  },
+  "final_execution_evidence": "Read PR62 final tested head and CI artifacts; this source checkpoint records the preceding focused runs only.",
+  "physical_hardware_tested": false,
+  "fabrication_ready": false,
+  "purchase_approved": false,
+  "body_connection_authorized": false,
+  "pad_contact_follow_up": {
+    "scope": "native_contact_traversal_not_a_copper_change_or_physical_validation",
+    "test_first_commit": "f805fe04c28be73de18a444d85bb6ef01d82eb1a",
+    "fix_commit": "86b45e6d05810cc83250145d07e7862e17d1d476",
+    "observed_red_failures": 2,
+    "observed_red_benign_passes": 2,
+    "all_four_modified_boards_native_drc": {
+      "parity": 0,
+      "violations": 0,
+      "unconnected": 0
+    },
+    "track_endpoint_shortening_inside_pad_mm": 0.35,
+    "focused_native_cases_after_fix": 19,
+    "harmful_controls": 8,
+    "benign_controls": 5,
+    "canonical_board_unchanged": true,
+    "final_full_gate_and_hosted_review": "Consult live PR62 exact-head reports; these counts are the focused run."
+  },
+  "side_branch_follow_up": {
+    "review_comment": 4138094514,
+    "reviewed_head": "dd7511bb816af00054c9319a6db5a8509feb0a80",
+    "test_first_commit": "808107704d0856ee3929f3f4266ec7a09378d48f",
+    "fix_commit": "e14d52e3813573800f47832b8b54dbf174a07b7d",
+    "observed_red_failures": 2,
+    "observed_red_benign_passes": 2,
+    "all_four_modified_boards_native_drc": {
+      "parity": 0,
+      "violations": 0,
+      "unconnected": 0
+    },
+    "focused_native_cases_after_fix": 23,
+    "harmful_controls": 10,
+    "benign_controls": 7,
+    "canonical_board_unchanged": true,
+    "scope": "Native contact guard; no physical qualification or exhaustive arbitrary-overlap guarantee.",
+    "final_verification": "Consult live PR62 final-head full-gate and review evidence, not preceding-head results."
+  }
+}

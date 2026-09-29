@@ -1,0 +1,215 @@
+{
+  "scope": "native_source_geometry_not_physical_noise_or_parasitic_qualification",
+  "source_before": "1e86c049c46b52b3f1889f6bef7941763f965f79",
+  "source_inspected_after": "a19bfc4514d7923aba33e8ee5c1d0009e3c5e931",
+  "board_before_sha256": "71b066ed8c9842035553bbc125b5c428877d180b2b2ef66ba986a2032830899f",
+  "board_after_sha256": "611218bae6559fb2488309fc80eee20ce2d6b5855977d52d600f947099179b43",
+  "native_version": "9.0.2",
+  "positions": {
+    "C14": {
+      "before_xy": [
+        48.25,
+        28.65
+      ],
+      "before_angle": 90.0,
+      "after_xy": [
+        46.8,
+        25.3
+      ],
+      "after_angle": 90.0
+    },
+    "C16": {
+      "before_xy": [
+        49.75,
+        25.3
+      ],
+      "before_angle": 90.0,
+      "after_xy": [
+        50.7,
+        29.0
+      ],
+      "after_angle": 0.0
+    },
+    "C24": {
+      "before_xy": [
+        51.5,
+        28.65
+      ],
+      "before_angle": 90.0,
+      "after_xy": [
+        48.35,
+        25.3
+      ],
+      "after_angle": 90.0
+    },
+    "C27": {
+      "before_xy": [
+        47.0,
+        25.35
+      ],
+      "before_angle": 90.0,
+      "after_xy": [
+        50.7,
+        27.4
+      ],
+      "after_angle": 0.0
+    },
+    "C9": {
+      "before_xy": [
+        50.0,
+        28.65
+      ],
+      "before_angle": 90.0,
+      "after_xy": [
+        48.2,
+        28.65
+      ],
+      "after_angle": 90.0
+    }
+  },
+  "invariants": {
+    "footprint_count": 68,
+    "pad_count": 245,
+    "all_native_fields_values_footprint_ids_attributes_layers_and_relative_pad_definitions_equal": true,
+    "only_these_five_footprint_positions_changed": true,
+    "segments": 581,
+    "vias": 121,
+    "no_signal_tracks_on_In1": true
+  },
+  "metric": "Sum of specified authored straight trace centrelines from pad centre to pad centre; not shortest conductive distance, pad spreading, via barrel length, return-current distribution or L/C extraction. Separate native guard metric uses whole contacted items and can vary under subdivision.",
+  "paths": [
+    {
+      "from": "U1.54",
+      "to": "C16.1",
+      "trace_mm": 2.617094155,
+      "via_count": 0,
+      "layer": "F.Cu",
+      "track_uuids": [
+        "29bbfcef-5358-5eb4-855e-8ab590506c7c",
+        "38b7240a-a8ff-540c-8b54-36e827e99446",
+        "11d40849-b7a3-544d-86e9-72248511563f"
+      ]
+    },
+    {
+      "from": "U1.54",
+      "to": "C27.1",
+      "trace_mm": 4.217094155,
+      "via_count": 0,
+      "layer": "F.Cu",
+      "track_uuids": [
+        "29bbfcef-5358-5eb4-855e-8ab590506c7c",
+        "38b7240a-a8ff-540c-8b54-36e827e99446",
+        "11d40849-b7a3-544d-86e9-72248511563f",
+        "b1e992da-b6ea-529d-be35-8c9c2e062ead"
+      ]
+    },
+    {
+      "from": "U1.53",
+      "to": "C16.2",
+      "trace_mm": 3.725672798,
+      "via_count": 0,
+      "layer": "F.Cu",
+      "track_uuids": [
+        "d3a24851-14f6-55c3-b3cf-89b69174c6d5",
+        "c5026e54-4396-5f74-a644-9786c0745f83",
+        "79bf195e-f095-582a-9a83-6abb3b961a35",
+        "be1b3293-799a-5ff4-91fb-0214730f2e2b"
+      ]
+    },
+    {
+      "from": "U1.53",
+      "to": "C27.2",
+      "trace_mm": 5.325672798,
+      "via_count": 0,
+      "layer": "F.Cu",
+      "track_uuids": [
+        "d3a24851-14f6-55c3-b3cf-89b69174c6d5",
+        "c5026e54-4396-5f74-a644-9786c0745f83",
+        "79bf195e-f095-582a-9a83-6abb3b961a35",
+        "be1b3293-799a-5ff4-91fb-0214730f2e2b",
+        "71a8e185-29b0-58ec-b001-1fbad324e95f"
+      ]
+    },
+    {
+      "from": "U1.55",
+      "to": "C9.1",
+      "trace_mm": 2.816053391,
+      "via_count": 0,
+      "layer": "F.Cu",
+      "track_uuids": [
+        "d8c08a83-764a-54c2-8b3d-f715032e5db6",
+        "3827bce5-c045-5b20-a6b3-588bc39378a3",
+        "03998b0d-149f-5c06-9f6e-3e82ec3941b9",
+        "945afdb6-49e3-5115-8db6-ad8a0c65a198"
+      ]
+    },
+    {
+      "from": "U1.55",
+      "to": "C24.1",
+      "trace_mm": 6.016053391,
+      "via_count": 0,
+      "layer": "F.Cu",
+      "track_uuids": [
+        "d8c08a83-764a-54c2-8b3d-f715032e5db6",
+        "3827bce5-c045-5b20-a6b3-588bc39378a3",
+        "03998b0d-149f-5c06-9f6e-3e82ec3941b9",
+        "572c70e9-9490-525a-8837-7274268e29d9",
+        "7b361e21-bc2f-583c-9610-bb326ab318de"
+      ]
+    },
+    {
+      "from": "U1.56",
+      "to": "C14.1",
+      "trace_mm": 6.7125,
+      "via_count": 0,
+      "layer": "F.Cu",
+      "track_uuids": [
+        "054fe52c-cf28-5746-ad4a-12af8bae95d7",
+        "1a2f534a-881a-519d-bef2-b091a1f11f23",
+        "921048ec-5180-5539-89c4-1f902a3e6204",
+        "3c5df829-9c94-5866-ad76-bf04796d043b",
+        "447b5ab5-83c1-5b25-8d91-2749d96d69a9"
+      ]
+    },
+    {
+      "from": "U1.56",
+      "to": "C15.1",
+      "trace_mm": 3.6625,
+      "via_count": 0,
+      "layer": "F.Cu",
+      "track_uuids": [
+        "054fe52c-cf28-5746-ad4a-12af8bae95d7",
+        "1a2f534a-881a-519d-bef2-b091a1f11f23",
+        "921048ec-5180-5539-89c4-1f902a3e6204",
+        "dbacd831-ba48-5610-8d3b-26dd393d5b4c"
+      ]
+    }
+  ],
+  "plane_entries_mm": {
+    "AVDD_after_C27": [
+      49.925,
+      26.375
+    ],
+    "GND_after_C27": [
+      51.475,
+      26.375
+    ]
+  },
+  "native_faults": {
+    "initial_failures": 4,
+    "vcap_guards_initially_passed": 2,
+    "upstream_join_red_failures": 2,
+    "final_new_native_cases_passed": 11,
+    "indirect_reconnections_with_general_drc_zero": 2,
+    "extra_upstream_joins_with_general_drc_zero": 2,
+    "benign_subdivision_reversal": 1
+  },
+  "test_first_commits": [
+    "cb11bb7a051a93494c34bce4277c45d2a86f548f",
+    "470ba37de68a84e09424557835332df0483e93d1"
+  ],
+  "source_publication_run": 36622822760,
+  "physical_hardware_tested": false,
+  "fabrication_ready": false,
+  "body_connection_authorized": false
+}

@@ -11,9 +11,11 @@ Use the live Git/PR state; an old success report does not validate a later head.
    current `main`, and open PRs. Do not overwrite someone else's uncommitted work.
    Read this checkpoint on the branch you actually intend to change.
 2. PR #60 is merged as `a4ac32c53e7e06eb3272db270afb1f3ac11a8c20`.
-   Start from current main and inspect open PRs before changing anything. The
-   supply-review continuation is on `review/rev-a-power-return`; read its live
-   PR/head until merged, then use main. Before any merge, inspect the current
+   Start from current main and inspect open PRs before changing anything.
+   PR #61 is merged as
+   `1e86c049c46b52b3f1889f6bef7941763f965f79`. The AVDD1 repair is **PR #62**,
+   branch `fix/rev-a-avdd1-local-bypass-retry`; read its live head/checks/review
+   until merged, then use main. Before any merge, inspect the current
    diff, review comments, conflicts and exact-head checks, including base drift.
 3. Read `docs/DEVELOPMENT.md` for the pinned environment and `hardware/rev_a/`
    plus `docs/HARDWARE_BASELINE_REV_A.md` for circuit decisions. Choose the next
@@ -30,6 +32,26 @@ original local commits, including failing tests, remain reachable. These are
 not invented GitHub ancestors. The original source is also on
 `archive/connected-routing-local-07edcacc`. See
 `docs/checkpoints/20260929_source_recovery.json` for identities and evidence.
+
+## AVDD1 review continuation
+
+Use live PR #62 (`fix/rev-a-avdd1-local-bypass-retry`) until merged, then main.
+This is the board with SHA256
+`611218bae6559fb2488309fc80eee20ce2d6b5855977d52d600f947099179b43`.
+The chat-only `1689234` / `e73e26bc...` candidate is different and is not this
+PR's ancestor. Do not overwrite this source with that archive or reuse its test
+counts as current evidence. The current source was fetched in a separate
+GitHub checkout; no chat attachment is needed to continue it.
+
+Codex's actual review `4137830251` found that the pre-plane guard stopped at the
+first capacitor. The continuation reproduced two DRC-clean inter-capacitor
+faults before fixing per-capacitor traversal; 15 focused native cases then
+passed, including three benign split/reversal controls. Copper stayed unchanged.
+Read `REV_A_AVDD1_REPAIR.md` and its continuation checkpoint. Check the live
+final-head CI and renewed Codex result before merge; older green runs do not
+cover the correction. After this review is closed, do digital reference/return
+transitions, not another bypass rewrite or source-recovery pass. Keep the
+longer VCAP3/AVDD56 paths explicit in broader electrical review.
 
 ## What exists now
 
@@ -90,39 +112,46 @@ canonical tracked paths, inspect the diff and rerun the gates. Do not mistake
 changes in the copy for committed source. The native tests already assemble
 independent copies, refill zones and check actual routing/parity.
 
-## Current review and next bounded task: AVDD1 local bypass rework
+## Current repair and next bounded task: digital return paths
 
-The first supply/bypass geometry review is in `REV_A_POWER_RETURN_REVIEW.md`,
-with explicit paths/UUIDs in `checkpoints/20260929_power_return_geometry.json`.
-It inspected the actual a4ac32c board recovered solely from GitHub, cross-checked
-705 track/via forms and 245 pad positions, and independently refilled/checked a
-copy with KiCad 9.0.2 (run36586282560:0/0/0,exit0). No copper was changed.
-These are source/native-CAD results, not hardware measurements or whole-board
-independent electrical approval.
+PR #62 contains the actual AVDD1 local bypass repair. Read
+`REV_A_AVDD1_REPAIR.md` and `checkpoints/20260929_avdd1_repair.json`.
+Source before repair is1e86c049; first published repair/test head isa19bfc45.
+Use the live PR head and final CI/review, not a historical pass for an earlier
+head. Publication run36622822760 verified a separate fresh GitHub checkout.
+The failed preceding turn left reusable tool artifacts but only an incomplete
+source transfer; this turn did not claim to recover its unverified repair.
 
-**Do the AVDD1 cluster rework next**, not another source-recovery or general
-warning-only pass. U1.54 reaches designated C16 through 11.936 mm of explicit
-trace centreline and two vias; its C27 path is11.036 mm. The C16/U1.53 GND-plane
-entries are9.325 mm apart. AVDD56 joins the positive trunk before those local
-bypasses; C14 is also accessible through a shorter6.486 mm/two-via shared path.
-These lengths exclude via barrels/pad spreading; plane-entry separation is not
-return-current path length or loop inductance. No universal length/noise limit
-was established. The finding is the departure from preferred direct local
-bypass-before-plane topology, not an absent capacitor or a measured noise failure.
+Five existing front-side caps C16/C27/C9/C24/C14 moved. U1.54 and U1.53 now
+reach the local AVDD1 caps on front copper before joining shared supply/ground.
+Repaired board digest is611218bae6559fb2488309fc80eee20ce2d6b5855977d52d600f947099179b43;
+counts are581segments/121vias/68footprints/245pads, not permanent future limits.
+Native field/relative-pad comparison preserves all values/MPNs/footprints/DNP,
+and the other63footprint positions. No signal tracks were added to In1.
 
-Review C16/C27 placement jointly with VCAP3 C9/C24 and neighboring C14 so that
-54-to-bypass-to53 is compact before joining shared copper. Preserve front-side
-assembly assumptions, ground-plane continuity, values/MPNs and other sensitive
-paths. Do not split GND, add ferrites, move components under U1, or silently
-transfer the detour to VCAP3. Establish the focused failing geometry/topology
-regression before the repair; rerun native fill/parity/DRC and fault tests.
-Keep any geometric target distinct from a manufacturer noise guarantee.
+**Do not report that every path improved.** C24's VCAP3 path is now6.016mm,
+and U1.56's designated C14 path is6.713mm, with a nearer shared C15 alternative
+of3.663mm. These are explicit trace-centre itineraries, not measured impedance.
+The broader supply/noise review is not closed by the local repair. The original
+PR61 review remains a dated pre-repair record, not an instruction to undo it.
 
-After that, review digital layer transitions/reference copper, then input P/N
-paths split into connector-to-R and R-to-ADC sections. Record calculations,
-source measurements and hypotheses separately. Do not infer good return
-impedance from one GND region or failed analog performance from length mismatch
-alone. No new generic simulator or approval registry is required.
+Tests first exposed four missing local AVDD1 paths, then two early-plane-join
+loopholes. Eleven added native cases include DRC-clean fault boards: a general
+connected supply cannot substitute for a bounded local bypass. Native via
+identification uses KiCad item type, not isinstance on its connectivity proxies.
+The test's whole-item metric is not a shortest conductive distance, and its
+cap-contact boundary is not an exhaustive arbitrary-geometry proof. Review
+future long/overlapping boundary tracks explicitly; do not inflate the claim.
+
+**Next after live PR review/CI: digital reference and layer-transition review**
+on the current authored board. Inventory active digital signal vias/layers,
+identify reference copper and local GND bottlenecks, then record concrete
+findings against manufacturer guidance and the proposed (still unqualified)
+stackup. Fix a detectable defect test-first; do not impose blanket stitching
+rules or invent a qualified stackup. Input P/N geometry/coupling follows, split
+into connector-to-resistor and resistor-to-ADC sections. Retain the capacitor
+tradeoffs in the eventual whole-board electrical review. No generic simulator,
+approval-registry framework, arbitrary meanders or split ground plane is needed.
 
 Use `REV_A_COMPLETION_ROADMAP.md` for the current status/remaining-turn ranges.
 Every completion report now starts with TLDR plus a category/estimated-turns/
@@ -149,6 +178,21 @@ merge with a merge commit only when the required checks/reviews are satisfied.
 Unfinished work stays discoverable in a clearly identified open PR, not only in
 `/mnt/data`, a conversation attachment, or an expiring Actions artifact. A blocked
 write is a publication blocker, not permission to claim the repository is current.
+
+The follow-up pad-contact probe also reproduced two missed mid-bank entries
+when the C16 pad bridges separated track ends. The pad-contact red/fix history
+is retained in `f805fe04` / `86b45e6d`; 19 focused native cases passed after
+traversing intermediate bank pad contacts. Read the current exact PR head's
+full CI/review results, not the preceding 15-case checkpoint. No copper changed
+in either review correction. Keep the current PR authoritative over local168.
+
+The renewed Codex review also found a side-branch-to-via gap at the target
+track (`4138094514`). Test-first `80810770` / fix `e14d52e3` distinguish such
+pre-capacitor spurs from legitimate post-bank feeds. The complete focused set
+is now 23 native cases, superseding earlier 15/19-case checkpoints. Finish the
+live final-head CI/review before merge; then proceed to digital returns, not
+another recreation of the AVDD1 layout. See the review document for remaining
+conservative contact/whole-item geometry limits and physical tradeoffs.
 
 ## User and scope constraints
 
