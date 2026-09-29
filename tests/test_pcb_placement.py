@@ -238,3 +238,52 @@ def test_native_connectivity_detects_a_cut_sensitive_capacitor_trace(
     report = _native_report(cad)
     assert report["schematic_parity"] == []
     assert f"[{net}]" in json.dumps(report["unconnected_items"])
+
+
+REMAINING_SIGNAL_NETS = (
+    "BIASINV",
+    "BIASOUT",
+    "BIAS_AFTER_1M_DUMMY",
+    "CH1N_DUMMY",
+    "CH1P_DUMMY",
+    "CH2N_DUMMY",
+    "CH2P_DUMMY",
+    "CH3N_DUMMY",
+    "CH3P_DUMMY",
+    "CH4N_DUMMY",
+    "CH4P_DUMMY",
+    "CLK",
+    "CLKSEL",
+    "CS",
+    "DRDY",
+    "GPIO1",
+    "GPIO2",
+    "GPIO3",
+    "GPIO4",
+    "MISO",
+    "MOSI",
+    "PWDN",
+    "RESET",
+    "SCLK",
+    "START",
+)
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize("net", REMAINING_SIGNAL_NETS)
+def test_remaining_signal_net_is_physically_routed(
+    native_placement: tuple[Path, dict[str, object]], net: str
+) -> None:
+    _, report = native_placement
+    assert report["violations"] == [] and report["schematic_parity"] == []
+    assert f"[{net}]" not in json.dumps(report["unconnected_items"])
+
+
+@pytest.mark.schematic
+def test_complete_draft_has_no_native_unconnected_items(
+    native_placement: tuple[Path, dict[str, object]],
+) -> None:
+    _, report = native_placement
+    assert report["schematic_parity"] == []
+    assert report["violations"] == []
+    assert report["unconnected_items"] == []
