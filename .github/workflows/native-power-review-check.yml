@@ -1,0 +1,68 @@
+name: Native supply review verification
+on:
+  push:
+    branches: [investigate/layout-return-review-20260929]
+    paths: [.github/workflows/native-power-review-check.yml]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    container: debian:trixie@sha256:9cc080028c43b27d2074d63a5f9caf7166d731494965616c1a6d2827a004585c
+    timeout-minutes: 10
+    env:
+      LC_ALL: C
+      LANG: C
+      KICAD_CONFIG_HOME: /tmp/review-kicad-config
+    steps:
+      - name: Install existing pinned CAD engine and libraries
+        run: |
+          apt-get update -qq
+          apt-get install --yes --no-install-recommends ca-certificates git python3 kicad=9.0.2+dfsg-1 kicad-symbols=9.0.2-1 kicad-footprints=9.0.2-1 > /tmp/install.log 2>&1 || { tail -60 /tmp/install.log; exit 1; }
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: a4ac32c53e7e06eb3272db270afb1f3ac11a8c20
+          persist-credentials: false
+      - name: Refill a disposable copy and require all native findings empty
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/power-review
+          cp -a hardware/rev_a/kicad /tmp/power-review/cad
+          cp hardware/rev_a/layout/rev_a.kicad_pcb /tmp/power-review/cad/rev_a.kicad_pcb
+          python3 - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          import pcbnew as p
+          assert p.Version() == '9.0.2'
+          source = Path('hardware/rev_a/layout/rev_a.kicad_pcb')
+          expected = '71b066ed8c9842035553bbc125b5c428877d180b2b2ef66ba986a2032830899f'
+          assert hashlib.sha256(source.read_bytes()).hexdigest() == expected
+          path = Path('/tmp/power-review/cad/rev_a.kicad_pcb')
+          b = p.LoadBoard(str(path)); b.BuildConnectivity()
+          assert p.ZONE_FILLER(b).Fill(b.Zones())
+          p.SaveBoard(str(path), b)
+          rows = [{'net': z.GetNetname(), 'layer': b.GetLayerName(l), 'regions': z.GetFilledPolysList(l).OutlineCount()} for z in b.Zones() for l in z.GetLayerSet().Seq()]
+          assert rows == [{'net': 'GND', 'layer': 'In1.Cu', 'regions': 1}]
+          Path('/tmp/power-review/verification.json').write_text(json.dumps({'scope': 'fresh_native_refill_and_drc_not_electrical_qualification', 'source_commit': 'a4ac32c53e7e06eb3272db270afb1f3ac11a8c20', 'source_board_sha256': expected, 'kicad_version': p.Version(), 'zones': rows}, indent=2)+'\n')
+          PY
+          kicad-cli pcb drc --format json --schematic-parity --severity-all --exit-code-violations -o /tmp/power-review/drc.json /tmp/power-review/cad/rev_a.kicad_pcb | tee /tmp/power-review/drc.log
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report=json.loads(Path('/tmp/power-review/drc.json').read_text())
+          assert all(report[k] == [] for k in ('violations','schematic_parity','unconnected_items'))
+          print('native DRC 0 / 0 / 0, exit 0')
+          PY
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git diff --exit-code HEAD
+          test -z "$(git status --porcelain)"
+          cd /tmp/power-review
+          find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: native-power-review
+          path: /tmp/power-review/
+          if-no-files-found: error
+          retention-days: 14
