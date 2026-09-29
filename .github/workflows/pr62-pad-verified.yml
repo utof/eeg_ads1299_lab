@@ -1,0 +1,64 @@
+name: Publish verified pad-contact review
+on:
+  push:
+    branches: [workbench/pr62-review-continuation]
+    paths: [.github/workflows/pr62-pad-verified.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Require exact binary digests before importing any original objects
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64, hashlib, pathlib, re, subprocess
+          original = subprocess.check_output(['git','show','c57fb6d09fd8522fd356f4779bf5ba1de025bc8f:.github/workflows/pr62-pad-review.yml'],text=True)
+          encoded = re.search(r"base64.b64decode\('([^']+)', validate=True\)",original).group(1)
+          # Correct three known text-transfer errors, not project source.
+          # The original complete binary hash below must match before Git sees it.
+          for wrong,right in [('I6Vezm2JzFQ','I6Vzm2JzFQ'),('FEBcoVexKVm9x4KxI9vJz','FEBcoVexKx8KxI9vJz'),('gTch5NZNx','gTchZNx')]:
+              assert encoded.count(wrong) == 1
+              encoded = encoded.replace(wrong,right)
+          def load(encoded, length, digest, name):
+              data=base64.b64decode(encoded,validate=True)
+              assert len(data)==length
+              assert hashlib.sha256(data).hexdigest()==digest
+              path=pathlib.Path('/tmp')/name
+              path.write_bytes(data)
+              subprocess.run(['git','bundle','verify',str(path)],check=True)
+              subprocess.run(['git','fetch',str(path),'HEAD'],check=True)
+          load(encoded,3557,'7beb88ab7a0ad7f8faa391768130c74dc25e69d09e860548083c856fe70de207','pad-review.bundle')
+          assert subprocess.check_output(['git','rev-parse','FETCH_HEAD'],text=True).strip()=='3f68c4c9e5c35009940d0a7ea168e66c325d46b4'
+          load('IyB2MiBnaXQgYnVuZGxlCi0zZjY4YzRjOWU1YzM1MDA5OTQwZDBhN2VhMTY4ZTY2YzMyNWQ0NmI0IGRvY3MoaGFyZHdhcmUpOiByZXRhaW4gbmF0aXZlIHBhZC1jb250YWN0IHJldmlldyBldmlkZW5jZSBhbmQgbGltaXRzCjM1MTQwNzRjZTA3ZTg0ZWNmN2UzYjYwN2VlYzQxMmY2YjBkZDAyOTcgSEVBRAoKUEFDSwAAAAIAAAAEkRF4nJWMTU7DMBBG9znFLEFIaJz4LwghWLLiDGN7TK22duRMq+b2+Ap8u+9J70lnBl6MyjHl4L3zLjmN5IzSNmDUNOeAIWvLOE8bda4CS7Y+6riyiYtBXFeNaShMynq2Ni6zScPWE93k1Dr8bFy/vuG9ts7b5fhs41N5je36Acqt6JQ2M8ILjk2DXosI/1Obcnk8Ce+yP7/BnS4lkTBUknJnCO1WE/UDRqh1ATm2ATmPMMQTx3Opv8CPIvv0B9p+VbXwAgBsLrrhjiU3ZO5U6APNzIcoIYrBeJzbxLGJY8M+ZpGTnHH1YbVHJrZ2PxLWbzRIualvnj/5EnMCAN/PDZDxAtl3VLcaPorQ//dL0T8K22fzGWhceJw7Ln9cfkMuu4hoeETsOY63G2+eOM8QLOzes77kaffmRnY3DgDz0A5f/AMEwY0D+bZJhlovJqRC/48aavGG7Hic6/vCePkL44aTlfypFZklxVYK+UlZqcklCraTewMkJk9Mk+YBi+so5GQWl2hOPlApygoWmPymUgkAAYMYbF/grzVothcY0uH5No4YkP2uSthJ',612,'b89cbe3d4e7645f6106282456be12c2fd6cb2d5422d51a67938a840c76b83714','pad-typing.bundle')
+          PY
+          test "$(git rev-parse FETCH_HEAD)" = 3514074ce07e84ecf7e3b607eec412f6b0dd0297
+          test "$(git rev-parse FETCH_HEAD^{tree})" = e351fcdfb88787d740a75146b0c4a2fb0bf46e02
+          git merge-base --is-ancestor dd7511bb816af00054c9319a6db5a8509feb0a80 FETCH_HEAD
+          test "$(git rev-list --count dd7511bb816af00054c9319a6db5a8509feb0a80..FETCH_HEAD)" = 4
+          git diff --exit-code dd7511bb816af00054c9319a6db5a8509feb0a80 FETCH_HEAD -- hardware firmware lab pyproject.toml uv.lock
+          git push origin 3514074ce07e84ecf7e3b607eec412f6b0dd0297:refs/heads/archive/pr62-pad-review-3514074
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: archive/pr62-pad-review-3514074
+          fetch-depth: 0
+          path: fresh
+          persist-credentials: false
+      - name: Verify separate GitHub checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd fresh
+          test "$(git rev-parse HEAD)" = 3514074ce07e84ecf7e3b607eec412f6b0dd0297
+          test "$(git rev-parse HEAD^{tree})" = e351fcdfb88787d740a75146b0c4a2fb0bf46e02
+          printf '%s  %s\n' 611218bae6559fb2488309fc80eee20ce2d6b5855977d52d600f947099179b43 hardware/rev_a/layout/rev_a.kicad_pcb | sha256sum -c -
+          test -z "$(git status --porcelain)"
+          git rev-parse HEAD HEAD^{tree}
+          git log -4 --oneline
