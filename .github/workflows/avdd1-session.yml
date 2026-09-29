@@ -26,6 +26,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           test "$(git rev-parse HEAD)" = 1e86c049c46b52b3f1889f6bef7941763f965f79
           test "$(git rev-parse HEAD^{tree})" = a1db8bde14a5ffd35b8eb82877fd0a08d2f42354
           mkdir -p /tmp/session/runtime/{bin,lib,modules,share}
