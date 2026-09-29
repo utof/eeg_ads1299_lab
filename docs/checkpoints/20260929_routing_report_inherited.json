@@ -1,0 +1,174 @@
+{
+  "scope": "complete_local_routing_draft_not_fabrication_or_hardware_approval",
+  "base_commit": "37afa0c656769ab0c1cc71465b47de93435436be",
+  "head": "07edcacc4c22bfd2ae5aa053c658d6c480b75f5e",
+  "tree": "0c6dd0675c977cbcef2ef043cb49e9081b8c9b8f",
+  "source_dirty": false,
+  "old_board_sha256": "04182e89e8dac23c8c0b927a41e5fdfa2a2d407740496884ee7f501e9c0bf908",
+  "new_board_sha256": "71b066ed8c9842035553bbc125b5c428877d180b2b2ef66ba986a2032830899f",
+  "all_prior_nonzone_nontitle_forms_preserved": true,
+  "all_footprint_forms_byte_identical": true,
+  "prior_segments_vias_preserved": 402,
+  "segments": 579,
+  "vias": 126,
+  "footprints": 68,
+  "pads": 245,
+  "ground_pads": 74,
+  "ground_regions": 1,
+  "no_signal_tracks_on_In1": true,
+  "protected_source_unchanged": [
+    "hardware/rev_a/bom.json",
+    "hardware/rev_a/board_profile.json",
+    "hardware/rev_a/kicad",
+    "firmware",
+    "lab",
+    "pyproject.toml",
+    "uv.lock"
+  ],
+  "native_version": "9.0.2",
+  "verified_utc": "2026-09-29T12:53:23.295540+00:00",
+  "full_gate": {
+    "passed": true,
+    "completed": [
+      "format",
+      "lint",
+      "types",
+      "complexity",
+      "architecture",
+      "baseline",
+      "tests",
+      "native",
+      "schematic"
+    ],
+    "error": null,
+    "branch_coverage_percent": 86.06060606060606,
+    "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+    "versions": {
+      "ruff": "0.16.8",
+      "pyrefly": "1.3.1",
+      "complexipy": "8.0.1",
+      "tach": "0.35.1",
+      "pytest": "9.0.2",
+      "numpy": "2.3.5",
+      "scipy": "1.17.0"
+    },
+    "elapsed_seconds": 305.60831429099994,
+    "native_requested": true,
+    "firmware_requested": false,
+    "schematic_requested": true,
+    "physical_hardware_tested": false,
+    "body_connection_authorized": false
+  },
+  "junit": {
+    "pytest.xml": {
+      "tests": 1097,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "native-pytest.xml": {
+      "tests": 98,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "schematic-pytest.xml": {
+      "tests": 112,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "harness-console-pytest.xml": {
+      "tests": 22,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "ordinary_tests": 1090,
+  "ordinary_subtests": 7,
+  "branch_counts": {
+    "covered": 1136,
+    "total": 1320
+  },
+  "source_hashes_verified": 48,
+  "main_output_hashes_verified": 5,
+  "native_drc": {
+    "exit_code": 0,
+    "violations": 0,
+    "schematic_parity": 0,
+    "unconnected_items": 0
+  },
+  "ground_fill": [
+    {
+      "net": "GND",
+      "layers": [
+        "In1.Cu"
+      ],
+      "regions": [
+        1
+      ]
+    }
+  ],
+  "new_segments": 280,
+  "new_vias": 23,
+  "completed_signal_nets": 25,
+  "unconnected_before": 35,
+  "unconnected_after": 0,
+  "test_first_native_failures": 26,
+  "new_native_cut_faults_detected": 25,
+  "software_exit_report_controls": 5,
+  "package_rehearsal": {
+    "scope": "fresh_extracted_project_native_refill_and_drc_not_hardware_validation",
+    "kicad_version": "9.0.2",
+    "exit_code": 0,
+    "violations": 0,
+    "schematic_parity": 0,
+    "unconnected_items": 0,
+    "fill": {
+      "kicad_version": "9.0.2",
+      "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+      "zones": [
+        {
+          "net": "GND",
+          "layers": [
+            "In1.Cu"
+          ],
+          "regions": [
+            1
+          ]
+        }
+      ]
+    },
+    "fabrication_ready": false,
+    "body_connection_authorized": false
+  },
+  "github_main_last_read": "d2ee2964c14ef558a919eab77eb5eb153c4fdbc0",
+  "github_source_published": false,
+  "new_hosted_ci": false,
+  "new_codex_review_dispatched": false,
+  "new_independent_review_completed": false,
+  "fabrication_ready": false,
+  "purchase_approved": false,
+  "physical_hardware_tested": false,
+  "body_connection_authorized": false,
+  "native_package": {
+    "name": "eeg_connected_routing_native_20260929.zip",
+    "bytes": 567536,
+    "sha256": "8b8dec1f13685f1653c1f93e336377f4f8bd29ee2b55b2618acc1dffda556666"
+  },
+  "source_archive_files_verified": 280,
+  "patches_verified": {
+    "changes-from-ground-power.patch": {
+      "base": "37afa0c656769ab0c1cc71465b47de93435436be",
+      "target_tree": "0c6dd0675c977cbcef2ef043cb49e9081b8c9b8f",
+      "sha256": "787c9463bb225117fd7c830140b69c74ff6c9fb14534b4366fe02327418a15af"
+    },
+    "complete-layout-from-github-main.patch": {
+      "base": "31a4cfa2af5be77f688d2669efa0a3b4c72d6901",
+      "target_tree": "0c6dd0675c977cbcef2ef043cb49e9081b8c9b8f",
+      "sha256": "3aefe5d7afd643f14e7cd1e424ca6f582aff81dc328795ac3e8ec9f3e7f046a2"
+    }
+  },
+  "cumulative_base_recovered_by_reverse_verified_prior_patch": "31a4cfa2af5be77f688d2669efa0a3b4c72d6901"
+}

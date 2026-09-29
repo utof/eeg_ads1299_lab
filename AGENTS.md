@@ -2,6 +2,21 @@
 
 Read `docs/DEVELOPMENT.md`, `docs/LLM_HANDOFF.md`, and the Rev A hardware baseline before changing code.
 
+## Repository-first continuation
+
+The repository is the handoff, not the previous chat. Start from the live main/open
+PR state and the current `docs/LLM_HANDOFF.md`; record the exact branch, SHA/tree and
+working-tree state before changing anything. The current routed PCB is authored
+source at `hardware/rev_a/layout/rev_a.kicad_pcb`, not an importer output to rebuild.
+
+Before reporting a slice delivered, publish its source and tests to a named PR,
+read back the remote head, and update the current handoff with the next task and
+blockers. Bind verification/review claims to the actual tested head. Preserve
+small durable evidence summaries and necessary reference inputs in Git; transient
+logs may be artifacts, but a chat ZIP or expiring artifact must not be the only
+copy needed to continue. Clearly report unpublished work or unavailable tools.
+Keep unfinished work discoverable in its open PR; never imply it is already main.
+
 ## Non-negotiable scope
 
 Keep the selected Rev A components, board profile, BOM, firmware target guards, and all safety gates unchanged unless the task explicitly calls for a reviewed change. Software checks, SPICE, and native C++ helper tests do not authorize body connection or establish physical hardware safety. Do not reopen component selection as part of simulation or DX work. Do not claim a target firmware build because the portable helper compiled.
