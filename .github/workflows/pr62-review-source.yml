@@ -1,0 +1,35 @@
+name: PR62 review source checkout
+on:
+  push:
+    branches: [workbench/pr62-review-continuation]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 189a6e606b376224735ae05bc9c820fe74bcbed0
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Preserve exact source and history, not a regenerated PCB
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = 189a6e606b376224735ae05bc9c820fe74bcbed0
+          test "$(git rev-parse HEAD^{tree})" = fd13dc03fefc10bbe43caf2c1cd0d06babd0b18c
+          mkdir -p "$RUNNER_TEMP/source"
+          git branch snapshot-pr62 HEAD
+          git bundle create "$RUNNER_TEMP/source/pr62.bundle" snapshot-pr62
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/source/identity.txt"
+          sha256sum hardware/rev_a/layout/rev_a.kicad_pcb > "$RUNNER_TEMP/source/board.sha256"
+          cd "$RUNNER_TEMP/source"
+          sha256sum pr62.bundle identity.txt board.sha256 > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pr62-exact-source
+          path: ${{ runner.temp }}/source/
+          if-no-files-found: error
+          retention-days: 7
