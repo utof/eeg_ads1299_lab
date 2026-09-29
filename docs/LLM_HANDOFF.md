@@ -1,6 +1,6 @@
 # Continue from this repository
 
-**Current checkpoint: digital return review after merged PR #62.** No previous chat or attachment is
+**Current checkpoint: MISO/DRDY output repair after merged PR #63.** No previous chat or attachment is
 required to recover the published source. Read this file and root `AGENTS.md`
 first. This is a replaceable current checkpoint, not an append-only chat log.
 Use the live Git/PR state; an old success report does not validate a later head.
@@ -10,11 +10,11 @@ Use the live Git/PR state; an old success report does not validate a later head.
 1. Fetch the repository and read `git status --short`, `git rev-parse HEAD`, the
    current `main`, and open PRs. Do not overwrite someone else's uncommitted work.
    Read this checkpoint on the branch you actually intend to change.
-2. PR #62 is merged as `5ece3051f685c9fc70dee804d83061d5e59b2f48`.
-   The current digital geometry review is on `review/digital-return-paths`.
-   Read its live PR/head/checks until merged; afterwards use current main.
-   Do not substitute the competing chat-local1689234 variant. Before merging,
-   inspect the live diff, review comments, conflicts, exact-head CI and base drift.
+2. PR #63 is merged as `f834221a092f78dee4191305a3c3a8a03def0283`.
+   The output repair is on `fix/digital-output-corridor`; inspect its live PR,
+   exact-head checks and review until merged, then use current main. Do not
+   substitute old chat-local variants. Before merging, inspect live head/base,
+   diff, review comments, conflicts and exact-head CI, including base drift.
 3. Read `docs/DEVELOPMENT.md` for the pinned environment and `hardware/rev_a/`
    plus `docs/HARDWARE_BASELINE_REV_A.md` for circuit decisions. Choose the next
    bounded task below, not a recreation of already published work.
@@ -36,7 +36,7 @@ not invented GitHub ancestors. The original source is also on
 PR #62's reviewed head330f34c7 and merge5ece3051 have the same tree81640a52.
 Read `REV_A_AVDD1_REPAIR.md` and PR62 for its actual failure-first review history
 and completed CI. Its three traversal defects were corrected, not waived.
-Board SHA256 is611218bae6559fb2488309fc80eee20ce2d6b5855977d52d600f947099179b43.
+Its historical board SHA256 was611218bae6559fb2488309fc80eee20ce2d6b5855977d52d600f947099179b43.
 The separate chat-local1689234/e73e26bc variant was not merged or overlaid.
 Keep longer VCAP3/C24 and designated AVDD56/C14 routes visible in whole-board
 supply/noise review. Source review/native DRC did not measure that performance.
@@ -50,18 +50,21 @@ settings and local libraries are in `hardware/rev_a/kicad/`. Never regenerate
 this board with the parking-grid importer. Existing tests intentionally also
 exercise an unrouted import; those artifacts are not the authored PCB.
 
-The merged AVDD1 candidate has581segments,121vias,68footprints,245pads and
-one filled In1 GND region. These are the reviewed board's counts, not permanent
-constraints on later repairs. `REV_A_ROUTING_COMPLETION.md` is the dated original
-07edcacc routing milestone; `REV_A_AVDD1_REPAIR.md` records the subsequent repair.
+The output-repair candidate has584segments,122vias,68footprints,245pads and
+one native filled In1 region. Its board SHA256 is
+232b7c68a63ae13aebcf71f8c0b1f210421c30452a1afc7b7c86dc1c118b23a3.
+All footprints, other-net copper and the AVDD1/VCAP repair stay byte-identical.
+`REV_A_ROUTING_COMPLETION.md`, `REV_A_AVDD1_REPAIR.md` and
+`REV_A_DIGITAL_RETURN_REVIEW.md` describe earlier exact-source milestones;
+the current delta is `REV_A_DIGITAL_OUTPUT_REPAIR.md`.
 
-A fresh digital-review source checkout is recorded in Actions run36631345873.
-It fetched exact main5ece3051, not the competing local archive. The clean baseline
-full local gate passed1091ordinary+14subtests,98native and135KiCad cases; the new
-review record binds geometry to its unchanged board digest. For the later
-review/documentation head, inspect that PR's actual final checks/review. Keep
-small durable summaries and necessary source in Git; transient CI artifacts may
-expire. A workflow file, queued job or old success is not a pass for a new head.
+Source capture36641566165 fetched exactmainf834221a from GitHub. The full
+baseline local gate passed1091ordinary+14subtests,98native and135KiCad cases.
+Two failure-first native output cases precede the repair. Nine added native
+cases exercise canonical geometry, connected wrong-layer/reference-window
+faults and benign edits. Their focused result is not a final-head whole-suite
+pass: read the live repair PR's actual final checks and review. Keep durable
+summaries/source in Git; expired logs should be reproducible without a chat ZIP.
 
 ## Reproduce and inspect
 
@@ -96,38 +99,30 @@ canonical tracked paths, inspect the diff and rerun the gates. Do not mistake
 changes in the copy for committed source. The native tests already assemble
 independent copies, refill zones and check actual routing/parity.
 
-## Current digital review and next bounded task
+## Current output repair and next bounded task
 
-Read `REV_A_DIGITAL_RETURN_REVIEW.md` and
-`checkpoints/20260930_digital_return_geometry.json`. The review used actual
-merged5ece3051, not the old chat ZIP. The authored PCB was not changed.
-Nine inter-board digital nets have134segments/15vias. MISO has32.565mm and
-DRDY15.675mm on B.Cu; their back-layer spans cross six routed In2 traces in
-projection, with no reference plane between those layers. F/In2 transitions
-instead straddle the same In1 ground conductor. Source declares no dielectric
-stackup, so1.6mm general thickness is not impedance/return qualification.
+Read `REV_A_DIGITAL_OUTPUT_REPAIR.md` and
+`checkpoints/20260930_digital_output_repair.json`. Neither output has B.Cu
+tracks now. Long spans run on F over In1; bounded In2 escapes beside U1 share
+that same ground conductor. Four output-via fill openings are distinct after
+native refill. Full-width projected-reference checks exempt only each output's
+own through-contact voids, not unrelated plane gaps. The local10mm/rectangle
+policy is not a manufacturer limit or a field solution.
 
-**Next: a focused MISO/DRDY output-corridor reroute.** Compare placing their
-long spans on F.Cu over In1, with only necessary short escapes. Preserve the
-AVDD1 repair, input/BIAS routes, values/MPNs, ground continuity and existing
-rules. Inspect the merged MISO/DRDY antipad pair and actual reference at the
-new escapes. Do not blindly add a GND via at every signal via or introduce an
-extra/split plane. The six crossings are not shorts or a measured noise failure;
-this is a layout improvement decision under explicit unmeasured assumptions.
+The changed tradeoff is explicit: DRDY total authored segment sum grows36.499
+to44.132mm; the parallel front runs have0.30mm copper-edge separation. No
+measured coupling/noise/delay claim is made. Keep the existing AVDD1 neighboring
+capacitor tradeoffs, SCLK/CS and CLK/START fill groups, final dielectric stackup,
+edge rates, receiver and cable behavior in whole-board/release review.
 
-Write a failing scoped route/reference regression for the chosen repair before
-changing copper; challenge it with disconnected and connected-but-wrong-layer
-copies while preserving benign routing edits. Refill and run full native parity/
-DRC, compare exact source, then obtain actual review and final-head CI. A new
-geometric contract is not a manufacturer noise limit. If front routing causes
-worse nearby coupling/returns, document and reconsider rather than chase a count.
-
-The digital screen identified three local merged fill openings, but no new
-board-spanning split. It does not prove optimal return impedance. Remaining
-SCLK/CS and CLK/START local groups remain review items. Input P/N geometry/
-coupling follows the output repair, split connector-to-R and R-to-ADC. No new
-generic simulator or approval registry is needed. Full stackup, cable, receiver
-loading and edge-rate evidence still belong to release/physical review.
+**After the output-repair PR checks/review are resolved and merged, next is
+input P/N geometry/coupling review.** Measure connector-to-R separately from
+R-to-ADC, using actual pads/tracks/vias, layers, neighborhoods and reference
+copper. Compare positive/negative paths without treating unequal lengths alone
+as a failed analog specification. Bound parasitic/coupling hypotheses before
+adding matching meanders; no generic simulator or approval registry is needed.
+Do not reapply the earlier source-capture or copper authoring helpers over later
+work. Continue from the actual live source, not historical board hashes.
 
 Use `REV_A_COMPLETION_ROADMAP.md` for the current status/remaining-turn ranges.
 Every completion report now starts with TLDR plus a category/estimated-turns/

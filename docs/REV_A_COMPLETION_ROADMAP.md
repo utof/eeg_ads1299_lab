@@ -19,19 +19,20 @@ each bounded deliverable; show it in completion reports after a short TLDR.
 | Source, core software/firmware and checks | 0 for current baseline; maintain | Published on main; pinned CI and target build; fresh agents can start from repo | Keep source, review and actual test heads aligned |
 | PCB connectivity draft | 0 for initial routing | Fully connected; fresh native DRC/parity0/0/0; no manufacturing approval | Preserve completed copper except reviewed electrical repairs |
 | Supply/bypass review and repair | 0 for scoped AVDD1 repair | Reviewed and merged in PR #62; no measured noise qualification | Retain VCAP3/AVDD56 tradeoffs in whole-board review |
-| Digital-return review and output repair | 1–2 | Nine-net/15-via geometry review complete; back-layer MISO/DRDY corridor flagged | Rework two long output spans over In1; review escape antipads and rerun native gates |
+| Digital-return review and output repair | 0 after current PR checks/review/merge | Two-output repair implemented; long F runs, bounded In2 escapes and native guard controls | Resolve exact-head review/CI; retain stackup/edge/coupling limits |
 | Input-path geometry/coupling | 1–2 | Not yet reviewed in detail | P/N comparison split into connector-to-R and R-to-ADC sections |
 | Components, stackup, mechanics and assembly | 2–4 | Primary part evidence, logical harness and selected lands exist; decisions still open | #48 capacitor lifecycle/effective-C; #45 stackup, mounting, mates and process |
 | Real power/console fault readiness | 1–3 plus required physical checks | Firmware/console contracts exist; actual rail-loss behavior unqualified | Resolve exact interface and powered-off paths; state dummy-bench checks |
 | Release package and delivered budget | 1–2 after blockers close | Not ready for fabrication or purchase | Independent release review, coherent outputs and delivered quote |
 | Person-disconnected bench verification | 2–4 guided turns plus actual bench work | Physical prototype validation not started | Unpowered inspection, then staged dummy-source tests after prerequisites |
 
-**Next: MISO/DRDY output-corridor rework.** Read `REV_A_DIGITAL_RETURN_REVIEW.md`
-for the source-bound layer/via/crossing inventory and return-screen limits.
-Long back spans share the space below In1 with routed In2; the next candidate
-should interpose ground without sacrificing the analog or repaired bypass paths.
-No blanket stitching rule, declared stackup, circuit change or approval follows
-from this review. Body-connected work remains a separate, unestimated revision.
+**Next after output-repair review/merge: input P/N geometry/coupling review.**
+Read `REV_A_DIGITAL_OUTPUT_REPAIR.md` for current output geometry and limits;
+PR63's digital review is historical before-repair evidence. The two long output
+spans no longer share the below-In1 space with routed In2, but the longer DRDY
+path and parallel front spacing are not physically qualified. Body-connected
+work remains a separate, unestimated revision. Source-review merge is not a
+manufacturing/purchasing decision.
 
 ## Three different finish lines
 
