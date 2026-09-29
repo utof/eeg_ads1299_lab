@@ -114,6 +114,19 @@ indirect reconnections, two pre-bank joins and two inter-capacitor joins are
 six scoped native fault controls, not exhaustive copper/physical fault coverage.
 No geometry limit, board byte, circuit value or approval flag changed here.
 
+A further native review probe found that track-only traversal could stop at
+C16 when two track ends contact its pad but no longer touch each other. Red
+`f805fe04c28be73de18a444d85bb6ef01d82eb1a` shortened each inter-capacitor track
+by 0.35 mm inside the C16 pad, on positive and return sides separately. Two
+benign cases passed, but adding the known mid-bank entry produced two missed
+faults despite native DRC 0/0/0 and intact local paths. Fix
+`86b45e6d05810cc83250145d07e7862e17d1d476` also traverses the native contacts of
+an intermediate bank pad, without crossing the capacitor dielectric or changing
+the requested boundary. All **19 focused native cases** then passed: six
+canonical/local/VCAP guards, eight harmful controls, and five benign controls.
+The earlier 15-case result remains a dated preceding checkpoint, not the final
+case count. This extension changes no authored copper or geometric thresholds.
+
 The live PR, not a previous chat candidate, is the continuation source. The
 chat-delivered local `1689234ebb49b6f8c046bff0c785753669c2a0e2` has tree
 `ee6dfa9eb393e54c11b9473b6aa7bbf40416dc55` and board SHA256

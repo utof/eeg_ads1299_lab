@@ -179,6 +179,13 @@ Unfinished work stays discoverable in a clearly identified open PR, not only in
 `/mnt/data`, a conversation attachment, or an expiring Actions artifact. A blocked
 write is a publication blocker, not permission to claim the repository is current.
 
+The follow-up pad-contact probe also reproduced two missed mid-bank entries
+when the C16 pad bridges separated track ends. The pad-contact red/fix history
+is retained in `f805fe04` / `86b45e6d`; 19 focused native cases passed after
+traversing intermediate bank pad contacts. Read the current exact PR head's
+full CI/review results, not the preceding 15-case checkpoint. No copper changed
+in either review correction. Keep the current PR authoritative over local168.
+
 ## User and scope constraints
 
 The user is an electronics beginner who prefers test-first, small meaningful

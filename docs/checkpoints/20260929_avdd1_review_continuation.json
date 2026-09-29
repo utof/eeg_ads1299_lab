@@ -33,5 +33,23 @@
   "physical_hardware_tested": false,
   "fabrication_ready": false,
   "purchase_approved": false,
-  "body_connection_authorized": false
+  "body_connection_authorized": false,
+  "pad_contact_follow_up": {
+    "scope": "native_contact_traversal_not_a_copper_change_or_physical_validation",
+    "test_first_commit": "f805fe04c28be73de18a444d85bb6ef01d82eb1a",
+    "fix_commit": "86b45e6d05810cc83250145d07e7862e17d1d476",
+    "observed_red_failures": 2,
+    "observed_red_benign_passes": 2,
+    "all_four_modified_boards_native_drc": {
+      "parity": 0,
+      "violations": 0,
+      "unconnected": 0
+    },
+    "track_endpoint_shortening_inside_pad_mm": 0.35,
+    "focused_native_cases_after_fix": 19,
+    "harmful_controls": 8,
+    "benign_controls": 5,
+    "canonical_board_unchanged": true,
+    "final_full_gate_and_hosted_review": "Consult live PR62 exact-head reports; these counts are the focused run."
+  }
 }
