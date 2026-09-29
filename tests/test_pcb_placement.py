@@ -488,10 +488,123 @@ def test_local_bypass_uses_a_bounded_front_path_without_vias(
     pin, cap, terminal = connection
     row = front_bypass_paths[":".join(connection)]
     assert isinstance(row, dict)
-    distance = row["trace_mm"]
+    distance: object = row["trace_mm"]
     assert isinstance(distance, (float, int)), f"no direct front path: U1.{pin} to {cap}.{terminal}"
     assert distance <= limit, f"local design target exceeded: {distance} > {limit} mm"
     # A shorter detour through another ADC supply terminal is not the desired path.
-    path_pads = row["pads"]
-    assert isinstance(path_pads, list)
-    assert all(not str(item).startswith("U1.") or item == "U1." + pin for item in path_pads)
+    raw_pads: object = row["pads"]
+    assert isinstance(raw_pads, list)
+    path_pads: list[object] = raw_pads
+    assert all(
+        isinstance(item, str) and (not item.startswith("U1.") or item == "U1." + pin)
+        for item in path_pads
+    )
+
+
+# Deliberately restore the old plane-dependent entry while removing the new
+# direct spoke. General DRC/net connectivity should still pass; the local-loop
+# checker must not accept that as a substitute for the new front-side connection.
+# These are fault fixtures only, never an alternate canonical board generator.
+_BYPASS_BACKDOORS = {
+    "54": (
+        "29bbfcef-5358-5eb4-855e-8ab590506c7c",
+        """
+(segment (start 49.25 31.3375) (end 49.25 32.2) (width 0.2) (layer "F.Cu") (net 1) (uuid "a7168135-9b35-5086-8791-871818476c49"))
+(segment (start 49.25 32.2) (end 48.85 32.6) (width 0.2) (layer "F.Cu") (net 1) (uuid "79e7ef53-2cd2-56f0-a7ab-cb2fe94da14f"))
+(segment (start 48.85 32.6) (end 48.85 33.1) (width 0.2) (layer "F.Cu") (net 1) (uuid "65154475-b69d-5add-b414-5eff88547eb9"))
+(via (at 48.85 33.1) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net 1) (uuid "84baee1b-6160-5959-a408-2f6fed4d6025"))
+(segment (start 48.85 33.1) (end 49.05 32.9) (width 0.3) (layer "In2.Cu") (net 1) (uuid "cc139cdd-ced4-5416-82e5-64c55cb26b68"))
+(segment (start 49.05 32.9) (end 49.05 26.075) (width 0.3) (layer "In2.Cu") (net 1) (uuid "f56df49a-4c85-5301-bc8c-86436bebd3ca"))
+""",
+    ),
+    "53": (
+        "d3a24851-14f6-55c3-b3cf-89b69174c6d5",
+        """
+(segment (start 49.750000 31.337500) (end 49.750000 32.900000) (width 0.15) (layer "F.Cu") (net 18) (uuid "111afbb5-8290-5cce-ac43-629b173e4930"))
+(via (at 49.750000 32.900000) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net 18) (uuid "c6c269a6-8197-5080-8568-e60116ee585e"))
+""",
+    ),
+}
+
+
+_BYPASS_LOCAL_CUTS = {
+    "54": (
+        "29bbfcef-5358-5eb4-855e-8ab590506c7c",
+        "38b7240a-a8ff-540c-8b54-36e827e99446",
+        "11d40849-b7a3-544d-86e9-72248511563f",
+    ),
+    "53": (
+        "d3a24851-14f6-55c3-b3cf-89b69174c6d5",
+        "c5026e54-4396-5f74-a644-9786c0745f83",
+        "79bf195e-f095-582a-9a83-6abb3b961a35",
+        "be1b3293-799a-5ff4-91fb-0214730f2e2b",
+    ),
+}
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize("pin", ["54", "53"])
+def test_globally_connected_backdoor_does_not_replace_the_local_bypass(
+    tmp_path: Path, pin: str
+) -> None:
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    text = BOARD.read_text()
+    _, backdoor = _BYPASS_BACKDOORS[pin]
+    # Remove the entire device branch to avoid a dangling stub independently
+    # failing DRC. The intended fault is the bypass route, not an open supply.
+    for cut in _BYPASS_LOCAL_CUTS[pin]:
+        spoke = next(line for line in text.splitlines() if cut in line)
+        assert spoke.startswith("(segment ") and '(layer "F.Cu")' in spoke
+        text = text.replace(spoke, "", 1)
+    board = cad / "rev_a.kicad_pcb"
+    board.write_text(text.rstrip()[:-1] + backdoor + ")\n")
+    report = _native_report(cad)
+    assert all(report[k] == [] for k in ("violations", "schematic_parity", "unconnected_items"))
+    rows = _front_paths(board)
+    terminal = "1" if pin == "54" else "2"
+    for cap in ("C16", "C27"):
+        row = rows[f"{pin}:{cap}:{terminal}"]
+        assert isinstance(row, dict)
+        assert row["trace_mm"] is None, "global plane access concealed the broken local path"
+
+
+@pytest.mark.schematic
+def test_benign_track_subdivision_and_reversal_preserve_local_paths(tmp_path: Path) -> None:
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    text = BOARD.read_text()
+    board = cad / "rev_a.kicad_pcb"
+    board.write_text(text)
+    before = _front_paths(board)
+    # Divide and reverse the entry track. The checker uses native adjacency,
+    # not a fixed item count, source hash or route UUID allowlist.
+    key = _BYPASS_BACKDOORS["54"][0]
+    track = next(line for line in text.splitlines() if key in line)
+    a = re.search(r"\(start ([^)]+)\)", track)
+    z = re.search(r"\(end ([^)]+)\)", track)
+    assert a is not None and z is not None
+    start = [float(v) for v in a.group(1).split()]
+    end = [float(v) for v in z.group(1).split()]
+    midpoint = " ".join(f"{(x + y) / 2:.7f}" for x, y in zip(start, end, strict=True))
+    left = track.replace(a.group(), "(start " + midpoint + ")")
+    left = left.replace(z.group(), "(end " + a.group(1) + ")")
+    right = track.replace(a.group(), "(start " + midpoint + ")")
+    right = right.replace(key, "0b7c73a7-6c89-4dca-97f2-b7d7f529bb5a")
+    board.write_text(text.replace(track, left + "\n" + right, 1))
+    report = _native_report(cad)
+    assert all(report[k] == [] for k in ("violations", "schematic_parity", "unconnected_items"))
+    after = _front_paths(board)
+    for key, row in before.items():
+        other = after[key]
+        assert isinstance(row, dict) and isinstance(other, dict)
+        assert isinstance(row["trace_mm"], (float, int))
+        assert isinstance(other["trace_mm"], (float, int))
+        # Whole-track itinerary costs may shrink when a divided track ends in
+        # a pad: KiCad can reach that pad before traversing the inner fragment.
+        # The physical local path and its target must remain acceptable, not an
+        # artificial segmentation-dependent exact floating-point result.
+        parts = key.split(":")
+        assert len(parts) == 3
+        assert other["trace_mm"] <= _BYPASS_LIMITS[parts[0], parts[1], parts[2]]
+        assert other["pads"] == row["pads"]
