@@ -1,0 +1,97 @@
+name: Read-only layout review capture
+on:
+  push:
+    branches: [investigate/layout-return-review-20260929]
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-24.04
+    container: debian:trixie@sha256:9cc080028c43b27d2074d63a5f9caf7166d731494965616c1a6d2827a004585c
+    timeout-minutes: 10
+    steps:
+      - name: Install the existing pinned CAD engine
+        run: |
+          apt-get update -qq
+          apt-get install --yes --no-install-recommends ca-certificates git python3 kicad=9.0.2+dfsg-1 > /tmp/install.log 2>&1 || { tail -60 /tmp/install.log; exit 1; }
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: a4ac32c53e7e06eb3272db270afb1f3ac11a8c20
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Capture exact published checkout and read-only native geometry
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          mkdir -p /tmp/capture
+          git bundle create /tmp/capture/published-main.bundle HEAD
+          git archive --format=tar.gz HEAD > /tmp/capture/published-main.tar.gz
+          python3 - <<'PY'
+          import hashlib, json, subprocess
+          from pathlib import Path
+          import pcbnew
+          path = Path('hardware/rev_a/layout/rev_a.kicad_pcb')
+          board = pcbnew.LoadBoard(str(path))
+          def point(p):
+              return [p.x / 1e6, p.y / 1e6]
+          def identity(item):
+              return item.m_Uuid.AsString()
+          footprints = []
+          for fp in board.GetFootprints():
+              pads = []
+              for pad in fp.Pads():
+                  pads.append({'number': pad.GetNumber(), 'uuid': identity(pad),
+                      'net': pad.GetNetname(), 'at_mm': point(pad.GetPosition()),
+                      'size_mm': point(pad.GetSize()),
+                      'orientation_deg': pad.GetOrientationDegrees(),
+                      'layers': [board.GetLayerName(x) for x in pad.GetLayerSet().Seq()],
+                      'shape': int(pad.GetShape())})
+              footprints.append({'ref': fp.GetReference(), 'value': fp.GetValue(),
+                  'uuid': identity(fp), 'at_mm': point(fp.GetPosition()),
+                  'orientation_deg': fp.GetOrientationDegrees(), 'pads': pads})
+          tracks = []
+          for track in board.GetTracks():
+              item = {'uuid': identity(track), 'net': track.GetNetname(),
+                  'start_mm': point(track.GetStart()), 'end_mm': point(track.GetEnd()),
+                  'width_mm': track.GetWidth() / 1e6,
+                  'layer': board.GetLayerName(track.GetLayer()),
+                  'type': track.GetClass()}
+              if isinstance(track, pcbnew.PCB_VIA):
+                  item['drill_mm'] = track.GetDrillValue() / 1e6
+                  item['layers'] = [board.GetLayerName(x) for x in track.GetLayerSet().Seq()]
+              tracks.append(item)
+          zones = []
+          for zone in board.Zones():
+              item = {'uuid': identity(zone), 'net': zone.GetNetname(), 'fills': []}
+              for layer in zone.GetLayerSet().Seq():
+                  poly = zone.GetFilledPolysList(layer)
+                  regions = []
+                  for n in range(poly.OutlineCount()):
+                      chain = poly.COutline(n)
+                      holes = []
+                      for h in range(poly.HoleCount(n)):
+                          hole = poly.CHole(n, h)
+                          holes.append([point(hole.CPoint(i)) for i in range(hole.PointCount())])
+                      regions.append({'outer': [point(chain.CPoint(i)) for i in range(chain.PointCount())], 'holes': holes})
+                  item['fills'].append({'layer': board.GetLayerName(layer), 'regions': regions})
+              zones.append(item)
+          result = {'scope': 'read_only_stored_geometry_not_refill_drc_or_physical_measurement',
+              'commit': subprocess.check_output(['git','rev-parse','HEAD'], text=True).strip(),
+              'tree': subprocess.check_output(['git','rev-parse','HEAD^{tree}'], text=True).strip(),
+              'kicad_version': pcbnew.GetBuildVersion(), 'board_sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
+              'footprints': footprints, 'tracks': tracks, 'zones': zones}
+          Path('/tmp/capture/native-geometry.json').write_text(json.dumps(result, indent=2) + '\n')
+          print(result['commit'], result['tree'], result['board_sha256'])
+          print('footprints', len(footprints), 'tracks_and_vias', len(tracks), 'zones', len(zones))
+          PY
+          git diff --exit-code HEAD
+          test -z "$(git status --porcelain)"
+          cd /tmp/capture && sha256sum * > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: published-layout-review-input
+          path: /tmp/capture/
+          if-no-files-found: error
+          retention-days: 14
