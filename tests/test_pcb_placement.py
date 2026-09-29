@@ -666,3 +666,42 @@ def test_an_extra_pre_bypass_plane_join_is_rejected_even_with_the_local_path_int
         assert row.get("pre_bypass_exits"), (
             "upstream plane join was accepted with a local path intact"
         )
+
+
+# Review #4137830251: a shared entry between the two parallel capacitors is
+# downstream of C16 but upstream of C27. Both direct paths still exist and
+# ordinary DRC is clean. The boundary must be evaluated for each capacitor.
+_MID_BANK_EXITS = {
+    "54": """
+(via (at 49.925 28.2) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net 1) (uuid "e5e49115-2baf-5eaf-bd74-030cf6d811db"))
+(segment (start 49.925 28.2) (end 49.925 26.375) (width 0.3) (layer "In2.Cu") (net 1) (uuid "6f4a96df-a2c3-51ca-a3c3-9b4b16e6ea3f"))
+""",
+    "53": """
+(via (at 51.475 28.2) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net 18) (uuid "75ae5ce8-44c5-55c5-a039-5d82f428bfdf"))
+""",
+}
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize("pin", ["54", "53"])
+def test_plane_join_between_capacitors_is_rejected_for_distal_capacitor(
+    tmp_path: Path, pin: str
+) -> None:
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    text = BOARD.read_text()
+    board = cad / "rev_a.kicad_pcb"
+    board.write_text(text.rstrip()[:-1] + _MID_BANK_EXITS[pin] + ")\n")
+    report = _native_report(cad)
+    assert all(report[k] == [] for k in ("violations", "schematic_parity", "unconnected_items"))
+    rows = _front_paths(board)
+    terminal = "1" if pin == "54" else "2"
+    for cap in ("C16", "C27"):
+        row = rows[f"{pin}:{cap}:{terminal}"]
+        assert isinstance(row, dict)
+        assert isinstance(row["trace_mm"], (float, int))
+        assert row["trace_mm"] <= _BYPASS_LIMITS[pin, cap, terminal]
+    near, distal = rows[f"{pin}:C16:{terminal}"], rows[f"{pin}:C27:{terminal}"]
+    assert isinstance(near, dict) and isinstance(distal, dict)
+    assert near["pre_bypass_exits"] == [], "the inserted join is after the near capacitor"
+    assert distal["pre_bypass_exits"], "the walk stopped at C16 and never guarded C27"
