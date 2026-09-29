@@ -1,0 +1,74 @@
+{
+  "record_kind": "dated_source_recovery_not_electrical_approval",
+  "date_utc": "2026-09-29",
+  "original": {
+    "local_head": "07edcacc4c22bfd2ae5aa053c658d6c480b75f5e",
+    "tree": "0c6dd0675c977cbcef2ef043cb49e9081b8c9b8f",
+    "source_files": 280,
+    "reconstructed_local_commits": 10,
+    "failure_first_parent": "db71abd0ee22879db98e46a4dd199deedc0b2e73",
+    "board_path": "hardware/rev_a/layout/rev_a.kicad_pcb",
+    "board_sha256": "71b066ed8c9842035553bbc125b5c428877d180b2b2ef66ba986a2032830899f"
+  },
+  "archive_verified_this_turn": {
+    "name": "eeg_connected_routing_source_evidence_20260929(1).zip",
+    "bytes": 32551700,
+    "sha256": "248050391a8fa60ff3ff2ae91d9ea90a214a5fe18a53bb769c93af2233239b8f",
+    "payload_hashes_matched": 2208,
+    "source_tar_files_compared_to_git": 280,
+    "required_for_future_continuation": false
+  },
+  "published_history": {
+    "bridge_commit": "0eb2a121e51de8c1f103af5a0c991e4d782a59fe",
+    "first_parent_real_github_main": "d2ee2964c14ef558a919eab77eb5eb153c4fdbc0",
+    "second_parent_original_local_head": "07edcacc4c22bfd2ae5aa053c658d6c480b75f5e",
+    "bridge_tree_equals_original": true,
+    "archive_branch": "archive/connected-routing-local-07edcacc",
+    "pull_request": 60,
+    "temporary_transport_in_product_tree": false
+  },
+  "new_remote_source_verification": {
+    "run_url": "https://github.com/utof/eeg_ads1299_lab/actions/runs/36579755641",
+    "run_id": 36579755641,
+    "job_id": 109444496408,
+    "workflow_head": "71ef9f1be2e3b840fc17e37e37da02a4c60d01f2",
+    "conclusion": "success",
+    "imported_original_objects": 77,
+    "separate_github_checkout_verified": true,
+    "verified_checkout_head": "07edcacc4c22bfd2ae5aa053c658d6c480b75f5e",
+    "checks": [
+      "exact original head and full tree",
+      "280 tracked source files",
+      "ten original reconstructed commits",
+      "board SHA256",
+      "Git object connectivity",
+      "clean checkout"
+    ],
+    "scope": "source_integrity_only_not_native_cad_or_target_build"
+  },
+  "ci_identity_regression": {
+    "test_only_commit": "df704d452981de4b240c27abbd51eb449f05cff1",
+    "observed_local_failures": 2,
+    "fix_commit": "ef622ab5c437460d356237bd4f633772b2223be3",
+    "focused_local_retest": "passed",
+    "command": "uv run --no-project --offline python -m unittest discover -s tests -p test_ci_identity.py -v",
+    "scope": "stdlib text contract for four repository-owned checkout blocks, not a general YAML parser",
+    "full_locked_local_gate_run": false,
+    "local_setup_blocker": "uv sync --locked --all-extras --offline failed because required packages were not cached"
+  },
+  "inherited_report": {
+    "path": "docs/checkpoints/20260929_routing_report_inherited.json",
+    "sha256": "9605353543df55b3ea39321552d95a02b7ac96176a71a3d72e3920a2feff49d1",
+    "copied_without_modification": true,
+    "counts_and_passes_are_prior_execution": true,
+    "publication_fields_are_historical_not_live_status": true
+  },
+  "limits": {
+    "new_normal_ci_results": "Consult final PR head check runs; not asserted by this pre-CI record",
+    "native_hardware_measured": false,
+    "independent_electrical_review_completed": false,
+    "fabrication_ready": false,
+    "purchase_approved": false,
+    "body_connection_authorized": false
+  }
+}
