@@ -468,6 +468,10 @@ def pre_bypass_exits(start, capacitors, target):
                 exits.add("pad:" + pad.GetParentFootprint().GetReference() + "." + pad.GetNumber())
         if any(identity(pad) == boundary for pad in contacts):
             continue
+        # Disjoint track ends can be joined by the intermediate capacitor pad.
+        # Traverse that pad's native contacts, never jump through the capacitor
+        # dielectric to its other terminal. The requested boundary still stops.
+        queue.extend(pad for pad in contacts if identity(pad) in targets - {boundary})
         queue.extend(t for t in tracks if t.Type() != p.PCB_VIA_T and t.GetLayer() == p.F_Cu)
     return sorted(exits)
 
