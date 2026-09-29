@@ -719,3 +719,40 @@ def test_plane_join_between_capacitors_is_rejected_for_distal_capacitor(
     assert isinstance(near, dict) and isinstance(distal, dict)
     assert near["pre_bypass_exits"] == [], "the inserted join is after the near capacitor"
     assert distal["pre_bypass_exits"], "the walk stopped at C16 and never guarded C27"
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize(
+    "pin,x,track_id",
+    [
+        ("54", "49.925", "b1e992da-b6ea-529d-be35-8c9c2e062ead"),
+        ("53", "51.475", "71a8e185-29b0-58ec-b001-1fbad324e95f"),
+    ],
+)
+@pytest.mark.parametrize("with_exit", [False, True])
+def test_capacitor_pad_contact_is_traversed_before_the_distal_boundary(
+    tmp_path: Path, pin: str, x: str, track_id: str, with_exit: bool
+) -> None:
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    text = BOARD.read_text()
+    track = next(line for line in text.splitlines() if track_id in line)
+    # Both ends still touch C16, but the tracks no longer touch one another.
+    # Native pad contact, not a coincident centreline endpoint, joins the bank.
+    shortened = track.replace(f"(start {x} 29)", f"(start {x} 28.65)")
+    assert shortened != track
+    text = text.replace(track, shortened, 1)
+    if with_exit:
+        text = text.rstrip()[:-1] + _MID_BANK_EXITS[pin] + ")\n"
+    board = cad / "rev_a.kicad_pcb"
+    board.write_text(text)
+    report = _native_report(cad)
+    assert all(report[k] == [] for k in ("violations", "schematic_parity", "unconnected_items"))
+    rows = _front_paths(board)
+    terminal = "1" if pin == "54" else "2"
+    for cap in ("C16", "C27"):
+        row = rows[f"{pin}:{cap}:{terminal}"]
+        assert isinstance(row, dict)
+        assert isinstance(row["trace_mm"], (float, int))
+        assert row["trace_mm"] <= _BYPASS_LIMITS[pin, cap, terminal]
+        assert bool(row["pre_bypass_exits"]) is (with_exit and cap == "C27")
