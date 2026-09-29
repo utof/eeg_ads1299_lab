@@ -378,3 +378,120 @@ def test_native_exit_and_report_cannot_disagree(
     else:
         with pytest.raises(AssertionError):
             _native_report(tmp_path)
+
+
+# Local repair design targets, not manufacturer impedance/noise guarantees.
+# Distances count whole native track centrelines along a front-only itinerary;
+# pad spreading and via barrels are deliberately not represented as extracted L/C.
+_BYPASS_LIMITS = {
+    ("54", "C16", "1"): 4.0,
+    ("54", "C27", "1"): 6.0,
+    ("53", "C16", "2"): 4.5,
+    ("53", "C27", "2"): 6.5,
+    ("55", "C9", "1"): 3.5,
+    ("55", "C24", "1"): 6.5,
+}
+
+_FRONT_PATH_SCRIPT = r"""
+import heapq, json, sys
+import pcbnew as p
+assert p.Version() == "9.0.2"
+b = p.LoadBoard(sys.argv[1])
+b.BuildConnectivity()
+c = b.GetConnectivity()
+pads = {(f.GetReference(), t.GetNumber()): t for f in b.GetFootprints() for t in f.Pads()}
+
+def identity(item):
+    return str(item.m_Uuid.AsString())
+
+def neighbours(item):
+    # KiCad supplies physical adjacency, including pad contact and T-junctions.
+    # A via/plane/other layer must not substitute for the local front-side loop.
+    for t in c.GetConnectedTracks(item):
+        if not isinstance(t, p.PCB_VIA) and t.GetLayer() == p.F_Cu:
+            yield t
+    for pad in c.GetConnectedPads(item):
+        if pad.IsOnLayer(p.F_Cu):
+            yield pad
+
+def route(start, target):
+    sid, tid = identity(start), identity(target)
+    queue = [(0.0, sid)]
+    known = {sid: start}
+    best = {sid: 0.0}
+    previous = {}
+    while queue:
+        distance, key = heapq.heappop(queue)
+        if distance != best[key]:
+            continue
+        if key == tid:
+            keys = [key]
+            while key != sid:
+                key = previous[key]
+                keys.append(key)
+            return {"trace_mm": distance, "items": list(reversed(keys)),
+                    "pads": [v.GetParentFootprint().GetReference() + "." + v.GetNumber()
+                             for k in reversed(keys) if isinstance((v := known[k]), p.PAD)]}
+        for item in neighbours(known[key]):
+            ident = identity(item)
+            cost = 0.0 if isinstance(item, p.PAD) else p.ToMM(item.GetLength())
+            candidate = distance + cost
+            if candidate < best.get(ident, float("inf")):
+                best[ident], known[ident], previous[ident] = candidate, item, key
+                heapq.heappush(queue, (candidate, ident))
+    return {"trace_mm": None, "items": [], "pads": []}
+
+rows = {}
+for pin, cap, terminal in json.loads(sys.argv[2]):
+    rows[pin + ":" + cap + ":" + terminal] = route(pads["U1", pin], pads[cap, terminal])
+print(json.dumps(rows))
+"""
+
+
+def _front_paths(board: Path) -> dict[str, object]:
+    result = subprocess.run(
+        [
+            os.environ.get("KICAD_PYTHON", "/usr/bin/python3"),
+            "-c",
+            _FRONT_PATH_SCRIPT,
+            str(board),
+            json.dumps(list(_BYPASS_LIMITS)),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=45,
+        env=dict(
+            os.environ, KICAD_CONFIG_HOME=str(board.parent / "path-config"), LC_ALL="C", LANG="C"
+        ),
+    )
+    (board.parent / "front-paths.log").write_text(result.stdout + result.stderr)
+    assert result.returncode == 0, result.stdout + result.stderr
+    rows: object = json.loads(result.stdout)
+    assert isinstance(rows, dict)
+    (board.parent / "front-paths.json").write_text(json.dumps(rows, indent=2) + "\n")
+    return rows
+
+
+@pytest.fixture(scope="module")
+def front_bypass_paths(tmp_path_factory: pytest.TempPathFactory) -> dict[str, object]:
+    cad = tmp_path_factory.mktemp("front-bypass-paths")
+    board = cad / "rev_a.kicad_pcb"
+    shutil.copyfile(BOARD, board)
+    return _front_paths(board)
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize("connection,limit", list(_BYPASS_LIMITS.items()))
+def test_local_bypass_uses_a_bounded_front_path_without_vias(
+    front_bypass_paths: dict[str, object], connection: tuple[str, str, str], limit: float
+) -> None:
+    pin, cap, terminal = connection
+    row = front_bypass_paths[":".join(connection)]
+    assert isinstance(row, dict)
+    distance = row["trace_mm"]
+    assert isinstance(distance, (float, int)), f"no direct front path: U1.{pin} to {cap}.{terminal}"
+    assert distance <= limit, f"local design target exceeded: {distance} > {limit} mm"
+    # A shorter detour through another ADC supply terminal is not the desired path.
+    path_pads = row["pads"]
+    assert isinstance(path_pads, list)
+    assert all(not str(item).startswith("U1.") or item == "U1." + pin for item in path_pads)
