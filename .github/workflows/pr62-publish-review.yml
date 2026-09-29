@@ -1,0 +1,57 @@
+name: Preserve PR62 review history
+on:
+  push:
+    branches: [workbench/pr62-review-continuation]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Verify data-only bundle before importing original objects
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64, hashlib, pathlib, subprocess
+          text = pathlib.Path('transfer/pr62-review.b64').read_text().strip()
+          # Correct one known API transcription character in transport ONLY.
+          # The complete original binary digest below is mandatory before Git import.
+          if 'SAPGVLqq74A6' in text:
+              assert text.count('SAPGVLqq74A6') == 1
+              text = text.replace('SAPGVLqq74A6', 'SAPGVLq74A6')
+          data = base64.b64decode(text, validate=True)
+          assert len(data) == 6568
+          assert hashlib.sha256(data).hexdigest() == 'ecb0929a8d8fcbd9bc4ec279cc27c18a8bd6e5393fb9355688375b4ad3719f5e'
+          pathlib.Path('/tmp/review.bundle').write_bytes(data)
+          subprocess.run(['git', 'bundle', 'verify', '/tmp/review.bundle'], check=True)
+          subprocess.run(['git', 'fetch', '/tmp/review.bundle', 'HEAD'], check=True)
+          PY
+          test "$(git rev-parse FETCH_HEAD)" = dd7511bb816af00054c9319a6db5a8509feb0a80
+          test "$(git rev-parse FETCH_HEAD^{tree})" = 96b4d26f700712b81d385f733a8873fc699a5aa8
+          git merge-base --is-ancestor 189a6e606b376224735ae05bc9c820fe74bcbed0 FETCH_HEAD
+          test "$(git rev-list --count 189a6e606b376224735ae05bc9c820fe74bcbed0..FETCH_HEAD)" = 3
+          git diff --exit-code 189a6e606b376224735ae05bc9c820fe74bcbed0 FETCH_HEAD -- hardware firmware lab pyproject.toml uv.lock
+          git push origin dd7511bb816af00054c9319a6db5a8509feb0a80:refs/heads/archive/pr62-review-dd7511b
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: archive/pr62-review-dd7511b
+          fetch-depth: 0
+          path: fresh
+          persist-credentials: false
+      - name: Verify independent GitHub checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd fresh
+          test "$(git rev-parse HEAD)" = dd7511bb816af00054c9319a6db5a8509feb0a80
+          test "$(git rev-parse HEAD^{tree})" = 96b4d26f700712b81d385f733a8873fc699a5aa8
+          printf '%s  %s\n' 611218bae6559fb2488309fc80eee20ce2d6b5855977d52d600f947099179b43 hardware/rev_a/layout/rev_a.kicad_pcb | sha256sum -c -
+          test -z "$(git status --porcelain)"
+          git rev-parse HEAD HEAD^{tree}
+          git log -3 --oneline
