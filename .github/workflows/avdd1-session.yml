@@ -1,0 +1,77 @@
+name: Disposable AVDD1 native session
+on:
+  push:
+    branches: [workbench/avdd1-native-session]
+    paths: [.github/workflows/avdd1-session.yml]
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    container: debian:trixie@sha256:9cc080028c43b27d2074d63a5f9caf7166d731494965616c1a6d2827a004585c
+    timeout-minutes: 15
+    steps:
+      - name: Install declared native tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y --no-install-recommends ca-certificates git python3 python3-venv curl kicad=9.0.2+dfsg-1 kicad-footprints=9.0.2-1 kicad-symbols=9.0.2-1 ngspice g++ nodejs >/tmp/install.log 2>&1 || { tail -80 /tmp/install.log; exit 1; }
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 1e86c049c46b52b3f1889f6bef7941763f965f79
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Retain exact source and reproducible temporary runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = 1e86c049c46b52b3f1889f6bef7941763f965f79
+          test "$(git rev-parse HEAD^{tree})" = a1db8bde14a5ffd35b8eb82877fd0a08d2f42354
+          mkdir -p /tmp/session/runtime/{bin,lib,modules,share}
+          git bundle create /tmp/session/published-main.bundle HEAD
+          python3 -m venv /tmp/manager
+          /tmp/manager/bin/pip install uv==0.12.18
+          export UV_CACHE_DIR=/tmp/session/uv-cache UV_PYTHON_DOWNLOADS=never
+          /tmp/manager/bin/uv sync --locked --all-extras
+          cp /tmp/manager/bin/uv /tmp/session/runtime/bin/
+          python3 - <<'PY'
+          import pathlib,shutil,subprocess,pcbnew,_pcbnew
+          out=pathlib.Path('/tmp/session/runtime')
+          roots=[pathlib.Path('/usr/bin/kicad-cli'),pathlib.Path('/usr/bin/ngspice'),pathlib.Path(_pcbnew.__file__)]
+          for src in roots:
+              shutil.copy2(src,out/('modules' if src.suffix=='.so' else 'bin')/src.name)
+              text=subprocess.check_output(['ldd',str(src)],text=True)
+              for line in text.splitlines():
+                  fields=line.split()
+                  if '=>' not in fields: continue
+                  p=pathlib.Path(fields[fields.index('=>')+1])
+                  if p.is_absolute() and p.is_file(): shutil.copy2(p,out/'lib'/p.name)
+          shutil.copy2(pcbnew.__file__,out/'modules'/'pcbnew.py')
+          for name in ('kicad','ngspice'):
+              src=pathlib.Path('/usr/share')/name
+              if src.exists(): shutil.copytree(src,out/'share'/name,symlinks=False)
+          for p in (out/'share').rglob('*'):
+              if p.is_file() and p.suffix.lower() in ('.ttf','.otf','.woff','.woff2','.ttc'): p.unlink()
+          print(pcbnew.Version())
+          PY
+          cp /tmp/install.log /tmp/session/
+          dpkg-query -W > /tmp/session/packages.tsv
+          cd /tmp/session
+          find runtime uv-cache -type f -print0 | sort -z | xargs -0 sha256sum > runtime-files.sha256
+          tar -czf runtime.tar.gz runtime
+          tar -czf uv-cache.tar.gz uv-cache
+          sha256sum published-main.bundle runtime.tar.gz uv-cache.tar.gz > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: avdd1-source-and-native-tools
+          path: |
+            /tmp/session/published-main.bundle
+            /tmp/session/runtime.tar.gz
+            /tmp/session/uv-cache.tar.gz
+            /tmp/session/runtime-files.sha256
+            /tmp/session/SHA256SUMS
+            /tmp/session/packages.tsv
+            /tmp/session/install.log
+          if-no-files-found: error
+          retention-days: 7
