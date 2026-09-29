@@ -19,7 +19,7 @@ each bounded deliverable; show it in completion reports after a short TLDR.
 |---|---:|---|---|
 | Source, core software/firmware and checks | 0 for current baseline; maintain | Published on main; pinned CI and target build; fresh agents can start from repo | Keep source, review and actual test heads aligned |
 | PCB connectivity draft | 0 for initial routing | Fully connected; fresh native DRC/parity0/0/0; no manufacturing approval | Preserve completed copper except reviewed electrical repairs |
-| Supply/bypass review and repair | 0–1 follow-through | AVDD1 repaired in PR #62; inter-capacitor and pad-contact guard findings reproduced and corrected; not noise-qualified | Finish renewed exact-head CI/review; retain VCAP3/AVDD56 tradeoffs in broader review |
+| Supply/bypass review and repair | 0–1 follow-through | AVDD1 repaired in PR #62; inter-capacitor, pad-contact and side-branch guard findings reproduced and corrected; not noise-qualified | Finish renewed exact-head CI/review; retain VCAP3/AVDD56 tradeoffs in broader review |
 | Digital-return and input-path review | 2–3 | Neither review is closed | Digital reference/layer transitions, then input P/N geometry and coupling |
 | Components, stackup, mechanics and assembly | 2–4 | Primary part evidence, logical harness and selected lands exist; decisions still open | #48 capacitor lifecycle/effective-C; #45 stackup, mounting, mates and process |
 | Real power/console fault readiness | 1–3 plus required physical checks | Firmware/console contracts exist; actual rail-loss behavior unqualified | Resolve exact interface and powered-off paths; state dummy-bench checks |

@@ -76,10 +76,11 @@ The test limits are project geometric guardrails chosen before repair, not TI
 maximum-length or noise specifications. Native whole-contacted-item distance
 can vary with subdivision near a pad; the benign control tests acceptance and
 terminal identity, not an artificial invariant floating-point length. The
-pre-bypass walk stops at the requested capacitor-contacting track items, not
-at the first member of its bank, checking vias and foreign pads on those items
-too. It is not exhaustive for arbitrary overlapping or long boundary tracks.
-Such future geometry still requires direct review.
+pre-bypass walk uses each requested capacitor's native pad contacts as its
+boundary, not the first member of the bank. It also follows intermediate pad
+contacts and side branches that do not touch the requested target pad. It is
+not an exact geometric cut for arbitrary overlapping or long boundary tracks;
+such future geometry still requires direct review.
 
 The canonical board and native fault tests remain in `tests/test_pcb_placement.py`.
 The authored board keeps its fresh zone last so the existing removed-cache test
@@ -126,6 +127,20 @@ the requested boundary. All **19 focused native cases** then passed: six
 canonical/local/VCAP guards, eight harmful controls, and five benign controls.
 The earlier 15-case result remains a dated preceding checkpoint, not the final
 case count. This extension changes no authored copper or geometric thresholds.
+
+Codex's renewed review `4138094514` on `dd7511bb` identified another boundary
+case: a front-layer spur off the target-contacting track can reach a plane via
+without that via directly contacting the boundary track. Red
+`808107704d0856ee3929f3f4266ec7a09378d48f` reproduced two missed pre-capacitor
+spurs and accepted two post-bank feed controls; all four modified boards were
+freshly refilled and DRC-clean. Fix
+`e14d52e3813573800f47832b8b54dbf174a07b7d` excludes only outgoing tracks that
+also contact the requested pad; non-boundary side branches remain traversable.
+This retains the post-bank feed as an accepted boundary rather than declaring
+all supply vias erroneous. **23 focused native cases passed**: six local/VCAP
+guards, ten harmful controls and seven benign controls. No canonical copper,
+threshold, dependency or approval flag changed. This is a scoped contact-graph
+guard, not a field solver or an exhaustive geometrical proof.
 
 The live PR, not a previous chat candidate, is the continuation source. The
 chat-delivered local `1689234ebb49b6f8c046bff0c785753669c2a0e2` has tree

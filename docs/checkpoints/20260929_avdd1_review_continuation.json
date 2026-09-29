@@ -51,5 +51,24 @@
     "benign_controls": 5,
     "canonical_board_unchanged": true,
     "final_full_gate_and_hosted_review": "Consult live PR62 exact-head reports; these counts are the focused run."
+  },
+  "side_branch_follow_up": {
+    "review_comment": 4138094514,
+    "reviewed_head": "dd7511bb816af00054c9319a6db5a8509feb0a80",
+    "test_first_commit": "808107704d0856ee3929f3f4266ec7a09378d48f",
+    "fix_commit": "e14d52e3813573800f47832b8b54dbf174a07b7d",
+    "observed_red_failures": 2,
+    "observed_red_benign_passes": 2,
+    "all_four_modified_boards_native_drc": {
+      "parity": 0,
+      "violations": 0,
+      "unconnected": 0
+    },
+    "focused_native_cases_after_fix": 23,
+    "harmful_controls": 10,
+    "benign_controls": 7,
+    "canonical_board_unchanged": true,
+    "scope": "Native contact guard; no physical qualification or exhaustive arbitrary-overlap guarantee.",
+    "final_verification": "Consult live PR62 final-head full-gate and review evidence, not preceding-head results."
   }
 }

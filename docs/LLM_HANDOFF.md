@@ -186,6 +186,14 @@ traversing intermediate bank pad contacts. Read the current exact PR head's
 full CI/review results, not the preceding 15-case checkpoint. No copper changed
 in either review correction. Keep the current PR authoritative over local168.
 
+The renewed Codex review also found a side-branch-to-via gap at the target
+track (`4138094514`). Test-first `80810770` / fix `e14d52e3` distinguish such
+pre-capacitor spurs from legitimate post-bank feeds. The complete focused set
+is now 23 native cases, superseding earlier 15/19-case checkpoints. Finish the
+live final-head CI/review before merge; then proceed to digital returns, not
+another recreation of the AVDD1 layout. See the review document for remaining
+conservative contact/whole-item geometry limits and physical tradeoffs.
+
 ## User and scope constraints
 
 The user is an electronics beginner who prefers test-first, small meaningful
