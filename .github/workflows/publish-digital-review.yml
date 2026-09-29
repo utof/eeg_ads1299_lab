@@ -1,0 +1,55 @@
+name: Publish digital review source
+on:
+  push:
+    branches: [workbench/digital-return-review]
+    paths: [.github/workflows/publish-digital-review.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Require original bundle integrity before importing Git objects
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64,hashlib,pathlib,subprocess
+          files=[pathlib.Path(f'transfer/part{i:02d}.b64') for i in range(10)]
+          encoded=''.join(p.read_text().strip() for p in files)
+          assert len(encoded)==19576
+          data=base64.b64decode(encoded,validate=True)
+          assert len(data)==14680
+          assert hashlib.sha256(data).hexdigest()=='40ab3c963cc60f444bfa453629b683a1fafcf5d8087aa3ad179dc25bf9764243'
+          path=pathlib.Path('/tmp/digital-review.bundle');path.write_bytes(data)
+          subprocess.run(['git','bundle','verify',str(path)],check=True)
+          subprocess.run(['git','fetch',str(path),'HEAD'],check=True)
+          PY
+          test "$(git rev-parse FETCH_HEAD)" = a656501b636f21db093f95d3f00a03791abfc743
+          test "$(git rev-parse FETCH_HEAD^{tree})" = 6f675b9152e51d6ae78ed8bb986e06749df10cb3
+          test "$(git rev-parse FETCH_HEAD^)" = 5ece3051f685c9fc70dee804d83061d5e59b2f48
+          test "$(git diff --name-only 5ece3051 FETCH_HEAD | wc -l)" = 5
+          git diff --exit-code 5ece3051 FETCH_HEAD -- hardware firmware lab tools tests pyproject.toml uv.lock .github
+          git push origin a656501b636f21db093f95d3f00a03791abfc743:refs/heads/review/digital-return-paths
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: review/digital-return-paths
+          fetch-depth: 0
+          path: fresh
+          persist-credentials: false
+      - name: Verify separate checkout solely from GitHub
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd fresh
+          test "$(git rev-parse HEAD)" = a656501b636f21db093f95d3f00a03791abfc743
+          test "$(git rev-parse HEAD^{tree})" = 6f675b9152e51d6ae78ed8bb986e06749df10cb3
+          printf '%s  %s\n' 611218bae6559fb2488309fc80eee20ce2d6b5855977d52d600f947099179b43 hardware/rev_a/layout/rev_a.kicad_pcb | sha256sum -c -
+          test -z "$(git status --porcelain)"
+          git log -1 --oneline
+          git rev-parse HEAD HEAD^{tree}
