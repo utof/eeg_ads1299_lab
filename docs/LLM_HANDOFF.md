@@ -33,6 +33,26 @@ not invented GitHub ancestors. The original source is also on
 `archive/connected-routing-local-07edcacc`. See
 `docs/checkpoints/20260929_source_recovery.json` for identities and evidence.
 
+## AVDD1 review continuation
+
+Use live PR #62 (`fix/rev-a-avdd1-local-bypass-retry`) until merged, then main.
+This is the board with SHA256
+`611218bae6559fb2488309fc80eee20ce2d6b5855977d52d600f947099179b43`.
+The chat-only `1689234` / `e73e26bc...` candidate is different and is not this
+PR's ancestor. Do not overwrite this source with that archive or reuse its test
+counts as current evidence. The current source was fetched in a separate
+GitHub checkout; no chat attachment is needed to continue it.
+
+Codex's actual review `4137830251` found that the pre-plane guard stopped at the
+first capacitor. The continuation reproduced two DRC-clean inter-capacitor
+faults before fixing per-capacitor traversal; 15 focused native cases then
+passed, including three benign split/reversal controls. Copper stayed unchanged.
+Read `REV_A_AVDD1_REPAIR.md` and its continuation checkpoint. Check the live
+final-head CI and renewed Codex result before merge; older green runs do not
+cover the correction. After this review is closed, do digital reference/return
+transitions, not another bypass rewrite or source-recovery pass. Keep the
+longer VCAP3/AVDD56 paths explicit in broader electrical review.
+
 ## What exists now
 
 The four-channel ADS1299-4 / off-board ESP32-S3 Rev A has a **fully connected

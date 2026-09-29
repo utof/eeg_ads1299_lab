@@ -65,7 +65,7 @@ Test-only `470ba37d` then exposed two accepted early plane joins despite intact
 local paths. `a19bfc45` fixes that guard using native KiCad item types: connectivity
 returns vias as generic track proxies, so Python isinstance is not sufficient.
 
-Eleven added native cases passed locally: six bounded front-path checks, two
+The initial eleven added native cases passed locally: six bounded front-path checks, two
 indirect reconnections, two additional upstream plane joins, and one benign
 track subdivision/reversal. Each fault copy is freshly refilled and checked.
 The four harmful controls still have zero ordinary DRC/parity/airwires; the
@@ -76,9 +76,10 @@ The test limits are project geometric guardrails chosen before repair, not TI
 maximum-length or noise specifications. Native whole-contacted-item distance
 can vary with subdivision near a pad; the benign control tests acceptance and
 terminal identity, not an artificial invariant floating-point length. The
-pre-bypass walk stops at capacitor-contacting track items, checking their vias
-and foreign pads too. It is not exhaustive for arbitrary overlapping or long
-boundary tracks. Such future geometry still requires direct review.
+pre-bypass walk stops at the requested capacitor-contacting track items, not
+at the first member of its bank, checking vias and foreign pads on those items
+too. It is not exhaustive for arbitrary overlapping or long boundary tracks.
+Such future geometry still requires direct review.
 
 The canonical board and native fault tests remain in `tests/test_pcb_placement.py`.
 The authored board keeps its fresh zone last so the existing removed-cache test
@@ -89,6 +90,41 @@ was relaxed. Reproduce with the existing pinned environment:
 uv sync --locked --all-extras
 uv run --locked python -m tools.check --native --schematic
 ```
+
+## Review continuation: guard the whole bank, not only the first capacitor
+
+Codex review comment `4137830251` on exact head `189a6e606b376224735ae05bc9c820fe74bcbed0`
+identified a real test gap: a plane connection added between C16 and C27 was
+missed because the walk stopped at C16. This is a checker defect, not an
+observation that the canonical board already has that unwanted connection.
+
+Test-only `13c4ec2a89464010966e4778628c46240caf0eeb` reproduced **two actual native failures**: one new
+AVDD via connected to the existing In2 supply feed and one GND via connected
+to the filled In1 plane, each halfway between the capacitor pads. Fresh native
+refill/DRC remained 0/0/0, both bounded direct paths remained present, and the
+old guard incorrectly reported no pre-entry exit for C27.
+
+Fix `16fe27809f6a96d42078580929672ac1c2f70995` checks each capacitor's boundary
+separately. Other capacitors in the same bank are allowed contacts, not stopping
+points. The new controls identify the join as downstream of C16 but upstream
+of C27. The three benign controls split/reverse the device entry, positive
+inter-capacitor and return inter-capacitor tracks; all remain accepted. All
+**15 focused native cases** passed locally after the correction. The two
+indirect reconnections, two pre-bank joins and two inter-capacitor joins are
+six scoped native fault controls, not exhaustive copper/physical fault coverage.
+No geometry limit, board byte, circuit value or approval flag changed here.
+
+The live PR, not a previous chat candidate, is the continuation source. The
+chat-delivered local `1689234ebb49b6f8c046bff0c785753669c2a0e2` has tree
+`ee6dfa9eb393e54c11b9473b6aa7bbf40416dc55` and board SHA256
+`e73e26bc4c50be3e81cfc691217cac238d2e5890b6b0e9f2ab90d4c7b79876c2`.
+It is a **different, unmerged variant**, not the ancestor or tested board of
+PR #62. Its archive and all 2,317 payload hashes were verified and preserved
+separately in this continuation, not applied over the live PR. Its measurements,
+126 KiCad cases and 1,092 ordinary tests must not be reused as this PR's evidence.
+Continuing the already-published PR avoids overwriting work and addresses its
+actual outstanding review. No old chat archive is needed for subsequent work
+on this published source. See `checkpoints/20260929_avdd1_review_continuation.json`.
 
 ## Recovery and evidence boundary
 
