@@ -1,20 +1,36 @@
 # Finish the person-disconnected Rev A prototype design
 
-**Checkpoint: 2026-09-28, Europe/Berlin.** This is a bounded completion plan for
-the existing four-channel ADS1299-4 + off-board ESP32-S3 bench prototype. It does
-not redefine the long-standing hardware roadmap or grant physical approval.
-The native schematic, harness and simulation infrastructure are already present;
-they must not be reconstructed in each continuation.
+**Current checkpoint: 29 September 2026, first supply-loop review.** This is the
+completion plan for the four-channel ADS1299-4 + off-board S3 bench prototype,
+not permission for physical use. PR #60 published the exact connected board
+and repository-first handoff. The next review found a concrete AVDD1 bypass
+rework target; it did not alter copper or complete the other electrical reviews.
 
-## Latest local update — 2026-09-29
+## Glanceable roadmap
 
-The authored board now has a completely connected routing draft, beyond the
-parking-grid stage described in this earlier checkpoint. See
-`REV_A_ROUTING_COMPLETION.md`: local native DRC/parity has zero findings after
-refill, but electrical layout/return-path review, component/interface choices,
-mechanical/stackup decisions and publication/review remain open. The table below
-is the original planning range, not an automatically decremented countdown.
-Do not regenerate or reroute completed copper just to follow that historical table.
+Estimates below are **remaining substantial chat turns**, not elapsed time,
+commit counts, guarantees or a safety score. A turn can combine related work;
+new findings can add work. Manufacturing/shipping and physical measurements are
+not completed by chat and are excluded from a design-turn countdown. Do not sum
+overlapping categories into a promised completion date. Refresh this table after
+each bounded deliverable; show it in completion reports after a short TLDR.
+
+| Category | Estimated remaining turns | Done / current status | Next slice or blocker |
+|---|---:|---|---|
+| Source, core software/firmware and checks | 0 for current baseline; maintain | Published on main; pinned CI and target build; fresh agents can start from repo | Keep source, review and actual test heads aligned |
+| PCB connectivity draft | 0 for initial routing | Fully connected; fresh native DRC/parity0/0/0; no manufacturing approval | Preserve completed copper except reviewed electrical repairs |
+| Supply/bypass review and repair | 1–2 | First quantified review complete; AVDD1 repair **not done** | Compact local U1.54/53 C16/C27 loop while protecting VCAP3 |
+| Digital-return and input-path review | 2–3 | Neither review is closed | Digital reference/layer transitions, then input P/N geometry and coupling |
+| Components, stackup, mechanics and assembly | 2–4 | Primary part evidence, logical harness and selected lands exist; decisions still open | #48 capacitor lifecycle/effective-C; #45 stackup, mounting, mates and process |
+| Real power/console fault readiness | 1–3 plus required physical checks | Firmware/console contracts exist; actual rail-loss behavior unqualified | Resolve exact interface and powered-off paths; state dummy-bench checks |
+| Release package and delivered budget | 1–2 after blockers close | Not ready for fabrication or purchase | Independent release review, coherent outputs and delivered quote |
+| Person-disconnected bench verification | 2–4 guided turns plus actual bench work | Physical prototype validation not started | Unpowered inspection, then staged dummy-source tests after prerequisites |
+
+**Next: AVDD1 cluster rework**, as specified in `REV_A_POWER_RETURN_REVIEW.md`.
+No component, firmware, model, dependency or approval flag changes arose from
+that first review. It provides exact positive-path and return-entry geometry,
+not an impedance/noise qualification. Body-connected work remains a separate,
+unestimated later revision, not the last checkbox in this bench-board table.
 
 ## Three different finish lines
 
@@ -43,48 +59,27 @@ supply missing oscilloscope, noise, power-loss or real-interface evidence.
 Body-connected operation remains a different, later revision and safety review;
 it is not unlocked by a fixed number of chat turns or by finishing this PCB.
 
-## Present position in the original roadmap
+## What is already implemented
 
-1. Selected passive-input bridge: implemented with independent native comparisons.
-2. BIAS and power studies: implemented at explicitly limited model scope. Supply
-   timing, inverse source voltage and complete source-band checks now exist.
-   Remaining work is applying a finite final envelope, not more generic timing APIs.
-3. Schematic and S3: three native sheets, all-pad connectivity, BOM/cache checks,
-   physical DevKit header map, guarded real target compilation and geometry checks
-   are implemented. PR #57's T491 land-pattern/fixture blocker is merged. This
-   continuation adds the first native, parity-checked PCB import; it is still a
-   parking grid, NOT a layout. Final part/interface/process decisions remain.
-4. Placement/routing, fabrication package, delivered quote and staged dummy-only
-   bring-up: not complete. This is now the main work rather than another recovery loop.
-5. Body-connected revision: outside this bench-prototype completion estimate.
+Selected passive-input, bounded BIAS/overload and supply studies, the guarded
+S3 target, three-sheet native schematic, all-pad/BOM/cache and footprint checks,
+physical header/UART worksheet, T491 land choice, PCB placement and initial
+routing are implemented. Their assumptions and historical results remain in the
+specific documents; do not recreate them to fill a new session.
 
-## Remaining critical path and rough number of substantial continuations
+Design-support model closeout can overlap component and interface decisions.
+The optional TPS7A20 reference-engine discrepancy still needs a finite disposition,
+not an unlimited simulator project. The supplied parts are selections, not proof
+of purchase. Current physical data and a delivered quote remain necessary.
 
-A continuation means a coherent design deliverable with tests/review where
-applicable, not a guaranteed duration or one test assertion. **Plan about 8–12
-further substantial continuations to a reviewed fabrication candidate**, after
-this PCB-import slice. This is an engineering planning estimate, not a promise.
-New electrical defects, supplier/approval gaps or tool failures can add work;
-shared decisions can combine slices. Do not count manufacturing lead time or
-physical measurements as work a chat agent has already performed.
-
-| Deliverable | Estimated slices | Concrete exit condition |
-|---|---:|---|
-| Close the finite component and operating-envelope choices | 2–3 | Resolve the discontinued/planned-stop ceramic roles, use exact orderable/assembly data, state acceptable source/load/timing margins, rerun relevant models; synchronize any approved BOM/CAD changes. No guaranteed capacitance is inferred from a typical plot. |
-| Close bench interface and mechanical choices | 1–2 | Select actual connector/mates and console interface, address both powered-off signal directions, define startup dummy fixture and measurement access; choose outline, stackup and mounting/clearance rules. Unknown owned-board identity remains a physical prerequisite. |
-| Native PCB placement and routing | 3–4 | Place by electrical function, preserve decoupling/returns and input symmetry, route all required nets with appropriate planes and rules; no airwires or unexplained electrical/geometry violations. |
-| Independent release review, exports and wiring package | 2–3 | Full ERC/DRC/parity pass, resolve review findings, verify assembly orientations and exports against source, deliver BOM/PnP/drill/Gerber and exact bench wiring/bring-up instructions with current quote. |
-
-The design-support simulation closeout is approximately **2–4 of those slices**,
-not an additional block of unlimited work. It can overlap component/interface
-choices and early placement. Layout may proceed as a draft while specific part
-choices are open, but fabrication must not pass those unresolved decisions.
-If review finds an actual power-interface or placement flaw, repair the design
-rather than adding only another documentation warning.
+Older estimates for parking-grid placement/routing describe earlier stages and
+are retained in Git history. They are superseded by the current table rather
+than silently decremented. An actual design flaw should lead to a focused repair,
+not an indefinite chain of warnings; the present next repair is explicitly named.
 
 ## Scope discipline for the next continuations
 
-Every slice should close one item in the table or fix a concrete reproducible
+Every slice should advance a concrete exit condition in the table or fix a reproducible
 fault blocking it. Do not add general frameworks, repeat completed model setup,
 turn every uncertainty into a new permanent approval registry, or use test-count
 growth as the measure of progress. Prefer evidence at the relevant boundary:
@@ -120,7 +115,7 @@ specific loop. Manufacturer land choices and typical-data caveats remain visible
 the uploaded research is not a substitute for the verified current repository.
 
 Reference entry points: `HARDWARE_BASELINE_REV_A.md`, `LLM_HANDOFF.md`,
-`REV_A_PCB_IMPORT.md`, `REV_A_SCHEMATIC.md`, `REV_A_BENCH_HARNESS.md`,
+`REV_A_POWER_RETURN_REVIEW.md`, `REV_A_PCB_IMPORT.md`, `REV_A_SCHEMATIC.md`, `REV_A_BENCH_HARNESS.md`,
 `REV_A_FOOTPRINT_REVIEW.md`, `REV_A_TANTALUM_LANDS.md`,
 `REV_A_CAPACITOR_EVIDENCE.md`, `REV_A_BULK_CAPACITOR_ASSESSMENT.md`,
 `REV_A_SUPPLY_TIMING.md`, and open issues #45 and #48. All current purchasing,
