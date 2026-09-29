@@ -310,8 +310,8 @@ SIGNAL_CUTS = {
     "START": "efcf6b23-e65d-5ed7-8a0c-b36c29f1458e",
     "CS": "cb1c727d-3f6c-552a-9067-5dbeffa7281a",
     "SCLK": "ae033c95-a8e2-55ac-81cf-9eaac0ca2a6b",
-    "MISO": "eb47d5fb-3385-5bc7-901b-bb3b45b51abd",
-    "DRDY": "882fbba2-92c6-5003-bc76-a49f900880dd",
+    "MISO": "426ebbc2-4e29-5247-a683-95487e99e745",
+    "DRDY": "57f3e4b0-ea4f-5f98-b335-0d4f1c94a265",
     "CH4N_DUMMY": "cb3c7b24-eceb-5439-b2b4-eea29d883c7c",
     "CH4P_DUMMY": "5b8e6b2c-140b-5165-b77a-c72cde9e1072",
     "CH3N_DUMMY": "de60ff7c-9282-53a9-b116-e4c035d1c669",
@@ -811,3 +811,242 @@ def test_boundary_track_side_branch_is_distinguished_from_post_capacitor_feed(
         exits: object = row["pre_bypass_exits"]
         assert isinstance(exits, list)
         assert bool(exits) is (before and cap == "C27")
+
+
+# Local layout decision after PR63, not a manufacturer trace-length/noise limit:
+# outputs may escape on In2 only in the ADC-side rectangle; their long runs must
+# be on F. Both face the single In1 GND plane. No B routing or extra layer pair.
+_OUTPUT_REFERENCE_SCRIPT = r"""
+import json, sys
+import pcbnew as p
+assert p.Version() == "9.0.2"
+b = p.LoadBoard(sys.argv[1])
+b.BuildConnectivity()
+planes = [z for z in b.Zones() if z.GetNetname() == "GND" and z.IsOnLayer(p.In1_Cu)]
+assert len(planes) == 1
+reference = planes[0].GetFilledPolysList(p.In1_Cu)
+assert reference.OutlineCount() == 1
+error = p.FromMM(0.005)
+
+def shape(item, clearance=0):
+    poly = p.SHAPE_POLY_SET()
+    item.TransformShapeToPolygon(poly, item.GetLayer(), clearance, error, p.ERROR_OUTSIDE)
+    return poly
+
+rows = {}
+for name in ("MISO", "DRDY"):
+    items = [t for t in b.GetTracks() if t.GetNetname() == name]
+    vias = [t for t in items if t.Type() == p.PCB_VIA_T]
+    traces = [t for t in items if t.Type() != p.PCB_VIA_T]
+    layers = sorted({b.GetLayerName(t.GetLayer()) for t in traces})
+    inner = [t for t in traces if t.GetLayer() == p.In2_Cu]
+    # Exempt only the unavoidable voids at THIS signal's own through contacts.
+    # 25um over the declared zone clearance covers polygon approximation;
+    # it is not a general tolerance for gaps beneath the route.
+    allowed = p.SHAPE_POLY_SET(reference)
+    terminals = [pad for f in b.GetFootprints() for pad in f.Pads()
+                 if pad.GetNetname() == name and pad.IsOnLayer(p.In1_Cu)]
+    for contact in vias + terminals:
+        allowed.BooleanAdd(shape(contact, planes[0].GetLocalClearance() + p.FromMM(0.025)))
+    uncovered = p.SHAPE_POLY_SET()
+    for track in traces:
+        projected = shape(track)
+        projected.BooleanSubtract(allowed)
+        uncovered.BooleanAdd(projected)
+    bounds_ok = all(50 <= p.ToMM(v.x) <= 56 and 29.5 <= p.ToMM(v.y) <= 36.5
+                    for t in inner for v in (t.GetStart(), t.GetEnd()))
+    rows[name] = {
+        "layers": layers, "segments": len(traces), "vias": len(vias),
+        "inner_trace_mm": sum(p.ToMM(t.GetLength()) for t in inner),
+        "inner_in_escape_rectangle": bounds_ok,
+        "inner_tracks_straight": all(t.Type() == p.PCB_TRACE_T for t in inner),
+        "unreferenced_projection_mm2": uncovered.Area() / 1e12,
+    }
+print(json.dumps(rows))
+"""
+
+
+def _output_reference(board: Path) -> dict[str, object]:
+    result = subprocess.run(
+        [
+            os.environ.get("KICAD_PYTHON", "/usr/bin/python3"),
+            "-c",
+            _OUTPUT_REFERENCE_SCRIPT,
+            str(board),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=45,
+        env=dict(os.environ, KICAD_CONFIG_HOME=str(board.parent / "output-config")),
+    )
+    (board.parent / "output-reference.log").write_text(result.stdout + result.stderr)
+    assert result.returncode == 0, result.stdout + result.stderr
+    rows: object = json.loads(result.stdout)
+    assert isinstance(rows, dict)
+    (board.parent / "output-reference.json").write_text(json.dumps(rows, indent=2) + "\n")
+    return rows
+
+
+def _output_reference_ok(row: object) -> bool:
+    assert isinstance(row, dict)
+    assert isinstance(row["segments"], int) and isinstance(row["vias"], int)
+    assert isinstance(row["inner_trace_mm"], (int, float))
+    assert isinstance(row["unreferenced_projection_mm2"], (int, float))
+    return (
+        (row["layers"] == ["F.Cu"] or row["layers"] == ["F.Cu", "In2.Cu"])
+        and row["segments"] > 0
+        and row["vias"] <= 2
+        and row["inner_trace_mm"] <= 10.0
+        and row["inner_in_escape_rectangle"] is True
+        and row["inner_tracks_straight"] is True
+        # Boolean clipping in native integer coordinates, not point sampling.
+        and row["unreferenced_projection_mm2"] <= 0.00001
+    )
+
+
+@pytest.fixture(scope="module")
+def output_reference(native_placement: tuple[Path, dict[str, object]]) -> dict[str, object]:
+    cad, report = native_placement
+    assert all(report[k] == [] for k in ("violations", "schematic_parity", "unconnected_items"))
+    return _output_reference(cad / "rev_a.kicad_pcb")
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize("net", ["MISO", "DRDY"])
+def test_output_corridor_uses_front_runs_and_local_ground_referenced_escapes(
+    output_reference: dict[str, object], net: str
+) -> None:
+    assert _output_reference_ok(output_reference[net]), output_reference[net]
+
+
+_OUTPUT_MUTATION_SCRIPT = r"""
+import sys
+import pcbnew as p
+assert p.Version() == "9.0.2"
+b = p.LoadBoard(sys.argv[1])
+net, change = sys.argv[2:]
+tracks = [t for t in b.GetTracks() if t.GetNetname() == net and t.Type() != p.PCB_VIA_T]
+assert tracks
+if change == "back-escape":
+    inner = [t for t in tracks if t.GetLayer() == p.In2_Cu]
+    assert inner
+    for t in inner:
+        t.SetLayer(p.B_Cu)
+elif change == "reverse":
+    for t in tracks:
+        start, end = p.VECTOR2I(t.GetStart()), p.VECTOR2I(t.GetEnd())
+        t.SetStart(end)
+        t.SetEnd(start)
+elif change == "subdivide":
+    t = max((t for t in tracks if t.GetLayer() == p.F_Cu), key=lambda t: t.GetLength())
+    start, end = p.VECTOR2I(t.GetStart()), p.VECTOR2I(t.GetEnd())
+    middle = p.VECTOR2I((start.x + end.x) // 2, (start.y + end.y) // 2)
+    tail = p.PCB_TRACK(b)
+    tail.SetStart(middle)
+    tail.SetEnd(end)
+    tail.SetLayer(t.GetLayer())
+    tail.SetWidth(t.GetWidth())
+    tail.SetNetCode(t.GetNetCode())
+    t.SetEnd(middle)
+    b.Add(tail)
+elif change == "arc-escape":
+    # Endpoints pass the old rectangle check; the native arc bows below y=36.5.
+    t = next(t for t in tracks if t.GetLayer() == p.In2_Cu
+             and t.GetStart() == p.VECTOR2I(p.FromMM(50.5), p.FromMM(36.4))
+             and t.GetEnd() == p.VECTOR2I(p.FromMM(51.4), p.FromMM(36.4)))
+    arc = p.PCB_ARC(b)
+    arc.SetStart(p.VECTOR2I(t.GetStart()))
+    arc.SetEnd(p.VECTOR2I(t.GetEnd()))
+    arc.SetMid(p.VECTOR2I(p.FromMM(50.95), p.FromMM(36.8)))
+    arc.SetLayer(t.GetLayer())
+    arc.SetWidth(t.GetWidth())
+    arc.SetNetCode(t.GetNetCode())
+    b.Remove(t)
+    b.Add(arc)
+elif change == "plane-window":
+    # A small native copper-pour keepout cuts the reference beneath both long
+    # front runs, but leaves the surrounding GND region and all signals connected.
+    z = p.ZONE(b)
+    z.SetLayer(p.In1_Cu)
+    z.SetIsRuleArea(True)
+    z.SetDoNotAllowCopperPour(True)
+    z.SetDoNotAllowTracks(False)
+    z.SetDoNotAllowVias(False)
+    z.SetDoNotAllowPads(False)
+    z.SetDoNotAllowFootprints(False)
+    z.Outline().NewOutline()
+    for x, y in ((69.5, 30.0), (70.5, 30.0), (70.5, 31.4), (69.5, 31.4)):
+        z.Outline().Append(p.FromMM(x), p.FromMM(y))
+    b.Add(z)
+else:
+    raise ValueError(change)
+p.SaveBoard(sys.argv[1], b)
+"""
+
+
+def _output_mutation(cad: Path, net: str, change: str) -> None:
+    shutil.copytree(CAD, cad)
+    board = cad / "rev_a.kicad_pcb"
+    shutil.copyfile(BOARD, board)
+    result = subprocess.run(
+        [
+            os.environ.get("KICAD_PYTHON", "/usr/bin/python3"),
+            "-c",
+            _OUTPUT_MUTATION_SCRIPT,
+            str(board),
+            net,
+            change,
+        ],
+        capture_output=True,
+        text=True,
+        timeout=45,
+        env=dict(os.environ, KICAD_CONFIG_HOME=str(cad / "mutation-config")),
+    )
+    (cad / "mutation.log").write_text(result.stdout + result.stderr)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize("net", ["MISO", "DRDY"])
+@pytest.mark.parametrize("change", ["back-escape", "reverse", "subdivide"])
+def test_output_guard_rejects_wrong_layer_but_accepts_benign_copper_edits(
+    tmp_path: Path, net: str, change: str
+) -> None:
+    cad = tmp_path / "cad"
+    _output_mutation(cad, net, change)
+    report = _native_report(cad)
+    assert all(report[k] == [] for k in ("violations", "schematic_parity", "unconnected_items"))
+    rows = _output_reference(cad / "rev_a.kicad_pcb")
+    assert _output_reference_ok(rows[net]) is (change != "back-escape"), rows[net]
+    other = "DRDY" if net == "MISO" else "MISO"
+    assert _output_reference_ok(rows[other]), rows[other]
+
+
+@pytest.mark.schematic
+def test_connected_plane_window_fails_output_reference_even_with_clean_drc(tmp_path: Path) -> None:
+    cad = tmp_path / "cad"
+    _output_mutation(cad, "MISO", "plane-window")
+    report = _native_report(cad)
+    assert all(report[k] == [] for k in ("violations", "schematic_parity", "unconnected_items"))
+    rows = _output_reference(cad / "rev_a.kicad_pcb")
+    for net in ("MISO", "DRDY"):
+        assert not _output_reference_ok(rows[net]), rows[net]
+        row = rows[net]
+        assert isinstance(row, dict)
+        assert row["layers"] == ["F.Cu", "In2.Cu"]  # Fails reference, not layer policy.
+
+
+@pytest.mark.schematic
+def test_curved_escape_cannot_bypass_the_endpoint_rectangle_guard(tmp_path: Path) -> None:
+    """Codex4139341193: an out-of-window native arc can retain valid endpoints."""
+    cad = tmp_path / "cad"
+    _output_mutation(cad, "DRDY", "arc-escape")
+    report = _native_report(cad)
+    assert all(report[k] == [] for k in ("violations", "schematic_parity", "unconnected_items"))
+    rows = _output_reference(cad / "rev_a.kicad_pcb")
+    row = rows["DRDY"]
+    assert isinstance(row, dict)
+    assert row["layers"] == ["F.Cu", "In2.Cu"]
+    assert row["inner_in_escape_rectangle"] is True  # Endpoint-only screen misses the bow.
+    assert _output_reference_ok(rows["MISO"])
+    assert not _output_reference_ok(row), row
