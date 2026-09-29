@@ -859,6 +859,7 @@ for name in ("MISO", "DRDY"):
         "layers": layers, "segments": len(traces), "vias": len(vias),
         "inner_trace_mm": sum(p.ToMM(t.GetLength()) for t in inner),
         "inner_in_escape_rectangle": bounds_ok,
+        "inner_tracks_straight": all(t.Type() == p.PCB_TRACE_T for t in inner),
         "unreferenced_projection_mm2": uncovered.Area() / 1e12,
     }
 print(json.dumps(rows))
@@ -897,6 +898,7 @@ def _output_reference_ok(row: object) -> bool:
         and row["vias"] <= 2
         and row["inner_trace_mm"] <= 10.0
         and row["inner_in_escape_rectangle"] is True
+        and row["inner_tracks_straight"] is True
         # Boolean clipping in native integer coordinates, not point sampling.
         and row["unreferenced_projection_mm2"] <= 0.00001
     )
