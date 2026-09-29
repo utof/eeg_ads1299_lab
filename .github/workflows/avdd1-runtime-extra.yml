@@ -1,0 +1,49 @@
+name: Disposable native runtime completion
+on:
+  push:
+    branches: [workbench/avdd1-native-session]
+    paths: [.github/workflows/avdd1-runtime-extra.yml]
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    container: debian:trixie@sha256:9cc080028c43b27d2074d63a5f9caf7166d731494965616c1a6d2827a004585c
+    timeout-minutes: 10
+    steps:
+      - name: Package missing native plugin libraries
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y --no-install-recommends ca-certificates python3 kicad=9.0.2+dfsg-1 ngspice >/tmp/install.log 2>&1
+          mkdir -p /tmp/extra/{bin,lib,ngspice}
+          python3 - <<'PY'
+          import pathlib, shutil, subprocess
+          out=pathlib.Path('/tmp/extra')
+          files=subprocess.check_output(['dpkg','-L','kicad'],text=True).splitlines()
+          plugins=[pathlib.Path(s) for s in files if s.endswith('.kiface')]
+          assert plugins, 'no native KiCad plugins'
+          for src in plugins:
+              shutil.copy2(src,out/'bin'/src.name)
+              for line in subprocess.check_output(['ldd',str(src)],text=True).splitlines():
+                  fields=line.split()
+                  if '=>' not in fields: continue
+                  p=pathlib.Path(fields[fields.index('=>')+1])
+                  if p.is_absolute() and p.is_file(): shutil.copy2(p,out/'lib'/p.name)
+          for src in pathlib.Path('/usr/lib').rglob('*.cm'):
+              if 'ngspice' in str(src): shutil.copy2(src,out/'ngspice'/src.name)
+          print([str(p) for p in plugins])
+          PY
+          cd /tmp/extra
+          find . -type f -print0 | sort -z | xargs -0 sha256sum > /tmp/EXTRA_SHA256SUMS
+          tar -czf /tmp/native-extra.tar.gz .
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-kiface-and-code-models
+          path: |
+            /tmp/native-extra.tar.gz
+            /tmp/EXTRA_SHA256SUMS
+            /tmp/install.log
+          if-no-files-found: error
+          retention-days: 7
