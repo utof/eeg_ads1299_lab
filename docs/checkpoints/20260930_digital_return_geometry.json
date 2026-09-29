@@ -1,0 +1,659 @@
+{
+  "scope": "digital_reference_geometry_review_not_impedance_noise_or_manufacturing_qualification",
+  "source_commit": "5ece3051f685c9fc70dee804d83061d5e59b2f48",
+  "source_tree": "81640a52e512cf54caa9e581ab78a3260f3b07c7",
+  "board_path": "hardware/rev_a/layout/rev_a.kicad_pcb",
+  "board_sha256": "611218bae6559fb2488309fc80eee20ce2d6b5855977d52d600f947099179b43",
+  "kicad": "9.0.2",
+  "board_counts": {
+    "footprints": 68,
+    "pads": 245,
+    "segments": 581,
+    "vias": 121
+  },
+  "stackup": {
+    "copper_order": [
+      "F.Cu",
+      "In1.Cu",
+      "In2.Cu",
+      "B.Cu"
+    ],
+    "continuous_reference": "GND on In1.Cu only",
+    "other_planes": false,
+    "explicit_dielectric_stackup": false,
+    "general_thickness_mm": 1.6,
+    "thickness_is_not_a_qualified_stackup": true
+  },
+  "native": {
+    "fresh_copy_refill": true,
+    "drc_exit": 0,
+    "schematic_parity": 0,
+    "other_violations": 0,
+    "unconnected": 0,
+    "in1_zone_regions": 1,
+    "refilled_copy_board_sha256": "0ff0f983e7adff3ab2b34c56f6b866473c260352bf409cc8936affc1507455c0",
+    "zone_fill_area_mm2": 4180.041905185182,
+    "drc_report_sha256": "f2dbd3debf1436dcad04d7d132d0a4d53bda02d98271bcb9c6bf1ca9f94baa40",
+    "zone_fill_report_sha256": "b3ad210b7c1857873d5a401e57aa7141954ba3b6e0b6cc4d68f0e2f527e1c365"
+  },
+  "inventory_scope": "Nine inter-board signal nets; all branch copper included. Reserved CLK/GPIO pulldown nets inspected separately, not included in these totals.",
+  "net_inventory": [
+    {
+      "net": "SCLK",
+      "segment_count": 15,
+      "via_count": 3,
+      "all_branch_trace_mm": {
+        "F.Cu": 6.437374,
+        "In2.Cu": 25.839928,
+        "B.Cu": 0
+      },
+      "j1_u1_whole_item_itinerary_mm": 31.250525,
+      "j1_pad": "J1.1",
+      "u1_pad": "U1.40"
+    },
+    {
+      "net": "MOSI",
+      "segment_count": 11,
+      "via_count": 1,
+      "all_branch_trace_mm": {
+        "F.Cu": 4.327018,
+        "In2.Cu": 28.659421,
+        "B.Cu": 0
+      },
+      "j1_u1_whole_item_itinerary_mm": 32.406465,
+      "j1_pad": "J1.3",
+      "u1_pad": "U1.34"
+    },
+    {
+      "net": "MISO",
+      "segment_count": 9,
+      "via_count": 1,
+      "all_branch_trace_mm": {
+        "F.Cu": 5.179962,
+        "In2.Cu": 0,
+        "B.Cu": 32.565029
+      },
+      "j1_u1_whole_item_itinerary_mm": 36.33178,
+      "j1_pad": "J1.5",
+      "u1_pad": "U1.43"
+    },
+    {
+      "net": "CS",
+      "segment_count": 13,
+      "via_count": 2,
+      "all_branch_trace_mm": {
+        "F.Cu": 18.33778,
+        "In2.Cu": 9.769417,
+        "B.Cu": 0
+      },
+      "j1_u1_whole_item_itinerary_mm": 27.436512,
+      "j1_pad": "J1.7",
+      "u1_pad": "U1.39"
+    },
+    {
+      "net": "DRDY",
+      "segment_count": 11,
+      "via_count": 2,
+      "all_branch_trace_mm": {
+        "F.Cu": 20.823719,
+        "In2.Cu": 0,
+        "B.Cu": 15.675
+      },
+      "j1_u1_whole_item_itinerary_mm": 35.151219,
+      "j1_pad": "J1.9",
+      "u1_pad": "U1.47"
+    },
+    {
+      "net": "RESET",
+      "segment_count": 17,
+      "via_count": 1,
+      "all_branch_trace_mm": {
+        "F.Cu": 10.109735,
+        "In2.Cu": 20.458452,
+        "B.Cu": 0
+      },
+      "j1_u1_whole_item_itinerary_mm": 29.773212,
+      "j1_pad": "J1.11",
+      "u1_pad": "U1.36"
+    },
+    {
+      "net": "START",
+      "segment_count": 16,
+      "via_count": 2,
+      "all_branch_trace_mm": {
+        "F.Cu": 3.593871,
+        "In2.Cu": 30.156499,
+        "B.Cu": 0
+      },
+      "j1_u1_whole_item_itinerary_mm": 31.808999,
+      "j1_pad": "J1.13",
+      "u1_pad": "U1.38"
+    },
+    {
+      "net": "PWDN",
+      "segment_count": 15,
+      "via_count": 3,
+      "all_branch_trace_mm": {
+        "F.Cu": 25.015801,
+        "In2.Cu": 9.373377,
+        "B.Cu": 0
+      },
+      "j1_u1_whole_item_itinerary_mm": 30.463835,
+      "j1_pad": "J1.15",
+      "u1_pad": "U1.35"
+    },
+    {
+      "net": "CLKSEL",
+      "segment_count": 27,
+      "via_count": 0,
+      "all_branch_trace_mm": {
+        "F.Cu": 57.74836,
+        "In2.Cu": 0,
+        "B.Cu": 0
+      },
+      "j1_u1_whole_item_itinerary_mm": 41.01417,
+      "j1_pad": "J1.19",
+      "u1_pad": "U1.52"
+    }
+  ],
+  "signal_vias": [
+    {
+      "uuid": "0590178e-a6f0-5274-a020-ff2372809f1d",
+      "net": "SCLK",
+      "at": [
+        57.225,
+        36.95
+      ],
+      "connected_trace_layers": [
+        "F.Cu",
+        "In2.Cu"
+      ]
+    },
+    {
+      "uuid": "6d4cab29-7f75-5fa5-a768-eeb666be9886",
+      "net": "SCLK",
+      "at": [
+        58.85,
+        37.125
+      ],
+      "connected_trace_layers": [
+        "F.Cu",
+        "In2.Cu"
+      ]
+    },
+    {
+      "uuid": "bc4ceef6-567b-50df-822a-2dafe49cca5d",
+      "net": "SCLK",
+      "at": [
+        60.3,
+        36.925
+      ],
+      "connected_trace_layers": [
+        "F.Cu",
+        "In2.Cu"
+      ]
+    },
+    {
+      "uuid": "d37525eb-c0bf-5565-814e-844a07414c2b",
+      "net": "MOSI",
+      "at": [
+        56.725,
+        42.525
+      ],
+      "connected_trace_layers": [
+        "F.Cu",
+        "In2.Cu"
+      ]
+    },
+    {
+      "uuid": "ac44305d-37c6-52b6-bfd7-d78f6c407686",
+      "net": "MISO",
+      "at": [
+        51.375,
+        35.225
+      ],
+      "connected_trace_layers": [
+        "B.Cu",
+        "F.Cu"
+      ]
+    },
+    {
+      "uuid": "6ff389ae-b03f-5b70-8d31-ca50761883d9",
+      "net": "CS",
+      "at": [
+        57.125,
+        37.75
+      ],
+      "connected_trace_layers": [
+        "F.Cu",
+        "In2.Cu"
+      ]
+    },
+    {
+      "uuid": "94c776d0-d7a9-59a6-a847-2397787f0d1d",
+      "net": "CS",
+      "at": [
+        65.6,
+        34.625
+      ],
+      "connected_trace_layers": [
+        "F.Cu",
+        "In2.Cu"
+      ]
+    },
+    {
+      "uuid": "10265daa-d895-5b12-8ca7-de9bd5da135a",
+      "net": "DRDY",
+      "at": [
+        51.375,
+        36.075
+      ],
+      "connected_trace_layers": [
+        "B.Cu",
+        "F.Cu"
+      ]
+    },
+    {
+      "uuid": "de03f504-e501-5cb2-bfdc-0f83d775a368",
+      "net": "DRDY",
+      "at": [
+        67.05,
+        36.075
+      ],
+      "connected_trace_layers": [
+        "B.Cu",
+        "F.Cu"
+      ]
+    },
+    {
+      "uuid": "4b017c47-c168-53a9-ba78-db9b4e910a0a",
+      "net": "RESET",
+      "at": [
+        60.225,
+        41.35
+      ],
+      "connected_trace_layers": [
+        "F.Cu",
+        "In2.Cu"
+      ]
+    },
+    {
+      "uuid": "90370883-c865-5cba-986b-0d2dd76b4e32",
+      "net": "START",
+      "at": [
+        57.125,
+        40.25
+      ],
+      "connected_trace_layers": [
+        "F.Cu",
+        "In2.Cu"
+      ]
+    },
+    {
+      "uuid": "d01a17fd-931c-5e30-8de4-01cd9e2a8dc1",
+      "net": "START",
+      "at": [
+        55.425,
+        38.15
+      ],
+      "connected_trace_layers": [
+        "F.Cu",
+        "In2.Cu"
+      ]
+    },
+    {
+      "uuid": "11d4f356-7699-5dc8-b930-4982590da8b2",
+      "net": "PWDN",
+      "at": [
+        54.925,
+        41.675
+      ],
+      "connected_trace_layers": [
+        "F.Cu",
+        "In2.Cu"
+      ]
+    },
+    {
+      "uuid": "b04dc1e2-7b81-5bc2-b136-87e3185b44d1",
+      "net": "PWDN",
+      "at": [
+        52.4,
+        39.15
+      ],
+      "connected_trace_layers": [
+        "F.Cu",
+        "In2.Cu"
+      ]
+    },
+    {
+      "uuid": "eafa0006-48a5-57a2-94a4-600908feec0b",
+      "net": "PWDN",
+      "at": [
+        74.275,
+        44.95
+      ],
+      "connected_trace_layers": [
+        "F.Cu",
+        "In2.Cu"
+      ]
+    }
+  ],
+  "via_dimensions": {
+    "diameter_mm": 0.6,
+    "drill_mm": 0.3,
+    "all_span": [
+      "F.Cu",
+      "B.Cu"
+    ],
+    "trace_width_mm": 0.15,
+    "note": "Through-hole span is not connected-trace-layer inventory. START has one spur via not on the selected J1-U1 itinerary."
+  },
+  "merged_digital_fill_openings": [
+    {
+      "signal_vias": [
+        "10265daa-d895-5b12-8ca7-de9bd5da135a",
+        "ac44305d-37c6-52b6-bfd7-d78f6c407686"
+      ],
+      "nets": [
+        "DRDY",
+        "MISO"
+      ],
+      "positions_mm": [
+        [
+          51.375,
+          36.075
+        ],
+        [
+          51.375,
+          35.225
+        ]
+      ],
+      "fill_opening_bbox_mm": [
+        50.8245,
+        34.6745,
+        51.9255,
+        36.6255
+      ],
+      "fill_opening_area_mm2": 1.800159,
+      "via_centre_spacing_mm": 0.85
+    },
+    {
+      "signal_vias": [
+        "6ff389ae-b03f-5b70-8d31-ca50761883d9",
+        "0590178e-a6f0-5274-a020-ff2372809f1d"
+      ],
+      "nets": [
+        "CS",
+        "SCLK"
+      ],
+      "positions_mm": [
+        [
+          57.125,
+          37.75
+        ],
+        [
+          57.225,
+          36.95
+        ]
+      ],
+      "fill_opening_bbox_mm": [
+        56.5745,
+        36.3995,
+        57.7755,
+        38.3005
+      ],
+      "fill_opening_area_mm2": 1.76534,
+      "via_centre_spacing_mm": 0.806226
+    },
+    {
+      "signal_vias": [
+        "91b7f937-e847-50f2-b5eb-8d865a25c57f",
+        "90370883-c865-5cba-986b-0d2dd76b4e32"
+      ],
+      "nets": [
+        "CLK",
+        "START"
+      ],
+      "positions_mm": [
+        [
+          57.25,
+          39.2
+        ],
+        [
+          57.125,
+          40.25
+        ]
+      ],
+      "fill_opening_bbox_mm": [
+        56.5745,
+        38.6495,
+        57.8005,
+        40.8005
+      ],
+      "fill_opening_area_mm2": 1.923401,
+      "via_centre_spacing_mm": 1.057414
+    }
+  ],
+  "back_layer_intervening_trace_crossings": [
+    {
+      "output": "DRDY",
+      "output_uuid": "882fbba2-92c6-5003-bc76-a49f900880dd",
+      "intervening_net": "CS",
+      "intervening_uuid": "654f1978-4b9a-5924-8d48-670d1c595d50",
+      "at_mm": [
+        64.15,
+        36.075
+      ],
+      "in1_fill_at_projection": true
+    },
+    {
+      "output": "DRDY",
+      "output_uuid": "882fbba2-92c6-5003-bc76-a49f900880dd",
+      "intervening_net": "SCLK",
+      "intervening_uuid": "ae033c95-a8e2-55ac-81cf-9eaac0ca2a6b",
+      "at_mm": [
+        61.15,
+        36.075
+      ],
+      "in1_fill_at_projection": true
+    },
+    {
+      "output": "MISO",
+      "output_uuid": "8a23e6a8-52d5-5703-898a-9001f6bcd69e",
+      "intervening_net": "DVDD",
+      "intervening_uuid": "53be3763-77fc-5ef0-85a7-33104ba02235",
+      "at_mm": [
+        58.8,
+        31.825
+      ],
+      "in1_fill_at_projection": true
+    },
+    {
+      "output": "MISO",
+      "output_uuid": "8a23e6a8-52d5-5703-898a-9001f6bcd69e",
+      "intervening_net": "DVDD",
+      "intervening_uuid": "fcd0aa4c-27ec-5b33-99e2-0840becf24a9",
+      "at_mm": [
+        58.425,
+        32.2
+      ],
+      "in1_fill_at_projection": true
+    },
+    {
+      "output": "MISO",
+      "output_uuid": "9c85c478-5a1b-58e9-97d3-7dda7795c5f8",
+      "intervening_net": "MOSI",
+      "intervening_uuid": "8fbb0c88-0432-5622-80cf-a65af1a9cc06",
+      "at_mm": [
+        78.7375,
+        30.8125
+      ],
+      "in1_fill_at_projection": true
+    },
+    {
+      "output": "MISO",
+      "output_uuid": "eb47d5fb-3385-5bc7-901b-bb3b45b51abd",
+      "intervening_net": "SCLK",
+      "intervening_uuid": "ae033c95-a8e2-55ac-81cf-9eaac0ca2a6b",
+      "at_mm": [
+        68.325,
+        28.9
+      ],
+      "in1_fill_at_projection": true
+    }
+  ],
+  "ground_entries": {
+    "33": {
+      "pin": "U1.33",
+      "first_ground_via": "44ae8df5-13d7-5e45-865a-b0b097d10bbb",
+      "via_at_mm": [
+        52.1,
+        39.9
+      ],
+      "front_whole_item_trace_mm": 2.324632,
+      "track_uuids": [
+        "1617af7b-c9c2-5765-a578-b952c48e273e",
+        "4680cff2-4119-581b-b1ca-927889d34ea5",
+        "017e3be0-e756-5f89-a61b-bd847365613f"
+      ]
+    },
+    "49": {
+      "pin": "U1.49",
+      "first_ground_via": "e68c1c1d-f301-5614-b555-407e3651a5cf",
+      "via_at_mm": [
+        51.75,
+        32.9
+      ],
+      "front_whole_item_trace_mm": 1.5625,
+      "track_uuids": [
+        "a86c43a3-d8e0-5787-8cd8-4695743fe36e"
+      ]
+    },
+    "51": {
+      "pin": "U1.51",
+      "first_ground_via": "ebac789f-6f4c-5d3e-a30a-9f64b20a7bbd",
+      "via_at_mm": [
+        50.75,
+        33.6
+      ],
+      "front_whole_item_trace_mm": 2.2625,
+      "track_uuids": [
+        "efd31588-d319-5ed7-9c63-95315254862b"
+      ]
+    }
+  },
+  "header_ground_contacts": [
+    {
+      "pad": "J1.2",
+      "at_mm": [
+        82.54,
+        27.0
+      ]
+    },
+    {
+      "pad": "J1.4",
+      "at_mm": [
+        82.54,
+        29.54
+      ]
+    },
+    {
+      "pad": "J1.6",
+      "at_mm": [
+        82.54,
+        32.08
+      ]
+    },
+    {
+      "pad": "J1.8",
+      "at_mm": [
+        82.54,
+        34.62
+      ]
+    },
+    {
+      "pad": "J1.10",
+      "at_mm": [
+        82.54,
+        37.16
+      ]
+    },
+    {
+      "pad": "J1.12",
+      "at_mm": [
+        82.54,
+        39.7
+      ]
+    },
+    {
+      "pad": "J1.14",
+      "at_mm": [
+        82.54,
+        42.24
+      ]
+    },
+    {
+      "pad": "J1.16",
+      "at_mm": [
+        82.54,
+        44.78
+      ]
+    },
+    {
+      "pad": "J1.18",
+      "at_mm": [
+        82.54,
+        47.32
+      ]
+    },
+    {
+      "pad": "J1.20",
+      "at_mm": [
+        82.54,
+        49.86
+      ]
+    }
+  ],
+  "crosschecks": {
+    "raw_native_tracks_matched": 702,
+    "raw_native_pad_positions_matched": 245,
+    "polygon_containment_samples": 20000,
+    "sample_seed": 129930,
+    "min_sample_boundary_clearance_mm": 0.00010267004315725791,
+    "determinant_crossings_matched": 6,
+    "crossing_direction_reversal_controls_matched": 12
+  },
+  "projection_limits": [
+    "20000 deterministic samples agree with native polygon containment away from the boundary; not exhaustive polygon equivalence.",
+    "Six centreline crossings independently agree with vector-determinant calculations and both segment-direction reversals; finite widths and field coupling not solved.",
+    "No disjoint foreign fill opening crosses a digital centreline. Openings containing a same-net via/header terminal were NOT waived: three merged opening groups are explicitly listed.",
+    "Filled-zone openings include thermal relief spaces, not necessarily voids in the union of all ground pads/tracks/zone copper.",
+    "All six B/In2 crossings have In1 fill at their projection, but In1 is above both traces, not between them.",
+    "Lengths are trace-centre/whole-item geometry, excluding pad spreading and barrels. They are not propagation delay, capacitance or inductance.",
+    "J1 even contacts are natively connected on In1; no physical cable or measured ground-current distribution was assessed."
+  ],
+  "next_slice": "Compare and implement a focused MISO/DRDY reroute with long spans on F.Cu over In1, without disturbing AVDD1/input/BIAS routes. Review escape antipads before accepting a reroute; no blind ground stitching or extra ground plane.",
+  "approvals": {
+    "fabrication": false,
+    "purchase": false,
+    "power_up": false,
+    "body_use": false
+  },
+  "sources": {
+    "ads1299": "https://www.ti.com/lit/ds/symlink/ads1299.pdf, SBAS499C p72",
+    "return_and_antipads": "https://www.ti.com/lit/an/scaa082a/scaa082a.pdf, pp2,8,16",
+    "same_reference_transition": "https://www.ti.com/lit/pdf/slla284, section4.7 p16"
+  },
+  "baseline_checks": {
+    "tested_commit": "5ece3051f685c9fc70dee804d83061d5e59b2f48",
+    "source_dirty": false,
+    "passed": true,
+    "ordinary": 1091,
+    "subtests": 14,
+    "native": 98,
+    "kicad_cases": 135,
+    "branch_coverage_percent": 86.06060606060606,
+    "check_report_sha256": "40abbe68debcdbef5a4425afba71b8eaba7931c01f2d4d1a0a98025da963dffc",
+    "limits": "Baseline source gate only; documentation-head CI and review must be read separately.22 console cases are a subset of98; no new hardware test."
+  }
+}

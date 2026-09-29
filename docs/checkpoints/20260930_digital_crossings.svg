@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="690" viewBox="0 0 1100 690">
+<rect width="1100" height="690" fill="white"/>
+<g font-family="sans-serif" fill="#111">
+<text x="35" y="34" font-size="23">MISO / DRDY: back-layer spans cross routed In2 copper</text>
+<text x="35" y="62" font-size="15">Plan projection from board 611218bae655...; different layers, not electrical shorts.</text>
+<text x="35" y="86" font-size="15">In1 GND is above both displayed layers. No current path or coupling amplitude is drawn.</text>
+<path d="M75,115 L993,115" stroke="#ddd"/><text x="25" y="119" font-size="12">25 mm</text>
+<path d="M75,250 L993,250" stroke="#ddd"/><text x="25" y="254" font-size="12">30 mm</text>
+<path d="M75,385 L993,385" stroke="#ddd"/><text x="25" y="389" font-size="12">35 mm</text>
+<path d="M75,520 L993,520" stroke="#ddd"/><text x="25" y="524" font-size="12">40 mm</text>
+<path d="M75,655 L993,655" stroke="#ddd"/><text x="25" y="659" font-size="12">45 mm</text>
+<path d="M102,115 L102,655" stroke="#eee"/><text x="90" y="665" font-size="12">50</text>
+<path d="M237,115 L237,655" stroke="#eee"/><text x="225" y="665" font-size="12">55</text>
+<path d="M372,115 L372,655" stroke="#eee"/><text x="360" y="665" font-size="12">60</text>
+<path d="M507,115 L507,655" stroke="#eee"/><text x="495" y="665" font-size="12">65</text>
+<path d="M642,115 L642,655" stroke="#eee"/><text x="630" y="665" font-size="12">70</text>
+<path d="M777,115 L777,655" stroke="#eee"/><text x="765" y="665" font-size="12">75</text>
+<path d="M912,115 L912,655" stroke="#eee"/><text x="900" y="665" font-size="12">80</text>
+<path d="M438.825,459.250 L523.200,374.875" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M294.375,459.250 L438.825,459.250" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M207.300,216.925 L264.000,216.925" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M339.600,196.000 L339.600,309.400" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M264.000,216.925 L264.000,189.925" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M264.000,189.925 L339.600,189.925" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M708.825,132.550 L708.825,196.000" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M339.600,189.925 L339.600,196.000" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M339.600,309.400 L256.575,309.400" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M708.825,196.000 L339.600,196.000" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M283.575,588.175 L296.400,588.175" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M912.000,237.850 L912.000,237.580" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M642.000,507.850 L912.000,237.850" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M376.725,507.850 L642.000,507.850" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M296.400,588.175 L376.725,507.850" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M912.000,648.925 L912.000,649.060" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M907.275,653.650 L912.000,648.925" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M757.425,653.650 L907.275,653.650" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M166.800,497.050 L234.975,565.225" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M378.075,556.450 L867.450,556.450" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M867.450,556.450 L912.000,511.900" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M325.425,426.850 L340.950,442.375" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M871.500,209.500 L912.000,169.000" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M380.100,436.975 L607.575,209.500" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M297.075,437.650 L301.125,437.650" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M301.125,437.650 L311.925,426.850" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M607.575,209.500 L871.500,209.500" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M311.925,426.850 L325.425,426.850" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M267.375,594.925 L277.500,605.050" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M294.375,526.750 L294.375,554.425" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M267.375,581.425 L267.375,594.925" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M887.700,605.050 L912.000,580.750" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M294.375,554.425 L267.375,581.425" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M248.475,480.850 L294.375,526.750" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M248.475,470.050 L248.475,480.850" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M912.000,580.750 L912.000,580.480" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M277.500,605.050 L887.700,605.050" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5,4"/>
+<path d="M139.125,414.025 L562.350,414.025" fill="none" stroke="#111" stroke-width="4"/>
+<path d="M912.000,306.025 L912.000,306.160" fill="none" stroke="#111" stroke-width="4"/>
+<path d="M247.800,391.075 L418.575,220.300" fill="none" stroke="#111" stroke-width="4"/>
+<path d="M139.125,391.075 L247.800,391.075" fill="none" stroke="#111" stroke-width="4"/>
+<path d="M826.275,220.300 L912.000,306.025" fill="none" stroke="#111" stroke-width="4"/>
+<path d="M418.575,220.300 L826.275,220.300" fill="none" stroke="#111" stroke-width="4"/>
+<circle cx="139.125" cy="391.07500000000005" r="7" fill="white" stroke="#111" stroke-width="2"/>
+<circle cx="139.125" cy="414.0250000000001" r="7" fill="white" stroke="#111" stroke-width="2"/>
+<circle cx="562.3499999999999" cy="414.0250000000001" r="7" fill="white" stroke="#111" stroke-width="2"/>
+<circle cx="484.0500000000002" cy="414.0250000000001" r="6" fill="white" stroke="#111" stroke-width="2"/><text x="492.0500000000002" y="398.0250000000001" font-size="15" font-weight="bold">1</text>
+<circle cx="403.04999999999995" cy="414.0250000000001" r="6" fill="white" stroke="#111" stroke-width="2"/><text x="411.04999999999995" y="398.0250000000001" font-size="15" font-weight="bold">2</text>
+<circle cx="339.5999999999999" cy="299.275" r="6" fill="white" stroke="#111" stroke-width="2"/><text x="347.5999999999999" y="283.275" font-size="15" font-weight="bold">3</text>
+<circle cx="329.4749999999999" cy="309.4000000000001" r="6" fill="white" stroke="#111" stroke-width="2"/><text x="337.4749999999999" y="332.4000000000001" font-size="15" font-weight="bold">4</text>
+<circle cx="877.9124999999999" cy="271.9375" r="6" fill="white" stroke="#111" stroke-width="2"/><text x="885.9124999999999" y="255.9375" font-size="15" font-weight="bold">5</text>
+<circle cx="596.7750000000001" cy="220.29999999999995" r="6" fill="white" stroke="#111" stroke-width="2"/><text x="604.7750000000001" y="204.29999999999995" font-size="15" font-weight="bold">6</text>
+<text x="690" y="177" font-size="18" font-weight="bold">MISO / B.Cu</text>
+<text x="305" y="450" font-size="18" font-weight="bold">DRDY / B.Cu</text>
+<rect x="650" y="470" width="390" height="155" fill="white" stroke="#aaa"/>
+<text x="667" y="494" font-size="14">Solid: B.Cu output spans. Dashed: In2 traces.</text>
+<text x="667" y="520" font-size="14">Crossings: 1 CS, 2 SCLK (with DRDY)</text>
+<text x="667" y="545" font-size="14">3 / 4 DVDD, 5 MOSI, 6 SCLK (with MISO)</text>
+<text x="667" y="573" font-size="14">Ground fill / F.Cu hidden. Coordinates in mm.</text>
+<text x="667" y="600" font-size="14">Scope: review evidence, not fabrication output.</text>
+</g></svg>
