@@ -608,3 +608,28 @@ def test_benign_track_subdivision_and_reversal_preserve_local_paths(tmp_path: Pa
         assert len(parts) == 3
         assert other["trace_mm"] <= _BYPASS_LIMITS[parts[0], parts[1], parts[2]]
         assert other["pads"] == row["pads"]
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize("pin", ["54", "53"])
+def test_an_extra_pre_bypass_plane_join_is_rejected_even_with_the_local_path_intact(
+    tmp_path: Path, pin: str
+) -> None:
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    text = BOARD.read_text()
+    _, backdoor = _BYPASS_BACKDOORS[pin]
+    board = cad / "rev_a.kicad_pcb"
+    board.write_text(text.rstrip()[:-1] + backdoor + ")\n")
+    report = _native_report(cad)
+    assert all(report[k] == [] for k in ("violations", "schematic_parity", "unconnected_items"))
+    rows = _front_paths(board)
+    terminal = "1" if pin == "54" else "2"
+    for cap in ("C16", "C27"):
+        row = rows[f"{pin}:{cap}:{terminal}"]
+        assert isinstance(row, dict)
+        assert isinstance(row["trace_mm"], (float, int))
+        assert row["trace_mm"] <= _BYPASS_LIMITS[pin, cap, terminal]
+        assert row.get("pre_bypass_exits"), (
+            "upstream plane join was accepted with a local path intact"
+        )
