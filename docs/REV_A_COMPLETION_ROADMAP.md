@@ -1,9 +1,12 @@
 # Finish the person-disconnected Rev A prototype design
 
-**Current checkpoint: digital-return geometry review after merged PR #62.**
-The AVDD1 repair is now on main5ece3051. The new review is on
-`review/digital-return-paths` until merged. It identifies a focused MISO/DRDY
-output-corridor rework, not a measured noise failure or manufacturing approval.
+**Current checkpoint: MISO/DRDY output repair after merged PR #63.**
+PR #63's digital-return review is merged as f834221a. The implemented output
+repair is tracked in **PR #64**, branch `fix/digital-output-corridor`.
+Read its live head, checks and review until merged, then use current main.
+After that source merge, the next bounded task is input P/N geometry/coupling
+review. Neither routing nor source review establishes measured noise performance
+or manufacturing approval.
 
 ## Glanceable roadmap
 
@@ -77,7 +80,8 @@ of purchase. Current physical data and a delivered quote remain necessary.
 Older estimates for parking-grid placement/routing describe earlier stages and
 are retained in Git history. They are superseded by the current table rather
 than silently decremented. An actual design flaw should lead to a focused repair,
-not an indefinite chain of warnings; the present next repair is explicitly named.
+not an indefinite chain of warnings. Input-path geometry/coupling is the next
+review after the current output repair is accepted.
 
 ## Scope discipline for the next continuations
 
