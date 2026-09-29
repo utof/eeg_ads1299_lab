@@ -1,0 +1,53 @@
+name: Publish preserved AVDD1 repair
+on:
+  push:
+    branches: [workbench/avdd1-retry-publication]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Verify transport and exact source ancestry
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          test "$(git rev-parse FETCH_HEAD)" = 1e86c049c46b52b3f1889f6bef7941763f965f79
+          cat transfer/repair.part0 transfer/repair.part1 transfer/repair.part2 transfer/repair.part3 transfer/repair.part4 > "$RUNNER_TEMP/repair.bundle"
+          test "$(wc -c < "$RUNNER_TEMP/repair.bundle")" = 14068
+          printf '%s  %s\n' efea908fe8a1a75254add643422c1f2f36053b091023c300adcb9a65e4810594 "$RUNNER_TEMP/repair.bundle" | sha256sum -c -
+          git bundle verify "$RUNNER_TEMP/repair.bundle"
+          git fetch "$RUNNER_TEMP/repair.bundle" HEAD
+          test "$(git rev-parse FETCH_HEAD)" = a19bfc4514d7923aba33e8ee5c1d0009e3c5e931
+          test "$(git rev-parse FETCH_HEAD^{tree})" = f1347e0dad69f7e1044673feb2323c791da8edfe
+          git merge-base --is-ancestor 1e86c049c46b52b3f1889f6bef7941763f965f79 FETCH_HEAD
+          git show FETCH_HEAD:hardware/rev_a/layout/rev_a.kicad_pcb > "$RUNNER_TEMP/board.kicad_pcb"
+          printf '%s  %s\n' 611218bae6559fb2488309fc80eee20ce2d6b5855977d52d600f947099179b43 "$RUNNER_TEMP/board.kicad_pcb" | sha256sum -c -
+          git diff --exit-code HEAD
+      - name: Publish only the four actual repair and test commits
+        shell: bash
+        run: |
+          set -euo pipefail
+          git push origin a19bfc4514d7923aba33e8ee5c1d0009e3c5e931:refs/heads/fix/rev-a-avdd1-local-bypass-retry
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: fix/rev-a-avdd1-local-bypass-retry
+          fetch-depth: 0
+          path: fresh-source
+          persist-credentials: false
+      - name: Verify separate GitHub checkout; this is not native CAD evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd fresh-source
+          test "$(git rev-parse HEAD)" = a19bfc4514d7923aba33e8ee5c1d0009e3c5e931
+          test "$(git rev-parse HEAD^{tree})" = f1347e0dad69f7e1044673feb2323c791da8edfe
+          printf '%s  %s\n' 611218bae6559fb2488309fc80eee20ce2d6b5855977d52d600f947099179b43 hardware/rev_a/layout/rev_a.kicad_pcb | sha256sum -c -
+          test -z "$(git status --porcelain)"
+          git log -4 --oneline
