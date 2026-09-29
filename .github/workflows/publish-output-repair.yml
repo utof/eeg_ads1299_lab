@@ -1,0 +1,69 @@
+name: Publish output repair source
+on:
+  push:
+    branches: [workbench/digital-output-repair]
+    paths: [.github/workflows/publish-output-repair.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Verify original data-only bundle before Git import
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64, hashlib, pathlib, subprocess
+          expected = [
+            '2d94072fc3f2f876848187cb63cdbee2f5cf93ca87fb0307f180cdcd88fd8bba',
+            'b55546b8384b8e43f22ff933c6f275be65a5392e75cab74ea7e0b9815fe8b1a6',
+            '0915f0e098284bebdc157da3f27c1efd33feefab70851295f18a40886d4664c8',
+            '12d4301757eb2b472de03adf5daffb0aff54f7ceba10263d089050bbdd7102b3',
+            '7ce45060ef12293e50f6cd321e28099d6c542c8cb10108325b4da51fc97f2476',
+            '94389753b6bd15acb821109657d214d18b12c32dc1948937ce8b7306f6883cef',
+          ]
+          parts = [pathlib.Path(f'transfer/part{i:02d}.b64').read_bytes() for i in range(6)]
+          actual = [hashlib.sha256(part).hexdigest() for part in parts]
+          for i, (a,e) in enumerate(zip(actual,expected)):
+              print(f'chunk {i:02d}: {a} expected {e}')
+          assert actual == expected
+          encoded = b''.join(part.strip() for part in parts)
+          assert len(encoded) == 24272
+          data = base64.b64decode(encoded, validate=True)
+          assert len(data) == 18204
+          assert hashlib.sha256(data).hexdigest() == '7fe0424409b56328b5e5d15caf6508e24c45aad22f17cde13abbd22b17190f72'
+          path = pathlib.Path('/tmp/output-repair.bundle'); path.write_bytes(data)
+          subprocess.run(['git','bundle','verify',str(path)],check=True)
+          subprocess.run(['git','fetch',str(path),'refs/heads/fix/digital-output-corridor'],check=True)
+          PY
+          test "$(git rev-parse FETCH_HEAD)" = 8bde876ea1b21258ecc3e0f191a356457f24b80f
+          test "$(git rev-parse FETCH_HEAD^{tree})" = cbd05701748a5ea40f0fcaa3881fd45daa2c6a6f
+          git merge-base --is-ancestor f834221a092f78dee4191305a3c3a8a03def0283 FETCH_HEAD
+          test "$(git rev-list --count f834221a..FETCH_HEAD)" = 3
+          git diff --exit-code f834221a FETCH_HEAD -- hardware/rev_a/kicad hardware/rev_a/bom.json hardware/rev_a/board_profile.json firmware lab tools pyproject.toml uv.lock .github
+          git diff --name-only f834221a FETCH_HEAD
+          test "$(git diff --name-only f834221a FETCH_HEAD | wc -l)" = 6
+          git push origin 8bde876ea1b21258ecc3e0f191a356457f24b80f:refs/heads/fix/digital-output-corridor
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: fix/digital-output-corridor
+          fetch-depth: 0
+          path: fresh
+          persist-credentials: false
+      - name: Verify a separate checkout solely from GitHub
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd fresh
+          test "$(git rev-parse HEAD)" = 8bde876ea1b21258ecc3e0f191a356457f24b80f
+          test "$(git rev-parse HEAD^{tree})" = cbd05701748a5ea40f0fcaa3881fd45daa2c6a6f
+          printf '%s  %s\n' 232b7c68a63ae13aebcf71f8c0b1f210421c30452a1afc7b7c86dc1c118b23a3 hardware/rev_a/layout/rev_a.kicad_pcb | sha256sum -c -
+          test -z "$(git status --porcelain)"
+          git rev-parse HEAD HEAD^{tree}
+          git log -3 --oneline
