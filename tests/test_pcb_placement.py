@@ -947,6 +947,20 @@ elif change == "subdivide":
     tail.SetNetCode(t.GetNetCode())
     t.SetEnd(middle)
     b.Add(tail)
+elif change == "arc-escape":
+    # Endpoints pass the old rectangle check; the native arc bows below y=36.5.
+    t = next(t for t in tracks if t.GetLayer() == p.In2_Cu
+             and t.GetStart() == p.VECTOR2I(p.FromMM(50.5), p.FromMM(36.4))
+             and t.GetEnd() == p.VECTOR2I(p.FromMM(51.4), p.FromMM(36.4)))
+    arc = p.PCB_ARC(b)
+    arc.SetStart(p.VECTOR2I(t.GetStart()))
+    arc.SetEnd(p.VECTOR2I(t.GetEnd()))
+    arc.SetMid(p.VECTOR2I(p.FromMM(50.95), p.FromMM(36.8)))
+    arc.SetLayer(t.GetLayer())
+    arc.SetWidth(t.GetWidth())
+    arc.SetNetCode(t.GetNetCode())
+    b.Remove(t)
+    b.Add(arc)
 elif change == "plane-window":
     # A small native copper-pour keepout cuts the reference beneath both long
     # front runs, but leaves the surrounding GND region and all signals connected.
@@ -1018,3 +1032,19 @@ def test_connected_plane_window_fails_output_reference_even_with_clean_drc(tmp_p
         row = rows[net]
         assert isinstance(row, dict)
         assert row["layers"] == ["F.Cu", "In2.Cu"]  # Fails reference, not layer policy.
+
+
+@pytest.mark.schematic
+def test_curved_escape_cannot_bypass_the_endpoint_rectangle_guard(tmp_path: Path) -> None:
+    """Codex4139341193: an out-of-window native arc can retain valid endpoints."""
+    cad = tmp_path / "cad"
+    _output_mutation(cad, "DRDY", "arc-escape")
+    report = _native_report(cad)
+    assert all(report[k] == [] for k in ("violations", "schematic_parity", "unconnected_items"))
+    rows = _output_reference(cad / "rev_a.kicad_pcb")
+    row = rows["DRDY"]
+    assert isinstance(row, dict)
+    assert row["layers"] == ["F.Cu", "In2.Cu"]
+    assert row["inner_in_escape_rectangle"] is True  # Endpoint-only screen misses the bow.
+    assert _output_reference_ok(rows["MISO"])
+    assert not _output_reference_ok(row), row
