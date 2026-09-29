@@ -6,6 +6,16 @@ not redefine the long-standing hardware roadmap or grant physical approval.
 The native schematic, harness and simulation infrastructure are already present;
 they must not be reconstructed in each continuation.
 
+## Latest local update — 2026-09-29
+
+The authored board now has a completely connected routing draft, beyond the
+parking-grid stage described in this earlier checkpoint. See
+`REV_A_ROUTING_COMPLETION.md`: local native DRC/parity has zero findings after
+refill, but electrical layout/return-path review, component/interface choices,
+mechanical/stackup decisions and publication/review remain open. The table below
+is the original planning range, not an automatically decremented countdown.
+Do not regenerate or reroute completed copper just to follow that historical table.
+
 ## Three different finish lines
 
 **Design-support simulation complete** means the final selected circuit has its

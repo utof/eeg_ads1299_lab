@@ -110,13 +110,20 @@ def _bom_output(fault: str) -> str:
 def _change_dependency(root: Path, fault: str) -> None:
     files = {
         "change-child": root / "hardware/rev_a/kicad/power.kicad_sch",
+        "change-board": root / "hardware/rev_a/layout/rev_a.kicad_pcb",
+        "change-board-test": root / "tests/test_pcb_placement.py",
+        "change-power-test": root / "tests/test_pcb_power.py",
         "change-library": root / "hardware/rev_a/kicad/RevA.kicad_sym",
         "change-console": root / "firmware/esp32_ads1299_bench/bench_console.h",
         "change-sketch": root / "firmware/esp32_ads1299_bench/esp32_ads1299_bench.ino",
         "change-profile": root / "firmware/esp32_ads1299_bench/board_config_rev_a_s3.h",
+        "change-local-footprint": root
+        / "hardware/rev_a/kicad/RevA_Passives.pretty/T491B_3528_DensityB.kicad_mod",
     }
     if fault == "change-footprint":
-        files[fault] = next((root / "footprints").rglob("*.kicad_mod"))
+        # Pick an actually consumed installed definition, never a shadow copy of
+        # a project-local library. Filesystem iteration order is not a contract.
+        files[fault] = root / "footprints/Package_QFP.pretty/TQFP-64_10x10mm_P0.5mm.kicad_mod"
     path = files.get(fault)
     if path is not None:
         path.write_text(path.read_text() + "\n")
@@ -139,6 +146,9 @@ def _change_dependency(root: Path, fault: str) -> None:
         "partial-bom",
         "wrong-bom-flag",
         "change-child",
+        "change-board",
+        "change-board-test",
+        "change-power-test",
         "change-library",
         "change-console",
         "change-sketch",
@@ -147,6 +157,7 @@ def _change_dependency(root: Path, fault: str) -> None:
         "missing-console-compiler",
         "wrong-footprint-pad",
         "change-footprint",
+        "change-local-footprint",
         "missing-dependency",
         "native-tests-fail",
     ],
@@ -196,7 +207,7 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
         assert report["physical_hardware_tested"] is False
         assert report["body_connection_authorized"] is False
         assert report["schematic_released"] is False
-        assert len(read_object(report["source_sha256"], "hashes")) == 45
+        assert len(read_object(report["source_sha256"], "hashes")) == 48
         directory = out / str(report["artifact_directory"])
         harness = read_object(json.loads((directory / "harness.json").read_text()), "harness")
         assert harness["physical_wiring_approved"] is False

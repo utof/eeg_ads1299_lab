@@ -191,3 +191,18 @@ Issue #45 still owns actual package geometry/polarity/mating review, physical
 interface/cable qualification and boot/brownout/back-power measurements before
 layout. Firmware and native evidence for the new revision must be checked on
 its own head, not inferred from #43's historical results.
+
+
+## Latest local routing checkpoint (2026-09-29)
+
+Continue from the connected routing draft in `hardware/rev_a/layout/rev_a.kicad_pcb`,
+not the parking-grid importer or the earlier 35-airwire source. Read
+`REV_A_ROUTING_COMPLETION.md` and the current delivery's exact verification record.
+All intended copper nets now pass native refill/DRC/parity locally, including the
+previously missing digital/control, input-connector and BIAS paths. This is not
+independent review or fabrication approval. Source publication/current-head CI
+must be verified live rather than inferred from this local checkpoint.
+Next: electrical layout/return-path review, remaining component/interface/stackup
+and mechanical decisions, then manufacturing and wiring/bring-up documentation.
+Do not add new generic simulator infrastructure merely because routing is complete.
+All hardware, purchasing and body-use gates remain false.
