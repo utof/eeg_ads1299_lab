@@ -1,6 +1,6 @@
 # Continue from this repository
 
-**Current checkpoint: input geometry/coupling review after merged PR #64.**
+**Current checkpoint: CH1N corridor repair after merged input review PR #65.**
 No previous chat or attachment is needed. Read this file and root `AGENTS.md`
 first; use live Git/PR state, not a historical success or a missing chat reply.
 
@@ -8,13 +8,13 @@ first; use live Git/PR state, not a historical success or a missing chat reply.
 
 Fetch current main and open PRs; inspect `git status --short`, `git rev-parse
 HEAD` and `git rev-parse HEAD^{tree}` before changing anything. Preserve other
-people's uncommitted work. PR #64 is merged as
-`5197c5b9478391e305c5d41f6c992bbdcd6bfd56` (tree
-`eecf9efb62f13d2cbda4d3815bed3de05a231fb6`). The input review is on
-`review/input-layout-coupling`: read its live head/checks/review while unmerged;
-after merge use current main. Do not reroute MISO/DRDY again merely because the
-previous chat did not display its completion report. Before any merge recheck
-head/base, actual diff, conflicts, review findings and exact-head CI.
+people's uncommitted work. PR #65 is merged as
+`779b8efaa0c5e1b84cdbee49a07b053e3debe7b7` (tree
+`0a2e5eabd627dbabd26706e046540f44ab9852f6`). The current repair is on
+`fix/ch1n-corridor`: read its live PR/head/checks/review while unmerged; after
+merge use current main. Do not repeat the already-merged AVDD1 or MISO/DRDY
+repairs. Before any merge recheck head/base, actual diff, conflicts, review
+findings and exact-head CI.
 
 Read `DEVELOPMENT.md`, `HARDWARE_BASELINE_REV_A.md` and the applicable detailed
 review before changes. Canonical board: `hardware/rev_a/layout/rev_a.kicad_pcb`.
@@ -24,11 +24,12 @@ intentionally unrouted test output is not the completed layout.
 
 ## What is published and what remains a hypothesis
 
-The reviewed board has 584 segments, 122 vias, 68 footprints and 245 pads, with
-one native filled In1 GND region. Its source SHA256 is
-`232b7c68a63ae13aebcf71f8c0b1f210421c30452a1afc7b7c86dc1c118b23a3`.
+The CH1N repair board has 582 segments, 122 vias, 68 footprints and 245 pads,
+with one native filled In1 GND region. Its source SHA256 is
+`5da65b4307f0336883da9aeae48711b28c1944ec587f5d3174f12db4e9921875`.
 These are a dated source identity, not permanent constraints on reviewed repairs.
-The input review changes no copper, schematic, BOM, firmware or model.
+Only CH1N corridor copper and filled ground change; all footprints and other
+nets' copper remain intact. No schematic, BOM, firmware or model changes.
 
 PR #62 repaired AVDD1 and fixed three native guard traversal defects before
 acceptance. Read `REV_A_AVDD1_REPAIR.md`; longer VCAP3/C24 and designated
@@ -43,46 +44,45 @@ are not professional or physical electrical qualification.
 
 ## Current result and next bounded task
 
-Read `REV_A_INPUT_LAYOUT_REVIEW.md` and
-`checkpoints/20260930_input_geometry.json`. Eight main R-to-C-to-ADC paths
-are already F-only and have only0.435mm magnitude P/N centreline difference.
-The B-layer filtered-input copper is instead a branch to each DNP diode pad3;
-its P/N branch sums differ by4.5mm. DNP parts are not fitted, but their copper
-is still connected. Do not turn either length difference into a capacitance,
-CMRR, noise, safety or matching guarantee.
+Read `REV_A_CH1N_CORRIDOR_REPAIR.md` and its source-bound JSON for the current
+repair. Read `REV_A_INPUT_LAYOUT_REVIEW.md` for the unchanged main-path and DNP
+branch distinction, conditional sensitivity assumptions and earlier geometry.
 
-The input B/In2 screen has13 unique net-pair crossing locations (22 raw pairs,
-with overlapping AVDD items deduplicated). Three are **CH1N_DUMMY crossing the
-IN2P/IN3P/IN4P DNP branches** with no GND layer between. In1 is above both
-layers, even where its fill projects onto each crossing. Four other upstream
-input overlaps and six supply overlaps are retained, not waived.
+CH1N's four B/In2 overlaps (filtered IN2P/IN3P/IN4P DNP branches and CH3N_DUMMY)
+are removed. Its In2 corridor now stays right of foreign back copper, with
+front entry and original front termination at R2. No footprint moves or DNP
+branch removals. All eight main R/C/U1 itineraries remain byte-identical. An
+all-front trial would take a substantial header detour; another short candidate
+threaded front copper between other channels' resistor pads. The selected
+corridor avoids both choices but grows CH1N from 23.479 to 33.884 mm. It still
+has two through vias; 18.588 mm is on In2 and is NOT a short local escape. This
+is a geometric repair, not length matching or measured-noise improvement.
 
-**After the input-review PR checks/review/merge, rework the CH1N_DUMMY corridor
-first to remove those three cross-channel overlaps.** Prefer a suitable F
-corridor over In1; preserve front R/C/U1 itineraries, pad/net/population
-inventory, all AVDD1/VCAP and output-repair copper, ground continuity and rules.
-First observe a focused geometry-policy failure; then implement and test the
-repair with actual refilled DRC/parity and connected-but-wrong-layer/benign
-controls. If F placement causes worse neighboring geometry, reconsider rather
-than chase a count. Do not add matching meanders, delete DNP branches or adopt
-a new protection/filter circuit implicitly. Other upstream overlaps, branch
-asymmetry and actual parasitic/coupling effects remain explicit follow-through.
+Test-first3f75b5e recorded the old policy failure with native DRC0/0/0. The new
+native full-width guard rejects foreign B overlap, wrong layer and reference
+windows; it accepts endpoint reversal, subdivision and an off-route window for
+this net. There are seven new cases; the nine-case focused run includes two
+existing CH1N cases. Own contact holes are explicitly exempted, not physically
+removed. Read final repair-PR execution and independent review before accepting
+this source. Baseline main779b8efa ordinary+schematic passed1,091ordinary plus
+14subtests,145KiCad and22console subset; that is not the later final-head run.
+Fresh GitHub source capture36701686057 identifies that exact baseline.
 
-Four native illustrative passive runs demonstrate conditional conversion from
-unequal capacitance-to-ground using existing `lab.analog`; they do NOT model
-cross-channel mutual capacitance or assign capacitance to board lengths. The
-detailed review contains the exact assumptions, equation, native grid and
-reproduction snippet. No new production model/dependency or measured electrode,
-PCB or silicon parameter was introduced.
+**After repair review/checks/merge, address the remaining nine upstream
+input/supply overlap locations together.** They involve CH3P/CH3N/CH4N against
+CH2N/AVDD; the three filtered/unfiltered DNP-branch crossings are gone, and the
+residual list is unchanged from the prior review except removal of four CH1N
+locations. Choose one bounded combined repair or explicit stackup/bench-test
+disposition, then advance finite component/stackup/mechanical/interface choices.
+Do not run an unlimited sequence of single-crossing reviews or assume a crossing
+is a measured noise failure. Preserve main analog fanout, DNP pads and prior
+AVDD1/output repairs. No matching meanders or circuit redesign is implied.
 
-Fresh GitHub source capture36696579521 and baseline ordinary+schematic checks
-used clean5197:1091ordinary+14subtests,145KiCad and22console cases;86.06%branches,
-unchanged71%floor. The22 console cases are a subset of the existing98native
-suite; that command did not run all98native or the S3 target. Geometry checks
-covered706track/via items,245pad positions,eight main itineraries and13 unique
-crossings. Analysis runs are not added project tests. Read the live input-review
-PR's final-head verification separately; inherited passes do not validate a
-newer head. Main has a fully connected draft, not fabrication approval.
+The unchanged main P/N path differences (0.435 mm) and DNP branch differences
+(4.5 mm) are not capacitance/noise guarantees. The earlier four native passive
+sensitivity cases model illustrative capacitances to ground, NOT cross-channel
+mutual coupling or actual board/electrode/silicon parameters. Keep all such
+assumptions explicit. Native geometry controls are not physical experiments.
 
 ## Reproduce and inspect
 
