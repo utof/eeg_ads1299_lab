@@ -136,19 +136,27 @@ Reproduce with the locked environment and installed ngspice, from the repo root:
 ```python
 from pathlib import Path
 from lab.analog import InputNetwork, export_spice, run_ngspice, transfer
+
 for rs in (5000.0, 50000.0):
     for delta in (1e-12, 10e-12):
         cfg = InputNetwork(
-            r_electrode_p=rs, r_electrode_n=rs,
-            c_electrode_p=0, c_electrode_n=0,
-            r_series_p=4990, r_series_n=4990,
-            r_input_p=1e12, r_input_n=1e12,
-            c_common_p=100e-12+delta, c_common_n=100e-12,
-            c_differential=4.7e-9)
-        directory = Path('reports/input-sensitivity') / f'{rs:g}-{delta:g}'
+            r_electrode_p=rs,
+            r_electrode_n=rs,
+            c_electrode_p=0,
+            c_electrode_n=0,
+            r_series_p=4990,
+            r_series_n=4990,
+            r_input_p=1e12,
+            r_input_n=1e12,
+            c_common_p=100e-12 + delta,
+            c_common_n=100e-12,
+            c_differential=4.7e-9,
+        )
+        directory = Path("reports/input-sensitivity") / f"{rs:g}-{delta:g}"
         frequency, native = run_ngspice(
-            export_spice(directory / 'input.cir', cfg, 'common'), directory)
-        print(rs, delta, abs(transfer([50., 60.], cfg, 'common')) * 10000)
+            export_spice(directory / "input.cir", cfg, "common"), directory
+        )
+        print(rs, delta, abs(transfer([50.0, 60.0], cfg, "common")) * 10000)
 ```
 
 ## Execution, provenance and remaining decisions
