@@ -50,7 +50,10 @@ def _render(tmp_path: Path, expression: str) -> float:
     executable = shutil.which("openscad")
     assert executable is not None, "native CAD tests require OpenSCAD 2021.01"
     assert MODEL.is_file(), "authored carrier CAD is missing"
-    source, output = tmp_path / "probe.scad", tmp_path / "probe.stl"
+    # Unique names preserve every comparison and prevent same-directory reuse.
+    index = len(list(tmp_path.glob("probe-*.scad")))
+    source, output = tmp_path / f"probe-{index:03d}.scad", tmp_path / f"probe-{index:03d}.stl"
+    output.unlink(missing_ok=True)
     source.write_text(f"use <{MODEL}>\n{expression}\n")
     result = subprocess.run(
         [
@@ -67,7 +70,7 @@ def _render(tmp_path: Path, expression: str) -> float:
         timeout=90,
         check=False,
     )
-    (tmp_path / "openscad.log").write_text(result.stdout + result.stderr)
+    source.with_suffix(".log").write_text(result.stdout + result.stderr)
     assert result.returncode == 0, result.stderr
     assert not re.search(r"(?:WARNING|ERROR):", result.stdout + result.stderr), result.stderr
     assert output.is_file(), "render produced no fresh mesh"

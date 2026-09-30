@@ -88,8 +88,15 @@ module carrier() {
         for (side=[0,1]) {
             rail_x = side==0 ? 2 : 88.5;
             difference() {
-                box([rail_x,20,-7.01],[rail_x+7.5,64,9.5]);
-                for (y=contact_y(side)) hole_at(side==0 ? 6.5 : 91.5,y+3,-1.5,9.51,2.0);
+                union() {
+                    // Low rail/retainers leave the lateral J2 ribbon unobstructed.
+                    box([rail_x,20,-7.01],[rail_x+7.5,64,4]);
+                    port=1-side; p=ports()[port];
+                    for(sy=[-1,1])
+                        box([mount_x(port)-3.25,p[1]+sy*mount_half_pitch(port)-3.25,3.99],
+                            [mount_x(port)+3.25,p[1]+sy*mount_half_pitch(port)+3.25,9.5]);
+                }
+                for (y=contact_y(side)) hole_at(side==0 ? 6.5 : 91.5,y+3,-1.5,4.01,2.0);
                 port=1-side; p=ports()[port];
                 for(sy=[-1,1]) hole_at(mount_x(port),p[1]+sy*mount_half_pitch(port),-1.5,9.51,2.0);
             }
@@ -144,10 +151,10 @@ module strain_bar() {
 module edge_clip() {
     difference() {
         union() {
-            box([3.5,0,9.5],[10.8,6,11.0]);
-            box([10,0,0.10],[10.8,6,9.51]);
+            box([3.5,0,4],[10.8,6,5.5]);
+            box([10,0,0.10],[10.8,6,4.01]);
         }
-        hole_at(6.5,3,9.4,11.1,2.2);
+        hole_at(6.5,3,3.9,5.6,2.2);
     }
 }
 
