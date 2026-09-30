@@ -1,0 +1,64 @@
+name: Publish mechanical envelope review
+on:
+  push:
+    branches: [workbench/mechanical-envelope]
+    paths: [.github/workflows/mechanical-publish.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Verify original data before importing source objects
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64,hashlib,pathlib,subprocess
+          hashes=['920ab4c61c05f76050b56da6556e08bc9aff248749fcb7d328406fbb85870365','ffaa6015d7282327f706a1631597cda60846942323f350ebbd4cdcfe2f6b640e','35a73e0c20613747ee3f7d260e85efaedff872b2b242bb928d64cac3cb9e2750','5ec1a47655a65f95021a9c232d279c04a8515a72323f3c892253fc563e36ece3']
+          chunks=[]
+          for i,digest in enumerate(hashes):
+              text=pathlib.Path(f'transfer/mechanical{i}.b64').read_text()
+              if i==1:
+                  # One known transport-only transcription. Original chunk and
+                  # complete binary hashes are required before Git receives data.
+                  assert text.count('AbOz9+Rjd+8US')==1
+                  text=text.replace('AbOz9+Rjd+8US','AbOz9+8US')
+              actual=hashlib.sha256(text.encode()).hexdigest()
+              print(i,actual,flush=True)
+              assert actual==digest
+              chunks.append(text.strip())
+          data=base64.b64decode(''.join(chunks),validate=True)
+          assert len(data)==14882
+          assert hashlib.sha256(data).hexdigest()=='f3ac3d729fc2218d14bf3bc96b0dd8aff967a21c608728b60a81f2de7d63bb8f'
+          p=pathlib.Path('/tmp/mechanical.bundle');p.write_bytes(data)
+          subprocess.run(['git','bundle','verify',str(p)],check=True)
+          subprocess.run(['git','fetch',str(p),'HEAD'],check=True)
+          PY
+          test "$(git rev-parse FETCH_HEAD)" = 029bb63794dd7b013e6a69d50d77e510214d897e
+          test "$(git rev-parse FETCH_HEAD^{tree})" = 71d3525fcd66da39e5306d596801b3fb40d03c16
+          test "$(git rev-parse FETCH_HEAD^)" = 8c3440ed6714bfebaac74768a0d371401a22e89e
+          test "$(git diff --name-only FETCH_HEAD^ FETCH_HEAD | wc -l)" = 5
+          git diff --exit-code FETCH_HEAD^ FETCH_HEAD -- hardware firmware lab tools tests pyproject.toml uv.lock .github
+          git push origin 029bb63794dd7b013e6a69d50d77e510214d897e:refs/heads/archive/mechanical-review-029bb63
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: archive/mechanical-review-029bb63
+          fetch-depth: 0
+          path: fresh
+          persist-credentials: false
+      - name: Verify separate GitHub checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd fresh
+          test "$(git rev-parse HEAD)" = 029bb63794dd7b013e6a69d50d77e510214d897e
+          test "$(git rev-parse HEAD^{tree})" = 71d3525fcd66da39e5306d596801b3fb40d03c16
+          printf '%s  %s\n' 5da65b4307f0336883da9aeae48711b28c1944ec587f5d3174f12db4e9921875 hardware/rev_a/layout/rev_a.kicad_pcb | sha256sum -c -
+          test -z "$(git status --porcelain)"
+          git rev-parse HEAD HEAD^{tree}
