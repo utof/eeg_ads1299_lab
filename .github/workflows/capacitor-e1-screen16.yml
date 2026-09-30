@@ -1,0 +1,57 @@
+name: One-microfarad bounded screen
+on:
+  push:
+    branches: [workbench/capacitor-e1-source]
+    paths: [.github/workflows/capacitor-e1-screen16.yml]
+permissions: {}
+jobs:
+  capture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Capture current exact 0603 one-microfarad rows and primary sheets
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/screen16"
+          export OUT="$RUNNER_TEMP/screen16"
+          python3 - <<'PY'
+          import csv,datetime,hashlib,io,json,os,pathlib,urllib.request,zipfile
+          out=pathlib.Path(os.environ['OUT'])
+          def fetch(url,name=None):
+              with urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'}),timeout=90) as r:
+                  data=r.read(120_000_001);assert len(data)<=120_000_000
+                  rec={'url':url,'utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'sha256':hashlib.sha256(data).hexdigest(),'bytes':len(data)}
+              if name:(out/name).write_bytes(data)
+              return data,rec
+          data,catalog=fetch('https://ds.murata.com/simsurfing_data/data/mlcc.zip')
+          keep=['part_number','public_part_number','channel_code','production_status_ja','production_status_en-us','production_status_zh-cn','L','W','size_thickness_max','LWSize_mm_inch','tempchar','rvol','tolerance','capacitance_pu','Condition','TC_Condition']
+          rows=[];z=zipfile.ZipFile(io.BytesIO(data))
+          for name in z.namelist():
+              if not name.lower().endswith('.csv'):continue
+              for row in csv.DictReader(io.StringIO(z.read(name).decode('utf-8-sig'))):
+                  if row.get('part_number','').startswith('GRM18') and row.get('capacitance_pu')=='1μF' and row.get('LWSize_mm_inch')=='1608M/0603':
+                      rows.append({k:row.get(k) for k in keep})
+          assert len(rows)<100
+          result={'catalog':catalog,'rows':rows,'pdfs':{},'errors':{}}
+          choices=[r for r in rows if r['production_status_en-us']=='B' and r['rvol'] in ['16','25','35','50'] and r['tolerance']=='±10%']
+          for row in choices[:6]:
+              core=row['part_number'];url='https://ds.murata.com/simserve/characteristics?ReqType=TechPDF&partnumber='+core+'&techpdfname=technical_pdf_Capacitor01&lang=en'
+              try:
+                  data,rec=fetch(url,core+'.pdf');assert data.startswith(b'%PDF-');result['pdfs'][core]=rec
+              except Exception as e:result['errors'][core]=str(e)
+          for name,url in [('kemet-t491.pdf','https://content.kemet.com/datasheets/KEM_T2005_T491.pdf')]:
+              try:
+                  data,rec=fetch(url,name);assert data.startswith(b'%PDF-');result[name]=rec
+              except Exception as e:result['errors'][name]=str(e)
+          (out/'screen16.json').write_text(json.dumps(result,indent=2,ensure_ascii=False)+'\n')
+          (out/'SHA256SUMS').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.name+'\n' for p in sorted(out.iterdir()) if p.is_file()))
+          print(json.dumps(result,ensure_ascii=False))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: capacitor-e1-screen16
+          path: ${{ runner.temp }}/screen16/
+          if-no-files-found: error
+          retention-days: 7
