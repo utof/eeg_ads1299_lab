@@ -1,0 +1,76 @@
+name: Publish exact CH1N repair history
+on:
+  push:
+    branches: [workbench/ch1n-corridor]
+    paths: [.github/workflows/ch1n-publish.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Verify every data-only chunk and original bundle before Git import
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64,hashlib,pathlib,subprocess
+          digests = [
+              '1b75573e546697c8225e0f052e59111ef471d052722afb6d39bd5aa9ea1108fb',
+              '273687bad212c7c67220a230a344a41c32d81cb052e409b17db1ac5c3ea8cff5',
+              '3262f5357e4559d12e937d14b73ae302b25ae79bb2fa2033c100fee71198c10e',
+              'daad4f579e262546497d61a290320a8e584b39781b35d608c87d771791f4976c',
+              'd02b8a47955b7a6c872eede39145797cd12257b83a3a72c8536f6320c83635ee',
+          ]
+          # Narrow text-transfer corrections only. Original per-chunk and complete
+          # binary digests are mandatory; no project code or CAD is rewritten here.
+          corrections = {0: ('HykKc4KcQQn', 'HykKcQQn'), 2: ('Syud5Xtlvfo', 'Syud5tlvfo')}
+          chunks=[]
+          for i,digest in enumerate(digests):
+              text=pathlib.Path(f'transfer/ch1n{i:02d}.b64').read_text()
+              if i in corrections:
+                  before,after=corrections[i]
+                  assert text.count(before)==1
+                  text=text.replace(before,after)
+              actual=hashlib.sha256(text.encode()).hexdigest()
+              print(i,len(text),actual,flush=True)
+              assert actual==digest, f'chunk {i} changed'
+              chunks.append(text.strip())
+          encoded=''.join(chunks)
+          assert len(encoded)==20920
+          data=base64.b64decode(encoded,validate=True)
+          assert len(data)==15690
+          assert hashlib.sha256(data).hexdigest()=='37fa17cf9b75e5e89b92b36d086e193da1946105d81613d0994f82cbf90d3315'
+          path=pathlib.Path('/tmp/ch1n.bundle');path.write_bytes(data)
+          subprocess.run(['git','bundle','verify',str(path)],check=True)
+          subprocess.run(['git','fetch',str(path),'HEAD'],check=True)
+          PY
+          test "$(git rev-parse FETCH_HEAD)" = 9552f218c8133dd46a00644ba105a464f6387e7a
+          test "$(git rev-parse FETCH_HEAD^{tree})" = 54d8bb7df44d437626100ffa6da06fd65116c6a3
+          git merge-base --is-ancestor 779b8efaa0c5e1b84cdbee49a07b053e3debe7b7 FETCH_HEAD
+          test "$(git rev-list --count 779b8efa..FETCH_HEAD)" = 3
+          test "$(git diff --name-only 779b8efa FETCH_HEAD | wc -l)" = 6
+          git diff --exit-code 779b8efa FETCH_HEAD -- hardware/rev_a/kicad hardware/rev_a/bom.json hardware/rev_a/board_profile.json firmware lab tools pyproject.toml uv.lock .github
+          git push origin 9552f218c8133dd46a00644ba105a464f6387e7a:refs/heads/fix/ch1n-corridor
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: fix/ch1n-corridor
+          fetch-depth: 0
+          path: fresh
+          persist-credentials: false
+      - name: Verify separate GitHub checkout, not a local-only candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd fresh
+          test "$(git rev-parse HEAD)" = 9552f218c8133dd46a00644ba105a464f6387e7a
+          test "$(git rev-parse HEAD^{tree})" = 54d8bb7df44d437626100ffa6da06fd65116c6a3
+          printf '%s  %s\n' 5da65b4307f0336883da9aeae48711b28c1944ec587f5d3174f12db4e9921875 hardware/rev_a/layout/rev_a.kicad_pcb | sha256sum -c -
+          test -z "$(git status --porcelain)"
+          git rev-parse HEAD HEAD^{tree}
+          git log -3 --oneline
