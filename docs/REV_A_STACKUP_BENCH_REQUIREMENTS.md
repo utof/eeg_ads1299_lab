@@ -199,17 +199,27 @@ restricted model and no uncertainty allowance. These are NOT bounds on actual
 capacitance or compliance. They explain why accepting high-Z performance from
 crossing counts or a nominal stack thickness would be unjustified.
 
-The second executable block below repeats the six native cases and independent
-matrix check using the exact published `simulate` and `predicted` definitions
+The second executable block below repeats the six native cases, independent
+matrix check and the conditional-C bisection using the exact published `simulate` and `predicted` definitions
 from `REV_A_UPSTREAM_COUPLING_DISPOSITION.md`. It imports only those definitions
 and imports, not that earlier example's top-level cases, and verifies its source
 hash first. This changes experiment inputs, not the model or repository defaults.
 
 The checkpoint JSON records numerical results, source locations and unconfirmed
-fields. Reproduce these calculations by the code block below; the independent
-matrix and native analysis were separate checks of the existing example, not a
-new production model. This compact block checks arithmetic/profile consistency,
-not native execution or live manufacturer data:
+fields. The first block derives both stack sums, code scale, headroom, thermal
+and filter values, and the illustrative white-noise sine-fit estimate. The
+second derives conditional-C limits by an 80-iteration bracketed search and
+challenges both sides, as well as repeating the native/KCL checks. Both compare
+derived quantities against their retained records; low-level floating residuals
+are printed and bounded, not required to match bit-for-bit across toolchains.
+Neither block verifies live manufacturer data or physical performance.
+
+Review comment4145311992 identified missing derivations in the first published
+examples. Two disposable incorrect-snapshot probes (doubled LSB and conditional-C
+limit) were silently accepted before correction and are rejected by these
+blocks. They are software/data probes, not native circuit faults or new project
+tests. The corrected exact blocks then completed the actual calculations and
+six unique native cases again, without changing the requirements or PCB.
 
 ```python
 import json
@@ -217,6 +227,8 @@ import math
 from pathlib import Path
 
 p = json.loads(Path("hardware/rev_a/board_profile.json").read_text())
+checkpoint = json.loads(Path("docs/checkpoints/20260930_stackup_bench_envelope.json").read_text())
+saved = checkpoint["analysis"]
 assert (p["afe"]["gain"], p["afe"]["sample_rate_sps"]) == (24, 250)
 assert not any(p["gates"].values()) and not p["afe"]["external_dummy_mode_enabled"]
 assert p["input_network"]["series_resistance_each_ohm"] == 4990
@@ -229,12 +241,49 @@ rows = []
 for rs in (1000, 10000, 100000):
     resistance = 2 * (rs + 4990)
     pole = 1 / (2 * math.pi * resistance * 4.7e-9)
-    thermal = math.sqrt(4 * 1.380649e-23 * 303.15 * resistance * 39) * 1e6
-    rows.append([rs, thermal, pole, sinc40 / math.sqrt(1 + (40 / pole) ** 2)])
-assert math.isclose(sum([0.035, 0.2104, 0.0152, 1.065, 0.0152, 0.2104, 0.035]), 1.5862)
-assert math.isclose(sinc40, 0.8803706260552399, abs_tol=1e-12)
-assert math.isclose(rows[1][1], 0.13990993056519, abs_tol=1e-12)
-print(json.dumps({"Rs_thermal_pole_response_rows": rows, "sinc40": sinc40}, indent=2))
+    rows.append(
+        {
+            "Rs_ohm_each": rs,
+            "thermal_unfiltered_1_40_uVrms": math.sqrt(4 * 1.380649e-23 * 303.15 * resistance * 39)
+            * 1e6,
+            "pole_Hz": pole,
+            "sinc3_40Hz": sinc40,
+            "passive_times_sinc3_40Hz": sinc40 / math.sqrt(1 + (40 / pole) ** 2),
+        }
+    )
+selected = sum([0.035, 0.2104, 0.0152, 1.065, 0.0152, 0.2104, 0.035])
+comparison = sum([0.035, 0.0994, 0.0152, 1.265, 0.0152, 0.0994, 0.035])
+gain, reference, max_diff = p["afe"]["gain"], p["afe"]["reference_v"], 0.060
+headroom = [0.2 + gain * max_diff / 2, 4.75 - 0.2 - gain * max_diff / 2]
+chosen_cm = [2.40, 2.60]
+assert headroom[0] < chosen_cm[0] < chosen_cm[1] < headroom[1]
+assert max_diff < reference / gain
+calculated = {
+    "selected_nominal_stack_sum_mm": selected,
+    "comparison_3313_sum_mm": comparison,
+    "full_scale_peak_V": reference / gain,
+    "LSB_nV": reference / (gain * (2**23 - 1)) * 1e9,
+    "max_diff_V": max_diff,
+    "common_mode_allowed_at_min_rail_V": headroom,
+    "selected_instantaneous_CM_V": chosen_cm,
+    "white_independent_sine_fit_95_uV": 1.96 * 0.5 * math.sqrt(2 / (64 * fs)),
+}
+# Derived numbers are computed above independently of the retained result values.
+for key, value in calculated.items():
+    actual_values = value if isinstance(value, list) else [value]
+    saved_values = saved[key] if isinstance(saved[key], list) else [saved[key]]
+    assert len(actual_values) == len(saved_values)
+    assert all(
+        math.isclose(a, b, rel_tol=1e-12, abs_tol=1e-12)
+        for a, b in zip(actual_values, saved_values)
+    ), key
+assert len(rows) == len(saved["source_rows"]) == 3
+for actual, retained in zip(rows, saved["source_rows"]):
+    for key, value in actual.items():
+        assert math.isclose(value, retained[key], rel_tol=1e-12, abs_tol=1e-12), key
+allocations = checkpoint["bench_target"]["aggressor_allocations"]
+assert math.isclose(sum(a["total_budget_uV_peak"] for a in allocations), 0.5)
+print(json.dumps({"derived": calculated, "source_rows": rows}, indent=2))
 ```
 
 Native/KCL reproduction (requires the declared locked environment and ngspice):
@@ -263,6 +312,8 @@ definitions = [
 namespace = {}
 exec(compile(ast.Module(body=definitions, type_ignores=[]), "<reviewed model>", "exec"), namespace)
 simulate, predicted = namespace["simulate"], namespace["predicted"]
+checkpoint = json.loads(Path("docs/checkpoints/20260930_stackup_bench_envelope.json").read_text())
+saved = checkpoint["analysis"]
 rows, matrix_errors = [], []
 for rs in (1000.0, 10000.0, 100000.0):
     frequency, native = simulate(rs, 1e-12, "p")
@@ -298,11 +349,61 @@ for mode in ("n", "balanced", "none"):
     expected = [-h for h in positive] if mode == "n" else [0j] * len(positive)
     controls[mode] = max(abs(a - b) for a, b in zip(h2, expected))
     assert controls[mode] < 2e-14
-assert len(matrix_errors) == 723 and max(matrix_errors) < 2e-14
+assert len(matrix_errors) == saved["independent_matrix_points"] == 723
+assert max(matrix_errors) < 2e-14
+assert len(rows) == len(saved["source_rows"]) == 3
+for actual, retained in zip(rows, saved["source_rows"]):
+    assert actual["Rs_ohm_each"] == retained["Rs_ohm_each"]
+    assert math.isclose(
+        actual["calculated_uV_at60Hz_10mV_peak"],
+        retained["one_pF_10mV_peak_at60Hz_uV"],
+        rel_tol=1e-10,
+    )
+# Residuals are numerical observations, not bitwise-portable reference outputs.
+assert all(v < 2e-14 for v in controls.values())
+
+# Solve the restricted model's single-pair limit, NOT an extracted PCB bound.
+# The channel class has 0.20 uV peak total / 3 simultaneous 10-mV aggressors.
+frequencies = range(1, 61)
+budget_V, aggressor_V = 0.20e-6 / 3, 0.01
+limits = []
+for rs in (10000.0, 100000.0):
+
+    def response(cm):
+        return max(abs(predicted(hz, rs, cm)) * aggressor_V for hz in frequencies)
+
+    lo, hi = 0.0, 100e-12
+    assert response(lo) <= budget_V < response(hi)
+    for _ in range(80):
+        mid = (lo + hi) / 2
+        if response(mid) <= budget_V:
+            lo = mid
+        else:
+            hi = mid
+    assert hi - lo < 1e-24
+    # Challenge both sides of the computed crossing, not only a retained number.
+    assert response(lo * 0.99) < budget_V < response(lo * 1.01)
+    limits.append(
+        {
+            "Rs_ohm_each": rs,
+            "conditional_Cm_pF": lo * 1e12,
+            "allocation_peak_uV_per_pair": budget_V * 1e6,
+            "tested_integer_frequencies_Hz": [1, 60],
+            "uncertainty_allowance_included": False,
+        }
+    )
+assert len(limits) == len(saved["conditional_cap_limits"]) == 2
+for actual, retained in zip(limits, saved["conditional_cap_limits"]):
+    for key in ("Rs_ohm_each", "conditional_Cm_pF", "allocation_peak_uV_per_pair"):
+        assert math.isclose(actual[key], retained[key], rel_tol=1e-10, abs_tol=1e-12), key
+    assert actual["tested_integer_frequencies_Hz"] == retained["tested_integer_frequencies_Hz"]
+    assert retained["uncertainty_allowance_included"] is False
+assert saved["native_runs_unique"] == 6 and saved["native_executions"] == 7
 print(
     json.dumps(
         {
             "rows": rows,
+            "conditional_cap_limits": limits,
             "controls": controls,
             "matrix_max_error_V_per_V": max(matrix_errors),
             "unique_native_cases": 6,

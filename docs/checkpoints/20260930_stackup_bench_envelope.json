@@ -345,11 +345,24 @@
   "reproduction_checks": {
     "both_exact_document_blocks_executed": true,
     "blocks_sha256": [
-      "463563fc26022bc711ef5e3a03c331468ac6c679e4d716496714d954366c2ca2",
-      "0f536285ab8d231465058ae28c57c935478e6e96d7826429f5d8aaa174374d4d"
+      "8fb21641e2294b58d2ef9ea5cc784ae245179a80817eabd6fc6f9c4c03194bdf",
+      "2da96dc299c53e825707b6d1b3b5a0dc467985ba2f4729464eed08a8c4a27160"
     ],
     "incorrect_zero_native_output_software_double_rejected": true,
     "native_case_repeats_not_additional_unique_cases": true,
-    "not_added_project_tests": true
+    "not_added_project_tests": true,
+    "review_fix": {
+      "finding": 4145311992,
+      "scope": "missing calculation derivations now executable; selected targets unchanged",
+      "incorrect_snapshot_probes": [
+        "doubled_LSB",
+        "doubled_conditional_capacitance_limit"
+      ],
+      "old_example_accepted_both": true,
+      "corrected_example_rejected_both": true,
+      "both_corrected_exact_blocks_executed": true,
+      "conditional_C_limit_method": "80-step bisection, bracket checked and 0.99/1.01 perturbations cross the budget",
+      "observed_residuals_not_bitwise_portability_contract": true
+    }
   }
 }
