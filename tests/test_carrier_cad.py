@@ -215,3 +215,21 @@ def test_board_installation_before_removable_bridges(tmp_path: Path) -> None:
         )
         < 1e-4
     )
+
+
+@pytest.mark.parametrize("port", [0, 1])
+@pytest.mark.parametrize("lift", [0, 2, 6, 10])
+def test_cable_clears_complete_installed_support(tmp_path: Path, port: int, lift: int) -> None:
+    # Check actual global assembly, not only a receiver or local saddle.
+    obstacles = """
+    union() {
+        frame();
+        for(side=[0,1], y=contact_y(side))
+            translate([side==0 ? 0 : 98,y,0])
+                scale([side==0 ? 1 : -1,1,1]) edge_clip();
+    """
+    if lift == 0:
+        obstacles += "for(p=ports()) translate([p[0]-16,p[1],0]) strain_bar();"
+    obstacles += "}"
+    cable = f"p=ports()[{port}]; translate([p[0],p[1],{2.54 + lift}]) cable_envelope();"
+    assert abs(_overlap(tmp_path, obstacles, cable)) < 1e-4
