@@ -1,0 +1,70 @@
+name: Publish E1 review correction
+on:
+  push:
+    branches: [workbench/stackup-envelope-source]
+    paths: [.github/workflows/stackup-review-correction.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Require original patch and resulting tree before updating the PR
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,pathlib
+          text=pathlib.Path('transfer/e1-review-correction.patch').read_text()
+          # One known whitespace transcription in transport, never product data.
+          assert text.count('\n diff --git ')==1
+          text=text.replace('\n diff --git ','\ndiff --git ')
+          assert hashlib.sha256(text.encode()).hexdigest()=='8710062d9c9661eec9742a789576b0168ccb662242c9216482ccd57ee319f841'
+          pathlib.Path('/tmp/e1-correction.patch').write_text(text)
+          PY
+          git fetch origin docs/stackup-bench-envelope
+          test "$(git rev-parse FETCH_HEAD)" = f7d916357375b6da4ec8849866435f821d146566
+          git worktree add --detach "$RUNNER_TEMP/corrected" f7d916357375b6da4ec8849866435f821d146566
+          cd "$RUNNER_TEMP/corrected"
+          git apply --check /tmp/e1-correction.patch
+          git apply /tmp/e1-correction.patch
+          git add docs/REV_A_STACKUP_BENCH_REQUIREMENTS.md docs/checkpoints/20260930_stackup_bench_envelope.json
+          test "$(git write-tree)" = 7479e8f2bc3f98ef877dd565c45fd166c21a4e2e
+          test "$(git diff --cached --name-only | wc -l)" = 2
+          git diff --cached --exit-code -- hardware firmware lab tools tests pyproject.toml uv.lock .github
+          git -c user.name='Repository automation' -c user.email='github-actions[bot]@users.noreply.github.com' commit -m 'docs(review): reproduce every retained E1 derived quantity and reject stale snapshots'
+          git push origin HEAD:refs/heads/docs/stackup-bench-envelope
+          echo "CORRECTED_HEAD=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ env.CORRECTED_HEAD }}
+          fetch-depth: 0
+          path: fresh
+          persist-credentials: false
+      - name: Verify independent GitHub checkout and retain exact source
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd fresh
+          test "$(git rev-parse HEAD)" = "$CORRECTED_HEAD"
+          test "$(git rev-parse HEAD^)" = f7d916357375b6da4ec8849866435f821d146566
+          test "$(git rev-parse HEAD^{tree})" = 7479e8f2bc3f98ef877dd565c45fd166c21a4e2e
+          printf '%s  %s\n' 5da65b4307f0336883da9aeae48711b28c1944ec587f5d3174f12db4e9921875 hardware/rev_a/layout/rev_a.kicad_pcb | sha256sum -c -
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/source"
+          git branch e1-corrected-source HEAD
+          git bundle create "$RUNNER_TEMP/source/repository.bundle" e1-corrected-source
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/source/identity.txt"
+          cd "$RUNNER_TEMP/source"
+          sha256sum repository.bundle identity.txt > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pr68-corrected-source
+          path: ${{ runner.temp }}/source/
+          if-no-files-found: error
+          retention-days: 7
