@@ -1,0 +1,37 @@
+name: Linked connector drawings
+on:
+  push:
+    branches: [workbench/connector-decision]
+    paths: [.github/workflows/connector-drawings.yml]
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Capture public manufacturer-linked drawings
+        run: |
+          set -eu
+          mkdir -p "$RUNNER_TEMP/primary"
+          export OUT="$RUNNER_TEMP/primary"
+          python3 - <<'PY'
+          import urllib.request,pathlib,os,hashlib,json,datetime
+          out=pathlib.Path(os.environ['OUT']);records=[]
+          for name,url in {
+            'htsw-drawing.pdf':'https://suddendocs.samtec.com/prints/htsw-xxx-xx-xxx-x-xx-xx-xx-mkt.pdf',
+            'htsw-footprint.pdf':'https://suddendocs.samtec.com/prints/htsw-xxx-xx-xxx-x-xx-xx-xx-footprint.pdf',
+          }.items():
+              with urllib.request.urlopen(url,timeout=45) as r:data=r.read();final=r.url
+              assert data.startswith(b'%PDF')
+              (out/name).write_bytes(data)
+              records.append(dict(name=name,url=url,final_url=final,bytes=len(data),sha256=hashlib.sha256(data).hexdigest(),capture_utc=datetime.datetime.now(datetime.timezone.utc).isoformat()))
+          (out/'manifest.json').write_text(json.dumps(records,indent=2))
+          print(json.dumps(records,indent=2))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: linked-connector-drawings
+          path: ${{ runner.temp }}/primary/
+          if-no-files-found: error
+          retention-days: 7
