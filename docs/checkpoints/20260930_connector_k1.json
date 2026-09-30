@@ -1,0 +1,282 @@
+{
+  "decision": "K1",
+  "date": "2026-09-30",
+  "base_commit": "a55ce97a6029a4759d23f1f528feda3c5a0dc6b8",
+  "base_board_sha256": "5da65b4307f0336883da9aeae48711b28c1944ec587f5d3174f12db4e9921875",
+  "board_sha256": "dfe893f958128ba28eb69188cf6debbbc9fcafa0ef5dd67bd58627d4b8a26842",
+  "header": {
+    "old_mpn": "TSW-110-07-T-D",
+    "selected_mpn": "HTSW-110-07-T-D",
+    "quantity": 2,
+    "mpn_adopted_in_source": true,
+    "all_20_positions_retained": true,
+    "pitch_mm": 2.54,
+    "body_width_mm_REF": 5.03,
+    "body_length_nominal_mm": 25.4,
+    "post_nominal_in": 0.23,
+    "post_tolerance_in": 0.008,
+    "catalog_tail_nominal_mm": 2.54,
+    "body_height_mm_REF": 2.54,
+    "drawing": "BQ",
+    "footprint_revision": "B",
+    "nominal_finished_hole_callout_in": 0.04,
+    "actual_source_drill_mm": 1.0,
+    "hole_process_approved": false,
+    "planning_unit_usd": "2.00"
+  },
+  "cable": {
+    "design_target": "IDSD-10-S-04.00-T-G-ST4",
+    "quantity_target": 2,
+    "adopted_in_bom": false,
+    "code_basis": "manufacturer catalog and Rev AE construction rules; exact configured page unavailable",
+    "positions": 20,
+    "length_in": 4.0,
+    "length_tolerance_in": 0.125,
+    "termination": "single IDC socket / stripped and lead-free tinned free ends",
+    "wire": "28 AWG 7/36 stranded tinned copper",
+    "plating": "tin",
+    "gray_red_stripe": true,
+    "body_length_nominal_mm": 26.9,
+    "body_length_max_mm": 27.28,
+    "body_width_mm_REF": 5.08,
+    "body_height_max_mm": 9.52,
+    "insertion_min_in": 0.22,
+    "insertion_max_in": 0.245,
+    "ST4_strip_in": 0.25,
+    "bare_assembly_keyed": false,
+    "E1_fixture_capacitance_qualified": false,
+    "delivered_price_usd": null
+  },
+  "process": {
+    "architecture": "SMT first; unmated HTSW attached by a separately accepted selective lead-free through-hole process",
+    "family_lead_free_suitable": true,
+    "specific_job_temperature_dwell_profile": null,
+    "cable_or_cartridge_in_reflow": false,
+    "supplier_contacted": false,
+    "factory_approved": false
+  },
+  "key_profile": {
+    "units": "0.01 mm",
+    "plug_body": [
+      -400,
+      -1430,
+      400,
+      1430
+    ],
+    "bore": [
+      -420,
+      -1450,
+      420,
+      1450
+    ],
+    "groove_x": [
+      320,
+      400
+    ],
+    "groove_half_length": 120,
+    "rib_x": [
+      340,
+      420
+    ],
+    "rib_half_length": 100,
+    "codes_y": {
+      "J1": 700,
+      "J2": -700
+    },
+    "pitch": 254,
+    "translation_probe": 10,
+    "quarter_turns": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "model": "parallel rigid rectangular cross-section only; no arbitrary tilt, force, flex, chamfer or printing tolerance proof"
+  },
+  "guide_allocation": {
+    "cartridge_height_mm": 12.0,
+    "guide_bottom_top_mm": [
+      9.5,
+      14.5
+    ],
+    "guide_outer_width_length_mm": [
+      10.4,
+      31.0
+    ],
+    "required_inspected_max_pin_top_mm": 9.0,
+    "working_header_height_mm": 17.0,
+    "additional_withdrawal_mm": 8.0,
+    "physical_CAD_or_fit_verified": false,
+    "guide_is_carrier_supported_not_PCB_supported": true,
+    "requires_mechanical_retention_and_independent_strain_relief": true
+  },
+  "native_xy_screen": [
+    {
+      "header": "J1",
+      "item": "IDSD_reference",
+      "bbox_mm": [
+        78.73,
+        24.79,
+        83.81000000000002,
+        52.07
+      ],
+      "nearest_other_courtyard": "C33",
+      "lower_bound_gap_mm": 2.1856349191939635
+    },
+    {
+      "header": "J1",
+      "item": "cartridge",
+      "bbox_mm": [
+        77.27000000000001,
+        24.13,
+        85.27000000000001,
+        52.730000000000004
+      ],
+      "nearest_other_courtyard": "C33",
+      "lower_bound_gap_mm": 0.5894064811316618
+    },
+    {
+      "header": "J1",
+      "item": "raised_guide",
+      "bbox_mm": [
+        76.07000000000001,
+        22.93,
+        86.47000000000001,
+        53.93
+      ],
+      "nearest_other_courtyard": "C33",
+      "lower_bound_gap_mm": 0.0
+    },
+    {
+      "header": "J2",
+      "item": "IDSD_reference",
+      "bbox_mm": [
+        13.73,
+        29.79,
+        18.81,
+        57.07
+      ],
+      "nearest_other_courtyard": "D1",
+      "lower_bound_gap_mm": 2.7600000000000016
+    },
+    {
+      "header": "J2",
+      "item": "cartridge",
+      "bbox_mm": [
+        12.27,
+        29.13,
+        20.27,
+        57.730000000000004
+      ],
+      "nearest_other_courtyard": "D1",
+      "lower_bound_gap_mm": 1.3000000000000007
+    },
+    {
+      "header": "J2",
+      "item": "raised_guide",
+      "bbox_mm": [
+        11.07,
+        27.93,
+        21.47,
+        58.93
+      ],
+      "nearest_other_courtyard": "D1",
+      "lower_bound_gap_mm": 0.10000000000000142
+    }
+  ],
+  "reference_limits": {
+    "post_min_mm": 5.6388,
+    "post_max_mm": 6.0451999999999995,
+    "full_seating_min_insertion_margin_mm": 0.05080000000000004,
+    "full_seating_max_insertion_margin_mm": 0.17780000000000015,
+    "not_guaranteed_engagement": true
+  },
+  "test_first": {
+    "red_commit": "382173ca55047bf5fd430aa7f60fd3b432293571",
+    "observed_failures": 2,
+    "scope": "ordinary selected header and planning cost requirements, not physical assembly failures"
+  },
+  "native_fixture": {
+    "export_engine": "KiCad 9.0.2",
+    "source_base": "a55ce97a6029a4759d23f1f528feda3c5a0dc6b8",
+    "changed_parts": [
+      "J_INPUT",
+      "J_DIG"
+    ],
+    "nets_pin_types_pin_functions_unchanged": true,
+    "uncompressed_xml_sha256": "c770d07dadc08ff458a18daa5d0fa3a589a6178da0d4bcb9ebbc57e0a1f00ea0",
+    "bom_csv_sha256": "1b00ddf0be1a3743da00eb88cd93060816741afd794f12903ec7910827b035fa"
+  },
+  "sources": [
+    {
+      "name": "htsw-catalog.pdf",
+      "url": "https://suddendocs.samtec.com/catalog_english/htsw_th.pdf",
+      "capture_utc": "2026-09-30T18:41:13.216018+00:00",
+      "final_url": "https://suddendocs.samtec.com/catalog_english/htsw_th.pdf",
+      "bytes": 1180876,
+      "sha256": "31dff0606029b5e534e591f526cfd73557e945dbf7ac8eb81e9ad99a272eb864"
+    },
+    {
+      "name": "idsd-catalog.pdf",
+      "url": "https://suddendocs.samtec.com/catalog_english/idsd.pdf",
+      "capture_utc": "2026-09-30T18:41:13.613499+00:00",
+      "final_url": "https://suddendocs.samtec.com/catalog_english/idsd.pdf",
+      "bytes": 1001239,
+      "sha256": "232b84f32c6bcf29545e9fdcac277a5c6833fe7adc7515c882cd4912b104e519"
+    },
+    {
+      "name": "idsx-drawing.pdf",
+      "url": "https://suddendocs.samtec.com/prints/idsx-xx-x-xx.xx-xxx-xxx-mkt.pdf",
+      "capture_utc": "2026-09-30T18:41:13.768957+00:00",
+      "final_url": "https://suddendocs.samtec.com/prints/idsx-xx-x-xx.xx-xxx-xxx-mkt.pdf",
+      "bytes": 353753,
+      "sha256": "f60fef0d37c89aea10caf3fbae8d47a75f94cb02adacc60624b112b7101c37a1"
+    },
+    {
+      "name": "htsw-drawing.pdf",
+      "url": "https://suddendocs.samtec.com/prints/htsw-xxx-xx-xxx-x-xx-xx-xx-mkt.pdf",
+      "final_url": "https://suddendocs.samtec.com/prints/htsw-xxx-xx-xxx-x-xx-xx-xx-mkt.pdf",
+      "bytes": 703738,
+      "sha256": "1b67562fde61dc2488bd76240e48c70399c0cffd9a1a62866d89535f186e49b4",
+      "capture_utc": "2026-09-30T18:45:34.865394+00:00"
+    },
+    {
+      "name": "htsw-footprint.pdf",
+      "url": "https://suddendocs.samtec.com/prints/htsw-xxx-xx-xxx-x-xx-xx-xx-footprint.pdf",
+      "final_url": "https://suddendocs.samtec.com/prints/htsw-xxx-xx-xxx-x-xx-xx-xx-footprint.pdf",
+      "bytes": 127351,
+      "sha256": "67cfe45c325b4cf7e4229e8564615bb71094750153076e6b08d4754e68912ca9",
+      "capture_utc": "2026-09-30T18:45:35.131216+00:00"
+    }
+  ],
+  "source_capture_run": 36759868262,
+  "primary_capture_runs": [
+    36760343539,
+    36760857422
+  ],
+  "approvals": {
+    "purchase": false,
+    "fabrication": false,
+    "powered_connection": false,
+    "body_use": false,
+    "keyed_assembly_validated": false
+  },
+  "next": "Dimensioned carrier/cartridge CAD and tolerance/engagement/strain-relief checks, then real powered-off console/interface review. Do not repeat the completed HTSW field migration.",
+  "analysis_checks": {
+    "nominal_poses": 912,
+    "correct_accepted": 2,
+    "translation_probes": 18,
+    "missing_grooves_rejected": 2,
+    "data_probes": {
+      "identical_codes": "rejected",
+      "oversized_bore": "rejected",
+      "incorrect_xy_gap": "rejected"
+    },
+    "physical_tested": false,
+    "blocks_sha256": [
+      "7b9fcfff12e5f59dacfd102c82fb2dc6d3810d71ffc3e8c1112947a3e5ec73a1",
+      "5ba12803baeb5068f7f224048e17c2a0579f0d5837a38a3b634e589ecd21fdfa"
+    ],
+    "native_xy_rows": 6
+  }
+}
