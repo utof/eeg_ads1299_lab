@@ -1,0 +1,139 @@
+{
+  "scope": "held_group_disposition_not_coupling_or_release_approval",
+  "source_commit": "b88d3746f5f2c72dd60ffbb201213ac9010b19a4",
+  "source_tree": "54d8bb7df44d437626100ffa6da06fd65116c6a3",
+  "board_path": "hardware/rev_a/layout/rev_a.kicad_pcb",
+  "board_sha256": "5da65b4307f0336883da9aeae48711b28c1944ec587f5d3174f12db4e9921875",
+  "source_capture_run": 36709023765,
+  "copper_changed": false,
+  "native_version": "9.0.2",
+  "nine_locations_six_electrical_pairs": true,
+  "trace_projection_area": {
+    "source_sha256": "5da65b4307f0336883da9aeae48711b28c1944ec587f5d3174f12db4e9921875",
+    "native_version": "9.0.2",
+    "native_shape_error_mm": 0.002,
+    "trace_projection_only_excludes_pads_vias_fields": true,
+    "pair_unions": [
+      {"B": "CH3P_DUMMY", "In2": "CH2N_DUMMY", "area_mm2": 0.04, "regions": 1},
+      {"B": "CH3P_DUMMY", "In2": "AVDD", "area_mm2": 0.120857891042, "regions": 2},
+      {"B": "CH3N_DUMMY", "In2": "CH2N_DUMMY", "area_mm2": 0.04, "regions": 1},
+      {"B": "CH3N_DUMMY", "In2": "AVDD", "area_mm2": 0.143831300921, "regions": 2},
+      {"B": "CH4N_DUMMY", "In2": "CH2N_DUMMY", "area_mm2": 0.04, "regions": 1},
+      {"B": "CH4N_DUMMY", "In2": "AVDD", "area_mm2": 0.1448532, "regions": 2}
+    ]
+  },
+  "independent_checks": {
+    "raw_native_track_via_records": 704,
+    "native_pad_inventory_read_not_independently_rederived": 245,
+    "four_node_formula_samples": 250,
+    "seed": 20260930,
+    "four_node_formula_max_abs_V_per_V": 3.572014261108911e-17,
+    "area_comparison_tolerance_mm2": 0.0001,
+    "no_PCB_extracted_Cm": true,
+    "independent_group_area_max_abs_difference_mm2": 5.189061494645375e-05
+  },
+  "disposable_layer_trial": {
+    "scope": "same_xy_B_to_F_on_three_nets_not_an_optimized_reroute",
+    "modified_trace_items": 18,
+    "removed_or_added_items": 0,
+    "fresh_native_fill": true,
+    "parity_other_unconnected": [0, 30, 0],
+    "exit_code": 5,
+    "drc_entries_by_type": {"tracks_crossing": 11, "shorting_items": 9, "solder_mask_bridge": 7, "via_dangling": 3},
+    "bad_copy_never_applied_to_source": true
+  },
+  "canonical_copy": {"fresh_native_fill": true, "parity_other_unconnected": [0, 0, 0], "exit_code": 0},
+  "conditional_mutual_experiment": {
+    "scope": "hypothetical_lumped_mutual_injection_not_PCB_extraction",
+    "rows": [
+      {
+        "Rs_ohm_each": 5000.0,
+        "assumed_Cm_pF": 1.0,
+        "points": 241,
+        "native_formula_max_abs_V_per_V": 1.828848697409256e-19,
+        "exact_H_magnitude_at_50_60_1000_Hz": [1.570098577025358e-06, 1.8837502421361163e-06, 2.698271778993791e-05],
+        "peak_uV_for_10mV_peak_aggressor_at_50_60_1000_Hz": [0.01570098577025358, 0.018837502421361164, 0.2698271778993791]
+      },
+      {
+        "Rs_ohm_each": 5000.0,
+        "assumed_Cm_pF": 10.0,
+        "points": 241,
+        "native_formula_max_abs_V_per_V": 2.8446772710378567e-18,
+        "exact_H_magnitude_at_50_60_1000_Hz": [1.570098409621275e-05, 1.883749953030122e-05, 0.0002698186484630358],
+        "peak_uV_for_10mV_peak_aggressor_at_50_60_1000_Hz": [0.15700984096212747, 0.18837499530301222, 2.698186484630358]
+      },
+      {
+        "Rs_ohm_each": 50000.0,
+        "assumed_Cm_pF": 1.0,
+        "points": 241,
+        "native_formula_max_abs_V_per_V": 9.241342670018572e-19,
+        "exact_H_magnitude_at_50_60_1000_Hz": [1.550057856722613e-05, 1.849427484358503e-05, 9.15523713214712e-05],
+        "peak_uV_for_10mV_peak_aggressor_at_50_60_1000_Hz": [0.15500578567226128, 0.18494274843585032, 0.915523713214712]
+      },
+      {
+        "Rs_ohm_each": 50000.0,
+        "assumed_Cm_pF": 10.0,
+        "points": 241,
+        "native_formula_max_abs_V_per_V": 1.0392721340717842e-17,
+        "exact_H_magnitude_at_50_60_1000_Hz": [0.0001550041744933669, 0.0001849400115014065, 0.0009151536616430914],
+        "peak_uV_for_10mV_peak_aggressor_at_50_60_1000_Hz": [1.550041744933669, 1.8494001150140649, 9.151536616430914]
+      }
+    ],
+    "native_control_errors_V_per_V": {"n": 0.0, "balanced": 1.4304896245381995e-17, "none": 0.0},
+    "native_runs": 7
+  },
+  "experiment_limits": {
+    "mutual_C_not_extracted": true,
+    "source_and_C_values_illustrative_not_requirements": true,
+    "ideal_aggressor_no_back_action": true,
+    "same_C_on_both_legs_cancels_only_in_symmetric_model": true,
+    "PGA_digital_filter_aliasing_supply_PSRR_magnetic_cable_fields_excluded": true,
+    "exact_table_frequencies_are_calculated": [50, 60, 1000],
+    "native_log_grid_points_each": 241,
+    "actual_native_cases": 7,
+    "incorrect_zero_result_software_double_rejected": true,
+    "not_project_tests_or_physical_experiments": true
+  },
+  "decision": {
+    "status": "retain_copper_pending_stackup_and_budget_not_waived",
+    "next_slice": "vendor four-layer stackup plus bounded person-disconnected input/coupling envelope",
+    "missing_inputs": [
+      "vendor_stackup_and_dielectric_copper_tolerances",
+      "supported_source_load_range",
+      "aggressor_node_spectra",
+      "measurement_bandwidth_rate_gain",
+      "coherent_and_broadband_error_budgets",
+      "calibrated_measurement_floor_and_uncertainty"
+    ],
+    "pre_pilot_fabrication": "separate_release_review_requires_defined_inputs_and_combined_reroute_or_explicit_pilot_risk_acceptance",
+    "physical_validation": "later_person_disconnected_measurements_not_a_pre_first_PCB_requirement",
+    "release_gate_changes": false,
+    "issues_remain_open": [45, 48]
+  },
+  "crossing_counts": {"raw_segment_pairs": 18, "unique_positions": 9, "net_pairs": 6},
+  "positions": [
+    {"B": "CH3N_DUMMY", "In2": "AVDD", "xy_mm": [20.5, 36.95]},
+    {"B": "CH3N_DUMMY", "In2": "AVDD", "xy_mm": [24.9, 33.15]},
+    {"B": "CH3N_DUMMY", "In2": "CH2N_DUMMY", "xy_mm": [19.7, 37.1]},
+    {"B": "CH3P_DUMMY", "In2": "AVDD", "xy_mm": [20.5, 40.8]},
+    {"B": "CH3P_DUMMY", "In2": "AVDD", "xy_mm": [24.9, 38.45]},
+    {"B": "CH3P_DUMMY", "In2": "CH2N_DUMMY", "xy_mm": [19.7, 40.8]},
+    {"B": "CH4N_DUMMY", "In2": "AVDD", "xy_mm": [20.5, 39.6]},
+    {"B": "CH4N_DUMMY", "In2": "AVDD", "xy_mm": [24.9, 35.5]},
+    {"B": "CH4N_DUMMY", "In2": "CH2N_DUMMY", "xy_mm": [19.7, 39.6]}
+  ],
+  "baseline_completed": {
+    "head": "b88d3746f5f2c72dd60ffbb201213ac9010b19a4",
+    "command": "uv run --locked --all-extras python -m tools.check --native --schematic --out reports/upstream-ready-baseline",
+    "clean_source": true,
+    "ordinary": 1091,
+    "subtests": 14,
+    "native_integration": 98,
+    "native_KiCad": 152,
+    "console_subset_of_98": 22,
+    "branch_percent": 86.06060606060606,
+    "branch_floor_percent": 71,
+    "not_final_head_evidence": true
+  },
+  "reproducer_code_sha256": "139484b5bccb96fbad0785200669bd772dfd359ccc00f455c1b4e9bfa880cca5"
+}
