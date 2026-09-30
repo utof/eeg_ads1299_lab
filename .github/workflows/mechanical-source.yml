@@ -1,0 +1,37 @@
+name: Mechanical envelope source
+on:
+  push:
+    branches: [workbench/mechanical-envelope]
+    paths: [.github/workflows/mechanical-source.yml]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 8c3440ed6714bfebaac74768a0d371401a22e89e
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Retain exact authored source and history
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = 8c3440ed6714bfebaac74768a0d371401a22e89e
+          test "$(git rev-parse HEAD^{tree})" = 81acc1aa34c29faa7a0305d2247826909a6c2f13
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/source"
+          git branch mechanical-source HEAD
+          git bundle create "$RUNNER_TEMP/source/repository.bundle" mechanical-source
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/source/identity.txt"
+          sha256sum hardware/rev_a/layout/rev_a.kicad_pcb > "$RUNNER_TEMP/source/board.sha256"
+          cd "$RUNNER_TEMP/source"
+          sha256sum repository.bundle identity.txt board.sha256 > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mechanical-envelope-source
+          path: ${{ runner.temp }}/source/
+          if-no-files-found: error
+          retention-days: 7
