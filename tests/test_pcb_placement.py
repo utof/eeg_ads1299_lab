@@ -318,7 +318,7 @@ SIGNAL_CUTS = {
     "CH3P_DUMMY": "423e3117-7b50-5213-9337-83c4b21f4214",
     "CH2N_DUMMY": "dfff8551-3136-5437-8922-c94708f32915",
     "CH2P_DUMMY": "452d3ac7-1b75-5924-8b66-1123f4e983a6",
-    "CH1N_DUMMY": "5fc9d738-626b-58ea-9dad-ee99dec1ccca",
+    "CH1N_DUMMY": "e7cc5552-486b-5d02-b363-0e9a464669eb",
     "CH1P_DUMMY": "2f3b2335-09b2-515c-8a53-2300b2e2e909",
 }
 
@@ -1152,3 +1152,116 @@ def test_ch1n_corridor_avoids_unshielded_back_layer_copper(
     assert all(report[k] == [] for k in ("violations", "schematic_parity", "unconnected_items"))
     row = _ch1n_reference(cad / "rev_a.kicad_pcb")
     assert _ch1n_reference_ok(row), row
+
+
+_CH1N_MUTATION_SCRIPT = r"""
+import sys
+import pcbnew as p
+assert p.Version() == "9.0.2"
+b = p.LoadBoard(sys.argv[1])
+change = sys.argv[2]
+items = [t for t in b.GetTracks() if t.GetNetname() == "CH1N_DUMMY"]
+traces = [t for t in items if t.Type() != p.PCB_VIA_T]
+code = traces[0].GetNetCode()
+
+def point(xy):
+    return p.VECTOR2I(p.FromMM(xy[0]), p.FromMM(xy[1]))
+
+def route(layer, points):
+    for a, z in zip(points, points[1:]):
+        t = p.PCB_TRACK(b)
+        t.SetStart(point(a)); t.SetEnd(point(z))
+        t.SetLayer(layer); t.SetNetCode(code); t.SetWidth(p.FromMM(0.2))
+        b.Add(t)
+
+if change == "restore-crossing":
+    # The specific pre-repair CH1N route, not another canonical board. Restore
+    # only this net; all three DNP overlaps and the CH3N overlap remain DRC-clean.
+    for t in items:
+        b.Remove(t)
+    route(p.F_Cu, [(17.54,32),(17.55,32),(25.9,32),(25.95,31.95),(26.6,31.95),(27,32.35)])
+    route(p.In2_Cu, [(27,32.35),(27,33.65),(29.5,36.15),(29.5,40.8),(31.7,43)])
+    route(p.F_Cu, [(31.7,43),(31.7,44.2),(31.675,44.225)])
+    for xy in [(27,32.35),(31.7,43)]:
+        v = p.PCB_VIA(b)
+        v.SetPosition(point(xy)); v.SetViaType(p.VIATYPE_THROUGH)
+        v.SetLayerPair(p.F_Cu, p.B_Cu); v.SetWidth(p.FromMM(0.6))
+        v.SetDrill(p.FromMM(0.3)); v.SetNetCode(code); b.Add(v)
+elif change == "back-corridor":
+    inner = [t for t in traces if t.GetLayer() == p.In2_Cu]
+    assert inner
+    for t in inner:
+        t.SetLayer(p.B_Cu)
+elif change in ("plane-window", "off-route-window"):
+    x = 34.6 if change == "plane-window" else 36.0
+    z = p.ZONE(b)
+    z.SetLayer(p.In1_Cu); z.SetIsRuleArea(True)
+    z.SetDoNotAllowCopperPour(True)
+    z.SetDoNotAllowTracks(False); z.SetDoNotAllowVias(False)
+    z.SetDoNotAllowPads(False); z.SetDoNotAllowFootprints(False)
+    z.Outline().NewOutline()
+    for xy in [(x,34.8),(x+0.6,34.8),(x+0.6,35.2),(x,35.2)]:
+        v = point(xy); z.Outline().Append(v.x, v.y)
+    b.Add(z)
+elif change == "reverse":
+    for t in traces:
+        a, z = p.VECTOR2I(t.GetStart()), p.VECTOR2I(t.GetEnd())
+        t.SetStart(z); t.SetEnd(a)
+elif change == "subdivide":
+    t = max(traces, key=lambda t: t.GetLength())
+    a, z = p.VECTOR2I(t.GetStart()), p.VECTOR2I(t.GetEnd())
+    mid = p.VECTOR2I((a.x+z.x)//2, (a.y+z.y)//2)
+    tail = p.PCB_TRACK(b)
+    tail.SetStart(mid); tail.SetEnd(z); tail.SetLayer(t.GetLayer())
+    tail.SetWidth(t.GetWidth()); tail.SetNetCode(code)
+    t.SetEnd(mid); b.Add(tail)
+else:
+    raise ValueError(change)
+p.SaveBoard(sys.argv[1], b)
+"""
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize(
+    "change,accepted",
+    [
+        ("restore-crossing", False),
+        ("back-corridor", False),
+        ("plane-window", False),
+        ("off-route-window", True),
+        ("reverse", True),
+        ("subdivide", True),
+    ],
+)
+def test_ch1n_guard_distinguishes_connected_faults_from_benign_edits(
+    tmp_path: Path, change: str, accepted: bool
+) -> None:
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    board = cad / "rev_a.kicad_pcb"
+    shutil.copyfile(BOARD, board)
+    result = subprocess.run(
+        [
+            os.environ.get("KICAD_PYTHON", "/usr/bin/python3"),
+            "-c",
+            _CH1N_MUTATION_SCRIPT,
+            str(board),
+            change,
+        ],
+        capture_output=True,
+        text=True,
+        timeout=45,
+        env=dict(os.environ, KICAD_CONFIG_HOME=str(cad / "mutation-config")),
+    )
+    (cad / "mutation.log").write_text(result.stdout + result.stderr)
+    assert result.returncode == 0, result.stdout + result.stderr
+    report = _native_report(cad)
+    assert all(report[k] == [] for k in ("violations", "schematic_parity", "unconnected_items"))
+    row = _ch1n_reference(board)
+    assert _ch1n_reference_ok(row) is accepted, row
+    if change == "restore-crossing":
+        assert row["unshielded_partners"] == ["CH3N_DUMMY", "IN2P", "IN3P", "IN4P"]
+    else:
+        assert row["unshielded_partners"] == []
+    if change == "plane-window":
+        assert row["layers"] == ["F.Cu", "In2.Cu"]  # Fails reference, not layer policy.
