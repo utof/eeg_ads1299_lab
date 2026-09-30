@@ -1,112 +1,117 @@
 # Continue from this repository
 
-**Current checkpoint: selected stackup design target and numerical E1 bench envelope.**
-No prior chat/ZIP is needed. Read root `AGENTS.md`, this checkpoint and live Git/PR
-state before choosing the next bounded task. A missing chat reply is not proof
-that source work was lost.
+**Current checkpoint: capacitor E1 shortlist and node-specific qualification matrix.**
+No previous chat or ZIP is required. Read root `AGENTS.md`, this file and live
+Git/PR state before changing source. A missing chat report is not evidence that
+work was lost.
 
-## Start here
+## Start from the actual published source
 
-Fetch main/open PRs; record actual SHA/tree and `git status --short`. Preserve
-other people's uncommitted work. PR #67 is merged as
-`8403c4eefc6fd6f1303a75510755f16f983e71c4`, tree
-`4f5bebbc578c15f63c3463f2b3cef0bd28fbdfa9`. The requirements continuation is on
-`docs/stackup-bench-envelope`: inspect its live PR head/checks/review until
-merged, then use current main. Recheck head/base, diff, conflicts, reviews and
-actual exact-head CI before merging. Do not repeat the completed AVDD1,
-MISO/DRDY or CH1N copper repairs. A queued check or an old result is not a pass.
+Fetch main and open PRs; record actual SHA/tree and `git status --short`.
+Preserve other people's uncommitted work. PR #68 is merged as
+`905347aa361669af0634fd84688b1ce7b3755e07`, tree
+`998bc610dc5d956967dad697e5a0623495c94357`. The capacitor continuation is on
+`review/capacitor-e1`: inspect its live head/checks/review until merged, then
+use current main. Recheck head/base, actual diff, conflicts, reviews and
+exact-head CI before a merge. Never count queued, inherited or superseded
+runs as a pass for a later head.
 
-Canonical authored board: `hardware/rev_a/layout/rev_a.kicad_pcb`. Project,
-three schematic sheets and local libraries: `hardware/rev_a/kicad/`. Never
-regenerate this board with the parking-grid importer; its deliberately unrouted
-test output is not the authored layout. Read `DEVELOPMENT.md` and
-`HARDWARE_BASELINE_REV_A.md` before source changes.
+Canonical authored PCB: `hardware/rev_a/layout/rev_a.kicad_pcb`. Project,
+three schematic sheets and local libraries: `hardware/rev_a/kicad/`.
+Never regenerate the authored board with the parking-grid importer; its
+intentionally unrouted test output is not this board. Read `DEVELOPMENT.md`
+and `HARDWARE_BASELINE_REV_A.md` before source changes.
 
-## State and next bounded task
+## Current result and next bounded task
 
-Board SHA256 remains
+The board remains SHA256
 `5da65b4307f0336883da9aeae48711b28c1944ec587f5d3174f12db4e9921875`:
 582 segments,122 vias,68 footprints,245 pads. These are dated identity facts,
-not permanent constraints on reviewed repairs. This assessment changes no copper,
-BOM, schematic, firmware, model, dependency, rule or approval gate.
+not permanent constraints on later reviewed repairs. This continuation changes
+only documentation/evidence, not CAD, BOM, production code/model, dependencies,
+rules or approval flags.
 
-Read **`REV_A_STACKUP_BENCH_REQUIREMENTS.md`** and
-`checkpoints/20260930_stackup_bench_envelope.json` before further requirements or
-coupling decisions. They select **JLCPCB JLC04161H-7628** as the design target:
-1.6mm, 1oz outer/0.5oz inner, nominal pressed outer gaps0.2104mm/core1.065mm;
-retain F / In1 GND / In2 routed / B. Nan Ya NP-155F is the material target from
-the vendor calculator guide, not a confirmed order/lot. Public 35um/40.64um
-outer-copper and4.6/4.43 core-Dk differences are explicitly recorded.
-**Factory drawing, material availability and per-layer tolerances remain
-unconfirmed.** Overall +/-10% board thickness is NOT a per-gap guarantee. A
-prepared vendor request is in the document; it was not sent. Do not write this
-unconfirmed target into fabrication outputs or call it released. Proposed
-0.17-0.25mm/Dk4.0-4.8 sensitivity intervals are not vendor bounds.
+Read **`REV_A_CAPACITOR_E1_DECISION.md`** and
+`checkpoints/20260930_capacitor_e1.json`. The review maps33 fitted capacitors
+to their actual networks. Four old bulk instances have discontinued cores;
+22 old1-uF/100-nF instances have planned-stop cores; five C0G instances have
+in-production cores. Historical source snapshots remain unchanged. Core status
+is not exact-orderable stock or a last-buy guarantee.
 
-**E1 is a new limited dummy-bench design target, not the user's measured
-electrodes or a general EEG qualification.** Core source1-10kohm per leg,
-0.1%P/N matching; fixture<=100pF/leg and<=1pF mismatch, to be measured. Actual
-AFE load remains unchanged/unknown beyond datasheet characteristics. Core
-1-40Hz,250SPS,gain24;10uV-10mVpeakAC with<=50mVDC differential offset and
-<=60mVtotal; instantaneousCM2.40-2.60V;AVDD4.75-5.25V including ripple.
-Total noise<=0.50uVrms; coherent aggregate<=0.50uVpeak at each victim/frequency.
-Input-channel total allocation0.20uVpeak for up tothree10mVpeak aggressors;
-AVDD1mVpeak, common10mVpeak anddigitalactivity each allocate0.10uVpeak.
-Use uncertainty-inclusive bounds with no cancellation; coherent class U95
-<=0.03uVpeak andnoiseU95<=0.05uVrms. No inverse-filter correction of noise/error;
-10Hz-normalized transfer-shape check is separate. See the document for the
-exact matrix, sampling/PSD andalias-sensitive spot tests: fMOD=fCLK/2=1.024MHz,
-4096*actual sample rate, not an assumed zero at a nominal sinc notch.
-100k/100k and1k/100k are separately reported stress cases outside E1. Do not
-relabel an E1failure as stress. None of the fixture/source/instrument floor,
-real spectra, power-up orphysical performance has been validated.
+New qualification identities: **GRM188R61C105KA12D**,1uF/X5R/16V/0603, and
+**GRM188R72A104KA35D**,100nF/X7R/100V/0603. The previously identified bulk-L
+**GRM21BR61C106KE15L** remains the10-uF target. These are a shortlist, not
+substituted BOM parts. The D suffixes come from dated manufacturer-authored
+references, not guessing. Manufacturer coreB versus the100-nF retailer NRND
+warning remains unresolved. Current approval/assembly data and guaranteed
+biased-C minima are not obtained; all three minimum fields remain null.
+The1-uF target reduces25V to16V and needs internal VCAP pin-specific review,
+not simply an external5-V rail comparison.
 
-The nine residual upstream B/In2 locations remain ONE OPEN six-pair coupling
-item. E1 provides numbers for the next pilot-risk/rework decision, not acceptance
-of the existing copper. The restricted mutual-C example was repeated at1k/10k/
-100k, with six unique native cases/seven executions and a separate723-point
-four-node KCL check. It does not extract capacitance, include actual silicon/
-aliases/PSRR, or guarantee E1. Updated reproduction blocks and results are in
-the requirements document/JSON. Analysis cases are not added project tests.
+The local regulator input/output pairs are2uF nominal each. Output effective
+network0.47–200uF/ESR<=0.1ohm is NOT a criterion for every cap. VREF's10-uF
+minimum and VCAP's specified100uF/1uF/1uF+0.1uF/1uF connections are separate.
+T491 ESR2.2/0.7ohm belongs to reference/VCAP1, not the LDO output. Total nominal
+VIN/AVDD/DVDD is12.1/26.2/14.1uF; do not count all four bulk parts onAVDD.
+Typical plots and initial-tolerance arithmetic do not qualify real minima,
+startup, noise, aging or assembly.
 
-**Next independently actionable source slice: #48 capacitor lifecycle and
-effective-capacitance closure.** Resolve the actual shortlisted values/MPNs,
-voltage/temperature derating and assembly constraints against this fixed E1
-scope. Do not restart an unlimited simulation or nine independent reroutes.
-In parallel, #45 needs the named factory drawing and a separately reviewed,
-calibrated dummy fixture/measurement-chain plan. Continue finite component,
-mechanical andinterface work while awaiting those facts; never mark missing
-supplier values confirmed. Once confirmed geometry and fixture feasibility are
-known, choose a combined upstream reroute or a separate bounded pilot-risk
-review. No pilot fabrication orpoweredtest authorization is granted here.
+**Next independently executable source slice: mechanical/assembly envelope
+review.** Use the named capacitor bodies/heights, existing T491 density-B
+lands, headers/mates and required access/clearance. The bulk target's maximum
+height is0.40mm greater than the old part;0805 alone does not prove clearance.
+Do not add arbitrary mounting holes or rebuild the layout before an envelope
+is selected. Keep #48's exact lifecycle/approval/biased-C/impedance requests and
+#45's factory/interface questions explicit while advancing finite source work.
+No supplier request has been sent and no part purchased. Do not spend the next
+turn merely rediscovering the same catalog.
 
-Local source capture36720518554 checked exactmain8403 andits tree/board. The
-baseline ordinary gate passed1091tests+14subtests and86.06%branches; it did NOT
-run localnative/KiCad/S3. Read the requirements PR's actual final-head checks
-for newer evidence. Tools/caches and earlier passes are not proof of execution.
+After applicable evidence or an explicitly reviewed limited pilot-part risk
+disposition exists, use ONE synchronized BOM/schematic/PCB-field/test migration.
+Trace all26 affected instances; internal VCAP roles may differ from rail roles.
+Do not change only BOM strings, transfer D to the bulk-L target, rewrite old
+snapshot tests or quietly mark missing minima qualified. A first board cannot
+supply premanufacture measurements; pilot release review and later physical
+validation are distinct. Neither is authorized by this checkpoint. #48 stays
+OPEN rather than being closed by a new shortlist.
 
-## Preserve previous work and its limits
+## Preserve E1, previous repairs and their limits
 
-PR #62 fixed AVDD1 and three guard traversal gaps. Keep the longer VCAP3/C24
-and AVDD56/C14 routes visible in whole-board review. PR #64 repaired MISO/DRDY
-long spans and the arc-screen bug; DRDY remains44.132mm authored total and
-parallel spacing/real edges/cables remain unqualified. PR #66 removed all four
-CH1N unshielded overlaps but lengthened that route to33.884mm with18.588mm
-on In2; it is not front-only. Existing targeted native guards remain active.
+`REV_A_STACKUP_BENCH_REQUIREMENTS.md` selects JLCPCB JLC04161H-7628 as the
+DESIGN TARGET, not a confirmed fabrication stack:1.6mm,1oz outer/0.5oz inner,
+nominal0.2104mm outer gaps/core1.065mm, F/In1GND/routedIn2/B. NP-155F is a
+material target, not confirmed availability. Public35/40.64um copper and
+4.6/4.43coreDk discrepancies, per-layer tolerances and via DFM remain open.
+Prepared factory questions were not sent. Overall +/-10% thickness is not a
+per-gap bound; proposed analysis intervals are not supplier worst-case limits.
 
-The eight required R/C/U1 input paths remain front-only; their0.435mm P/N
-centreline differences and the4.5mm DNP-branch difference are NOT electrical
-balance/noise guarantees. The earlier ground-C sensitivity example is different
-from the new upstream mutual-injection example. Do not treat an unpopulated
-diode footprint as absent copper or qualified protection.
+E1 is a limited calibrated dummy-source design target, NOT measured electrodes
+or scalp qualification:1–10kohm per leg,0.1%matching; fixture<=100pF/leg,
+<=1pF mismatch to be measured. Existing250SPS/gain24,1–40Hz;10uV–10mVpeakAC,
+<=50mVDC differential and<=60mVtotal; instantaneousCM2.40–2.60V andAVDD4.75–5.25V
+including ripple. Noise<=0.50uVrms; coherent aggregate<=0.50uVpeak, with the
+published class allocations and uncertainty. ClassU95<=0.03uVpeak andnoiseU95
+<=0.05uVrms are not demonstrated fixture capabilities.100k/asymmetric cases
+are reported stress outsideE1; never relabel failed core cases as stress.
+Use actual sample rate and the explicit alias-sensitive spots. No inverse
+filtering/notching or assumed phase cancellation may turn a failure into a pass.
+No external dummy acquisition, BIAS, lead-off or SRB mode was enabled.
 
-Read the detailed AVDD1, digital-output, input-layout and CH1N review documents
-for exact source-bound geometry. Temporary investigation helpers/outputs are
-not alternative source or instructions to overwrite later edits. Original
-reconstructed07edcacc history remains reachable; the separate chat-local1689234
-and issue45's76502e7 variants must not be overlaid onto current main.
+The nine residual upstream B/In2 locations remain one OPEN six-pair coupling
+item for confirmed construction and separate combined-repair/pilot-risk review.
+The prior hypothetical mutual-C example is not extracted PCB capacitance or
+actual E1 loading. Do not start another unlimited simulator or nine automatic
+reroutes. The AVDD1, MISO/DRDY and CH1N repairs are already merged. Keep longer
+VCAP3/C24 and AVDD56/C14 paths,44.132mm DRDY and33.884mm CH1N, actual edges,
+barrels/cables and the4.5mm DNP-branch imbalance explicit. Existing targeted
+native geometry guards remain active. Read the detailed repair reports rather
+than rerunning authoring helpers over current source.
 
-## Reproduce and inspect
+The original reconstructed07edcacc history remains reachable. The separate
+chat-local1689234 and issue45's76502e7 variants are different unmerged sources;
+do not overlay them onto current main.
+
+## Reproduce and verify
 
 ```sh
 uv sync --locked --all-extras
@@ -115,15 +120,21 @@ uv run --locked --all-extras python -m tools.check --native --schematic
 uv run --locked --all-extras python -m tools.check --firmware
 ```
 
-Install the required native tools first. `uv.lock` is authoritative; KiCad9.0.2
+Install declared native tools first. `uv.lock` is authoritative; KiCad9.0.2
 engine/libraries are pinned in `.github/workflows/schematic.yml`. Arduino setup
-is in `firmware/toolchain.json` and its workflow. Executable fresh-runner setup
-does not mean the next sandbox has those tools. Missing tools/network/cache
-must fail, not be skipped into a pass. Avoid concurrent environment resync.
-Read this requirements PR's actual final-head checks/review, not just an older
-pass. Baseline, analysis, final-head and post-merge execution are distinct.
+is in `firmware/toolchain.json` and its workflow. Executable CI setup is not
+proof of tools in a sandbox. Missing tools/network/cache are blockers, not
+skipped passes. Avoid concurrent environment resync. Native CAD, host helpers,
+actual target compilation and physical tests are different scopes.
 
-For a disposable native project copy, never an importer regeneration:
+Source capture36732187218 restored exact905347 from GitHub. The local baseline
+ordinary gate passed1091tests+14subtests and86.06%branches with71%floor unchanged;
+it did not run local native CAD or S3 compilation. Read the capacitor PR's live
+final-head results and review. The executable accounting/corrupt-data controls
+are analysis checks, not new project tests. Transient artifacts may expire;
+the dated facts, candidate identities and reproduction code are committed.
+
+A disposable native inspection copy, never importer regeneration:
 
 ```sh
 set -eu
@@ -133,33 +144,26 @@ cp hardware/rev_a/layout/rev_a.kicad_pcb "$review_dir/rev_a.kicad_pcb"
 printf 'Open %s/rev_a.kicad_pro\n' "$review_dir"
 ```
 
-Deliberately transfer reviewed edits back to canonical tracked paths; temporary
-copy edits are not committed source. Retain small durable evidence in Git;
-expired CI logs can be regenerated, not demanded from an old chat.
+Transfer reviewed edits back to canonical tracked paths deliberately; changes
+in a disposable copy are not committed source.
 
-## Finish each slice
+## Finish each slice and respect scope
 
-Publish source/tests/necessary small inputs to a named PR; read back its head,
+Publish source/tests/necessary small inputs to a named PR, read back the head,
 update this checkpoint and `REV_A_COMPLETION_ROADMAP.md`, and record commands,
-actual source SHA and outcome. Distinguish local/hosted, new/inherited and
-published/unpublished work. Required checks/review precede merge; preserve
-history with a merge commit. Keep WIP discoverable in a PR, not solely a sandbox
-or attachment. Report TLDR, then category/remaining-turns/status/next-slice table,
-then useful evidence and the specific next task. Test-count growth is not design
-progress; analysis checks are not project tests.
+actual source SHA and outcomes. Distinguish local/hosted, new/inherited and
+published/unpublished work. Required review/checks precede merge; preserve
+history with a merge commit. Keep WIP in an open PR, not solely a sandbox/chat.
+Report TLDR, then category/remaining-turns/status/next-slice table, useful
+verification and the specific next bounded step. Test-count growth is not
+engineering progress; an analysis probe is not another project test.
 
-## User constraints and unresolved release work
-
-The user is an electronics beginner preferring explained, test-first bounded
-slices. Additional spending target is$100, not a delivered quote. Unspecified
-owned ESP32/Arduino/electrodes do not confirm selected ADS/S3 purchase or actual
-electrode suffix/lead properties. Family bounds are not user measurements.
-Keep #45/#48 open: final stackup, capacitor lifecycle/effective-C, mounting,
-connector mates/assembly, actual console/rail-loss behavior and delivered budget
-still need resolution. Do not recreate the already-published logical pin map;
-the remaining interface question concerns actual wiring and operating behavior.
-
-All hardware/purchase/release/body-use flags remain false. BIAS, lead-off and
-external acquisition are not enabled by routing. No person/animal connection,
-purchasing, fabrication or powered connection is authorized by this checkpoint.
-Body use remains a separate later revision and review.
+The user is an electronics beginner who prefers explained, test-first bounded
+slices. The extra-parts target is$100, not a delivered or instrumentation quote.
+Owned unspecified ESP32/Arduino/electrodes do not establish ADS/S3 purchase,
+board revision, electrode suffix or measured lead properties. Keep #45/#48 open
+for remaining supplier/stackup, component, mechanical/mating/assembly, actual
+console/rail-loss and delivered-budget decisions. The logical pin map exists;
+the remaining interface work is actual wiring/operating behavior, not another
+pin list. All purchasing, fabrication, powered-connection and body-use gates
+remain unchanged/false. Body use is a separate later revision and review.
