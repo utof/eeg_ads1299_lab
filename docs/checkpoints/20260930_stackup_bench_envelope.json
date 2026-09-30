@@ -271,7 +271,7 @@
       }
     ],
     "full_scale_peak_V": 0.1875,
-    "LSB_nV": 22.35174445530706,
+    "LSB_nV": 22.351741790771484,
     "max_diff_V": 0.06,
     "common_mode_allowed_at_min_rail_V": [
       0.9199999999999999,
@@ -324,6 +324,7 @@
         23,
         25,
         26,
+        38,
         46
       ],
       "tables_and_equations_inspected_as_images": true
@@ -345,7 +346,7 @@
   "reproduction_checks": {
     "both_exact_document_blocks_executed": true,
     "blocks_sha256": [
-      "8fb21641e2294b58d2ef9ea5cc784ae245179a80817eabd6fc6f9c4c03194bdf",
+      "847db404dfc7ab7ac27f9bcaba0997f0bb9e37d369452a74410bafb3c5a50215",
       "2da96dc299c53e825707b6d1b3b5a0dc467985ba2f4729464eed08a8c4a27160"
     ],
     "incorrect_zero_native_output_software_double_rejected": true,
@@ -363,6 +364,14 @@
       "both_corrected_exact_blocks_executed": true,
       "conditional_C_limit_method": "80-step bisection, bracket checked and 0.99/1.01 perturbations cross the budget",
       "observed_residuals_not_bitwise_portability_contract": true
+    },
+    "code_scale_review_fix": {
+      "finding": 4145477875,
+      "old_example_disagreed_with_ADCConfig": true,
+      "TI_equation": 8,
+      "nominal_LSB_V": "Vref/(gain*2^23)",
+      "corrected_example_asserts_existing_ADCConfig_lsb_v": true,
+      "production_code_unchanged": true
     }
   }
 }

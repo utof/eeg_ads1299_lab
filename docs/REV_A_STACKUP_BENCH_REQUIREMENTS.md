@@ -95,7 +95,7 @@ Fixture/startup/interface review is required before any later powered test.
 | Record | At least 64 s AFTER 2 s of settling; measure actual sample rate, do not assume exactly 16000 samples or ideal clock frequency; no missing/clipped frames |
 
 All error/noise voltages are ADC-input-equivalent values from calibrated code
-scale (nominally Vref/gain/(2^23-1) per code), **without inverse-filter equalization**.
+scale (nominally Vref/(gain*2^23) per code, TI Equation 8), **without inverse-filter equalization**.
 Coupling H includes the actual acquisition filtering; its denominator is the
 measured aggressor node amplitude. Transfer-shape calibration above is separate
 from noise/interference acceptance, not permission to rescale a failure away.
@@ -221,10 +221,17 @@ blocks. They are software/data probes, not native circuit faults or new project
 tests. The corrected exact blocks then completed the actual calculations and
 six unique native cases again, without changing the requirements or PCB.
 
+Follow-up4145477875 found that the nominal code-scale expression disagreed with
+TI Equation8 and the existing `ADCConfig.lsb_v` contract. A direct comparison
+failed before correction. The prose, derived value and checkpoint now use
+`Vref/(gain*2^23)`, or22.351741790771484nV/code for4.5V/gain24; the first block
+also checks agreement with the existing API. No production conversion changed.
+
 ```python
 import json
 import math
 from pathlib import Path
+from lab.adc import ADCConfig
 
 p = json.loads(Path("hardware/rev_a/board_profile.json").read_text())
 checkpoint = json.loads(Path("docs/checkpoints/20260930_stackup_bench_envelope.json").read_text())
@@ -262,12 +269,15 @@ calculated = {
     "selected_nominal_stack_sum_mm": selected,
     "comparison_3313_sum_mm": comparison,
     "full_scale_peak_V": reference / gain,
-    "LSB_nV": reference / (gain * (2**23 - 1)) * 1e9,
+    "LSB_nV": reference / (gain * 2**23) * 1e9,
     "max_diff_V": max_diff,
     "common_mode_allowed_at_min_rail_V": headroom,
     "selected_instantaneous_CM_V": chosen_cm,
     "white_independent_sine_fit_95_uV": 1.96 * 0.5 * math.sqrt(2 / (64 * fs)),
 }
+# Equation 8 must also match the established project's code-to-volts contract.
+adc = ADCConfig(gain=gain, vref_v=reference, fs_hz=fs)
+assert math.isclose(calculated["LSB_nV"], adc.lsb_v * 1e9, rel_tol=1e-12, abs_tol=0)
 # Derived numbers are computed above independently of the retained result values.
 for key, value in calculated.items():
     actual_values = value if isinstance(value, list) else [value]
@@ -443,7 +453,7 @@ calculation parameters: https://jlcpcb.com/help/article/user-guide-to-the-jlcpcb
 raw thickness and finished copper: https://jlcpcb.com/help/article/multi-layer-pcb-standard-laminated-structures
 [4] JLCPCB rigid capabilities, thickness/trace/hole constraints:
 https://jlcpcb.com/capabilities/pcb-capabilities/
-[5] TI ADS1299-x SBAS499C, pp9,17,23,25-26,46 (tables/equations inspected as page
+[5] TI ADS1299-x SBAS499C, pp9,17,23,25-26,38,46 (tables/equations inspected as page
 images): https://www.ti.com/lit/ds/symlink/ads1299.pdf
 
 The stack page has no immutable revision/commit identifier. Its inspected
