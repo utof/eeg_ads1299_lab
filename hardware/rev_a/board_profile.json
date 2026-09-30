@@ -145,7 +145,7 @@
   },
   "interface_headers": {
     "J_DIG": {
-      "mpn": "TSW-110-07-T-D",
+      "mpn": "HTSW-110-07-T-D",
       "pin_map": {
         "1": "SCLK",
         "2": "DGND",
@@ -170,7 +170,7 @@
       }
     },
     "J_INPUT": {
-      "mpn": "TSW-110-07-T-D",
+      "mpn": "HTSW-110-07-T-D",
       "pin_map": {
         "1": "CH1P_DUMMY",
         "2": "CH1N_DUMMY",

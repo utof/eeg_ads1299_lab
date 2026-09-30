@@ -1,5 +1,14 @@
 # Rev A physical harness and application console — review candidate
 
+K1 update (2026-09-30): both AFE headers are now HTSW-110-07-T-D; the electrical
+map below is unchanged. `REV_A_CONNECTOR_K1.md` selects a single-ended IDSD cable
+configuration and differently coded external cartridges as the harness design
+route. Neither the bare cable nor a PCB-tail reference socket is an approved
+keyed/live adapter. Verify actual conductor identity and separately review
+terminations, carrier/strain relief, soldering and powered-off behavior. No
+external acquisition or powered-connection gate is enabled by this update.
+
+
 This closes the logical-GPIO-to-physical-header gap after PR #43. It does not
 release a cable, PCB, console adapter or live setup. All existing hardware,
 purchasing, external-input and body-use gates remain false. Component families,

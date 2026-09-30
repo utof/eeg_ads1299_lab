@@ -1,65 +1,75 @@
 # Continue from this repository
 
-**Current checkpoint: mechanical envelope M1 and connector process constraint.**
-No previous chat or ZIP is required. Read root `AGENTS.md`, this file and live
-Git/PR state before changing source. A missing chat report is not evidence that
-work was lost.
+**Current checkpoint: K1 high-temperature header migration and coded harness design.**
+No prior chat or ZIP is needed. Read root `AGENTS.md`, this file and live Git/PR
+state. PR #70 is merged as `a55ce97a6029a4759d23f1f528feda3c5a0dc6b8`, tree
+`71d3525fcd66da39e5306d596801b3fb40d03c16`. The K1 continuation is on
+`fix/connector-k1`: read its live PR/head/checks/review until merged, then use
+current main. Recheck head/base, diff, conflicts and actual exact-head CI before
+merge. Preserve unrelated work and never count an inherited pass as a new run.
 
-## Start from the actual published source
-
-Fetch main and open PRs; record actual SHA/tree and `git status --short`.
-Preserve other people's uncommitted work. PR #69 is merged as
-`8c3440ed6714bfebaac74768a0d371401a22e89e`, tree
-`81acc1aa34c29faa7a0305d2247826909a6c2f13`. The mechanical continuation is on
-`review/mechanical-envelope`: inspect its live head/checks/review until merged, then
-use current main. Recheck head/base, actual diff, conflicts, reviews and
-exact-head CI before a merge. Never count queued, inherited or superseded
-runs as a pass for a later head.
-
-Canonical authored PCB: `hardware/rev_a/layout/rev_a.kicad_pcb`. Project,
-three schematic sheets and local libraries: `hardware/rev_a/kicad/`.
-Never regenerate the authored board with the parking-grid importer; its
-intentionally unrouted test output is not this board. Read `DEVELOPMENT.md`
-and `HARDWARE_BASELINE_REV_A.md` before source changes.
+Canonical PCB: `hardware/rev_a/layout/rev_a.kicad_pcb`; native project/sheets:
+`hardware/rev_a/kicad/`. Never regenerate the authored board with the parking-grid
+importer. Read `DEVELOPMENT.md` and `HARDWARE_BASELINE_REV_A.md` before edits.
 
 ## Current result and next bounded task
 
-Read **`REV_A_MECHANICAL_ENVELOPE.md`** and its
-`checkpoints/20260930_mechanical_envelope.json` first. M1 selects a hole-free
-external nonconductive edge-carrier concept, independently supported MCU and
-strain relief. Current outline is78x58mm, not the78.05x58.05 stroked graphic box.
-Four1.5x6mm surface contact allocations and8x28mm header mating allocations
-were screened against native outside copper/courtyard bounding boxes. No carrier,
-physical force/material/insulation or actual plug fit has been validated; buried
-copper remains, so these are not drilling sites. Candidate bulk1.35mm height
-fits below existing C6's3.10mm reference maximum, without qualifying a BOM swap.
+Read **`REV_A_CONNECTOR_K1.md`** and
+`checkpoints/20260930_connector_k1.json`. The two board headers are now
+**HTSW-110-07-T-D**, selected for the high-temperature LCP/lead-free-compatible
+family. BOM/profile/native schematic and PCB fields plus freshly generated
+native-export fixtures were changed together. The pin map, all 40 header pads,
+1.00mm drills and all routing/zone fill remain unchanged. This removes the
+known TSW-family material obstacle, NOT the need for accepted selective-solder
+process and finished-hole/fit DFM. Cable/cartridge stay out of reflow; no
+unverified hand-solder temperature or production approval is inferred.
 
-**Concrete process blocker:** Samtec's TSW catalog says PBT, not lead-free
-solderable, lead wave only; the combined family spec's SMT reflow table is not
-exact through-hole TSW approval. Exclude the current headers from the assumed
-SMT reflow stage and HOLD their later attachment process pending written exact
-process confirmation or a separately reviewed high-temperature alternative.
-Do not assume lead-free hand soldering or silently substitute HTSW. Both J1/J2
-are unkeyed same-form headers carrying incompatible functions; final keying must
-prevent reverse/offset/wrong-header mating, not merely label it.
+The selected external harness target is **IDSD-10-S-04.00-T-G-ST4**: a20-contact,
+four-inch single-ended tin IDC assembly with stripped/tinned free ends. Its
+code is constructed from manufacturer drawings, not a confirmed delivered order.
+It is NOT a keyed connector by itself, not the old PCB-tail SSW reference and
+not a plug directly matching the controller. Preserve the existing logical
+harness mapping, verify every conductor unpowered and insulate NC/disabled
+free ends. E1 fixture capacitance/imbalance and cable signal behavior remain
+unqualified. Bare unkeyed operation is not approved.
 
-**Next bounded source task:** resolve one connector/process and polarized-mate
-route (evaluate high-temperature counterpart, actual mating/strain-relief
-assembly, full pin/land/process compatibility). Only then make any synchronized
-BOM/schematic/PCB-field/test change and finalize the carrier drawing. M1 is a
-measured planning envelope, not a CAD carrier or fabrication release. Preserve
-the existing copper and pin map; no arbitrary mounting holes or nine-reroute loop.
-Current oriented header locations are now corrected in the harness prose; its
-actual electrical mapping remains unchanged. Supplier responses, final fixture
-material/tolerances and insertion-force checks are not invented or claimed done.
+K1 defines an8x28.6mm captive cartridge, an8.4x29.0mm guide bore, and differently
+positioned internal-rib/side-groove codes for J1 andJ2 without deleting contacts.
+The exact rectangular cross-section model rejects wrong-port/reversed/pitch-
+offset poses and a missing groove; it is NOT a continuous3D, arbitrary-tilt,
+force or material proof. A bare socket bypasses this coding and is not allowed
+as a qualified assembly. Actual socket capture, guide integrity and strain
+relief require their own mechanical design and unpowered tests.
 
+**Next bounded source task: dimensioned keyed carrier/cartridge CAD and its
+fit/engagement/strain-relief checks.** The HTSW source migration is already done;
+do not repeat it. Preserve M1's no-new-PCB-holes support concept and independent
+controller support. Receiver10.4x31mm projection overlaps C33's courtyard, so it
+must be raised/carrier-supported, not placed on the PCB. K1 allocates guide
+z9.5..14.5mm,17mm working header height and8mm withdrawal; these are design
+inputs, not a validated carrier. The post/insertion tolerance arithmetic leaves
+only0.0508mm minimum zero-gap margin; do not let a sleeve prevent full seating.
+Check actual pin tips, tilt, socket dimensional tolerances, material stiffness,
+cable bends, carrier anchoring and insertion/removal loads before release.
+Then advance the remaining real powered-off console/interface decision.
 
-The board remains SHA256
-`5da65b4307f0336883da9aeae48711b28c1944ec587f5d3174f12db4e9921875`:
-582 segments,122 vias,68 footprints,245 pads. These are dated identity facts,
-not permanent constraints on later reviewed repairs. This continuation changes
-only documentation/evidence, not CAD, BOM, production code/model, dependencies,
-rules or approval flags.
+Board SHA256 is now
+`dfe893f958128ba28eb69188cf6debbbc9fcafa0ef5dd67bd58627d4b8a26842`.
+It differs from preceding5da65b43 only in four header Value/MPN strings; replacing
+those four strings back reconstructs the exact old bytes. All704 track/via
+forms,245pads andgeometry are unchanged;66whole footprint forms unchanged,
+two header forms changed only in their identifiers. There are582segments,
+122vias and68footprints. No circuit, firmware, simulation or dependency change.
+All approval flags remain false. The new $2.00/header planning allowance brings
+subtotal to$94.34; the historical$3 harness reserve is NOT demonstrated to cover
+the new cable/carrier. No delivered $100 compliance or purchase is claimed.
+
+M1 and older geometry checkpoints are historical source-bound records. Their
+old board hashes must not be silently rewritten; K1's inverse-field check
+establishes geometry preservation. New native XML/CSV fixtures were actually
+exported, not edited into an invented native result; their parsed graph differs
+only in the two header Value/MPN fields. Read the current PR for final-head
+execution/review rather than reusing earlier test counts as proof.
 
 Read **`REV_A_CAPACITOR_E1_DECISION.md`** and
 `checkpoints/20260930_capacitor_e1.json`. The review maps33 fitted capacitors
