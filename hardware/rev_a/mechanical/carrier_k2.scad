@@ -4,6 +4,8 @@
 // OpenSCAD 2021.01; no external libraries or font dependencies.
 function ports() = [[81.27,38.43], [16.27,43.43]];
 function code_y(port) = assert(port==0 || port==1) (port==0 ? 7 : -7);
+function mount_half_pitch(port) = port==0 ? 15 : 18;
+function mount_x(port) = port==0 ? 91.5 : 6.5;
 function contact_y(side) = side==0 ? [32,48] : [27,43];
 
 module box(lo,hi) { translate(lo) cube(hi-lo); }
@@ -19,6 +21,9 @@ module receiver(port=0, closed_cable_wall=false, rib=true) {
         difference() {
             box([-5.2,-15.5,9.5],[5.2,15.5,14.5]);
             box([-4.2,-14.5,9.49],[4.2,14.5,14.51]);
+            // 0.2-mm entrance bevel; code rib remains a positive solid stop.
+            translate([0,0,14.3]) linear_extrude(height=0.21,scale=[8.8/8.4,29.4/29])
+                square([8.4,29],center=true);
             if (!closed_cable_wall)
                 box([-5.21,-12.8,9.49],[-4.19,12.8,14.51]);
         }
@@ -81,31 +86,41 @@ module carrier() {
             for (x=[0,92], y=[7,71]) hole_at(x,y,-10.1,-6.9,3.2);
         }
         for (side=[0,1]) {
-            rail_x = side==0 ? 5 : 90;
+            rail_x = side==0 ? 2 : 88.5;
             difference() {
-                box([rail_x,20,-7.01],[rail_x+3,64,9.5]);
-                for (y=contact_y(side)) hole_at(rail_x+1.5,y+3,-1.5,9.51,2.0);
+                box([rail_x,20,-7.01],[rail_x+7.5,64,9.5]);
+                for (y=contact_y(side)) hole_at(side==0 ? 6.5 : 91.5,y+3,-1.5,9.51,2.0);
+                port=1-side; p=ports()[port];
+                for(sy=[-1,1]) hole_at(mount_x(port),p[1]+sy*mount_half_pitch(port),-1.5,9.51,2.0);
             }
             for (y=contact_y(side)) {
-                x0=side==0 ? 5 : 86.5;
-                x1=side==0 ? 11.5 : 93;
+                x0=side==0 ? 2 : 86.5;
+                x1=side==0 ? 11.5 : 96;
                 box([x0,y,-7.01],[x1,y+6,-1.6]);
             }
         }
-        for (port=[0,1]) {
-            p=ports()[port];
+    }
+}
+
+// Detachable raised guide bridges: remove them before installing/removing PCB.
+// Different 30/36-mm screw spacings prevent a two-fastener wrong-side installation.
+module bridge(port=0) {
+    p=ports()[port]; mx=mount_x(port); half=mount_half_pitch(port);
+    difference() {
+        union() {
             translate([p[0],p[1],0]) receiver(port);
-            // Two elevated beams carry guide and separate cable saddle.
-            outside_x=port==0 ? 93 : 5;
-            for (sy=[-1,1]) {
-                yy=p[1]+sy*15.0;
-                box([min(p[0]-20,outside_x),yy-0.5,7.0],
-                    [max(p[0]+5.2,outside_x),yy+0.5,10.5]);
+            for(sy=[-1,1]) {
+                yy=p[1]+sy*15;
+                box([min(p[0]-20,mx),yy-0.5,9.5],[max(p[0]+5.2,mx),yy+0.5,12]);
+                box([mx-3.25,p[1]+sy*half-3.25,9.5],
+                    [mx+3.25,p[1]+sy*half+3.25,12]);
             }
             translate([p[0]-16,p[1],0]) saddle();
         }
+        for(sy=[-1,1]) hole_at(mx,p[1]+sy*half,9.4,12.1,2.8);
     }
 }
+module frame() { carrier(); bridge(0); bridge(1); }
 
 module saddle() {
     difference() {
@@ -129,7 +144,7 @@ module strain_bar() {
 module edge_clip() {
     difference() {
         union() {
-            box([5,0,9.5],[10.8,6,11.0]);
+            box([3.5,0,9.5],[10.8,6,11.0]);
             box([10,0,0.10],[10.8,6,9.51]);
         }
         hole_at(6.5,3,9.4,11.1,2.2);
@@ -152,6 +167,7 @@ module board_and_component_allocation() {
 
 module assembly(explode=0) {
     color([0.65,0.7,0.75]) carrier();
+    translate([0,0,explode*0.5]) color([0.6,0.65,0.7]) { bridge(0); bridge(1); }
     color([0.15,0.4,0.25]) box([10,10,-1.6],[88,68,0]);
     for (port=[0,1]) {
         p=ports()[port];

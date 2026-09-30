@@ -151,11 +151,21 @@ def test_cartridge_adds_no_seating_standoff(tmp_path: Path, motion: float) -> No
 
 
 def test_carrier_frame_clears_board_and_component_allocation(tmp_path: Path) -> None:
-    assert abs(_overlap(tmp_path, "carrier();", "board_and_component_allocation();")) < 1e-4
+    assert abs(_overlap(tmp_path, "frame();", "board_and_component_allocation();")) < 1e-4
 
 
 @pytest.mark.parametrize(
-    "part", ["carrier()", "cartridge(0)", "cartridge(1)", "cap()", "edge_clip()", "strain_bar()"]
+    "part",
+    [
+        "carrier()",
+        "bridge(0)",
+        "bridge(1)",
+        "cartridge(0)",
+        "cartridge(1)",
+        "cap()",
+        "edge_clip()",
+        "strain_bar()",
+    ],
 )
 def test_carrier_parts_are_real_closed_solids(tmp_path: Path, part: str) -> None:
     assert _render(tmp_path, part + ";") > 1
