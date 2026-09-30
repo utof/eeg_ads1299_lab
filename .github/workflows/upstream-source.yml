@@ -1,0 +1,37 @@
+name: Upstream group source
+on:
+  push:
+    branches: [workbench/upstream-group-review]
+    paths: [.github/workflows/upstream-source.yml]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: b88d3746f5f2c72dd60ffbb201213ac9010b19a4
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Capture existing source, not an importer output
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = b88d3746f5f2c72dd60ffbb201213ac9010b19a4
+          test "$(git rev-parse HEAD^{tree})" = 54d8bb7df44d437626100ffa6da06fd65116c6a3
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/source"
+          git branch upstream-source HEAD
+          git bundle create "$RUNNER_TEMP/source/repository.bundle" upstream-source
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/source/identity.txt"
+          sha256sum hardware/rev_a/layout/rev_a.kicad_pcb > "$RUNNER_TEMP/source/board.sha256"
+          cd "$RUNNER_TEMP/source"
+          sha256sum repository.bundle identity.txt board.sha256 > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: upstream-source
+          path: ${{ runner.temp }}/source/
+          if-no-files-found: error
+          retention-days: 7
