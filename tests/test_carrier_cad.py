@@ -158,3 +158,31 @@ def test_carrier_frame_clears_board_and_component_allocation(tmp_path: Path) -> 
 )
 def test_carrier_parts_are_real_closed_solids(tmp_path: Path, part: str) -> None:
     assert _render(tmp_path, part + ";") > 1
+
+
+@pytest.mark.parametrize("lift", [0, 2, 6, 10])
+def test_cable_drawing_tolerance_envelope_has_clear_travel(tmp_path: Path, lift: int) -> None:
+    # Independent 1.6-mm vertical envelope includes drawing body-height range;
+    # do not shrink it to the convenient nominal cable cuboid inside the CAD.
+    cable = f"translate([-25,-12.7,{2.54 + 6.2 + lift}]) cube([22.46,25.4,1.6]);"
+    # Release the carrier-mounted bar before a withdrawal (no hot plugging).
+    bar = "strain_bar();" if lift == 0 else ""
+    obstacles = f"union() {{ receiver(0); translate([-16,0,0]) {{ saddle(); {bar} }} }}"
+    assert abs(_overlap(tmp_path, obstacles, cable)) < 1e-4
+    # Cable moves with socket, not necessarily the floating cartridge shell.
+    assert (
+        abs(_overlap(tmp_path, "plug(0);", "translate([-25,-12.7,6.2]) cube([22.46,25.4,1.6]);"))
+        < 1e-4
+    )
+
+
+def test_socket_capture_and_exit_orientation(tmp_path: Path) -> None:
+    assert abs(_overlap(tmp_path, "plug(0);", "translate([0,0,0.001]) socket_envelope();")) < 1e-4
+    assert _overlap(tmp_path, "plug(0);", "translate([0,0,-0.05]) socket_envelope();") > 0.01
+    assert _overlap(tmp_path, "plug(0);", "translate([0,0,0.3]) socket_envelope();") > 0.01
+    assert _overlap(tmp_path, "plug(0);", "rotate([0,0,180]) cable_envelope();") > 0.1
+
+
+def test_release_strain_bar_before_withdrawal(tmp_path: Path) -> None:
+    cable = "translate([-25,-12.7,10.74]) cube([22.46,25.4,1.6]);"
+    assert _overlap(tmp_path, "translate([-16,0,0]) strain_bar();", cable) > 0.1

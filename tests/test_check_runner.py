@@ -69,3 +69,11 @@ def test_missing_distribution_still_records_failure(
     assert report["passed"] is False
     assert "Missing ruff" in report["error"]
     assert report["versions"]["ruff"] == "not installed"
+
+
+def test_native_gate_requires_cad_renderer(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "tools.check.shutil.which", lambda name: None if name == "openscad" else f"/usr/bin/{name}"
+    )
+    with pytest.raises(RuntimeError, match="openscad"):
+        require_native_tools()
