@@ -195,3 +195,13 @@ def test_carrier_is_bound_to_reviewed_board() -> None:
     assert hashlib.sha256(board.read_bytes()).hexdigest() == (
         "dfe893f958128ba28eb69188cf6debbbc9fcafa0ef5dd67bd58627d4b8a26842"
     )
+
+
+def test_board_installation_before_removable_bridges(tmp_path: Path) -> None:
+    # Base must accept the populated board from above BEFORE guides are installed.
+    assert (
+        abs(
+            _overlap(tmp_path, "carrier();", "translate([0,0,5]) board_and_component_allocation();")
+        )
+        < 1e-4
+    )
