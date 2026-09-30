@@ -1,0 +1,71 @@
+name: Preserve E1 Equation8 correction
+on:
+  push:
+    branches: [workbench/stackup-envelope-source]
+    paths: [.github/workflows/stackup-equation8-correction.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Verify original correction before creating archive commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,pathlib
+          text=pathlib.Path('transfer/e1-code-scale.patch').read_text()
+          # Reconstruct one known whitespace error in transport only.
+          # Mandatory original patch digest prevents altered source import.
+          assert text.count('\n diff --git ')==1
+          text=text.replace('\n diff --git ','\ndiff --git ')
+          assert hashlib.sha256(text.encode()).hexdigest()=='d7c0fd0a30a64e105c13c04ed7f0de7f61352d335f52ca85c832070e6408c754'
+          pathlib.Path('/tmp/e1-equation8.patch').write_text(text)
+          PY
+          git fetch origin docs/stackup-bench-envelope
+          test "$(git rev-parse FETCH_HEAD)" = abd73480d146cf842366e59398a22f72a75fff55
+          git worktree add --detach "$RUNNER_TEMP/corrected" abd73480d146cf842366e59398a22f72a75fff55
+          cd "$RUNNER_TEMP/corrected"
+          git apply --check /tmp/e1-equation8.patch
+          git apply /tmp/e1-equation8.patch
+          git add docs/REV_A_STACKUP_BENCH_REQUIREMENTS.md docs/checkpoints/20260930_stackup_bench_envelope.json
+          test "$(git write-tree)" = 998bc610dc5d956967dad697e5a0623495c94357
+          test "$(git diff --cached --name-only | wc -l)" = 2
+          git diff --cached --exit-code -- hardware firmware lab tools tests pyproject.toml uv.lock .github
+          git -c user.name='Repository automation' -c user.email='github-actions[bot]@users.noreply.github.com' commit -m 'docs(review): align E1 code scale with ADS1299 Equation8'
+          git push origin HEAD:refs/heads/archive/pr68-equation8-correction
+          echo "CORRECTED_HEAD=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ env.CORRECTED_HEAD }}
+          fetch-depth: 0
+          path: fresh
+          persist-credentials: false
+      - name: Verify separate GitHub checkout and retain exact source
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd fresh
+          test "$(git rev-parse HEAD)" = "$CORRECTED_HEAD"
+          test "$(git rev-parse HEAD^)" = abd73480d146cf842366e59398a22f72a75fff55
+          test "$(git rev-parse HEAD^{tree})" = 998bc610dc5d956967dad697e5a0623495c94357
+          printf '%s  %s\n' 5da65b4307f0336883da9aeae48711b28c1944ec587f5d3174f12db4e9921875 hardware/rev_a/layout/rev_a.kicad_pcb | sha256sum -c -
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/source"
+          git branch e1-equation8-source HEAD
+          git bundle create "$RUNNER_TEMP/source/repository.bundle" e1-equation8-source
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/source/identity.txt"
+          cd "$RUNNER_TEMP/source"
+          sha256sum repository.bundle identity.txt > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pr68-equation8-source
+          path: ${{ runner.temp }}/source/
+          if-no-files-found: error
+          retention-days: 7
