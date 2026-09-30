@@ -1,0 +1,39 @@
+name: Input review final source
+on:
+  push:
+    branches: [workbench/input-review-source]
+    paths: [.github/workflows/input-review-final-source.yml]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: e984347c5e0c6abd2569126bf233b2489996e517
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify only the published review and retain original history
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = e984347c5e0c6abd2569126bf233b2489996e517
+          test "$(git rev-parse HEAD^{tree})" = 69b0cfbd074fefe1cc06a3378c4b86fe2c8c1217
+          test "$(git diff --name-only 5197c5b9 HEAD | wc -l)" = 4
+          git diff --exit-code 5197c5b9 HEAD -- hardware firmware lab tools tests pyproject.toml uv.lock .github
+          printf '%s  %s\n' 232b7c68a63ae13aebcf71f8c0b1f210421c30452a1afc7b7c86dc1c118b23a3 hardware/rev_a/layout/rev_a.kicad_pcb | sha256sum -c -
+          mkdir -p "$RUNNER_TEMP/source"
+          git branch input-review-final HEAD
+          git bundle create "$RUNNER_TEMP/source/repository.bundle" input-review-final
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/source/identity.txt"
+          test -z "$(git status --porcelain)"
+          cd "$RUNNER_TEMP/source"
+          sha256sum repository.bundle identity.txt > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: input-review-final-source
+          path: ${{ runner.temp }}/source/
+          retention-days: 7
+          if-no-files-found: error
