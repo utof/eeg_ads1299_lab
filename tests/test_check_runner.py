@@ -72,8 +72,9 @@ def test_missing_distribution_still_records_failure(
 
 
 def test_native_gate_requires_cad_renderer(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(
-        "tools.check.shutil.which", lambda name: None if name == "openscad" else f"/usr/bin/{name}"
-    )
+    def lookup(name: str) -> str | None:
+        return None if name == "openscad" else f"/usr/bin/{name}"
+
+    monkeypatch.setattr("tools.check.shutil.which", lookup)
     with pytest.raises(RuntimeError, match="openscad"):
         require_native_tools()

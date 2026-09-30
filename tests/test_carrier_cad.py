@@ -1,5 +1,6 @@
 """Real CGAL checks of the K2 fit prototype, NOT a mechanical safety proof."""
 
+import hashlib
 import math
 import re
 import shutil
@@ -186,3 +187,11 @@ def test_socket_capture_and_exit_orientation(tmp_path: Path) -> None:
 def test_release_strain_bar_before_withdrawal(tmp_path: Path) -> None:
     cable = "translate([-25,-12.7,10.74]) cube([22.46,25.4,1.6]);"
     assert _overlap(tmp_path, "translate([-16,0,0]) strain_bar();", cable) > 0.1
+
+
+def test_carrier_is_bound_to_reviewed_board() -> None:
+    # A changed PCB must have its mechanical relationship reviewed, not inherit K2.
+    board = ROOT / "hardware/rev_a/layout/rev_a.kicad_pcb"
+    assert hashlib.sha256(board.read_bytes()).hexdigest() == (
+        "dfe893f958128ba28eb69188cf6debbbc9fcafa0ef5dd67bd58627d4b8a26842"
+    )

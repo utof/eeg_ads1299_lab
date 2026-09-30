@@ -135,7 +135,7 @@ def check_branch_coverage(path: Path, minimum: float) -> float:
 
 
 def require_native_tools() -> None:
-    for name in ("ngspice", "node"):
+    for name in ("ngspice", "node", "openscad"):
         if shutil.which(name) is None:
             raise RuntimeError(f"Native checks require {name}; absence is not a pass")
     if not (shutil.which("g++") or shutil.which("clang++")):
@@ -172,6 +172,7 @@ def _native(out: Path) -> None:
             "-m",
             "native or integration",
             f"--junitxml={out / 'native-pytest.xml'}",
+            f"--basetemp={out / 'native-temp'}",
         ],
         out,
     )

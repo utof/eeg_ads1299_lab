@@ -40,7 +40,7 @@ module cartridge(port=0, groove=true) {
         box([-2.75,-13.7,0],[2.75,13.7,14.31]);
         box([-2.75,-12.9,-0.61],[2.75,12.9,0.01]);
         // Ribbon leaves the SOCKET laterally; preserve it throughout insertion.
-        box([-6.01,-12.8,6.4],[-2.74,12.8,10.1]);
+        box([-6.01,-12.8,6.1],[-2.74,12.8,10.1]);
         if (groove) box([3.2,code_y(port)-1.2,-0.61],[4.01,code_y(port)+1.2,12.81]);
         for (x=[-4.8,4.8], y=[-11,11]) hole_at(x,y,12.79,14.31,1.5);
     }
@@ -69,7 +69,7 @@ module header_envelope() {
             [x+0.355,-11.43+2.54*i+0.355,9]);
 }
 module socket_envelope() { box([-2.65,-13.64,0],[2.65,13.64,9.52]); }
-module cable_envelope() { box([-25,-12.7,6.41],[-2.54,12.7,7.41]); }
+module cable_envelope() { box([-25,-12.7,6.2],[-2.54,12.7,7.8]); }
 
 // M1 contact strips preserved. All other fixture support comes from OUTSIDE PCB.
 // Board nominal bottom -1.6; shim support/inspect board datum for actual thickness.
@@ -110,16 +110,16 @@ module carrier() {
 module saddle() {
     difference() {
         union() {
-            box([-4,-16,7.0],[4,16,8.8]);
-            for(y=[-14.8,14.8]) box([-4,y-1.2,8.79],[4,y+1.2,10.1]);
+            box([-4,-16,7.0],[4,16,8.5]);
+            for(y=[-14.8,14.8]) box([-4,y-1.2,8.49],[4,y+1.2,10.7]);
         }
-        for(y=[-14.8,14.8]) hole_at(0,y,6.9,10.2,2.2);
+        for(y=[-14.8,14.8]) hole_at(0,y,6.9,10.8,2.2);
     }
 }
 module strain_bar() {
     difference() {
-        box([-4,-16,10.1],[4,16,11.6]);
-        for(y=[-14.8,14.8]) hole_at(0,y,10.0,11.7,2.2);
+        box([-4,-16,10.7],[4,16,12.2]);
+        for(y=[-14.8,14.8]) hole_at(0,y,10.6,12.3,2.2);
     }
 }
 
