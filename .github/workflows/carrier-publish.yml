@@ -1,0 +1,69 @@
+name: Publish verified K2 source
+on:
+  push:
+    branches: [workbench/carrier-k2]
+    paths: [.github/workflows/carrier-publish.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Require original complete binary identity before Git import
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64,hashlib,pathlib,subprocess
+          chunks=[pathlib.Path(f'transfer/k2-s{i:02d}.b64').read_text().strip() for i in range(35)]
+          # One observed missing character in text transport only. Mandatory
+          # original binary SHA256 below must still pass before Git import.
+          assert chunks[34].count('StIg+bkGBdyd')==1
+          chunks[34]=chunks[34].replace('StIg+bkGBdyd','StIg+bkGBbdyd')
+          encoded=''.join(chunks)
+          print('encoded length',len(encoded),flush=True)
+          assert len(encoded)==34944
+          data=base64.b64decode(encoded,validate=True)
+          print('binary length/hash',len(data),hashlib.sha256(data).hexdigest(),flush=True)
+          assert len(data)==26208
+          assert hashlib.sha256(data).hexdigest()=='35d9a176178e0af1ddf6506051edab45ae72d013d9adebfe41aca5cc0a40a880'
+          pathlib.Path('/tmp/k2.bundle').write_bytes(data)
+          subprocess.run(['git','bundle','verify','/tmp/k2.bundle'],check=True)
+          subprocess.run(['git','fetch','/tmp/k2.bundle','HEAD'],check=True)
+          PY
+          test "$(git rev-parse FETCH_HEAD)" = 5426bf1853134ec30ad9a614996e301167836711
+          test "$(git rev-parse FETCH_HEAD^{tree})" = afca2298f8da76b28bed525f0889bf10af78be59
+          git merge-base --is-ancestor dbc99981a592904428f2432094dc62c4a13dcc55 FETCH_HEAD
+          test "$(git rev-list --count dbc99981..FETCH_HEAD)" = 9
+          test "$(git diff --name-only dbc99981 FETCH_HEAD | wc -l)" = 12
+          git diff --exit-code dbc99981 FETCH_HEAD -- hardware/rev_a/layout hardware/rev_a/kicad hardware/rev_a/bom.json hardware/rev_a/board_profile.json firmware lab pyproject.toml uv.lock
+          git push origin 5426bf1853134ec30ad9a614996e301167836711:refs/heads/archive/carrier-k2-5426bf1
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: k2-transport-check
+          path: transfer/k2-s*.b64
+          retention-days: 7
+          if-no-files-found: error
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: archive/carrier-k2-5426bf1
+          fetch-depth: 0
+          path: fresh
+          persist-credentials: false
+      - name: Verify a separate GitHub checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd fresh
+          test "$(git rev-parse HEAD)" = 5426bf1853134ec30ad9a614996e301167836711
+          test "$(git rev-parse HEAD^{tree})" = afca2298f8da76b28bed525f0889bf10af78be59
+          printf '%s  %s\n' dfe893f958128ba28eb69188cf6debbbc9fcafa0ef5dd67bd58627d4b8a26842 hardware/rev_a/layout/rev_a.kicad_pcb | sha256sum -c -
+          test -z "$(git status --porcelain)"
+          git log -9 --oneline
+          git rev-parse HEAD HEAD^{tree}
