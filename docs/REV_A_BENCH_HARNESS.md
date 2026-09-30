@@ -95,10 +95,13 @@ The AFE footprint is a 2x10 header, NOT the DevKit's 1x22. In the assigned KiCad
 footprint's local top-view coordinates, pad1 starts the odd column, pad2 the even
 column; the next row is pads3/4. A plug's mating face or the board's solder-side
 view is mirrored relative to the board top. Use numbered continuity checks;
-never infer a mating connector's cavity order from a top-view image. This board
-has no layout yet, so no final connector rotation, keying or cable assembly is
-claimed. The assigned Samtec header family is unchanged; mate/cable selection
-and mechanical package review remain open under issue #45.
+never infer a mating connector's cavity order from a top-view image. The authored
+layout now places AFE J1 pad1 at (80,27) mm and AFE J2 pad1 at (15,32) mm, both
+at zero footprint rotation; rows advance in +y and odd pins occupy the lower-x
+column. These are top-view board coordinates, not a plug mating-face diagram.
+See `REV_A_MECHANICAL_ENVELOPE.md` for the source-bound envelope and the TSW
+assembly-process restriction. Actual polarized mates, cable/strain relief and
+process qualification remain open under #45. No connector or pin mapping changed.
 
 ## Firmware and recording behavior
 

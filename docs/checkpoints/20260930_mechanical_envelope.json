@@ -1,0 +1,342 @@
+{
+  "scope": "mechanical screen and chosen carrier allowances, not a released fixture, PCB edit or assembly qualification",
+  "source_commit": "8c3440ed6714bfebaac74768a0d371401a22e89e",
+  "source_tree": "81acc1aa34c29faa7a0305d2247826909a6c2f13",
+  "board_sha256": "5da65b4307f0336883da9aeae48711b28c1944ec587f5d3174f12db4e9921875",
+  "native_engine": "9.0.2",
+  "outline_centerline_bbox_mm": [
+    10,
+    10,
+    88,
+    68
+  ],
+  "counts_footprints_pads_copper_NPTH_PTH_front": [
+    68,
+    245,
+    704,
+    0,
+    40,
+    68
+  ],
+  "mate_allocation_width_length_mm": [
+    8,
+    28
+  ],
+  "support_contact_rectangles_mm": {
+    "left_upper": [
+      10,
+      32,
+      11.5,
+      38
+    ],
+    "left_lower": [
+      10,
+      48,
+      11.5,
+      54
+    ],
+    "right_upper": [
+      86.5,
+      27,
+      88,
+      33
+    ],
+    "right_lower": [
+      86.5,
+      43,
+      88,
+      49
+    ]
+  },
+  "body_reference_groups": [
+    {
+      "name": "bulk candidate (not adopted)",
+      "references": [
+        "C30",
+        "C31",
+        "C32",
+        "C33"
+      ],
+      "maximum_L_W_H_mm": [
+        2.1,
+        1.35,
+        1.35
+      ],
+      "source": "docs/references/murata_20260927/bulk_orderable_addendum.json"
+    },
+    {
+      "name": "small candidate capacitors (not adopted)",
+      "references": [
+        "C8",
+        "C9",
+        "C10",
+        "C11",
+        "C12",
+        "C13",
+        "C14",
+        "C15",
+        "C16",
+        "C17",
+        "C18",
+        "C19",
+        "C20",
+        "C21",
+        "C22",
+        "C23",
+        "C24",
+        "C25",
+        "C26",
+        "C27",
+        "C28",
+        "C29"
+      ],
+      "maximum_L_W_H_mm": [
+        1.7,
+        0.9,
+        0.9
+      ],
+      "source": "docs/checkpoints/20260930_capacitor_e1.json"
+    },
+    {
+      "name": "T491D C6",
+      "references": [
+        "C6"
+      ],
+      "maximum_L_W_H_mm": [
+        7.6,
+        4.6,
+        3.1
+      ],
+      "source": "KEMET captured T2005_T491 2026-07-08 p4"
+    },
+    {
+      "name": "T491B C7",
+      "references": [
+        "C7"
+      ],
+      "maximum_L_W_H_mm": [
+        3.7,
+        3,
+        2.1
+      ],
+      "source": "KEMET captured T2005_T491 2026-07-08 p4"
+    }
+  ],
+  "observed": {
+    "headers": [
+      [
+        "J1",
+        [
+          80.0,
+          27.0
+        ],
+        [
+          77.27000000000001,
+          24.43,
+          85.27000000000001,
+          52.43
+        ],
+        2.7299999999999898,
+        "C33",
+        0.7262231062146176
+      ],
+      [
+        "J2",
+        [
+          15.0,
+          32.0
+        ],
+        [
+          12.27,
+          29.43,
+          20.27,
+          57.43
+        ],
+        2.2699999999999996,
+        "D1",
+        1.3000000000000007
+      ]
+    ],
+    "supports": [
+      [
+        "left_upper",
+        1.3000000000000007,
+        1.7300000000000004,
+        0.7699999999999996
+      ],
+      [
+        "left_lower",
+        1.3000000000000007,
+        1.7300000000000004,
+        0.7699999999999996
+      ],
+      [
+        "right_upper",
+        3.1099999999999994,
+        2.180000000000007,
+        1.2299999999999898
+      ],
+      [
+        "right_lower",
+        3.1099999999999994,
+        2.180000000000007,
+        1.2299999999999898
+      ]
+    ],
+    "body_groups": [
+      [
+        "bulk candidate (not adopted)",
+        1.35,
+        0.305
+      ],
+      [
+        "small candidate capacitors (not adopted)",
+        0.9,
+        0.28
+      ],
+      [
+        "T491D C6",
+        3.1,
+        0.25
+      ],
+      [
+        "T491B C7",
+        2.1,
+        0.25
+      ]
+    ]
+  },
+  "method_limits": [
+    "AABB separation is a conservative lower bound; courtyard centerlines, not a guaranteed component/process envelope",
+    "Centered maximum reference bodies ignore placement error, fillets, sway and material aging",
+    "Outside pad/track/via bounding boxes only; inner copper remains and these zones are not drilling permission",
+    "Chosen mating rectangle includes no guaranteed plug, overmold, cable bend or finger/tool envelope"
+  ],
+  "vertical_design_allocations_mm": {
+    "SMD_free_space_above_board": 4,
+    "open_header_column_above_board": 15,
+    "minimum_board_underside_to_base": 5,
+    "required_unobstructed_withdrawal_above_mated_socket": 6,
+    "actual_dimensions_force_loads_and_material_qualified": false
+  },
+  "header_reference": {
+    "current_mpn": "TSW-110-07-T-D",
+    "body_height_reference_mm": 2.54,
+    "post_length_nominal_mm": 5.84,
+    "tail_length_nominal_mm": 2.54,
+    "unmated_top_nominal_mm": 8.38,
+    "recommended_hole_nominal_mm": 1.02,
+    "board_hole_nominal_mm": 1.0,
+    "square_pin_nominal_mm": 0.635,
+    "geometric_mate_only": "SSW-110-01-T-D",
+    "mate_body_length_nominal_mm": 25.91,
+    "mate_body_width_reference_mm": 4.95,
+    "mate_body_height_nominal_mm": 8.51,
+    "mate_insertion_depth_mm": [
+      3.68,
+      6.35
+    ],
+    "nominal_shell_top_if_fully_seated_mm": 11.05,
+    "fully_seated_stack_not_confirmed": true,
+    "current_header_assembly_status": "PBT; catalog says not lead-free solderable, lead wave only; family reflow table is SMT-scoped, not exact THT approval",
+    "unkeyed_same_form_J1_J2": true
+  },
+  "primary_capture_run": 36755627629,
+  "primary_sources": [
+    {
+      "name": "tsw-catalog.pdf",
+      "url": "https://suddendocs.samtec.com/catalog_english/tsw_th.pdf",
+      "final_url": "https://suddendocs.samtec.com/catalog_english/tsw_th.pdf",
+      "bytes": 1385386,
+      "sha256": "3a5770b11668f4e5a11ba9ceeb4817a23f467b8507e3592f55fb6bd8f96e71bc",
+      "capture_utc": "2026-09-30T18:01:55.184235+00:00"
+    },
+    {
+      "name": "tsw-drawing.pdf",
+      "url": "https://suddendocs.samtec.com/prints/tsw-xxx-xx-xxx-x-xx-xxx-mkt.pdf",
+      "final_url": "https://suddendocs.samtec.com/prints/tsw-xxx-xx-xxx-x-xx-xxx-mkt.pdf",
+      "bytes": 1075572,
+      "sha256": "047ecedcc921fb0aed7127f08b9ba0fc1200d92d33fb7ded1b311d0ed8f42063",
+      "capture_utc": "2026-09-30T18:01:55.795585+00:00"
+    },
+    {
+      "name": "tsw-footprint.pdf",
+      "url": "https://suddendocs.samtec.com/prints/tsw-xxx-xx-x-x-xx-xxx-footprint.pdf",
+      "final_url": "https://suddendocs.samtec.com/prints/tsw-xxx-xx-x-x-xx-xxx-footprint.pdf",
+      "bytes": 16100,
+      "sha256": "264658121ff2dad25ebd6259e726b123bf1ea31f9145bc695607999181af028f",
+      "capture_utc": "2026-09-30T18:01:55.827971+00:00"
+    },
+    {
+      "name": "ssw-catalog.pdf",
+      "url": "https://suddendocs.samtec.com/catalog_english/ssw_th.pdf",
+      "final_url": "https://suddendocs.samtec.com/catalog_english/ssw_th.pdf",
+      "bytes": 471452,
+      "sha256": "6d89f5c186a49e0f52f37d7bf7b5095081aff8f98e5ba18a85b0811caaf6f509",
+      "capture_utc": "2026-09-30T18:01:56.077151+00:00"
+    },
+    {
+      "name": "ssw-drawing.pdf",
+      "url": "https://suddendocs.samtec.com/prints/ssw-1xx-xx-xxx-x-xx-xxx-xx-mkt.pdf",
+      "final_url": "https://suddendocs.samtec.com/prints/ssw-1xx-xx-xxx-x-xx-xxx-xx-mkt.pdf",
+      "bytes": 496878,
+      "sha256": "281eaf2b78d84184cade49c841f7d5badb0f92cd2e012a50e764a45b53aeca0d",
+      "capture_utc": "2026-09-30T18:01:56.098808+00:00"
+    },
+    {
+      "name": "tsw-ssw-spec.pdf",
+      "url": "https://suddendocs.samtec.com/productspecs/tsw-sxx.pdf",
+      "final_url": "https://suddendocs.samtec.com/productspecs/tsw-sxx.pdf",
+      "bytes": 475879,
+      "sha256": "73a73af3cfa2808a4a0626349af3f4e41ae4f6c9ffab70b31166931a739e0d6f",
+      "capture_utc": "2026-09-30T18:01:56.654618+00:00"
+    },
+    {
+      "name": "ads1299.pdf",
+      "url": "https://www.ti.com/lit/ds/symlink/ads1299.pdf",
+      "final_url": "https://www.ti.com/lit/ds/symlink/ads1299.pdf",
+      "bytes": 1842419,
+      "sha256": "9ef667389897f02dae8d94e8c3daecbe8cbd2ab45f4d62e1db1c474544180075",
+      "capture_utc": "2026-09-30T18:01:57.002108+00:00"
+    },
+    {
+      "name": "t491.pdf",
+      "url": "https://content.kemet.com/datasheets/KEM_T2005_T491.pdf",
+      "final_url": "https://content.kemet.com/datasheets/KEM_T2005_T491.pdf",
+      "bytes": 3234493,
+      "sha256": "c3c5bb70009b606c87b40156259670ca9c8452f172b73faa9e2dbf2fcee3522d",
+      "capture_utc": "2026-09-30T18:01:57.528565+00:00"
+    }
+  ],
+  "source_capture_run": 36754120103,
+  "factory_contacted": false,
+  "assembly_process_approved": false,
+  "carrier_manufactured": false,
+  "bom_changes": false,
+  "approval_changes": false,
+  "next_task": "Resolve TSW assembly-route/high-temperature alternative and a polarized, strain-relieved actual mate before synchronized BOM/CAD updates; then finalize carrier drawing within these screened allocations.",
+  "reproduction": {
+    "block_sha256": "71ce8a67af1d131962c9541cbc8dff7d7eb9fd709706bed5cdf6c6035bdc7957",
+    "exact_block_executed": true,
+    "bad_record_probes_rejected": [
+      "support_into_copper",
+      "mate_into_neighbor",
+      "wrong_retained_clearance"
+    ],
+    "raw_native_copper_items": 704,
+    "raw_native_pad_positions": 245,
+    "raw_native_footprint_origins": 68,
+    "physical_experiments": false,
+    "new_project_tests": 0
+  },
+  "primary_revisions": {
+    "tsw_catalog": "F-226",
+    "tsw_drawing": "DS",
+    "tsw_footprint": "A",
+    "ssw_catalog": "F-226",
+    "ssw_drawing": "CL",
+    "combined_spec": "C 2023-02-08",
+    "TI_package": "4040282/C 11/96",
+    "KEMET": "T2005_T491 2026-07-08"
+  }
+}
