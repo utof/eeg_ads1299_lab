@@ -1,11 +1,11 @@
 # Finish the person-disconnected Rev A prototype design
 
-**Current checkpoint: capacitor E1 shortlist and node-specific requirements.**
-All33 fitted capacitor instances are accounted for. Two new qualification
-identities and the existing bulk-L target are documented, not substituted into
-the BOM. Supplier approval/lifecycle/Ceff and assembly evidence remain explicit;
-#48 is not closed by a shortlist. Next source work is the mechanical/assembly
-envelope while those external facts stay pending. No copper or approval changed.
+**Current checkpoint: mechanical planning envelope M1 reviewed.**
+Selected a hole-free edge-carrier concept and quantified support/mating spaces,
+without moving copper or adopting capacitor substitutes. The current TSW header
+has a concrete solder-process restriction; an unkeyed plug is not a polarized
+harness. Next is one coordinated connector/process/mate decision, then final
+carrier details. M1 is not an approved fixture or manufacturing release.
 
 ## Glanceable roadmap
 
@@ -22,17 +22,23 @@ meaningful slice and show it after the user-facing report's TLDR.
 | Residual input/supply coupling | 1 combined decision after confirmations | Nine locations remain one six-pair item | Confirmed construction plus E1 for combined rework or separate pilot-risk decision |
 | Stackup and bench-input envelope | 0 for target definition; 1–2 plus external evidence to close | Named JLC04161H-7628 and numerical E1 selected | Factory drawing/tolerances/material and calibrated fixture/floor still unconfirmed |
 | Capacitor decision/migration | 1 synchronized review after applicable evidence | Shortlist and33-instance node accounting complete; no BOM migration | #48 exact lifecycle/approval, biased-C/impedance and internal VCAP conditions or explicit limited pilot-risk disposition |
-| Mechanics and assembly | 1–2 plus process evidence | Logical harness, selected lands and candidate dimensions available | NEXT: component height, mounting/mating/access envelope and assembly constraints |
+| Mechanics and assembly | 1–2 plus process/fixture evidence | M1 dimensions, candidate-height and contact/mating screens complete; carrier concept selected | NEXT: TSW process/high-temperature alternative and polarized actual mate; then carrier drawing/force/tolerance review |
 | Real power/console fault readiness | 1–3 plus physical checks | Firmware/console contracts exist; actual rail-loss behavior unqualified | Exact interface and powered-off paths; staged dummy-bench checks |
 | Release package and delivered budget | 1–2 after blockers close | Not fabrication/purchase-ready | Independent release review, consistent outputs and delivered quote |
 | Person-disconnected bench verification | 2–4 guided turns plus bench work | Physical prototype validation not started | Unpowered inspection, then staged dummy-source tests after prerequisites |
 
-**Next: mechanical/assembly envelope review** using the actual named capacitor
-bodies/heights, existing T491 density-B lands, headers/mates and access needs.
-The bulk target is0.40mm taller at its maximum than the old part. An0805 label
-is not clearance approval. Do not add arbitrary holes or rebuild routing before
-choosing the envelope. Keep supplier responses and the still-blocked capacitor
-migration visible rather than spending another turn on the same catalog search.
+**Next: connector/process and polarized-mate decision.** Read
+`REV_A_MECHANICAL_ENVELOPE.md`: the existing TSW-110-07-T-D is not automatically
+compatible with lead-free SMT reflow. Confirm an exact approved attachment
+process or qualify a high-temperature counterpart before a synchronized BOM/
+schematic/PCB-field/test change. Select an actual mate with strain relief and
+reverse/offset/wrong-header prevention; the SSW example is a geometric PCB-tail
+socket reference, not a released cable. M1's8x28mm allocations exclude cable,
+finger/tool and adapter volumes. Its four1.5x6mm edge strips have surface copper
+clearance, not permission to drill through buried copper. Material, retention,
+board strain, finished dimensions and fit need the carrier drawing and checks.
+Keep supplier and capacitor approval requests open rather than restating them
+as completed. No procurement or fabrication permission changed.
 
 `REV_A_CAPACITOR_E1_DECISION.md` records the three qualification targets:
 GRM21BR61C106KE15L, GRM188R61C105KA12D and GRM188R72A104KA35D. Exact D/L identities
@@ -114,7 +120,8 @@ adapter remains unauthorized. Selected parts are not proof of purchase;
 actual owned board revision, lead information and delivered quote remain needed.
 
 Reference entry points: `AGENTS.md`, `LLM_HANDOFF.md`,
-`REV_A_CAPACITOR_E1_DECISION.md`, `REV_A_STACKUP_BENCH_REQUIREMENTS.md`,
+`REV_A_MECHANICAL_ENVELOPE.md`, `REV_A_CAPACITOR_E1_DECISION.md`,
+`REV_A_STACKUP_BENCH_REQUIREMENTS.md`,
 `REV_A_UPSTREAM_COUPLING_DISPOSITION.md`, `REV_A_CH1N_CORRIDOR_REPAIR.md`,
 `REV_A_INPUT_LAYOUT_REVIEW.md`, `REV_A_DIGITAL_OUTPUT_REPAIR.md`,
 `REV_A_AVDD1_REPAIR.md`, `REV_A_SCHEMATIC.md`, `REV_A_BENCH_HARNESS.md`,

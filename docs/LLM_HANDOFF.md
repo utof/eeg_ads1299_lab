@@ -1,6 +1,6 @@
 # Continue from this repository
 
-**Current checkpoint: capacitor E1 shortlist and node-specific qualification matrix.**
+**Current checkpoint: mechanical envelope M1 and connector process constraint.**
 No previous chat or ZIP is required. Read root `AGENTS.md`, this file and live
 Git/PR state before changing source. A missing chat report is not evidence that
 work was lost.
@@ -8,10 +8,10 @@ work was lost.
 ## Start from the actual published source
 
 Fetch main and open PRs; record actual SHA/tree and `git status --short`.
-Preserve other people's uncommitted work. PR #68 is merged as
-`905347aa361669af0634fd84688b1ce7b3755e07`, tree
-`998bc610dc5d956967dad697e5a0623495c94357`. The capacitor continuation is on
-`review/capacitor-e1`: inspect its live head/checks/review until merged, then
+Preserve other people's uncommitted work. PR #69 is merged as
+`8c3440ed6714bfebaac74768a0d371401a22e89e`, tree
+`81acc1aa34c29faa7a0305d2247826909a6c2f13`. The mechanical continuation is on
+`review/mechanical-envelope`: inspect its live head/checks/review until merged, then
 use current main. Recheck head/base, actual diff, conflicts, reviews and
 exact-head CI before a merge. Never count queued, inherited or superseded
 runs as a pass for a later head.
@@ -23,6 +23,36 @@ intentionally unrouted test output is not this board. Read `DEVELOPMENT.md`
 and `HARDWARE_BASELINE_REV_A.md` before source changes.
 
 ## Current result and next bounded task
+
+Read **`REV_A_MECHANICAL_ENVELOPE.md`** and its
+`checkpoints/20260930_mechanical_envelope.json` first. M1 selects a hole-free
+external nonconductive edge-carrier concept, independently supported MCU and
+strain relief. Current outline is78x58mm, not the78.05x58.05 stroked graphic box.
+Four1.5x6mm surface contact allocations and8x28mm header mating allocations
+were screened against native outside copper/courtyard bounding boxes. No carrier,
+physical force/material/insulation or actual plug fit has been validated; buried
+copper remains, so these are not drilling sites. Candidate bulk1.35mm height
+fits below existing C6's3.10mm reference maximum, without qualifying a BOM swap.
+
+**Concrete process blocker:** Samtec's TSW catalog says PBT, not lead-free
+solderable, lead wave only; the combined family spec's SMT reflow table is not
+exact through-hole TSW approval. Exclude the current headers from the assumed
+SMT reflow stage and HOLD their later attachment process pending written exact
+process confirmation or a separately reviewed high-temperature alternative.
+Do not assume lead-free hand soldering or silently substitute HTSW. Both J1/J2
+are unkeyed same-form headers carrying incompatible functions; final keying must
+prevent reverse/offset/wrong-header mating, not merely label it.
+
+**Next bounded source task:** resolve one connector/process and polarized-mate
+route (evaluate high-temperature counterpart, actual mating/strain-relief
+assembly, full pin/land/process compatibility). Only then make any synchronized
+BOM/schematic/PCB-field/test change and finalize the carrier drawing. M1 is a
+measured planning envelope, not a CAD carrier or fabrication release. Preserve
+the existing copper and pin map; no arbitrary mounting holes or nine-reroute loop.
+Current oriented header locations are now corrected in the harness prose; its
+actual electrical mapping remains unchanged. Supplier responses, final fixture
+material/tolerances and insertion-force checks are not invented or claimed done.
+
 
 The board remains SHA256
 `5da65b4307f0336883da9aeae48711b28c1944ec587f5d3174f12db4e9921875`:
@@ -56,15 +86,11 @@ VIN/AVDD/DVDD is12.1/26.2/14.1uF; do not count all four bulk parts onAVDD.
 Typical plots and initial-tolerance arithmetic do not qualify real minima,
 startup, noise, aging or assembly.
 
-**Next independently executable source slice: mechanical/assembly envelope
-review.** Use the named capacitor bodies/heights, existing T491 density-B
-lands, headers/mates and required access/clearance. The bulk target's maximum
-height is0.40mm greater than the old part;0805 alone does not prove clearance.
-Do not add arbitrary mounting holes or rebuild the layout before an envelope
-is selected. Keep #48's exact lifecycle/approval/biased-C/impedance requests and
-#45's factory/interface questions explicit while advancing finite source work.
-No supplier request has been sent and no part purchased. Do not spend the next
-turn merely rediscovering the same catalog.
+The initial mechanical envelope has now been reviewed separately in M1.
+Keep #48's exact lifecycle/approval/biased-C/impedance requests and #45's factory,
+connector process and actual fixture questions open. No supplier request or
+purchase has been made. Do not rediscover the same capacitor shortlist or treat
+M1's centred-body margins as solder/placement/process qualification.
 
 After applicable evidence or an explicitly reviewed limited pilot-part risk
 disposition exists, use ONE synchronized BOM/schematic/PCB-field/test migration.
