@@ -1,0 +1,91 @@
+name: Publish connector K1 source
+on:
+  push:
+    branches: [workbench/connector-decision]
+    paths: [.github/workflows/connector-publish.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Verify data-only transport and original Git history
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64,hashlib,pathlib,subprocess
+          digests=[
+          '0301a7a31ff890f39514067f2c7ff64dc1d55425d3e04a900de465aa9a8c0189',
+          '9c9906d778bd360d52ed6d8e66a19d8945805c8c9795f05a9a3d4c3ce4316cd8',
+          '21487a40e7b83768a7e1f30c029d6dd41cb032dbd85e6f3c70f4ce5d980fa461',
+          '41d1c8e0d4932f65f086f5443e22cdb4519f4ccb23479c477173040ca4315901',
+          '0711fb5b1fe4b47739e0c73f7a391dad92f67f95406aa031367777e3d1a32e55',
+          '4773f601b56160d59354aaa16c97a147611c19cb812408ab75a237dd21acdf0f',
+          'b5fdca53c1a9f18541363164cc421711af3e46ad811856efa68405922787490e',
+          '102dba783f70669c0c95cecedc29139da57812567e6d8798f8748259f816f8c6',
+          'd099b72918b18b59e495601e998d364e3856ef4941cc0a434c3fd72e2657cff3',
+          'a59164c042c9a39ca2549fe23db82448905acb8abed3ef2c5e56c3ca2b218e0a']
+          chunks=[]
+          for i,digest in enumerate(digests):
+              data=pathlib.Path(f'transfer/k1r-{i:02d}.b64').read_bytes()
+              actual=hashlib.sha256(data).hexdigest()
+              print(i,len(data),actual,flush=True)
+              assert actual==digest, f'chunk {i} failed'
+              chunks.append(data.strip())
+          encoded=b''.join(chunks)
+          assert len(encoded)==37676
+          # Reversed-byte transport avoids repeated bundle prefixes; restore bytes.
+          original=base64.b64decode(encoded,validate=True)[::-1]
+          assert len(original)==28256
+          assert hashlib.sha256(original).hexdigest()=='12d0652402fb8644f006152e416af7227dc6b7d6e494c63f69aae84f686c0ecf'
+          path=pathlib.Path('/tmp/connector-k1.bundle');path.write_bytes(original)
+          subprocess.run(['git','bundle','verify',str(path)],check=True)
+          subprocess.run(['git','fetch',str(path),'refs/heads/connector-k1'],check=True)
+          PY
+          test "$(git rev-parse FETCH_HEAD)" = 43c26939d73fb0aeeea9c8a4a27fe8eafbfd061f
+          test "$(git rev-parse FETCH_HEAD^{tree})" = 94a0c57ae2913c41c9479de3481d86c20a52843c
+          git merge-base --is-ancestor a55ce97a6029a4759d23f1f528feda3c5a0dc6b8 FETCH_HEAD
+          test "$(git rev-list --count a55ce97a..FETCH_HEAD)" = 3
+          test "$(git diff --name-only a55ce97a FETCH_HEAD | wc -l)" = 16
+          git diff --exit-code a55ce97a FETCH_HEAD -- firmware lab tools pyproject.toml uv.lock .github
+          git push origin 43c26939d73fb0aeeea9c8a4a27fe8eafbfd061f:refs/heads/archive/connector-k1-43c2693
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: archive/connector-k1-43c2693
+          fetch-depth: 0
+          path: fresh
+          persist-credentials: false
+      - name: Verify a separate GitHub checkout and unchanged board geometry
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd fresh
+          test "$(git rev-parse HEAD)" = 43c26939d73fb0aeeea9c8a4a27fe8eafbfd061f
+          test "$(git rev-parse HEAD^{tree})" = 94a0c57ae2913c41c9479de3481d86c20a52843c
+          python3 - <<'PY'
+          import hashlib,pathlib
+          data=pathlib.Path('hardware/rev_a/layout/rev_a.kicad_pcb').read_bytes()
+          assert hashlib.sha256(data).hexdigest()=='dfe893f958128ba28eb69188cf6debbbc9fcafa0ef5dd67bd58627d4b8a26842'
+          assert data.count(b'HTSW-110-07-T-D')==4
+          old=data.replace(b'HTSW-110-07-T-D',b'TSW-110-07-T-D')
+          assert hashlib.sha256(old).hexdigest()=='5da65b4307f0336883da9aeae48711b28c1944ec587f5d3174f12db4e9921875'
+          PY
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/source"
+          git branch connector-k1-published HEAD
+          git bundle create "$RUNNER_TEMP/source/repository.bundle" connector-k1-published
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/source/identity.txt"
+          cd "$RUNNER_TEMP/source"
+          sha256sum repository.bundle identity.txt > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: connector-k1-published-source
+          path: ${{ runner.temp }}/source/
+          if-no-files-found: error
+          retention-days: 7
