@@ -1,0 +1,37 @@
+name: CH1N source checkout
+on:
+  push:
+    branches: [workbench/ch1n-corridor]
+    paths: [.github/workflows/ch1n-source.yml]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 779b8efaa0c5e1b84cdbee49a07b053e3debe7b7
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Capture unchanged source and history
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = 779b8efaa0c5e1b84cdbee49a07b053e3debe7b7
+          test "$(git rev-parse HEAD^{tree})" = 0a2e5eabd627dbabd26706e046540f44ab9852f6
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/source"
+          git branch ch1n-source HEAD
+          git bundle create "$RUNNER_TEMP/source/repository.bundle" ch1n-source
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/source/identity.txt"
+          sha256sum hardware/rev_a/layout/rev_a.kicad_pcb > "$RUNNER_TEMP/source/board.sha256"
+          cd "$RUNNER_TEMP/source"
+          sha256sum repository.bundle identity.txt board.sha256 > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ch1n-source
+          path: ${{ runner.temp }}/source/
+          retention-days: 7
+          if-no-files-found: error
