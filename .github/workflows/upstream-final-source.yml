@@ -1,0 +1,39 @@
+name: Upstream final source
+on:
+  push:
+    branches: [workbench/upstream-group-review]
+    paths: [.github/workflows/upstream-final-source.yml]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 84996da3609279da659fe4cb1b34ee39b9d27acc
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify exact head, unchanged design and original Git source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = 84996da3609279da659fe4cb1b34ee39b9d27acc
+          test "$(git rev-parse HEAD^{tree})" = 4f5bebbc578c15f63c3463f2b3cef0bd28fbdfa9
+          test "$(git diff --name-only b88d3746 HEAD | wc -l)" = 4
+          git diff --exit-code b88d3746 HEAD -- hardware firmware lab tools tests pyproject.toml uv.lock .github
+          printf '%s  %s\n' 5da65b4307f0336883da9aeae48711b28c1944ec587f5d3174f12db4e9921875 hardware/rev_a/layout/rev_a.kicad_pcb | sha256sum -c -
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/source"
+          git branch upstream-final HEAD
+          git bundle create "$RUNNER_TEMP/source/repository.bundle" upstream-final
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/source/identity.txt"
+          cd "$RUNNER_TEMP/source"
+          sha256sum repository.bundle identity.txt > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: upstream-final-source
+          path: ${{ runner.temp }}/source/
+          if-no-files-found: error
+          retention-days: 7
