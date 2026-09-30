@@ -1050,3 +1050,105 @@ def test_curved_escape_cannot_bypass_the_endpoint_rectangle_guard(tmp_path: Path
     assert row["inner_in_escape_rectangle"] is True  # Endpoint-only screen misses the bow.
     assert _output_reference_ok(rows["MISO"])
     assert not _output_reference_ok(row), row
+
+
+# Scoped layout policy after PR65: the CH1N source corridor may use F/In2 facing
+# In1 GND, but not B. Its In2 full-width projection must avoid foreign B copper.
+# This is not a capacitance extractor, coupling limit or manufacturing approval.
+_CH1N_REFERENCE_SCRIPT = r"""
+import json, sys
+import pcbnew as p
+assert p.Version() == "9.0.2"
+b = p.LoadBoard(sys.argv[1])
+b.BuildConnectivity()
+name = "CH1N_DUMMY"
+items = [t for t in b.GetTracks() if t.GetNetname() == name]
+vias = [t for t in items if t.Type() == p.PCB_VIA_T]
+traces = [t for t in items if t.Type() != p.PCB_VIA_T]
+assert traces
+planes = [z for z in b.Zones() if z.GetNetname() == "GND" and z.IsOnLayer(p.In1_Cu)]
+assert len(planes) == 1
+reference = planes[0].GetFilledPolysList(p.In1_Cu)
+assert reference.OutlineCount() == 1
+error = p.FromMM(0.005)
+
+def shape(item, layer, clearance=0):
+    poly = p.SHAPE_POLY_SET()
+    item.TransformShapeToPolygon(poly, layer, clearance, error, p.ERROR_OUTSIDE)
+    return poly
+
+pads = [pad for f in b.GetFootprints() for pad in f.Pads()]
+allowed = p.SHAPE_POLY_SET(reference)
+# As with the existing output guard, only this net's own through contacts are
+# exempted. The physical holes still exist; no unrelated void is waived.
+terminals = [pad for pad in pads if pad.GetNetname() == name and pad.IsOnLayer(p.In1_Cu)]
+for contact in vias + terminals:
+    allowed.BooleanAdd(shape(contact, p.In1_Cu,
+        planes[0].GetLocalClearance() + p.FromMM(0.025)))
+uncovered = p.SHAPE_POLY_SET()
+inner = p.SHAPE_POLY_SET()
+for track in traces:
+    projected = shape(track, track.GetLayer())
+    if track.GetLayer() == p.In2_Cu:
+        inner.BooleanAdd(projected)
+    projected.BooleanSubtract(allowed)
+    uncovered.BooleanAdd(projected)
+partners = set()
+for other in list(b.GetTracks()) + pads:
+    if other.GetNetname() == name or not other.IsOnLayer(p.B_Cu):
+        continue
+    overlap = shape(other, p.B_Cu)
+    overlap.BooleanIntersection(inner)
+    if overlap.Area() > 0:
+        partners.add(other.GetNetname())
+print(json.dumps({
+    "layers": sorted({b.GetLayerName(t.GetLayer()) for t in traces}),
+    "vias": len(vias),
+    "unshielded_partners": sorted(partners),
+    "unreferenced_projection_mm2": uncovered.Area() / 1e12,
+    "trace_mm_by_layer": {b.GetLayerName(layer): sum(p.ToMM(t.GetLength()) for t in traces
+                          if t.GetLayer() == layer) for layer in (p.F_Cu, p.In2_Cu, p.B_Cu)},
+}))
+"""
+
+
+def _ch1n_reference(board: Path) -> dict[str, object]:
+    result = subprocess.run(
+        [
+            os.environ.get("KICAD_PYTHON", "/usr/bin/python3"),
+            "-c",
+            _CH1N_REFERENCE_SCRIPT,
+            str(board),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=45,
+        env=dict(os.environ, KICAD_CONFIG_HOME=str(board.parent / "ch1n-config")),
+    )
+    (board.parent / "ch1n-reference.log").write_text(result.stdout + result.stderr)
+    assert result.returncode == 0, result.stdout + result.stderr
+    row: object = json.loads(result.stdout)
+    assert isinstance(row, dict)
+    (board.parent / "ch1n-reference.json").write_text(json.dumps(row, indent=2) + "\n")
+    return row
+
+
+def _ch1n_reference_ok(row: dict[str, object]) -> bool:
+    assert isinstance(row["vias"], int)
+    assert isinstance(row["unreferenced_projection_mm2"], (int, float))
+    return (
+        row["layers"] in (["F.Cu"], ["F.Cu", "In2.Cu"])
+        and row["vias"] <= 2
+        and row["unshielded_partners"] == []
+        and row["unreferenced_projection_mm2"] <= 0.00001
+    )
+
+
+@pytest.mark.schematic
+def test_ch1n_corridor_avoids_unshielded_back_layer_copper(
+    native_placement: tuple[Path, dict[str, object]],
+) -> None:
+    cad, report = native_placement
+    assert all(report[k] == [] for k in ("violations", "schematic_parity", "unconnected_items"))
+    row = _ch1n_reference(cad / "rev_a.kicad_pcb")
+    assert _ch1n_reference_ok(row), row
