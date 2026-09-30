@@ -131,12 +131,19 @@ points**. Balanced-C cancellation and P/N sign-swap controls were checked in
 the existing solver across the grid. This is numerical consistency for a
 hypothetical lumped network, not fitted or validated physical behavior.
 
-Reproduce with the locked environment and installed ngspice, from the repo root:
+Reproduce the table, native/formula comparisons and both controls with the
+locked environment and installed ngspice, from the repo root. Printed errors
+are observed results; assertion tolerances are numerical consistency checks
+for this illustrative example, not physical performance limits:
 
 ```python
+from dataclasses import replace
 from pathlib import Path
+import json
+import numpy as np
 from lab.analog import InputNetwork, export_spice, run_ngspice, transfer
 
+rows = []
 for rs in (5000.0, 50000.0):
     for delta in (1e-12, 10e-12):
         cfg = InputNetwork(
@@ -156,10 +163,52 @@ for rs in (5000.0, 50000.0):
         frequency, native = run_ngspice(
             export_spice(directory / "input.cir", cfg, "common"), directory
         )
-        print(rs, delta, abs(transfer([50.0, 60.0], cfg, "common")) * 10000)
+        calculated = transfer(frequency, cfg, "common")
+        s = 2j * np.pi * frequency
+        r = rs + 4990
+        q = 1 + r / 1e12
+        cp, cn, cd = cfg.c_common_p, cfg.c_common_n, cfg.c_differential
+        denominator = (
+            q * q + q * s * r * (cp + cn + 2 * cd) + (s * r) ** 2 * (cp * cn + cd * (cp + cn))
+        )
+        expected = -s * r * (cp - cn) / denominator
+        nodal_error = float(np.max(np.abs(calculated - expected)))
+        native_error = float(np.max(np.abs(native - expected)))
+        balanced = replace(cfg, c_common_p=cn)
+        swapped = replace(cfg, c_common_p=cn, c_common_n=cp)
+        balanced_error = float(np.max(np.abs(transfer(frequency, balanced, "common"))))
+        swap_error = float(np.max(np.abs(transfer(frequency, swapped, "common") + calculated)))
+        # Numerical consistency checks, not physical/noise or production limits.
+        assert len(frequency) == 241
+        assert nodal_error < 2e-15 and native_error < 2e-14
+        assert balanced_error < 1e-14 and swap_error < 2e-15
+        rows.append(
+            {
+                "Rs_ohm_each": rs,
+                "extra_P_pF": delta * 1e12,
+                "formula_vs_nodal_max_abs_V_per_V": nodal_error,
+                "formula_vs_native_max_abs_V_per_V": native_error,
+                "balanced_max_abs_V_per_V": balanced_error,
+                "sign_swap_max_abs_V_per_V": swap_error,
+                "native_sweep_points": len(frequency),
+                "calculated_uV_at_50_60Hz_for_10mV_common": (
+                    np.abs(transfer([50.0, 60.0], cfg, "common")) * 10000
+                ).tolist(),
+            }
+        )
+print(json.dumps(rows, indent=2))
 ```
 
 ## Execution, provenance and remaining decisions
+
+Codex review4143289009 found that the first published example ran ngspice but
+only printed the50/60Hz table, omitting the claimed comparisons and controls.
+An injected incorrect native-result software double was accepted by that old
+example and rejected by the expanded example above. That probe is not a native
+fault experiment. The corrected exact code block then completed all four real
+native cases, the formula comparisons and the balanced/sign-swap controls.
+Initial CI also rejected code-block formatting; the pinned formatter corrected
+it without changing calculations or rules. Neither earlier failure is a pass.
 
 Fresh GitHub-only source capture36696579521 checked out exact5197, verified its
 tree/board and retained a source bundle. The local baseline ordinary+schematic
