@@ -1,88 +1,91 @@
 # Continue from this repository
 
-**Current checkpoint: CH1N corridor repair after merged input review PR #65.**
-No previous chat or attachment is needed. Read this file and root `AGENTS.md`
-first; use live Git/PR state, not a historical success or a missing chat reply.
+**Current checkpoint: combined upstream-coupling disposition after merged PR #66.**
+No prior chat/ZIP is needed. Read root `AGENTS.md`, this checkpoint and live Git/PR
+state before choosing the next bounded task. A missing chat reply is not proof
+that source work was lost.
 
-## Start a fresh session
+## Start here
 
-Fetch current main and open PRs; inspect `git status --short`, `git rev-parse
-HEAD` and `git rev-parse HEAD^{tree}` before changing anything. Preserve other
-people's uncommitted work. PR #65 is merged as
-`779b8efaa0c5e1b84cdbee49a07b053e3debe7b7` (tree
-`0a2e5eabd627dbabd26706e046540f44ab9852f6`). The current repair is on
-`fix/ch1n-corridor`: read its live PR/head/checks/review while unmerged; after
-merge use current main. Do not repeat the already-merged AVDD1 or MISO/DRDY
-repairs. Before any merge recheck head/base, actual diff, conflicts, review
-findings and exact-head CI.
+Fetch main/open PRs; record actual SHA/tree and `git status --short`. Preserve
+other people's uncommitted work. CH1N PR #66 is merged as
+`b88d3746f5f2c72dd60ffbb201213ac9010b19a4`, tree
+`54d8bb7df44d437626100ffa6da06fd65116c6a3`. The combined assessment is on
+`review/upstream-coupling-disposition`: use its live PR head until merged, then
+current main. Recheck head/base, diff, conflicts, reviews and actual exact-head
+CI before merge. Do not repeat the completed AVDD1, MISO/DRDY or CH1N repair.
 
-Read `DEVELOPMENT.md`, `HARDWARE_BASELINE_REV_A.md` and the applicable detailed
-review before changes. Canonical board: `hardware/rev_a/layout/rev_a.kicad_pcb`.
-Project, three schematic sheets and local libraries: `hardware/rev_a/kicad/`.
-Never regenerate the authored board with the parking-grid importer. Its
-intentionally unrouted test output is not the completed layout.
+Canonical authored board: `hardware/rev_a/layout/rev_a.kicad_pcb`. Project,
+three schematic sheets and local libraries: `hardware/rev_a/kicad/`. Never
+regenerate this board with the parking-grid importer; its deliberately unrouted
+test output is not the authored layout. Read `DEVELOPMENT.md` and
+`HARDWARE_BASELINE_REV_A.md` before source changes.
 
-## What is published and what remains a hypothesis
+## State and next bounded task
 
-The CH1N repair board has 582 segments, 122 vias, 68 footprints and 245 pads,
-with one native filled In1 GND region. Its source SHA256 is
-`5da65b4307f0336883da9aeae48711b28c1944ec587f5d3174f12db4e9921875`.
-These are a dated source identity, not permanent constraints on reviewed repairs.
-Only CH1N corridor copper and filled ground change; all footprints and other
-nets' copper remain intact. No schematic, BOM, firmware or model changes.
+Board SHA256 remains
+`5da65b4307f0336883da9aeae48711b28c1944ec587f5d3174f12db4e9921875`:
+582 segments,122 vias,68 footprints,245 pads. These are dated identity facts,
+not permanent constraints on reviewed repairs. This assessment changes no copper,
+BOM, schematic, firmware, model, dependency, rule or approval gate.
 
-PR #62 repaired AVDD1 and fixed three native guard traversal defects before
-acceptance. Read `REV_A_AVDD1_REPAIR.md`; longer VCAP3/C24 and designated
-AVDD56/C14 paths still need whole-board supply/noise consideration. PR #64
-moved MISO/DRDY long spans onto F over In1 with bounded local In2 escapes.
-Its final reviewed e0184fb8 head has the same tree as merge5197; all five hosted
-jobs passed and Codex reported no major issues after the arc-guard and stale
-roadmap findings were corrected. See PR64 and `REV_A_DIGITAL_OUTPUT_REPAIR.md`.
-DRDY grows to44.132mm authored sum; 0.30mm parallel front edge spacing,
-stackup/edge/cable/barrel effects remain unqualified. Source/AI review and DRC
-are not professional or physical electrical qualification.
+**Next: choose/document a vendor four-layer stackup and the bounded
+person-disconnected input/coupling test envelope.** Read
+`REV_A_UPSTREAM_COUPLING_DISPOSITION.md` and its source-bound JSON first. The
+nine residual upstream B/In2 locations form six electrical pairs: CH3P/CH3N/
+CH4N against CH2N/AVDD. They are ONE item held for the stackup/budget decision,
+not nine queued reroutes, not waived and not a measured noise failure.
 
-## Current result and next bounded task
+The immediate deliverable is an exact vendor stackup/revision with layer
+spacing/copper/material tolerances, plus explicit supported source/load range,
+aggressor node spectra, intended band/rate/gain, allocated coherent-error and
+broadband-noise budgets and a feasible measurement floor. Unset values are
+blockers, not permission to adopt illustrative 5k/50k/1pF/10pF numbers as
+requirements. Compare candidate stackups against the existing F/GND/In2/B
+copper; changing a layer name does not add shielding. Do not silently redesign
+the circuit, split ground, add ferrites or disable tests.
 
-Read `REV_A_CH1N_CORRIDOR_REPAIR.md` and its source-bound JSON for the current
-repair. Read `REV_A_INPUT_LAYOUT_REVIEW.md` for the unchanged main-path and DNP
-branch distinction, conditional sensitivity assumptions and earlier geometry.
+Once these inputs exist, choose one combined upstream repair or document
+bounded experimental risk for separate pilot-release review. A simple B-to-F
+swap at unchanged XY was tested on a disposable copy and gives30 native DRC
+entries (including shorts); it is not a repair. This does NOT prove a carefully
+redesigned combined route impossible or inferior. Avoid large speculative
+detours solely to improve a crossing count. Keep #45 OPEN pending disposition.
 
-CH1N's four B/In2 overlaps (filtered IN2P/IN3P/IN4P DNP branches and CH3N_DUMMY)
-are removed. Its In2 corridor now stays right of foreign back copper, with
-front entry and original front termination at R2. No footprint moves or DNP
-branch removals. All eight main R/C/U1 itineraries remain byte-identical. An
-all-front trial would take a substantial header detour; another short candidate
-threaded front copper between other channels' resistor pads. The selected
-corridor avoids both choices but grows CH1N from 23.479 to 33.884 mm. It still
-has two through vias; 18.588 mm is on In2 and is NOT a short local escape. This
-is a geometric repair, not length matching or measured-noise improvement.
+Seven native illustrative mutual-capacitance runs and an independent equation
+quantify sensitivity to assumptions; they do not extract PCB capacitance or
+model silicon, supply PSRR, magnetic/cable coupling, digital filtering or
+aliasing. The exact reproducible example includes native-result checks and
+three controls; an incorrect-output software double is rejected. These are
+analysis runs, not added project tests or physical evidence.
 
-Test-first3f75b5e recorded the old policy failure with native DRC0/0/0. The new
-native full-width guard rejects foreign B overlap, wrong layer and reference
-windows; it accepts endpoint reversal, subdivision and an off-route window for
-this net. There are seven new cases; the nine-case focused run includes two
-existing CH1N cases. Own contact holes are explicitly exempted, not physically
-removed. Read final repair-PR execution and independent review before accepting
-this source. Baseline main779b8efa ordinary+schematic passed1,091ordinary plus
-14subtests,145KiCad and22console subset; that is not the later final-head run.
-Fresh GitHub source capture36701686057 identifies that exact baseline.
+Pilot fabrication and physical validation are separate finish lines: a first
+PCB cannot be measured before it exists. Before pilot fabrication, require
+defined design inputs and separate risk/release review. Before performance
+validation, require calibrated person-disconnected measurements with the
+chosen budget and startup/interface prerequisites. No approval is granted by
+this distinction; do not turn the future test plan into claimed current sensing.
 
-**After repair review/checks/merge, address the remaining nine upstream
-input/supply overlap locations together.** They involve CH3P/CH3N/CH4N against
-CH2N/AVDD; the three filtered/unfiltered DNP-branch crossings are gone, and the
-residual list is unchanged from the prior review except removal of four CH1N
-locations. Choose one bounded combined repair or explicit stackup/bench-test
-disposition, then advance finite component/stackup/mechanical/interface choices.
-Do not run an unlimited sequence of single-crossing reviews or assume a crossing
-is a measured noise failure. Preserve main analog fanout, DNP pads and prior
-AVDD1/output repairs. No matching meanders or circuit redesign is implied.
+## Preserve previous work and its limits
 
-The unchanged main P/N path differences (0.435 mm) and DNP branch differences
-(4.5 mm) are not capacitance/noise guarantees. The earlier four native passive
-sensitivity cases model illustrative capacitances to ground, NOT cross-channel
-mutual coupling or actual board/electrode/silicon parameters. Keep all such
-assumptions explicit. Native geometry controls are not physical experiments.
+PR #62 fixed AVDD1 and three guard traversal gaps. Keep the longer VCAP3/C24
+and AVDD56/C14 routes visible in whole-board review. PR #64 repaired MISO/DRDY
+long spans and the arc-screen bug; DRDY remains44.132mm authored total and
+parallel spacing/real edges/cables remain unqualified. PR #66 removed all four
+CH1N unshielded overlaps but lengthened that route to33.884mm with18.588mm
+on In2; it is not front-only. Existing targeted native guards remain active.
+
+The eight required R/C/U1 input paths remain front-only; their0.435mm P/N
+centreline differences and the4.5mm DNP-branch difference are NOT electrical
+balance/noise guarantees. The earlier ground-C sensitivity example is different
+from the new upstream mutual-injection example. Do not treat an unpopulated
+diode footprint as absent copper or qualified protection.
+
+Read the detailed AVDD1, digital-output, input-layout and CH1N review documents
+for exact source-bound geometry. Temporary investigation helpers/outputs are
+not alternative source or instructions to overwrite later edits. Original
+reconstructed07edcacc history remains reachable; the separate chat-local1689234
+and issue45's76502e7 variants must not be overlaid onto current main.
 
 ## Reproduce and inspect
 
@@ -93,15 +96,15 @@ uv run --locked --all-extras python -m tools.check --native --schematic
 uv run --locked --all-extras python -m tools.check --firmware
 ```
 
-Install required native tools first. The lockfile is authoritative; native
-KiCad9.0.2 engine/libraries are pinned in `.github/workflows/schematic.yml`;
-Arduino setup is in `firmware/toolchain.json` and the Firmware workflow. Jobs
-are executable fresh-runner setup, not proof a sandbox already has tools.
-Missing tools/network/cache are blockers, never skipped into success. Avoid
-concurrent uv sync/hook resync against a running environment. Expired artifacts
-should be reproducible from source; a chat cache/font/binary is not a dependency.
+Install the required native tools first. `uv.lock` is authoritative; KiCad9.0.2
+engine/libraries are pinned in `.github/workflows/schematic.yml`. Arduino setup
+is in `firmware/toolchain.json` and its workflow. Executable fresh-runner setup
+does not mean the next sandbox has those tools. Missing tools/network/cache
+must fail, not be skipped into a pass. Avoid concurrent environment resync.
+Read this assessment PR's actual final-head checks/review, not just an older
+pass. Baseline, analysis, final-head and post-merge execution are distinct.
 
-Use a disposable project copy, not the importer:
+For a disposable native project copy, never an importer regeneration:
 
 ```sh
 set -eu
@@ -111,40 +114,33 @@ cp hardware/rev_a/layout/rev_a.kicad_pcb "$review_dir/rev_a.kicad_pcb"
 printf 'Open %s/rev_a.kicad_pro\n' "$review_dir"
 ```
 
-Transfer reviewed edits back to canonical tracked paths deliberately. Changes
-in a temporary copy are not committed source. Review/test each actual head.
+Deliberately transfer reviewed edits back to canonical tracked paths; temporary
+copy edits are not committed source. Retain small durable evidence in Git;
+expired CI logs can be regenerated, not demanded from an old chat.
 
-## Finish without private handoff dependencies
+## Finish each slice
 
-Publish source/tests/necessary small reference inputs to a named PR, read back
-its head, update this checkpoint and `REV_A_COMPLETION_ROADMAP.md`, and record
-commands/outcomes with their actual tested SHA. Distinguish new/inherited,
-local/hosted, published/unpublished and unexecuted work. Merge only after actual
-review and required checks, preserving history with a merge commit. Keep WIP
-in a discoverable PR, not solely `/mnt/data`, chat or expiring CI artifacts.
-Each report starts with TLDR then category/estimated-remaining-turns/status/
-next-slice table. Do not mistake test-count growth for engineering progress.
+Publish source/tests/necessary small inputs to a named PR; read back its head,
+update this checkpoint and `REV_A_COMPLETION_ROADMAP.md`, and record commands,
+actual source SHA and outcome. Distinguish local/hosted, new/inherited and
+published/unpublished work. Required checks/review precede merge; preserve
+history with a merge commit. Keep WIP discoverable in a PR, not solely a sandbox
+or attachment. Report TLDR, then category/remaining-turns/status/next-slice table,
+then useful evidence and the specific next task. Test-count growth is not design
+progress; analysis checks are not project tests.
 
-The original reconstructed local07edcacc history remains reachable through
-bridge0eb2a121 and archive/connected-routing-local-07edcacc; it was not earlier
-GitHub publication. The chat-local1689234 variant and issue45's76502e7 variant
-are different unmerged sources, not patches to apply over current main.
+## User constraints and unresolved release work
 
-## Unresolved decisions and user constraints
+The user is an electronics beginner preferring explained, test-first bounded
+slices. Additional spending target is$100, not a delivered quote. Unspecified
+owned ESP32/Arduino/electrodes do not confirm selected ADS/S3 purchase or actual
+electrode suffix/lead properties. Family bounds are not user measurements.
+Keep #45/#48 open: final stackup, capacitor lifecycle/effective-C, mounting,
+connector mates/assembly, actual console/rail-loss behavior and delivered budget
+still need resolution. Do not recreate the already-published logical pin map;
+the remaining interface question concerns actual wiring and operating behavior.
 
-Keep #45/#48 OPEN. Read the completion roadmap and the bench-harness, capacitor
-evidence/bulk assessment, tantalum-land and power documents for the actual
-remaining stackup, mounting/mating/assembly, capacitor lifecycle/effective-C,
-console/interface rail-loss behavior and delivered-budget decisions. Do not
-recreate the already-published logical AFE/DevKit pin map or silently approve a
-live adapter. Models are bounded hypotheses; target compilation is not a bench
-test. Body use is a separate later revision.
-
-The user is an electronics beginner; favor explained, test-first bounded slices.
-Additional spending target is $100, not a delivered quote. Owned unspecified
-ESP32, Arduino Uno and MCScap electrodes do not establish purchase/revision of
-the selected ADS/S3. Exact electrode suffix/lead properties and board revision
-need physical confirmation; family bounds are not user's measurements.
-Preserve all false hardware/purchase/release/body-use gates. BIAS, lead-off and
-external acquisition are not enabled by routing. No purchasing, fabrication,
-powered connection or body-use authorization is granted by this checkpoint.
+All hardware/purchase/release/body-use flags remain false. BIAS, lead-off and
+external acquisition are not enabled by routing. No person/animal connection,
+purchasing, fabrication or powered connection is authorized by this checkpoint.
+Body use remains a separate later revision and review.
