@@ -1,0 +1,50 @@
+name: Connector primary references
+on:
+  push:
+    branches: [workbench/connector-decision]
+    paths: [.github/workflows/connector-primary.yml]
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Download public primary data only
+        shell: bash
+        run: |
+          set -eu
+          mkdir -p "$RUNNER_TEMP/primary"
+          export OUT="$RUNNER_TEMP/primary"
+          python3 - <<'PY'
+          import urllib.request, pathlib, os, hashlib, json, datetime, re
+          out=pathlib.Path(os.environ['OUT']); records=[]
+          urls={
+            'htsw-catalog.pdf':'https://suddendocs.samtec.com/catalog_english/htsw_th.pdf',
+            'htsw-drawing.pdf':'https://suddendocs.samtec.com/prints/htsw-xxx-xx-xxx-x-xx-xxx-mkt.pdf',
+            'htsw-footprint.pdf':'https://suddendocs.samtec.com/prints/htsw-xxx-xx-x-x-xx-footprint.pdf',
+            'idsd-catalog.pdf':'https://suddendocs.samtec.com/catalog_english/idsd.pdf',
+            'idsx-drawing.pdf':'https://suddendocs.samtec.com/prints/idsx-xx-x-xx.xx-xxx-xxx-mkt.pdf',
+            'htsw-product.html':'https://www.samtec.com/products/htsw-110-07-t-d',
+            'idsd-product.html':'https://www.samtec.com/products/idsd-10-s-04.00-t-g-st4',
+          }
+          for name,url in urls.items():
+              r={'name':name,'url':url,'capture_utc':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+              try:
+                  with urllib.request.urlopen(url,timeout=40) as f:data=f.read();r['final_url']=f.url
+                  if name.endswith('.pdf') and not data.startswith(b'%PDF'):raise ValueError('not PDF')
+                  (out/name).write_bytes(data);r.update(bytes=len(data),sha256=hashlib.sha256(data).hexdigest())
+                  if name.endswith('.html'):
+                      links=sorted(set(re.findall(r'https://suddendocs.samtec.com/[^\s"<>]+',data.decode(errors='replace'))))
+                      (out/(name+'.links.json')).write_text(json.dumps(links,indent=2))
+              except Exception as e:r['error']=str(e)
+              records.append(r)
+          (out/'manifest.json').write_text(json.dumps(records,indent=2))
+          print(json.dumps(records,indent=2))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: connector-primary
+          path: ${{ runner.temp }}/primary/
+          if-no-files-found: error
+          retention-days: 7
