@@ -12,7 +12,15 @@ Each differential channel starts with two 4.99 kΩ series resistors and one 4.7 
 
 This deliberately resolves the component ambiguity without pretending the hardware is validated. The existing original-ESP32 firmware guard and `BOARD_PROFILE_REVIEWED=false` behavior remain unchanged.
 
-## Exact component baseline
+## Current component baseline
+
+K1 amendment (2026-09-30): the two headers are now `HTSW-110-07-T-D`,
+replacing the original TSW selection after its assembly restriction was identified.
+Pin mapping, lands and routing are unchanged. See `REV_A_CONNECTOR_K1.md`;
+exact attachment process, hole DFM and keyed carrier remain release conditions.
+The original selection and price assumptions remain in Git history.
+
+## Exact current parts
 
 The machine-readable source of truth is [`hardware/rev_a/bom.json`](../hardware/rev_a/bom.json). Planning costs are allowances, not live supplier quotes.
 
@@ -32,10 +40,10 @@ The machine-readable source of truth is [`hardware/rev_a/bom.json`](../hardware/
 | `GRM219R61A106KE44D` | 4 | FIT | $1.40 |
 | `RC0603FR-0710RL` | 1 | FIT | $0.08 |
 | `RC0603FR-0710KL` | 12 | FIT | $0.72 |
-| `TSW-110-07-T-D` | 2 | FIT | $1.80 |
+| `HTSW-110-07-T-D` | 2 | FIT | $4.00 |
 | `BAV199,215` | 8 | DNP | $2.40 |
 
-Fitted components: **$74.14**. Bare-PCB reserve: **$15.00**. Harness/mating reserve: **$3.00**. **Planning subtotal: $92.14**. Optional BAV199 population adds $2.40. Shipping, tax/VAT/import charges, assembly/stencil/setup, tools, bench instrumentation, battery/charger, enclosure, and any patient-safety hardware are excluded. Obtain one delivered basket/assembly quote before purchasing.
+Fitted components: **$76.34**. Bare-PCB reserve: **$15.00**. Harness/mating reserve: **$3.00**. **Planning subtotal: $94.34**. Optional BAV199 population adds $2.40. Shipping, tax/VAT/import charges, assembly/stencil/setup, tools, bench instrumentation, battery/charger, enclosure, and any patient-safety hardware are excluded. The $3.00 historical harness reserve is not evidence that the newly identified IDC assemblies and coded carrier fit that allowance. Obtain one delivered basket/assembly quote before purchasing; $94.34 is not a delivered total or a demonstration that the $100 objective is met.
 
 ## Electrical contract
 

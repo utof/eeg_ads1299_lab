@@ -102,6 +102,12 @@
       "title": "Murata SimSurfing",
       "url": "https://ds.murata.com/simsurfing/mlcc.html",
       "verification": "tool identified; exact selected-part effective-capacitance curves not retrieved"
+    },
+    {
+      "id": "SAMTEC_HTSW",
+      "title": "HTSW-110-07-T-D high-temperature header; K1 selection 2026-09-30",
+      "url": "https://www.samtec.com/products/htsw-110-07-t-d",
+      "verification": "Exact 20-position identity, HTSW/TSW catalog, linked BQ series drawing and revision B footprint inspected; see docs/REV_A_CONNECTOR_K1.md for source hashes and limits. Family lead-free suitability is not a job-specific process qualification."
     }
   ],
   "limitations": [

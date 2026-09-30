@@ -374,9 +374,9 @@
     },
     {
       "id": "headers",
-      "mpn": "TSW-110-07-T-D",
+      "mpn": "HTSW-110-07-T-D",
       "manufacturer": "Samtec",
-      "description": "Two 2x10 bench-only headers: digital and dummy-input",
+      "description": "Two high-temperature LCP 2x10 bench headers; carrier keying required",
       "package": "THT / 2.54 mm / 2x10",
       "references": [
         "J_DIG",
@@ -384,11 +384,11 @@
       ],
       "quantity": 2,
       "population": "fit",
-      "planning_unit_usd": "0.90",
+      "planning_unit_usd": "2.00",
       "source_ids": [
-        "SAMTEC"
+        "SAMTEC_HTSW"
       ],
-      "evidence": "exact manufacturer part page verified; not touchproof, not patient connectors",
+      "evidence": "K1: exact manufacturer identity, linked HTSW BQ drawing and footprint B; lead-free-compatible family; job-specific attachment/DFM and keyed carrier not yet qualified. No purchasing or body-use permission.",
       "spec": {}
     },
     {
