@@ -187,22 +187,40 @@ from pathlib import Path
 from hardware.rev_a import load_documents, parse_schematic_xml, validate_schematic
 
 record = json.loads(Path("docs/checkpoints/20260930_capacitor_e1.json").read_text())
-assert hashlib.sha256(Path("hardware/rev_a/layout/rev_a.kicad_pcb").read_bytes()).hexdigest() == record["board_sha256"]
+assert (
+    hashlib.sha256(Path("hardware/rev_a/layout/rev_a.kicad_pcb").read_bytes()).hexdigest()
+    == record["board_sha256"]
+)
 profile, bom, _ = load_documents()
-netlist = parse_schematic_xml(gzip.decompress(Path("tests/fixtures/rev_a_netlist.xml.gz").read_bytes()).decode())
+netlist = parse_schematic_xml(
+    gzip.decompress(Path("tests/fixtures/rev_a_netlist.xml.gz").read_bytes()).decode()
+)
 assert validate_schematic(netlist, profile, bom) == []
 assert not any(profile["gates"].values())
 roles = [r for r in bom["line_items"] if "capacitance_f" in r["spec"] and r["population"] == "fit"]
-anchors = {"VIN_5V_AFE": ("U2", "1"), "AVDD": ("U1", "19"), "DVDD": ("U2", "5"), "VCAP1": ("U1", "28"), "VCAP2": ("U1", "30"), "VCAP3": ("U1", "55"), "VCAP4": ("U1", "26"), "VREFP": ("U1", "24")}
+anchors = {
+    "VIN_5V_AFE": ("U2", "1"),
+    "AVDD": ("U1", "19"),
+    "DVDD": ("U2", "5"),
+    "VCAP1": ("U1", "28"),
+    "VCAP2": ("U1", "30"),
+    "VCAP3": ("U1", "55"),
+    "VCAP4": ("U1", "26"),
+    "VREFP": ("U1", "24"),
+}
 ground = netlist.nets["U2", "2"]
 totals, inventory, states = dict.fromkeys(anchors, 0.0), [], Counter()
 for role in roles:
     assert role["quantity"] == len(role["references"])
     if role["manufacturer"] == "Murata":
-        states[record["manufacturer_catalog"]["states_by_current_core"][role["mpn"][:-1]]] += role["quantity"]
+        states[record["manufacturer_catalog"]["states_by_current_core"][role["mpn"][:-1]]] += role[
+            "quantity"
+        ]
     for ref in role["references"]:
         pins = {netlist.nets[ref, "1"], netlist.nets[ref, "2"]}
-        found = [label for label, anchor in anchors.items() if pins == {ground, netlist.nets[anchor]}]
+        found = [
+            label for label, anchor in anchors.items() if pins == {ground, netlist.nets[anchor]}
+        ]
         assert len(found) <= 1
         value = role["spec"]["capacitance_f"] * 1e6
         label = found[0] if found else role["id"]
@@ -210,27 +228,59 @@ for role in roles:
             totals[label] += value
         else:
             assert ground not in pins and role["id"] in ("input_c", "bias_c")
-        inventory.append({"native_ref": netlist.parts[ref].native_ref, "contract_ref": ref, "node": label, "nominal_uF": value})
+        inventory.append(
+            {
+                "native_ref": netlist.parts[ref].native_ref,
+                "contract_ref": ref,
+                "node": label,
+                "nominal_uF": value,
+            }
+        )
 assert states == {"D": 4, "C": 22, "B": 5}
-counts = {"fitted_capacitors": len(inventory), "discontinued_core_instances": states["D"], "planned_stop_core_instances": states["C"], "C0G_core_B_instances": states["B"], "tantalum_instances": len(inventory) - sum(states.values())}
+counts = {
+    "fitted_capacitors": len(inventory),
+    "discontinued_core_instances": states["D"],
+    "planned_stop_core_instances": states["C"],
+    "C0G_core_B_instances": states["B"],
+    "tantalum_instances": len(inventory) - sum(states.values()),
+}
 assert counts == record["counts"] and len(inventory) == 33 and len(roles) == 7
 for key, value in totals.items():
     assert math.isclose(value, record["nominal_shunt_uF"][key], rel_tol=1e-12, abs_tol=1e-12), key
 parts = {r["native_ref"]: r for r in inventory}
-for name, refs, node in (("LDO_input", ("C19", "C20"), "VIN_5V_AFE"), ("LDO_output", ("C21", "C22"), "DVDD")):
+for name, refs, node in (
+    ("LDO_input", ("C19", "C20"), "VIN_5V_AFE"),
+    ("LDO_output", ("C21", "C22"), "DVDD"),
+):
     assert all(parts[r]["node"] == node for r in refs)
-    assert sum(parts[r]["nominal_uF"] for r in refs) == record["node_requirements"][name]["local_nominal_uF"] == 2
+    assert (
+        sum(parts[r]["nominal_uF"] for r in refs)
+        == record["node_requirements"][name]["local_nominal_uF"]
+        == 2
+    )
     assert list(refs) == record["node_requirements"][name]["refs"]
 output = record["node_requirements"]["LDO_output"]
-assert (output["effective_min_uF"], output["effective_max_uF"], output["ESR_max_ohm"]) == (0.47, 200, 0.1)
+assert (output["effective_min_uF"], output["effective_max_uF"], output["ESR_max_ohm"]) == (
+    0.47,
+    200,
+    0.1,
+)
 assert record["node_requirements"]["LDO_input"]["recommended_effective_min_uF"] == 0.47
 assert record["node_requirements"]["VREF"]["minimum_uF"] == 10
 ref = next(r for r in roles if r["id"] == "vref")
 ref_low = ref["spec"]["capacitance_f"] * 1e6 * (1 - ref["spec"]["tolerance_fraction"])
 assert math.isclose(ref_low, record["node_requirements"]["VREF"]["nominal_tolerance_only_low_uF"])
-calculated = {"local_LDO_nominal_retention_for_0_47uF": 0.47 / 2, "local_LDO_tolerance_only_low_uF": 2 * 0.9, "retention_of_tolerance_corner_for_0_47uF": 0.47 / (2 * 0.9), "VREF_nominal_tolerance_only_margin_ratio": ref_low / 10, "T491_recommended_application_V_at_E1_temperature": ref["spec"]["rated_voltage_v"] * 0.5}
+calculated = {
+    "local_LDO_nominal_retention_for_0_47uF": 0.47 / 2,
+    "local_LDO_tolerance_only_low_uF": 2 * 0.9,
+    "retention_of_tolerance_corner_for_0_47uF": 0.47 / (2 * 0.9),
+    "VREF_nominal_tolerance_only_margin_ratio": ref_low / 10,
+    "T491_recommended_application_V_at_E1_temperature": ref["spec"]["rated_voltage_v"] * 0.5,
+}
 for key, value in calculated.items():
-    assert math.isclose(value, record["arithmetic_not_effective_C_guarantees"][key], rel_tol=1e-12, abs_tol=1e-12), key
+    assert math.isclose(
+        value, record["arithmetic_not_effective_C_guarantees"][key], rel_tol=1e-12, abs_tol=1e-12
+    ), key
 assert len(record["qualification_targets"]) == 3
 for target in record["qualification_targets"]:
     assert target["status_codes"] == ["B", "B", "B"]
@@ -238,10 +288,29 @@ for target in record["qualification_targets"]:
     assert target["guaranteed_effective_min_uF"] is None
     assert not target["BOM_adopted"] and not target["assembly_qualified"]
 assert not record["retailer_conflict"]["resolved"]
-assert not record["BOM_changed"] and not record["approval_changes"] and not record["physical_measurements"]
-for item in record["technical_sheets"] + record["order_code_references"] + record["capture_archives"] + [record["T491"]]:
+assert (
+    not record["BOM_changed"]
+    and not record["approval_changes"]
+    and not record["physical_measurements"]
+)
+for item in (
+    record["technical_sheets"]
+    + record["order_code_references"]
+    + record["capture_archives"]
+    + [record["T491"]]
+):
     assert re.fullmatch(r"[0-9a-f]{64}", item["sha256"])
-print(json.dumps({"instances": sorted(inventory, key=lambda r: int(r["native_ref"][1:])), "nominal_shunt_uF": totals, "counts": counts, "derived_context_not_Ceff": calculated}, indent=2))
+print(
+    json.dumps(
+        {
+            "instances": sorted(inventory, key=lambda r: int(r["native_ref"][1:])),
+            "nominal_shunt_uF": totals,
+            "counts": counts,
+            "derived_context_not_Ceff": calculated,
+        },
+        indent=2,
+    )
+)
 ```
 
 The accounting and wrong-data controls must be executed on the published final
