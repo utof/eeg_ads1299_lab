@@ -1,0 +1,35 @@
+name: Keyed carrier source
+on:
+  push:
+    branches: [workbench/carrier-k2]
+    paths: [.github/workflows/carrier-source.yml]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: dbc99981a592904428f2432094dc62c4a13dcc55
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Retain original source and history
+        run: |
+          set -eu
+          test "$(git rev-parse HEAD)" = dbc99981a592904428f2432094dc62c4a13dcc55
+          test "$(git rev-parse HEAD^{tree})" = 94a0c57ae2913c41c9479de3481d86c20a52843c
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/source"
+          git branch carrier-source HEAD
+          git bundle create "$RUNNER_TEMP/source/repository.bundle" carrier-source
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/source/identity.txt"
+          cd "$RUNNER_TEMP/source"
+          sha256sum repository.bundle identity.txt > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: carrier-main-source
+          path: ${{ runner.temp }}/source/
+          if-no-files-found: error
+          retention-days: 7
