@@ -1,90 +1,107 @@
 # Continue from this repository
 
-**Current checkpoint: MISO/DRDY output repair after merged PR #63.** No previous chat or attachment is
-required to recover the published source. Read this file and root `AGENTS.md`
-first. This is a replaceable current checkpoint, not an append-only chat log.
-Use the live Git/PR state; an old success report does not validate a later head.
+**Current checkpoint: input geometry/coupling review after merged PR #64.**
+No previous chat or attachment is needed. Read this file and root `AGENTS.md`
+first; use live Git/PR state, not a historical success or a missing chat reply.
 
 ## Start a fresh session
 
-1. Fetch the repository and read `git status --short`, `git rev-parse HEAD`, the
-   current `main`, and open PRs. Do not overwrite someone else's uncommitted work.
-   Read this checkpoint on the branch you actually intend to change.
-2. PR #63 is merged as `f834221a092f78dee4191305a3c3a8a03def0283`.
-   The output repair is on `fix/digital-output-corridor`; inspect its live PR,
-   exact-head checks and review until merged, then use current main. Do not
-   substitute old chat-local variants. Before merging, inspect live head/base,
-   diff, review comments, conflicts and exact-head CI, including base drift.
-3. Read `docs/DEVELOPMENT.md` for the pinned environment and `hardware/rev_a/`
-   plus `docs/HARDWARE_BASELINE_REV_A.md` for circuit decisions. Choose the next
-   bounded task below, not a recreation of already published work.
-4. Record the source SHA/tree used for your own checks. If tools or source-write
-   access fail, distinguish what is published, merely local, or not executed.
-   Do not use a substitute branch and call it this candidate.
+Fetch current main and open PRs; inspect `git status --short`, `git rev-parse
+HEAD` and `git rev-parse HEAD^{tree}` before changing anything. Preserve other
+people's uncommitted work. PR #64 is merged as
+`5197c5b9478391e305c5d41f6c992bbdcd6bfd56` (tree
+`eecf9efb62f13d2cbda4d3815bed3de05a231fb6`). The input review is on
+`review/input-layout-coupling`: read its live head/checks/review while unmerged;
+after merge use current main. Do not reroute MISO/DRDY again merely because the
+previous chat did not display its completion report. Before any merge recheck
+head/base, actual diff, conflicts, review findings and exact-head CI.
 
-The bridge commit `0eb2a121e51de8c1f103af5a0c991e4d782a59fe` has the exact original
-routed tree `0c6dd0675c977cbcef2ef043cb49e9081b8c9b8f`. Its first parent is real
-GitHub main `d2ee2964c14ef558a919eab77eb5eb153c4fdbc0`; its second parent is
-reconstructed local head `07edcacc4c22bfd2ae5aa053c658d6c480b75f5e`. All ten
-original local commits, including failing tests, remain reachable. These are
-not invented GitHub ancestors. The original source is also on
-`archive/connected-routing-local-07edcacc`. See
-`docs/checkpoints/20260929_source_recovery.json` for identities and evidence.
+Read `DEVELOPMENT.md`, `HARDWARE_BASELINE_REV_A.md` and the applicable detailed
+review before changes. Canonical board: `hardware/rev_a/layout/rev_a.kicad_pcb`.
+Project, three schematic sheets and local libraries: `hardware/rev_a/kicad/`.
+Never regenerate the authored board with the parking-grid importer. Its
+intentionally unrouted test output is not the completed layout.
 
-## Merged AVDD1 repair
+## What is published and what remains a hypothesis
 
-PR #62's reviewed head330f34c7 and merge5ece3051 have the same tree81640a52.
-Read `REV_A_AVDD1_REPAIR.md` and PR62 for its actual failure-first review history
-and completed CI. Its three traversal defects were corrected, not waived.
-Its historical board SHA256 was611218bae6559fb2488309fc80eee20ce2d6b5855977d52d600f947099179b43.
-The separate chat-local1689234/e73e26bc variant was not merged or overlaid.
-Keep longer VCAP3/C24 and designated AVDD56/C14 routes visible in whole-board
-supply/noise review. Source review/native DRC did not measure that performance.
+The reviewed board has 584 segments, 122 vias, 68 footprints and 245 pads, with
+one native filled In1 GND region. Its source SHA256 is
+`232b7c68a63ae13aebcf71f8c0b1f210421c30452a1afc7b7c86dc1c118b23a3`.
+These are a dated source identity, not permanent constraints on reviewed repairs.
+The input review changes no copper, schematic, BOM, firmware or model.
 
-## What exists now
+PR #62 repaired AVDD1 and fixed three native guard traversal defects before
+acceptance. Read `REV_A_AVDD1_REPAIR.md`; longer VCAP3/C24 and designated
+AVDD56/C14 paths still need whole-board supply/noise consideration. PR #64
+moved MISO/DRDY long spans onto F over In1 with bounded local In2 escapes.
+Its final reviewed e0184fb8 head has the same tree as merge5197; all five hosted
+jobs passed and Codex reported no major issues after the arc-guard and stale
+roadmap findings were corrected. See PR64 and `REV_A_DIGITAL_OUTPUT_REPAIR.md`.
+DRDY grows to44.132mm authored sum; 0.30mm parallel front edge spacing,
+stackup/edge/cable/barrel effects remain unqualified. Source/AI review and DRC
+are not professional or physical electrical qualification.
 
-The four-channel ADS1299-4 / off-board ESP32-S3 Rev A has a **fully connected
-PCB draft**, not an approved manufacturing design. The canonical editable board
-is `hardware/rev_a/layout/rev_a.kicad_pcb`; the three-sheet schematic, project
-settings and local libraries are in `hardware/rev_a/kicad/`. Never regenerate
-this board with the parking-grid importer. Existing tests intentionally also
-exercise an unrouted import; those artifacts are not the authored PCB.
+## Current result and next bounded task
 
-The output-repair candidate has584segments,122vias,68footprints,245pads and
-one native filled In1 region. Its board SHA256 is
-232b7c68a63ae13aebcf71f8c0b1f210421c30452a1afc7b7c86dc1c118b23a3.
-All footprints, other-net copper and the AVDD1/VCAP repair stay byte-identical.
-`REV_A_ROUTING_COMPLETION.md`, `REV_A_AVDD1_REPAIR.md` and
-`REV_A_DIGITAL_RETURN_REVIEW.md` describe earlier exact-source milestones;
-the current delta is `REV_A_DIGITAL_OUTPUT_REPAIR.md`.
+Read `REV_A_INPUT_LAYOUT_REVIEW.md` and
+`checkpoints/20260930_input_geometry.json`. Eight main R-to-C-to-ADC paths
+are already F-only and have only0.435mm magnitude P/N centreline difference.
+The B-layer filtered-input copper is instead a branch to each DNP diode pad3;
+its P/N branch sums differ by4.5mm. DNP parts are not fitted, but their copper
+is still connected. Do not turn either length difference into a capacitance,
+CMRR, noise, safety or matching guarantee.
 
-Source capture36641566165 fetched exactmainf834221a from GitHub. The full
-baseline local gate passed1091ordinary+14subtests,98native and135KiCad cases.
-Two failure-first native output cases precede the repair. Ten added native
-cases exercise canonical geometry, connected wrong-layer/reference-window
-faults, a curved-escape review regression and benign edits. Their focused result is not a final-head whole-suite
-pass: read the live repair PR's actual final checks and review. Keep durable
-summaries/source in Git; expired logs should be reproducible without a chat ZIP.
+The input B/In2 screen has13 unique net-pair crossing locations (22 raw pairs,
+with overlapping AVDD items deduplicated). Three are **CH1N_DUMMY crossing the
+IN2P/IN3P/IN4P DNP branches** with no GND layer between. In1 is above both
+layers, even where its fill projects onto each crossing. Four other upstream
+input overlaps and six supply overlaps are retained, not waived.
+
+**After the input-review PR checks/review/merge, rework the CH1N_DUMMY corridor
+first to remove those three cross-channel overlaps.** Prefer a suitable F
+corridor over In1; preserve front R/C/U1 itineraries, pad/net/population
+inventory, all AVDD1/VCAP and output-repair copper, ground continuity and rules.
+First observe a focused geometry-policy failure; then implement and test the
+repair with actual refilled DRC/parity and connected-but-wrong-layer/benign
+controls. If F placement causes worse neighboring geometry, reconsider rather
+than chase a count. Do not add matching meanders, delete DNP branches or adopt
+a new protection/filter circuit implicitly. Other upstream overlaps, branch
+asymmetry and actual parasitic/coupling effects remain explicit follow-through.
+
+Four native illustrative passive runs demonstrate conditional conversion from
+unequal capacitance-to-ground using existing `lab.analog`; they do NOT model
+cross-channel mutual capacitance or assign capacitance to board lengths. The
+detailed review contains the exact assumptions, equation, native grid and
+reproduction snippet. No new production model/dependency or measured electrode,
+PCB or silicon parameter was introduced.
+
+Fresh GitHub source capture36696579521 and baseline ordinary+schematic checks
+used clean5197:1091ordinary+14subtests,145KiCad and22console cases;86.06%branches,
+unchanged71%floor. The22 console cases are a subset of the existing98native
+suite; that command did not run all98native or the S3 target. Geometry checks
+covered706track/via items,245pad positions,eight main itineraries and13 unique
+crossings. Analysis runs are not added project tests. Read the live input-review
+PR's final-head verification separately; inherited passes do not validate a
+newer head. Main has a fully connected draft, not fabrication approval.
 
 ## Reproduce and inspect
 
 ```sh
 uv sync --locked --all-extras
-uv run --locked python -m tools.check
-uv run --locked python -m tools.check --native --schematic
-uv run --locked python -m tools.check --firmware
+uv run --locked --all-extras python -m tools.check
+uv run --locked --all-extras python -m tools.check --native --schematic
+uv run --locked --all-extras python -m tools.check --firmware
 ```
 
-Install the declared native tools first. The ordinary environment is locked by
-`uv.lock`; native KiCad 9.0.2 engine/libraries are pinned in
-`.github/workflows/schematic.yml`, and Arduino setup is specified by
-`firmware/toolchain.json` and `.github/workflows/firmware.yml`. The Actions jobs
-are executable fresh-runner setup, not proof that tools exist in a new agent's
-sandbox. Missing tools/network/cache must be reported, not skipped into success.
-No installed tool/cache/compiled binary or font attachment is required from chat.
+Install required native tools first. The lockfile is authoritative; native
+KiCad9.0.2 engine/libraries are pinned in `.github/workflows/schematic.yml`;
+Arduino setup is in `firmware/toolchain.json` and the Firmware workflow. Jobs
+are executable fresh-runner setup, not proof a sandbox already has tools.
+Missing tools/network/cache are blockers, never skipped into success. Avoid
+concurrent uv sync/hook resync against a running environment. Expired artifacts
+should be reproducible from source; a chat cache/font/binary is not a dependency.
 
-For a directly openable review copy with the correct same-basename project and
-schematic, copy the existing source rather than invoking the importer:
+Use a disposable project copy, not the importer:
 
 ```sh
 set -eu
@@ -94,79 +111,40 @@ cp hardware/rev_a/layout/rev_a.kicad_pcb "$review_dir/rev_a.kicad_pcb"
 printf 'Open %s/rev_a.kicad_pro\n' "$review_dir"
 ```
 
-This is a disposable copy. Deliberately transfer any reviewed edits back to the
-canonical tracked paths, inspect the diff and rerun the gates. Do not mistake
-changes in the copy for committed source. The native tests already assemble
-independent copies, refill zones and check actual routing/parity.
+Transfer reviewed edits back to canonical tracked paths deliberately. Changes
+in a temporary copy are not committed source. Review/test each actual head.
 
-## Current output repair and next bounded task
+## Finish without private handoff dependencies
 
-Read `REV_A_DIGITAL_OUTPUT_REPAIR.md` and
-`checkpoints/20260930_digital_output_repair.json`. Neither output has B.Cu
-tracks now. Long spans run on F over In1; bounded In2 escapes beside U1 share
-that same ground conductor. Four output-via fill openings are distinct after
-native refill. Full-width projected-reference checks exempt only each output's
-own through-contact voids, not unrelated plane gaps. The local10mm/rectangle
-policy is not a manufacturer limit or a field solution. Codex4139341193 exposed
-a curved-escape loophole; a DRC-clean native arc failed before the straight-In2
-requirement fixed it. Curved In2 tracks are explicitly unsupported, not accepted
-by testing only their endpoints.
+Publish source/tests/necessary small reference inputs to a named PR, read back
+its head, update this checkpoint and `REV_A_COMPLETION_ROADMAP.md`, and record
+commands/outcomes with their actual tested SHA. Distinguish new/inherited,
+local/hosted, published/unpublished and unexecuted work. Merge only after actual
+review and required checks, preserving history with a merge commit. Keep WIP
+in a discoverable PR, not solely `/mnt/data`, chat or expiring CI artifacts.
+Each report starts with TLDR then category/estimated-remaining-turns/status/
+next-slice table. Do not mistake test-count growth for engineering progress.
 
-The changed tradeoff is explicit: DRDY total authored segment sum grows36.499
-to44.132mm; the parallel front runs have0.30mm copper-edge separation. No
-measured coupling/noise/delay claim is made. Keep the existing AVDD1 neighboring
-capacitor tradeoffs, SCLK/CS and CLK/START fill groups, final dielectric stackup,
-edge rates, receiver and cable behavior in whole-board/release review.
+The original reconstructed local07edcacc history remains reachable through
+bridge0eb2a121 and archive/connected-routing-local-07edcacc; it was not earlier
+GitHub publication. The chat-local1689234 variant and issue45's76502e7 variant
+are different unmerged sources, not patches to apply over current main.
 
-**After the output-repair PR checks/review are resolved and merged, next is
-input P/N geometry/coupling review.** Measure connector-to-R separately from
-R-to-ADC, using actual pads/tracks/vias, layers, neighborhoods and reference
-copper. Compare positive/negative paths without treating unequal lengths alone
-as a failed analog specification. Bound parasitic/coupling hypotheses before
-adding matching meanders; no generic simulator or approval registry is needed.
-Do not reapply the earlier source-capture or copper authoring helpers over later
-work. Continue from the actual live source, not historical board hashes.
+## Unresolved decisions and user constraints
 
-Use `REV_A_COMPLETION_ROADMAP.md` for the current status/remaining-turn ranges.
-Every completion report now starts with TLDR plus a category/estimated-turns/
-done/next-slice table, followed by the useful evidence and specific next task.
+Keep #45/#48 OPEN. Read the completion roadmap and the bench-harness, capacitor
+evidence/bulk assessment, tantalum-land and power documents for the actual
+remaining stackup, mounting/mating/assembly, capacitor lifecycle/effective-C,
+console/interface rail-loss behavior and delivered-budget decisions. Do not
+recreate the already-published logical AFE/DevKit pin map or silently approve a
+live adapter. Models are bounded hypotheses; target compilation is not a bench
+test. Body use is a separate later revision.
 
-Keep **#45 and #48 open**: actual console/interface powered-off behavior,
-component lifecycle/effective capacitance and assembly lands, stackup, mounting,
-connector mates/clearance and the delivered budget remain unresolved. Read
-`REV_A_BENCH_HARNESS.md`, `REV_A_CAPACITOR_EVIDENCE.md`,
-`REV_A_BULK_CAPACITOR_ASSESSMENT.md`, `REV_A_TANTALUM_LANDS.md` and
-`REV_A_COMPLETION_ROADMAP.md` for those specific decisions. Older placement and
-roadmap paragraphs are dated history, not instructions to undo completed copper.
-Issue #45's older 76502e7/ded7be9 digital-only candidate is not this source;
-do not infer its U1.51 ground-return adjustment belongs to 07edcacc.
-
-## Finish each subsequent session without a private handoff dependency
-
-Publish the scoped source/tests and required small reference inputs to a named
-branch/PR before claiming delivery. Read back the remote head. Update this file
-with what changed, the next bounded task, live PR/issue pointers and explicit
-blockers. Record executed checks with their actual tested SHA, outcome, command
-and evidence location; mark inherited results and unexecuted checks. Review and
-merge with a merge commit only when the required checks/reviews are satisfied.
-Unfinished work stays discoverable in a clearly identified open PR, not only in
-`/mnt/data`, a conversation attachment, or an expiring Actions artifact. A blocked
-write is a publication blocker, not permission to claim the repository is current.
-
-## User and scope constraints
-
-The user is an electronics beginner who prefers test-first, small meaningful
-slices, functional calculations and understandable explanations. Additional
-spending target is $100, not a verified delivered quote. Owned parts include
-an unspecified ESP32, Arduino Uno and MCScap electrodes; selected ADS/S3 parts
-are not proof of purchase. Exact MCU/board revision, electrode suffix and lead
-properties still need physical confirmation. See `docs/references/mcscap/`;
-do not turn family bounds into measurements of the user's electrodes or scalp.
-
+The user is an electronics beginner; favor explained, test-first bounded slices.
+Additional spending target is $100, not a delivered quote. Owned unspecified
+ESP32, Arduino Uno and MCScap electrodes do not establish purchase/revision of
+the selected ADS/S3. Exact electrode suffix/lead properties and board revision
+need physical confirmation; family bounds are not user's measurements.
 Preserve all false hardware/purchase/release/body-use gates. BIAS, lead-off and
-external acquisition are not enabled by completing routing. Models are bounded
-hypotheses; target compilation is not physical verification. No fabrication,
-purchasing, powered connection or body use is authorized by this checkpoint.
-Historical handoff detail remains in Git, for example
-`git show 07edcacc:docs/LLM_HANDOFF.md`; model and firmware scope lives in the
-specific documents rather than duplicated, stale instructions here.
+external acquisition are not enabled by routing. No purchasing, fabrication,
+powered connection or body-use authorization is granted by this checkpoint.
