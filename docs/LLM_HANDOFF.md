@@ -1,12 +1,11 @@
 # Continue from this repository
 
-**Current checkpoint: K1 high-temperature header migration and coded harness design.**
+**Current checkpoint: K2 dimensioned fit-prototype carrier/cartridge CAD.**
 No prior chat or ZIP is needed. Read root `AGENTS.md`, this file and live Git/PR
-state. PR #70 is merged as `a55ce97a6029a4759d23f1f528feda3c5a0dc6b8`, tree
-`71d3525fcd66da39e5306d596801b3fb40d03c16`. The K1 continuation is on
-`fix/connector-k1`: read its live PR/head/checks/review until merged, then use
-current main. Recheck head/base, diff, conflicts and actual exact-head CI before
-merge. Preserve unrelated work and never count an inherited pass as a new run.
+state. Base for K2 is `dbc99981a592904428f2432094dc62c4a13dcc55`, tree
+`94a0c57ae2913c41c9479de3481d86c20a52843c` after merged PR#71. Read the live
+`feat/carrier-k2` PR/head/checks/review until merged, then use current main.
+Recheck head/base and exact-head checks before merging; preserve unrelated work.
 
 Canonical PCB: `hardware/rev_a/layout/rev_a.kicad_pcb`; native project/sheets:
 `hardware/rev_a/kicad/`. Never regenerate the authored board with the parking-grid
@@ -14,44 +13,47 @@ importer. Read `DEVELOPMENT.md` and `HARDWARE_BASELINE_REV_A.md` before edits.
 
 ## Current result and next bounded task
 
-Read **`REV_A_CONNECTOR_K1.md`** and
-`checkpoints/20260930_connector_k1.json`. The two board headers are now
-**HTSW-110-07-T-D**, selected for the high-temperature LCP/lead-free-compatible
-family. BOM/profile/native schematic and PCB fields plus freshly generated
-native-export fixtures were changed together. The pin map, all 40 header pads,
-1.00mm drills and all routing/zone fill remain unchanged. This removes the
-known TSW-family material obstacle, NOT the need for accepted selective-solder
-process and finished-hole/fit DFM. Cable/cartridge stay out of reflow; no
-unverified hand-solder temperature or production approval is inferred.
+**K2 dimensioned fit-prototype CAD is now authored** in
+`hardware/rev_a/mechanical/view_k2.scad` and `carrier_k2.scad`. Read
+`REV_A_CARRIER_K2.md` for dimensions, assembly order, source identity and limits.
+The K2 continuation is on `feat/carrier-k2`; use its live PR until merged, then
+current main. The earlier K1 header migration is complete; do not repeat it.
 
-The selected external harness target is **IDSD-10-S-04.00-T-G-ST4**: a20-contact,
-four-inch single-ended tin IDC assembly with stripped/tinned free ends. Its
-code is constructed from manufacturer drawings, not a confirmed delivered order.
-It is NOT a keyed connector by itself, not the old PCB-tail SSW reference and
-not a plug directly matching the controller. Preserve the existing logical
-harness mapping, verify every conductor unpowered and insulate NC/disabled
-free ends. E1 fixture capacitance/imbalance and cable signal behavior remain
-unqualified. Bare unkeyed operation is not approved.
+The base accepts the PCB before two separately removable, differently mounted
+guide bridges are attached. This corrects an installation obstruction in the
+first integral-bridge solid. The side-exiting IDSD ribbon needs a slotted guide,
+not K1's closed rectangle: end tabs and coded ribs remain, and the side window
+and independent saddle clear the larger cable-envelope probe. Complete assembly
+checks also forced the side rails/retainers below the J2 ribbon; local receiver
+checks alone had missed that obstruction. Release the
+cable bar before withdrawal. End ledges and riveted-cover design capture the
+socket without adding a plate between mating faces. Actual fastener/rivet,
+width/datum/process/force/tilt acceptance still needs unpowered inspection.
+K2 revises the working/removal allocations to21/10mm; other electrical scope
+and all PCB routing remain unchanged.
 
-K1 defines an8x28.6mm captive cartridge, an8.4x29.0mm guide bore, and differently
-positioned internal-rib/side-groove codes for J1 andJ2 without deleting contacts.
-The exact rectangular cross-section model rejects wrong-port/reversed/pitch-
-offset poses and a missing groove; it is NOT a continuous3D, arbitrary-tilt,
-force or material proof. A bare socket bypasses this coding and is not allowed
-as a qualified assembly. Actual socket capture, guide integrity and strain
-relief require their own mechanical design and unpowered tests.
+The editable SCAD and real CGAL regression tests are in Git, not just a chat
+image. `tools.check --native` now requires OpenSCAD2021.01 as well as the prior
+native tools; the Ubuntu24.04 CI package is2021.01-6build4. No Python dependency
+or parallel verification orchestrator is added. Native test temporary files
+are retained under the selected output. The ordinary gate is still renderer-free.
+The tests cover sampled rigid contact/collision cases, not all tilt angles,
+material deflection, manufacturing uncertainty or physical fit.
 
-**Next bounded source task: dimensioned keyed carrier/cartridge CAD and its
-fit/engagement/strain-relief checks.** The HTSW source migration is already done;
-do not repeat it. Preserve M1's no-new-PCB-holes support concept and independent
-controller support. Receiver10.4x31mm projection overlaps C33's courtyard, so it
-must be raised/carrier-supported, not placed on the PCB. K1 allocates guide
-z9.5..14.5mm,17mm working header height and8mm withdrawal; these are design
-inputs, not a validated carrier. The post/insertion tolerance arithmetic leaves
-only0.0508mm minimum zero-gap margin; do not let a sleeve prevent full seating.
-Check actual pin tips, tilt, socket dimensional tolerances, material stiffness,
-cable bends, carrier anchoring and insertion/removal loads before release.
-Then advance the remaining real powered-off console/interface decision.
+**Next independently actionable source task: actual controller-side termination
+and powered-off console/interface plan**, using the existing logical map and
+K1 stripped/tinned cable ends. Choose one exact architecture and back-power/
+startup restrictions; do not recreate a generic pin list. Keep K2's concrete
+fit/process/continuity/pull-test requirements and the separate controller
+support/cable-route work on#45. No pilot release or powered test is authorized.
+K2 has no PCB mounting holes and does not qualify the capacitors or E1.
+
+The two headers remain HTSW-110-07-T-D; cable target remains
+IDSD-10-S-04.00-T-G-ST4. Exact solder recipe, finished-hole DFM, cable quote,
+free-end termination and real fixture loading remain unconfirmed. No supplier
+was contacted and no hardware purchased. Bare unkeyed sockets bypass the
+cartridge and remain unapproved. Continuity/orientation must be inspected
+before permanently capturing a socket; geometry cannot prove factory wiring.
 
 Board SHA256 is now
 `dfe893f958128ba28eb69188cf6debbbc9fcafa0ef5dd67bd58627d4b8a26842`.
@@ -59,7 +61,8 @@ It differs from preceding5da65b43 only in four header Value/MPN strings; replaci
 those four strings back reconstructs the exact old bytes. All704 track/via
 forms,245pads andgeometry are unchanged;66whole footprint forms unchanged,
 two header forms changed only in their identifiers. There are582segments,
-122vias and68footprints. No circuit, firmware, simulation or dependency change.
+122vias and68footprints. K1 changed no circuit, firmware, simulation or dependency;
+K2 adds the declared native OpenSCAD development/CI requirement only.
 All approval flags remain false. The new $2.00/header planning allowance brings
 subtotal to$94.34; the historical$3 harness reserve is NOT demonstrated to cover
 the new cable/carrier. No delivered $100 compliance or purchase is claimed.

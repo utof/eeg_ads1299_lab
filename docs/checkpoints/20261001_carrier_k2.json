@@ -1,0 +1,166 @@
+{
+  "scope": "initial_dimensioned_fit_prototype_not_manufacturing_release",
+  "base_commit": "dbc99981a592904428f2432094dc62c4a13dcc55",
+  "base_tree": "94a0c57ae2913c41c9479de3481d86c20a52843c",
+  "board_sha256": "dfe893f958128ba28eb69188cf6debbbc9fcafa0ef5dd67bd58627d4b8a26842",
+  "engine": "OpenSCAD version 2021.01",
+  "parts": {
+    "bridge_J1": {
+      "volume_mm3": 962.9216631955318,
+      "bbox_min_mm": [
+        61.27,
+        20.18,
+        7.0
+      ],
+      "bbox_max_mm": [
+        94.75,
+        56.68,
+        14.5
+      ],
+      "triangles": 796,
+      "connected_surface_components": 1,
+      "mesh_sha256": "02515c0e4d37de3cb1cbf4fb21f521118ffc474636e30ef3046068e2e0a1dcf4"
+    },
+    "bridge_J2": {
+      "volume_mm3": 928.4229143893971,
+      "bbox_min_mm": [
+        -3.73,
+        22.18,
+        7.0
+      ],
+      "bbox_max_mm": [
+        21.47,
+        64.68,
+        14.5
+      ],
+      "triangles": 764,
+      "connected_surface_components": 1,
+      "mesh_sha256": "dc5335a128fddd407c702c29cc46c80f14c19ee55d8786210f2ac7612d27a257"
+    },
+    "cap": {
+      "volume_mm3": 553.0251818679999,
+      "bbox_min_mm": [
+        -6.0,
+        -14.3,
+        9.7
+      ],
+      "bbox_max_mm": [
+        6.0,
+        14.3,
+        15.8
+      ],
+      "triangles": 572,
+      "connected_surface_components": 1,
+      "mesh_sha256": "8ed3cd88bc19818d489ac0ae15beb677fdef66085c40ab89510ae06dc76c8c65"
+    },
+    "carrier": {
+      "volume_mm3": 29566.893922134055,
+      "bbox_min_mm": [
+        -6.0,
+        4.0,
+        -10.0
+      ],
+      "bbox_max_mm": [
+        96.0,
+        74.0,
+        9.5
+      ],
+      "triangles": 1756,
+      "connected_surface_components": 1,
+      "mesh_sha256": "5002dadb32761a069a89ab2e48cd6ad0c61aad89b6e8b22880b55adbd5282298"
+    },
+    "cartridge_J1": {
+      "volume_mm3": 1176.2876568880108,
+      "bbox_min_mm": [
+        -6.0,
+        -14.3,
+        -0.599999
+      ],
+      "bbox_max_mm": [
+        6.0,
+        14.3,
+        14.3
+      ],
+      "triangles": 636,
+      "connected_surface_components": 1,
+      "mesh_sha256": "eadd904bd0b77ec9f169f362eeed527152ffa254b9f71e13d5eee39901190b03"
+    },
+    "cartridge_J2": {
+      "volume_mm3": 1176.287656888011,
+      "bbox_min_mm": [
+        -6.0,
+        -14.3,
+        -0.599999
+      ],
+      "bbox_max_mm": [
+        6.0,
+        14.3,
+        14.3
+      ],
+      "triangles": 636,
+      "connected_surface_components": 1,
+      "mesh_sha256": "387c3bb0e9b602551233683f8c6b29de0b280221de6c98b1900f380552c6a26b"
+    },
+    "edge_clip": {
+      "volume_mm3": 78.75456910259975,
+      "bbox_min_mm": [
+        3.5,
+        0.0,
+        0.0999994
+      ],
+      "bbox_max_mm": [
+        10.8,
+        6.0,
+        5.5
+      ],
+      "triangles": 152,
+      "connected_surface_components": 1,
+      "mesh_sha256": "b9eebb6a9f949c607ef00a456fcfe4ca4b739bdd5316755589f7a3eb3913c111"
+    },
+    "strain_bar": {
+      "volume_mm3": 372.6690507696,
+      "bbox_min_mm": [
+        -4.0,
+        -16.0,
+        10.7
+      ],
+      "bbox_max_mm": [
+        4.0,
+        16.0,
+        12.2
+      ],
+      "triangles": 276,
+      "connected_surface_components": 1,
+      "mesh_sha256": "c108fc807b4401675685bb35d39bc3c1c2b8bb9bdede9612b398648ffc1a7843"
+    }
+  },
+  "failure_first": [
+    {
+      "commit": "ea12032",
+      "result": "2 observed missing-CAD failures"
+    },
+    {
+      "commit": "dddef40",
+      "result": "larger cable envelope and missing renderer preflight fail"
+    },
+    {
+      "commit": "5b1c981",
+      "result": "integral frame obstructs populated board installation; 517.18359148 mm3"
+    },
+    {
+      "commit": "acfc3ac",
+      "result": "complete assembly cable check: 2 failures/6 passes; J2 seated214.569967 and lift2mm20.811966 mm3"
+    }
+  ],
+  "focused_native_cases": 54,
+  "passed_focused_run": "/mnt/data/k2-native-final.log (temporary execution log, not a dependency)",
+  "limits": [
+    "finite rigid single-axis tilt samples on J1, not arbitrary trajectories",
+    "accepted socket width<=5.30mm is an inspection requirement, not a manufacturer maximum",
+    "manufacturing, material, fastener, rivet, creep, force and physical fit unqualified",
+    "fixture cable envelope is a design allocation, no actual cable validation",
+    "board thickness/shims and controller-side termination remain open"
+  ],
+  "physical_tested": false,
+  "approval_changes": false
+}

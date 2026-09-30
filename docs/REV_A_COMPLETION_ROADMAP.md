@@ -1,54 +1,43 @@
 # Finish the person-disconnected Rev A prototype design
 
-**Current checkpoint: K1 header selection is migrated; coded harness/carrier
-geometry is defined but not physically qualified.** Both board headers are
-HTSW-110-07-T-D; exact selective-solder process and hole/fit DFM stay open.
-The IDSD cable configuration is an external design target, not a keyed or
-approved standalone cable. Next is dimensioned carrier/cartridge CAD including
-actual socket capture, engagement and strain relief, not another header search.
+**Current checkpoint: K2 initial dimensioned carrier/cartridge CAD.**
+Editable solid models and native collision/mesh tests now exist. The base uses
+no new PCB holes; raised bridges are removable for board installation, the
+side-exiting cable has a window, and capture/cable-restraint parts are modeled.
+This is an unapproved fit prototype, not a qualified interlock or finished
+manufacturing process. Physical fit/force/continuity and material/fastener/
+termination evidence remain open. K1 header migration is not repeated.
 
 ## Glanceable roadmap
 
-Estimates are **remaining substantial chat turns**, not elapsed time, commits,
-guarantees or a safety score. Related tasks overlap and new findings can add
-work. Manufacturing/shipping and physical measurements are excluded. Do not
-sum the rows into a promised completion date. Refresh this table with each
-meaningful slice and show it after the user-facing report's TLDR.
+Ranges are estimated remaining substantial chat turns, excluding supplier,
+manufacturing, shipping and physical measurement time. Categories overlap;
+these are neither promises nor a safety/readiness score.
 
 | Category | Estimated remaining turns | Done / current status | Next slice or blocker |
 |---|---:|---|---|
-| Source, core software/firmware and checks | 0 for baseline; maintain | Published source, pinned checks and target build; repo-only continuation | Keep source, review and actual test heads aligned |
-| PCB connectivity and scoped repairs | 0 for completed routing | Fully connected; AVDD1, digital-output and CH1N repairs merged | Preserve copper except reviewed changes; physical performance not qualified |
-| Residual input/supply coupling | 1 combined decision after confirmations | Nine locations remain one six-pair item | Confirmed construction plus E1 for combined rework or separate pilot-risk decision |
-| Stackup and bench-input envelope | 0 for target definition; 1–2 plus external evidence to close | Named JLC04161H-7628 and numerical E1 selected | Factory drawing/tolerances/material and calibrated fixture/floor still unconfirmed |
-| Capacitor decision/migration | 1 synchronized review after applicable evidence | Shortlist and33-instance node accounting complete; no BOM migration | #48 exact lifecycle/approval, biased-C/impedance and internal VCAP conditions or explicit limited pilot-risk disposition |
-| Mechanics, connectors and assembly | 1–2 plus process/fit evidence | HTSW source migration and differently coded IDSD-cartridge concept complete; no carrier qualified | Next: dimensioned carrier/socket capture, raised receiver and strain relief; then actual interface review |
-| Real power/console fault readiness | 1–3 plus physical checks | Firmware/console contracts exist; actual rail-loss behavior unqualified | Exact interface and powered-off paths; staged dummy-bench checks |
-| Release package and delivered budget | 1–2 after blockers close | Not fabrication/purchase-ready | Independent release review, consistent outputs and delivered quote |
-| Person-disconnected bench verification | 2–4 guided turns plus bench work | Physical prototype validation not started | Unpowered inspection, then staged dummy-source tests after prerequisites |
+| Source continuity and core software | 0 for baseline; maintain | Published source, handoff and pinned checks | Keep actual source/review/test heads aligned |
+| Initial routing and scoped repairs | 0 for completed scope | AVDD1, MISO/DRDY, CH1N and HTSW identity changes retained | Preserve physical-performance limitations |
+| Residual input/supply coupling | 1 combined decision after confirmations | Nine locations remain one six-pair item | Confirmed stack/E1 evidence, then combined repair or separate pilot risk |
+| Stackup and E1 definition | 0 for targets; 1–2 plus external evidence to close | Named construction and numerical targets | Factory drawing and calibrated fixture/uncertainty capability |
+| Capacitor decision/migration | 1 coordinated review after evidence | Exact shortlist and33-node accounting, not substitutions | #48 lifecycle/assembly/biased-C/impedance evidence |
+| Mechanical carrier and coded cartridges | 0 for initial CAD; 1–2 plus physical fit/process review | Executable K2 solids and scoped native collision tests | Actual dimensions, captive assembly, retention/tilt/force, controller support and cable route |
+| Controller termination and power-off interface | 1–3 plus physical checks | Logical map exists; actual wiring/rail-loss behavior unqualified | **Next: one exact cable-end/console architecture and startup/back-power restrictions** |
+| Fabrication outputs and delivered budget | 1–2 after blockers close | No release/purchase approval | Separate release review, consistent files and delivered quote |
+| Person-disconnected bench validation | 2–4 guided turns plus bench work | Not started | Unpowered inspection, then staged dummy-source tests after prerequisites |
 
-**Next: dimensioned keyed carrier/cartridge CAD.** Use `REV_A_CONNECTOR_K1.md`
-and its source-bound record, including the raised receiver projection at C33,
-0.0508mm lower zero-gap insertion margin, complete twenty-position pin map and
-independent carrier/cable support. The exact 2D pose screen is not a completed
-three-dimensional interlock or material/tolerance/force validation. Do not add
-arbitrary PCB holes or repeat the completed BOM/schematic/PCB field migration.
+Read `REV_A_CARRIER_K2.md` before interpreting the CAD. K2 replaces the closed
+K1 receiver rectangle with a slotted 3D guide and independently checks it;
+do not recycle the912-pose K1 rectangle count as a K2 mechanical proof. The
+modeled16 tilt cases are finite rigid probes, not continuous trajectory or
+material tolerance qualification. Bridges must be removed for PCB installation;
+release cable bars before withdrawal. Controller and free-end cable termination
+remain independently supported/insulated requirements, not depicted hardware.
 
-K1 selects selective lead-free through-hole attachment after SMT; assembler
-acceptance of the job-specific profile and unchanged1.00mm hole DFM remain pending.
-All cable terminations, guide integrity, wrong/tilted approach and strain-relief
-checks must precede a later allowed powered test. The bare cable remains unkeyed.
-The planning subtotal is$94.34, not a delivered total; the historical$3 harness
-reserve is unvalidated for the selected cable/carrier. Obtain a full quote
-rather than silently claiming the$100 target is met.
-
-Capacitor#48 remains open for exact lifecycle/approval/biased-C andassembly data.
-The E1 low-impedance dummy targets and named unconfirmed JLC04161H-7628 stack
-are unchanged. The residual six-pair coupling group remains open for confirmed
-construction and separate combined-repair/pilot-risk review. Advance finite
-mechanical/interface tasks while factory/fixture evidence is pending; never
-invent confirmations or require measurements from a board before it exists.
-Body use is a separate later revision, not unlocked by source or geometry tests.
+Next source work is the actual controller-side termination and powered-off
+console/interface plan, using the existing pin map rather than making another
+pin list. Carry concrete K2 fit/process questions on#45 while advancing this
+finite task. The prior capacitor and stackup/E1 limitations remain unchanged.
 
 ## Three different finish lines
 
