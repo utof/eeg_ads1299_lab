@@ -1,0 +1,36 @@
+name: Capacitor order-code references
+on:
+  push:
+    branches: [workbench/capacitor-e1-source]
+    paths: [.github/workflows/capacitor-e1-ordercodes.yml]
+permissions: {}
+jobs:
+  capture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Capture two public manufacturer-authored reference sheets
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/ordercodes"
+          export OUT="$RUNNER_TEMP/ordercodes"
+          python3 - <<'PY'
+          import datetime,hashlib,json,os,pathlib,urllib.request
+          out=pathlib.Path(os.environ['OUT']);records={}
+          for name,url in [('GRM188R61C105KA12D_reference.pdf','https://www.farnell.com/datasheets/4087892.pdf'),('GRM188R72A104KA35D_reference.pdf','https://www.farnell.com/datasheets/4459608.pdf')]:
+              with urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'}),timeout=60) as r:
+                  data=r.read(8_000_001);assert len(data)<8_000_000 and data.startswith(b'%PDF-')
+                  records[name]={'url':url,'final_url':r.url,'captured_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'sha256':hashlib.sha256(data).hexdigest(),'bytes':len(data),'author':'Murata','mirror':'Farnell','approval_specification':False}
+                  (out/name).write_bytes(data)
+          (out/'ordercodes.json').write_text(json.dumps(records,indent=2)+'\n')
+          (out/'SHA256SUMS').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.name+'\n' for p in sorted(out.iterdir()) if p.is_file()))
+          print(json.dumps(records))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: capacitor-e1-ordercodes
+          path: ${{ runner.temp }}/ordercodes/
+          if-no-files-found: error
+          retention-days: 7
