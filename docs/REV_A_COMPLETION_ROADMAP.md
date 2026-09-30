@@ -1,12 +1,13 @@
 # Finish the person-disconnected Rev A prototype design
 
-**Current checkpoint: combined upstream-coupling disposition after merged PR #66.**
-The three scoped copper repairs are merged. Nine remaining upstream input/supply
-locations have been assessed as one six-net-pair coupling item. Copper is retained
-pending the vendor stackup and declared input/coupling requirements; this is NOT
-fabrication acceptance or a measured-noise pass. The next work defines those
-inputs and either one combined redesign or a separately reviewed pilot-risk
-choice. Do not schedule nine independent crossing repairs.
+**Current checkpoint: selected stackup design target and E1 bench requirements.**
+The completed AVDD1/output/CH1N repairs and grouped residual-coupling assessment
+remain intact. JLCPCB JLC04161H-7628 is the selected design target; job-specific
+layer/material/tolerance confirmation is still required. E1 now gives numeric
+low-impedance dummy-source and interference targets, not measured performance
+or an approval to operate. High-impedance stress is separate, not silently
+qualified. Next source work is capacitor lifecycle/effective-C closure while
+factory/fixture confirmation stays open. No indefinite nine-reroute queue.
 
 ## Glanceable roadmap
 
@@ -22,24 +23,37 @@ this table after each meaningful slice and show it after the report's TLDR.
 | PCB connectivity draft | 0 for initial routing | Fully connected; native parity/DRC clean; not fabrication approval | Preserve completed copper except reviewed repairs |
 | Supply/bypass review and repair | 0 for scoped AVDD1 repair | Reviewed and merged in PR #62 | Retain VCAP3/AVDD56 tradeoffs in whole-board review |
 | Digital-return review and output repair | 0 for scoped output repair | PR #64 merged; no MISO/DRDY B tracks; native controls and review completed | Retain longer DRDY, spacing, stackup/edge/cable limits |
-| Input-path geometry/coupling | 0 for this grouped assessment; physical validation open | Main paths reviewed; CH1N repair merged; nine residual locations retained as ONE held item | Resolve against chosen stackup, source/spectrum envelope and budgets; one group repair or separate pilot-risk review, not an automatic pass |
-| Stackup and input-test envelope | 1–2, overlapping component/release work | Only overall 1.6mm is declared; no vendor dielectric stack or quantitative coupling budget | Select/document manufacturable four-layer stack; define supported source/load range, aggressor spectra, band/rate/gain, tone/noise budgets and feasible measurement floor |
-| Components, mechanics and assembly | 2–3 | Primary part evidence, logical harness and selected lands exist; decisions open | #48 capacitor lifecycle/effective-C; #45 mounting, mates and assembly process |
+| Input-path geometry/coupling | 1 combined decision after confirmations; physical work separate | Main paths and CH1N repaired; nine residual locations remain one six-pair item | Use E1 and confirmed geometry for one combined rework or separate pilot-risk decision |
+| Stackup and input-test envelope | 0 for target definition; 1–2 plus vendor/fixture evidence to close | Named JLC04161H-7628 target and numeric E1 requirements selected | Obtain job-specific tolerances/material confirmation; demonstrate fixture/measurement floor; not a released stack |
+| Components, mechanics and assembly | 2–3 | Primary part evidence, logical harness and selected lands exist | Next: #48 capacitor lifecycle/effective-C against E1; then #45 mounting/mates/assembly |
 | Real power/console fault readiness | 1–3 plus physical checks | Firmware/console contracts exist; actual rail-loss behavior unqualified | Resolve exact interface and powered-off paths; define dummy-bench checks |
 | Release package and delivered budget | 1–2 after blockers close | Not ready for fabrication or purchase | Independent release review, coherent outputs and delivered quote |
 | Person-disconnected bench verification | 2–4 guided turns plus bench work | Physical prototype validation not started | Unpowered inspection, then staged dummy-source tests after prerequisites |
 
-**Next: vendor stackup plus bounded person-disconnected input/coupling envelope.**
-See `REV_A_UPSTREAM_COUPLING_DISPOSITION.md` for the six electrical pairs,
-failed blind-layer-swap control, conditional mutual-injection calculation and
-finite release/bench criteria. The seven native analysis cases are not added
-project tests or extracted PCB capacitance. The illustrative 5k/50k-ohm sources,
-1/10pF capacitors and 10mV amplitude are not accepted requirements or upper bounds.
-Missing values keep #45 open. Once requirements are stated, make a single
-combined upstream rework or explicit pilot-board risk decision, then proceed
-through component/mechanical/interface work. Do not label retention as closure
-of measured crosstalk or remove the existing targeted geometry guards. The
-4.5mm DNP-branch imbalance and earlier supply/output tradeoffs remain visible.
+**Next: #48 capacitor lifecycle/effective-C, with supplier/fixture confirmation
+kept on #45.** Read `REV_A_STACKUP_BENCH_REQUIREMENTS.md`: selected outer gaps
+0.2104mm/core1.065mm are nominal public table values, not manufactured tolerance
+bounds. Prepared factory questions were not sent. Public copper/Dk differences,
+material availability and per-layer bounds require a dated drawing before
+release. Do not encode unconfirmed dimensions as a fabricated fact.
+
+E1 core is resistive1-10kohm per leg with measured fixture matching, 1-40Hz,
+250SPS/gain24, <=0.50uVrms total noise and<=0.50uVpeak coherent aggregate with
+explicit allocations/uncertainty. E1 is a chosen dummy-bench design requirement,
+not a scalp/electrode specification, physical result or enabled firmware mode.
+100k andstrong source-imbalance cases remain reported stress, not E1qualified.
+The fixture and0.03uVpeak/0.05uVrms uncertainty floors are still to be established;
+missing equipment orfloor-limited results cannot become passes. No instrument
+purchase orcost is established by the $100 extra-parts objective.
+
+The group in `REV_A_UPSTREAM_COUPLING_DISPOSITION.md` stays OPEN for the confirmed
+construction andseparate pilot-risk review. The new six-case native sensitivity
+repeat/723-point KCL consistency check is not actual E1performance orPCB
+capacitance extraction. Do not claim an actual coupling bound from the simple
+crossing areas or the deliberately analysis-only gap/Dk intervals. The4.5mm DNP
+branch imbalance and earlier supply/output tradeoffs remain explicit. Make one
+combined rework orreviewed pilot-risk decision when its inputs exist; meanwhile
+advance the remaining finite component/mechanical/interface tasks.
 
 A pilot design may be reviewed for manufacture before a physical board exists;
 validated performance requires the later measurements. Do not create a circular
@@ -96,7 +110,8 @@ a delivered quote remain necessary; the user's additional-spending target is
 $100, not an established cost.
 
 Reference entry points: `HARDWARE_BASELINE_REV_A.md`, `LLM_HANDOFF.md`,
-`REV_A_UPSTREAM_COUPLING_DISPOSITION.md`, `REV_A_CH1N_CORRIDOR_REPAIR.md`,
+`REV_A_STACKUP_BENCH_REQUIREMENTS.md`, `REV_A_UPSTREAM_COUPLING_DISPOSITION.md`,
+`REV_A_CH1N_CORRIDOR_REPAIR.md`,
 `REV_A_INPUT_LAYOUT_REVIEW.md`,
 `REV_A_DIGITAL_OUTPUT_REPAIR.md`,
 `REV_A_AVDD1_REPAIR.md`, `REV_A_SCHEMATIC.md`, `REV_A_BENCH_HARNESS.md`,

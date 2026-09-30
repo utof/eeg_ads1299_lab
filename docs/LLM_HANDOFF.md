@@ -1,6 +1,6 @@
 # Continue from this repository
 
-**Current checkpoint: combined upstream-coupling disposition after merged PR #66.**
+**Current checkpoint: selected stackup design target and numerical E1 bench envelope.**
 No prior chat/ZIP is needed. Read root `AGENTS.md`, this checkpoint and live Git/PR
 state before choosing the next bounded task. A missing chat reply is not proof
 that source work was lost.
@@ -8,12 +8,13 @@ that source work was lost.
 ## Start here
 
 Fetch main/open PRs; record actual SHA/tree and `git status --short`. Preserve
-other people's uncommitted work. CH1N PR #66 is merged as
-`b88d3746f5f2c72dd60ffbb201213ac9010b19a4`, tree
-`54d8bb7df44d437626100ffa6da06fd65116c6a3`. The combined assessment is on
-`review/upstream-coupling-disposition`: use its live PR head until merged, then
-current main. Recheck head/base, diff, conflicts, reviews and actual exact-head
-CI before merge. Do not repeat the completed AVDD1, MISO/DRDY or CH1N repair.
+other people's uncommitted work. PR #67 is merged as
+`8403c4eefc6fd6f1303a75510755f16f983e71c4`, tree
+`4f5bebbc578c15f63c3463f2b3cef0bd28fbdfa9`. The requirements continuation is on
+`docs/stackup-bench-envelope`: inspect its live PR head/checks/review until
+merged, then use current main. Recheck head/base, diff, conflicts, reviews and
+actual exact-head CI before merging. Do not repeat the completed AVDD1,
+MISO/DRDY or CH1N copper repairs. A queued check or an old result is not a pass.
 
 Canonical authored board: `hardware/rev_a/layout/rev_a.kicad_pcb`. Project,
 three schematic sheets and local libraries: `hardware/rev_a/kicad/`. Never
@@ -29,42 +30,60 @@ Board SHA256 remains
 not permanent constraints on reviewed repairs. This assessment changes no copper,
 BOM, schematic, firmware, model, dependency, rule or approval gate.
 
-**Next: choose/document a vendor four-layer stackup and the bounded
-person-disconnected input/coupling test envelope.** Read
-`REV_A_UPSTREAM_COUPLING_DISPOSITION.md` and its source-bound JSON first. The
-nine residual upstream B/In2 locations form six electrical pairs: CH3P/CH3N/
-CH4N against CH2N/AVDD. They are ONE item held for the stackup/budget decision,
-not nine queued reroutes, not waived and not a measured noise failure.
+Read **`REV_A_STACKUP_BENCH_REQUIREMENTS.md`** and
+`checkpoints/20260930_stackup_bench_envelope.json` before further requirements or
+coupling decisions. They select **JLCPCB JLC04161H-7628** as the design target:
+1.6mm, 1oz outer/0.5oz inner, nominal pressed outer gaps0.2104mm/core1.065mm;
+retain F / In1 GND / In2 routed / B. Nan Ya NP-155F is the material target from
+the vendor calculator guide, not a confirmed order/lot. Public 35um/40.64um
+outer-copper and4.6/4.43 core-Dk differences are explicitly recorded.
+**Factory drawing, material availability and per-layer tolerances remain
+unconfirmed.** Overall +/-10% board thickness is NOT a per-gap guarantee. A
+prepared vendor request is in the document; it was not sent. Do not write this
+unconfirmed target into fabrication outputs or call it released. Proposed
+0.17-0.25mm/Dk4.0-4.8 sensitivity intervals are not vendor bounds.
 
-The immediate deliverable is an exact vendor stackup/revision with layer
-spacing/copper/material tolerances, plus explicit supported source/load range,
-aggressor node spectra, intended band/rate/gain, allocated coherent-error and
-broadband-noise budgets and a feasible measurement floor. Unset values are
-blockers, not permission to adopt illustrative 5k/50k/1pF/10pF numbers as
-requirements. Compare candidate stackups against the existing F/GND/In2/B
-copper; changing a layer name does not add shielding. Do not silently redesign
-the circuit, split ground, add ferrites or disable tests.
+**E1 is a new limited dummy-bench design target, not the user's measured
+electrodes or a general EEG qualification.** Core source1-10kohm per leg,
+0.1%P/N matching; fixture<=100pF/leg and<=1pF mismatch, to be measured. Actual
+AFE load remains unchanged/unknown beyond datasheet characteristics. Core
+1-40Hz,250SPS,gain24;10uV-10mVpeakAC with<=50mVDC differential offset and
+<=60mVtotal; instantaneousCM2.40-2.60V;AVDD4.75-5.25V including ripple.
+Total noise<=0.50uVrms; coherent aggregate<=0.50uVpeak at each victim/frequency.
+Input-channel total allocation0.20uVpeak for up tothree10mVpeak aggressors;
+AVDD1mVpeak, common10mVpeak anddigitalactivity each allocate0.10uVpeak.
+Use uncertainty-inclusive bounds with no cancellation; coherent class U95
+<=0.03uVpeak andnoiseU95<=0.05uVrms. No inverse-filter correction of noise/error;
+10Hz-normalized transfer-shape check is separate. See the document for the
+exact matrix, sampling/PSD andalias-sensitive spot tests: fMOD=fCLK/2=1.024MHz,
+4096*actual sample rate, not an assumed zero at a nominal sinc notch.
+100k/100k and1k/100k are separately reported stress cases outside E1. Do not
+relabel an E1failure as stress. None of the fixture/source/instrument floor,
+real spectra, power-up orphysical performance has been validated.
 
-Once these inputs exist, choose one combined upstream repair or document
-bounded experimental risk for separate pilot-release review. A simple B-to-F
-swap at unchanged XY was tested on a disposable copy and gives30 native DRC
-entries (including shorts); it is not a repair. This does NOT prove a carefully
-redesigned combined route impossible or inferior. Avoid large speculative
-detours solely to improve a crossing count. Keep #45 OPEN pending disposition.
+The nine residual upstream B/In2 locations remain ONE OPEN six-pair coupling
+item. E1 provides numbers for the next pilot-risk/rework decision, not acceptance
+of the existing copper. The restricted mutual-C example was repeated at1k/10k/
+100k, with six unique native cases/seven executions and a separate723-point
+four-node KCL check. It does not extract capacitance, include actual silicon/
+aliases/PSRR, or guarantee E1. Updated reproduction blocks and results are in
+the requirements document/JSON. Analysis cases are not added project tests.
 
-Seven native illustrative mutual-capacitance runs and an independent equation
-quantify sensitivity to assumptions; they do not extract PCB capacitance or
-model silicon, supply PSRR, magnetic/cable coupling, digital filtering or
-aliasing. The exact reproducible example includes native-result checks and
-three controls; an incorrect-output software double is rejected. These are
-analysis runs, not added project tests or physical evidence.
+**Next independently actionable source slice: #48 capacitor lifecycle and
+effective-capacitance closure.** Resolve the actual shortlisted values/MPNs,
+voltage/temperature derating and assembly constraints against this fixed E1
+scope. Do not restart an unlimited simulation or nine independent reroutes.
+In parallel, #45 needs the named factory drawing and a separately reviewed,
+calibrated dummy fixture/measurement-chain plan. Continue finite component,
+mechanical andinterface work while awaiting those facts; never mark missing
+supplier values confirmed. Once confirmed geometry and fixture feasibility are
+known, choose a combined upstream reroute or a separate bounded pilot-risk
+review. No pilot fabrication orpoweredtest authorization is granted here.
 
-Pilot fabrication and physical validation are separate finish lines: a first
-PCB cannot be measured before it exists. Before pilot fabrication, require
-defined design inputs and separate risk/release review. Before performance
-validation, require calibrated person-disconnected measurements with the
-chosen budget and startup/interface prerequisites. No approval is granted by
-this distinction; do not turn the future test plan into claimed current sensing.
+Local source capture36720518554 checked exactmain8403 andits tree/board. The
+baseline ordinary gate passed1091tests+14subtests and86.06%branches; it did NOT
+run localnative/KiCad/S3. Read the requirements PR's actual final-head checks
+for newer evidence. Tools/caches and earlier passes are not proof of execution.
 
 ## Preserve previous work and its limits
 
@@ -101,7 +120,7 @@ engine/libraries are pinned in `.github/workflows/schematic.yml`. Arduino setup
 is in `firmware/toolchain.json` and its workflow. Executable fresh-runner setup
 does not mean the next sandbox has those tools. Missing tools/network/cache
 must fail, not be skipped into a pass. Avoid concurrent environment resync.
-Read this assessment PR's actual final-head checks/review, not just an older
+Read this requirements PR's actual final-head checks/review, not just an older
 pass. Baseline, analysis, final-head and post-merge execution are distinct.
 
 For a disposable native project copy, never an importer regeneration:
