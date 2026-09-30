@@ -41,8 +41,8 @@ class BaselineTests(unittest.TestCase):
 
     def test_costs_and_optional_exclusion(self) -> None:
         result = totals(self.bom)
-        self.assertEqual(result["fitted"], Decimal("74.14"))
-        self.assertEqual(result["planning_total"], Decimal("92.14"))
+        self.assertEqual(result["fitted"], Decimal("76.34"))
+        self.assertEqual(result["planning_total"], Decimal("94.34"))
         self.assertEqual(result["dnp_options"], Decimal("2.40"))
 
     def test_every_gate_is_fail_closed(self) -> None:
@@ -145,6 +145,18 @@ class BaselineTests(unittest.TestCase):
     def test_nonfinite_price_rejected(self) -> None:
         self.bom["line_items"][0]["planning_unit_usd"] = "NaN"
         self.assert_rejected("finite and nonnegative")
+
+    def test_reviewed_high_temperature_header_selection(self) -> None:
+        """K1 changes the header body, never the full twenty-position pin contract."""
+        row = next(item for item in self.bom["line_items"] if item["id"] == "headers")
+        self.assertEqual(row["mpn"], "HTSW-110-07-T-D")
+        self.assertEqual(row["quantity"], 2)
+        self.assertEqual(row["planning_unit_usd"], "2.00")
+        self.assertIn("SAMTEC_HTSW", row["source_ids"])
+        for header in self.profile["interface_headers"].values():
+            self.assertEqual(header["mpn"], row["mpn"])
+            self.assertEqual(set(header["pin_map"]), {str(i) for i in range(1, 21)})
+        self.assertFalse(any(self.profile["gates"].values()))
 
     def test_header_pin_missing(self) -> None:
         del self.profile["interface_headers"]["J_DIG"]["pin_map"]["20"]
