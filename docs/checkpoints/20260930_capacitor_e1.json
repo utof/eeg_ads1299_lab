@@ -1,0 +1,324 @@
+{
+  "scope": "dated_capacitor_qualification_shortlist_not_BOM_adoption",
+  "date": "2026-09-30",
+  "source_commit": "905347aa361669af0634fd84688b1ce7b3755e07",
+  "source_tree": "998bc610dc5d956967dad697e5a0623495c94357",
+  "board_sha256": "5da65b4307f0336883da9aeae48711b28c1944ec587f5d3174f12db4e9921875",
+  "manufacturer_catalog": {
+    "url": "https://ds.murata.com/simsurfing_data/data/mlcc.zip",
+    "captured_utc": "2026-09-30T14:53:58.993400+00:00",
+    "zip_sha256": "79abea50e784e1771a830b4652d2241213fa0921418a892dc28021874c59c889",
+    "csv_sha256": "08b6c79c5a2205a4d14b999982c9b96f0ca9cbd2487bcd0375276cc8547f6348",
+    "channel": "jp",
+    "status_columns": [
+      "production_status_ja",
+      "production_status_en-us",
+      "production_status_zh-cn"
+    ],
+    "all_three_status_columns_agree": true,
+    "states_by_current_core": {
+      "GRM219R61A106KE44": "D",
+      "GRM188R61E105KA12": "C",
+      "GRM188R71H104KA93": "C",
+      "GRM1885C1H472JA01": "B",
+      "GRM1885C1H152JA01": "B"
+    },
+    "interpretation": {
+      "B": "In Production",
+      "C": "To be discontinued",
+      "D": "Discontinued"
+    },
+    "not_a_full_orderable_status_or_stock_guarantee": true
+  },
+  "counts": {
+    "fitted_capacitors": 33,
+    "discontinued_core_instances": 4,
+    "planned_stop_core_instances": 22,
+    "C0G_core_B_instances": 5,
+    "tantalum_instances": 2
+  },
+  "nominal_shunt_uF": {
+    "VIN_5V_AFE": 12.1,
+    "AVDD": 26.2,
+    "DVDD": 14.1,
+    "VCAP1": 100.1,
+    "VCAP2": 1.0,
+    "VCAP3": 1.1,
+    "VCAP4": 1.0,
+    "VREFP": 22.1
+  },
+  "qualification_targets": [
+    {
+      "role": "bulk_10u",
+      "candidate_mpn": "GRM21BR61C106KE15L",
+      "core": "GRM21BR61C106KE15",
+      "status_codes": [
+        "B",
+        "B",
+        "B"
+      ],
+      "nominal_uF": 10,
+      "dielectric": "X5R",
+      "rated_voltage_V": 16,
+      "package": "0805",
+      "maximum_height_mm": 1.35,
+      "order_identity_source": "docs/references/murata_20260927/bulk_orderable_addendum.json",
+      "decision": "retain_existing_qualification_target",
+      "guaranteed_effective_min_uF": null,
+      "BOM_adopted": false,
+      "assembly_qualified": false
+    },
+    {
+      "role": "decap_1u",
+      "candidate_mpn": "GRM188R61C105KA12D",
+      "core": "GRM188R61C105KA12",
+      "status_codes": [
+        "B",
+        "B",
+        "B"
+      ],
+      "nominal_uF": 1,
+      "dielectric": "X5R",
+      "rated_voltage_V": 16,
+      "package": "0603",
+      "maximum_height_mm": 0.9,
+      "order_identity_source": "https://www.farnell.com/datasheets/4087892.pdf",
+      "decision": "new_qualification_target_not_automatic_substitution_for_internal_VCAP_roles",
+      "guaranteed_effective_min_uF": null,
+      "BOM_adopted": false,
+      "assembly_qualified": false
+    },
+    {
+      "role": "decap_100n",
+      "candidate_mpn": "GRM188R72A104KA35D",
+      "core": "GRM188R72A104KA35",
+      "status_codes": [
+        "B",
+        "B",
+        "B"
+      ],
+      "nominal_uF": 0.1,
+      "dielectric": "X7R",
+      "rated_voltage_V": 100,
+      "package": "0603",
+      "maximum_height_mm": 0.9,
+      "order_identity_source": "https://www.farnell.com/datasheets/4459608.pdf",
+      "decision": "new_qualification_target_with_unresolved_retailer_NRND_conflict",
+      "guaranteed_effective_min_uF": null,
+      "BOM_adopted": false,
+      "assembly_qualified": false
+    }
+  ],
+  "bounded_screen": {
+    "one_uF_GRM18_0603_X5R_or_X7R_25_35_50V_10percent_B_rows": 0,
+    "hundred_nF_GRM18_0603_X7R_50_or_100V_10percent_B_rows": 1,
+    "not_market_wide_unavailability": true,
+    "rejected_or_unresolved": {
+      "GRM185R61E105KA12": "current core C",
+      "GRM188R61E105KAAD": "raw status N, not B; not selected",
+      "GRM188D71H105KE01": "B but X7T, not retained X5R/X7R; not silently substituted",
+      "GRM188R71H104KA01": "exact queried core absent; absence is not discontinuation proof"
+    }
+  },
+  "technical_sheets": [
+    {
+      "core": "GRM21BR61C106KE15",
+      "url": "https://ds.murata.com/simserve/characteristics?ReqType=TechPDF&partnumber=GRM21BR61C106KE15&techpdfname=technical_pdf_Capacitor01&lang=en",
+      "sha256": "c047e4b3907bd1ff7caeefaaeb2f0d5f5e5b50d66bde277b585c09604c7e026a",
+      "printed_as_of": "Sep. 2026",
+      "test_condition": "1kHz / 0.5Vrms",
+      "typical_only": true
+    },
+    {
+      "core": "GRM188R61C105KA12",
+      "url": "https://ds.murata.com/simserve/characteristics?ReqType=TechPDF&partnumber=GRM188R61C105KA12&techpdfname=technical_pdf_Capacitor01&lang=en",
+      "sha256": "6690c5ca56b8ca94854c929991572b1af1c3f2ba23bc9e2db522d0b67c2c4bce",
+      "captured_utc": "2026-09-30T15:00:01.594288+00:00",
+      "printed_as_of": "Oct. 2026",
+      "test_condition": "1kHz / 1Vrms",
+      "typical_only": true
+    },
+    {
+      "core": "GRM188R72A104KA35",
+      "url": "https://ds.murata.com/simserve/characteristics?ReqType=TechPDF&partnumber=GRM188R72A104KA35&techpdfname=technical_pdf_Capacitor01&lang=en",
+      "sha256": "a7f452c97ff5b1ecb5e50f53a2d6b561e1ee109e33dd1c9bc440f36a195778cd",
+      "printed_as_of": "Sep. 2026",
+      "test_condition": "1kHz / 1Vrms",
+      "typical_only": true
+    }
+  ],
+  "order_code_references": [
+    {
+      "mpn": "GRM188R61C105KA12D",
+      "url": "https://www.farnell.com/datasheets/4087892.pdf",
+      "author": "Murata",
+      "mirror": "Farnell",
+      "printed_date": "2023-12-20",
+      "sha256": "2116d6ffb5581b52bed15ffe5f81f56f2843cfb40a5aa7d13f39d1ced11e293b",
+      "D_reel_mm": 180,
+      "D_pack_quantity": 4000,
+      "D_tape": "paper",
+      "e_mm": [
+        0.2,
+        0.5
+      ],
+      "g_min_mm": 0.5,
+      "approval_specification": false
+    },
+    {
+      "mpn": "GRM188R72A104KA35D",
+      "url": "https://www.farnell.com/datasheets/4459608.pdf",
+      "author": "Murata",
+      "mirror": "Farnell",
+      "printed_date": "2024-12-19",
+      "sha256": "607db1cd12ac65d5ec3cc35fac5a80f9dd5b71c641e6dfa4df463c14e67a07c3",
+      "D_reel_mm": 180,
+      "D_pack_quantity": 4000,
+      "D_tape": "paper",
+      "e_mm": [
+        0.2,
+        0.5
+      ],
+      "g_min_mm": 0.5,
+      "approval_specification": false
+    }
+  ],
+  "retailer_conflict": {
+    "mpn": "GRM188R72A104KA35D",
+    "url": "https://at.farnell.com/murata/grm188r72a104ka35d/kondensator-0-1-f-100v-10-x7r/dp/1828921",
+    "observed_label": "Nicht empfohlen für neue Designs",
+    "scope": "retailer own label, not a manufacturer discontinuation notice",
+    "manufacturer_core_status": "B",
+    "resolved": false,
+    "checked_date": "2026-09-30"
+  },
+  "node_requirements": {
+    "LDO_input": {
+      "refs": [
+        "C19",
+        "C20"
+      ],
+      "local_nominal_uF": 2,
+      "recommended_effective_min_uF": 0.47,
+      "not_required_for_LDO_stability_itself": true
+    },
+    "LDO_output": {
+      "refs": [
+        "C21",
+        "C22"
+      ],
+      "local_nominal_uF": 2,
+      "effective_min_uF": 0.47,
+      "effective_max_uF": 200,
+      "ESR_max_ohm": 0.1,
+      "actual_network_qualified": false
+    },
+    "VREF": {
+      "principal_ref": "C7",
+      "minimum_uF": 10,
+      "nominal_tolerance_only_low_uF": 19.8,
+      "minimum_in_circuit_qualified": false
+    },
+    "VCAP": {
+      "C6_nominal_uF": 100,
+      "C8_nominal_uF": 1,
+      "C9_parallel_C24_uF": [
+        1,
+        0.1
+      ],
+      "C10_nominal_uF": 1,
+      "internal_bias_transient_bounds_established": false
+    },
+    "AVDD_bulk": {
+      "refs": [
+        "C31",
+        "C32"
+      ],
+      "nominal_uF": 20,
+      "actual_load_timing_Ceff_min_uF": null
+    }
+  },
+  "arithmetic_not_effective_C_guarantees": {
+    "local_LDO_nominal_retention_for_0_47uF": 0.235,
+    "local_LDO_tolerance_only_low_uF": 1.8,
+    "retention_of_tolerance_corner_for_0_47uF": 0.2611111111111111,
+    "VREF_nominal_tolerance_only_margin_ratio": 1.98,
+    "T491_recommended_application_V_at_E1_temperature": 8
+  },
+  "T491": {
+    "url": "https://content.kemet.com/datasheets/KEM_T2005_T491.pdf",
+    "revision": "2026-07-08",
+    "sha256": "c3c5bb70009b606c87b40156259670ca9c8452f172b73faa9e2dbf2fcee3522d",
+    "same_as_prior_land_source": true,
+    "C6_ESR_max_ohm_100kHz25C": 0.7,
+    "C7_ESR_max_ohm_100kHz25C": 2.2,
+    "C6_leakage_max_uA_ratedV25C_5min": 16,
+    "C7_leakage_max_uA_ratedV25C_5min": 3.5,
+    "exact_orderable_lifecycle_confirmed": false,
+    "actual_reference_charge_pump_performance_validated": false
+  },
+  "sources": {
+    "TPS7A20": {
+      "url": "https://www.ti.com/lit/ds/symlink/tps7a20.pdf",
+      "revision": "SBVS338H",
+      "printed_pages": [
+        5,
+        27
+      ]
+    },
+    "ADS1299": {
+      "url": "https://www.ti.com/lit/ds/symlink/ads1299.pdf",
+      "revision": "SBAS499C",
+      "printed_pages": [
+        6,
+        7,
+        70
+      ]
+    }
+  },
+  "capture_runs": [
+    36732187218,
+    36732577801,
+    36732949793,
+    36733353894,
+    36734742508
+  ],
+  "capture_archives": [
+    {
+      "artifact": 11104284584,
+      "sha256": "3166868cfd00a61795d29cc28fc6c5f348644360d432fdc6a95d92b5e8e3ff5c"
+    },
+    {
+      "artifact": 11105915046,
+      "sha256": "21dd6895e1b66f5caa373b832a4ba5f5527c12274b338325adf8f56c5efef227"
+    },
+    {
+      "artifact": 11106150195,
+      "sha256": "6b38267e6bde32a97221afee8e41b52b300d3e55e4a695aefd876f309f37b53c"
+    },
+    {
+      "artifact": 11106245767,
+      "sha256": "83393f99611f6226da751ef2219767c4c0cd4407020a51c4fc85d4017fd979ad"
+    },
+    {
+      "artifact": 11106846343,
+      "sha256": "621d7f23bee06d7433b618c75ab3987039f42fc83b690fd0efe07d36e5513143"
+    }
+  ],
+  "physical_measurements": false,
+  "supplier_contacted": false,
+  "BOM_changed": false,
+  "approval_changes": false,
+  "next_source_task": "mechanical/assembly envelope review using the named candidates; preserve #48 approval/lifecycle/Ceff requests and #45 factory/interface questions",
+  "reproduction": {
+    "python_block_sha256": "3de3be581292a91b08c6cb69cb70348caeac17185fb9a3a76863b4f4c07eb424",
+    "accounting_executed": true,
+    "corrupt_data_probes": {
+      "AVDD_plus10u": "rejected",
+      "discontinued_relabelled_B": "rejected",
+      "invented_guaranteed_min": "rejected"
+    },
+    "new_project_tests": 0,
+    "native_or_physical_tests": false
+  }
+}
