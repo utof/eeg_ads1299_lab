@@ -1,0 +1,48 @@
+name: Preserve K2 diagnostic fixes
+on:
+  push:
+    branches: [workbench/carrier-k2]
+    paths: [.github/workflows/k2-diagnostic-fixes.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Require exact reviewed patch bytes and original commit identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s  %s\n' d6bb94a11b646e95e8628214fe06b91182b0a82a3e9e0e8f27d88d660a437e72 transfer/k2-diagnostic-series.patch | sha256sum -c -
+          cp transfer/k2-diagnostic-series.patch /tmp/k2-diagnostic-series.patch
+          git worktree add --detach "$RUNNER_TEMP/corrected" f9c06df8511324cc755cb358b8547d4c78cb8a3e
+          cd "$RUNNER_TEMP/corrected"
+          git -c user.name=OpenAI -c user.email=noreply@openai.com am --committer-date-is-author-date /tmp/k2-diagnostic-series.patch
+          test "$(git rev-parse HEAD)" = 18d432eea9f6ab01e43263a8545615d5da9076aa
+          test "$(git rev-parse HEAD^{tree})" = 8b9b175d35f652abe8867f6891827e99040c128d
+          test "$(git rev-parse HEAD^)" = ff2b9b43158d8bad7dc9834573739a5436666316
+          test "$(git rev-parse HEAD^^)" = 47312d7cbcd678416ede5cafdb3211718b1f6c2a
+          git diff --exit-code f9c06df HEAD -- .github hardware firmware lab pyproject.toml uv.lock
+          git push origin HEAD:refs/heads/archive/carrier-k2-review-fixes
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: archive/carrier-k2-review-fixes
+          fetch-depth: 0
+          path: fresh
+          persist-credentials: false
+      - name: Verify a separate source checkout from GitHub
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd fresh
+          test "$(git rev-parse HEAD)" = 18d432eea9f6ab01e43263a8545615d5da9076aa
+          test "$(git rev-parse HEAD^{tree})" = 8b9b175d35f652abe8867f6891827e99040c128d
+          printf '%s  %s\n' dfe893f958128ba28eb69188cf6debbbc9fcafa0ef5dd67bd58627d4b8a26842 hardware/rev_a/layout/rev_a.kicad_pcb | sha256sum -c -
+          test -z "$(git status --porcelain)"
+          git log -3 --oneline
+          git rev-parse HEAD HEAD^{tree}
