@@ -1,0 +1,256 @@
+From 47312d7cbcd678416ede5cafdb3211718b1f6c2a Mon Sep 17 00:00:00 2001
+From: OpenAI <noreply@openai.com>
+Date: Thu, 1 Oct 2026 11:18:50 +0000
+Subject: [PATCH 1/3] test(check): expose discarded renderer failure
+ diagnostics
+
+---
+ tests/test_check_runner.py | 68 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 68 insertions(+)
+
+diff --git a/tests/test_check_runner.py b/tests/test_check_runner.py
+index b5b8bfe..0f57b52 100644
+--- a/tests/test_check_runner.py
++++ b/tests/test_check_runner.py
+@@ -1,6 +1,7 @@
+ """The quality gate must fail closed, not just print a reassuring report."""
+ 
+ import importlib.metadata
++import io
+ import json
+ import subprocess
+ import sys
+@@ -9,6 +10,7 @@ from pathlib import Path
+ 
+ import pytest
+ 
++from tests.test_carrier_cad import _render
+ from tools.check import check_branch_coverage, command_plan, main, require_native_tools, run_step
+ 
+ 
+@@ -145,3 +147,69 @@ def test_native_renderer_version_probe_failure_is_not_a_pass(
+     monkeypatch.setattr("tools.check.subprocess.run", run)
+     with pytest.raises(RuntimeError, match=r"OpenSCAD.*2021\.01"):
+         require_native_tools()
++
++
++@pytest.mark.parametrize("timed_out", [True, False])
++def test_native_renderer_probe_preserves_failure_diagnostics(
++    monkeypatch: pytest.MonkeyPatch, timed_out: bool
++) -> None:
++    def lookup(name: str) -> str:
++        return f"/native/{name}"
++
++    def run(
++        command: Sequence[str], *, capture_output: bool, text: bool, timeout: float, check: bool
++    ) -> subprocess.CompletedProcess[str]:
++        assert capture_output and text and not check
++        if timed_out:
++            raise subprocess.TimeoutExpired(
++                list(command),
++                timeout,
++                output=b"partial version stdout",
++                stderr=b"partial version stderr",
++            )
++        raise OSError("specific renderer execution error")
++
++    monkeypatch.setattr("tools.check.shutil.which", lookup)
++    monkeypatch.setattr("tools.check.subprocess.run", run)
++    with pytest.raises(RuntimeError) as failure:
++        require_native_tools()
++    detail = str(failure.value)
++    if timed_out:
++        assert "partial version stdout" in detail and "partial version stderr" in detail
++        assert "10" in detail and "timed out" in detail
++    else:
++        assert "specific renderer execution error" in detail
++
++
++@pytest.mark.parametrize("timed_out", [True, False])
++def test_cad_renderer_retains_failure_log_without_accepting_a_mesh(
++    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, timed_out: bool
++) -> None:
++    def lookup(_name: str) -> str:
++        return "/native/openscad"
++
++    def run(command: Sequence[str], **options: object) -> subprocess.CompletedProcess[str]:
++        assert options.get("timeout") == 90
++        # Exercise either capture-based or streaming execution with a process double.
++        stream = options.get("stdout")
++        if stream is not None:
++            assert isinstance(stream, io.TextIOBase)
++            stream.write("partial render stdout\npartial render stderr\n")
++        if timed_out:
++            raise subprocess.TimeoutExpired(
++                list(command), 90, output=b"partial render stdout", stderr=b"partial render stderr"
++            )
++        raise OSError("specific CAD execution error")
++
++    monkeypatch.setattr("tests.test_carrier_cad.shutil.which", lookup)
++    monkeypatch.setattr("tests.test_carrier_cad.subprocess.run", run)
++    expected = subprocess.TimeoutExpired if timed_out else OSError
++    with pytest.raises(expected):
++        _render(tmp_path, "cube(1);")
++    log = (tmp_path / "probe-000.log").read_text()
++    if timed_out:
++        assert "partial render stdout" in log and "partial render stderr" in log
++        assert "timed out" in log
++    else:
++        assert "specific CAD execution error" in log
++    assert not list(tmp_path.glob("*.stl")), "A failed renderer must not yield an accepted mesh"
+
+From ff2b9b43158d8bad7dc9834573739a5436666316 Mon Sep 17 00:00:00 2001
+From: OpenAI <noreply@openai.com>
+Date: Thu, 1 Oct 2026 11:19:20 +0000
+Subject: [PATCH 2/3] fix(check): retain OpenSCAD diagnostics when rendering or
+ preflight fails
+
+---
+ tests/test_carrier_cad.py | 44 +++++++++++++++++++++++----------------
+ tools/check.py            |  9 ++++++--
+ 2 files changed, 33 insertions(+), 20 deletions(-)
+
+diff --git a/tests/test_carrier_cad.py b/tests/test_carrier_cad.py
+index f08a2f9..420ba19 100644
+--- a/tests/test_carrier_cad.py
++++ b/tests/test_carrier_cad.py
+@@ -55,24 +55,32 @@ def _render(tmp_path: Path, expression: str) -> float:
+     source, output = tmp_path / f"probe-{index:03d}.scad", tmp_path / f"probe-{index:03d}.stl"
+     output.unlink(missing_ok=True)
+     source.write_text(f"use <{MODEL}>\n{expression}\n")
+-    result = subprocess.run(
+-        [
+-            executable,
+-            "--hardwarnings",
+-            "--export-format",
+-            "asciistl",
+-            "-o",
+-            str(output),
+-            str(source),
+-        ],
+-        capture_output=True,
+-        text=True,
+-        timeout=90,
+-        check=False,
+-    )
+-    source.with_suffix(".log").write_text(result.stdout + result.stderr)
+-    assert result.returncode == 0, result.stderr
+-    assert not re.search(r"(?:WARNING|ERROR):", result.stdout + result.stderr), result.stderr
++    log_path = source.with_suffix(".log")
++    # A real file preserves partial renderer diagnostics even when it times out.
++    with log_path.open("w", encoding="utf-8") as stream:
++        try:
++            result = subprocess.run(
++                [
++                    executable,
++                    "--hardwarnings",
++                    "--export-format",
++                    "asciistl",
++                    "-o",
++                    str(output),
++                    str(source),
++                ],
++                stdout=stream,
++                stderr=subprocess.STDOUT,
++                text=True,
++                timeout=90,
++                check=False,
++            )
++        except (OSError, subprocess.TimeoutExpired) as exc:
++            stream.write(f"\nOpenSCAD failed: {exc}\n")
++            raise
++    diagnostic = log_path.read_text(encoding="utf-8")
++    assert result.returncode == 0, diagnostic
++    assert not re.search(r"(?:WARNING|ERROR):", diagnostic), diagnostic
+     assert output.is_file(), "render produced no fresh mesh"
+     return _volume(output)
+ 
+diff --git a/tools/check.py b/tools/check.py
+index 0db1e61..1d5e883 100644
+--- a/tools/check.py
++++ b/tools/check.py
+@@ -146,8 +146,13 @@ def require_native_tools() -> None:
+         version = subprocess.run(
+             [renderer, "--version"], capture_output=True, text=True, timeout=10, check=False
+         )
+-    except (OSError, subprocess.TimeoutExpired) as exc:
+-        raise RuntimeError("OpenSCAD 2021.01 version probe failed") from exc
++    except subprocess.TimeoutExpired as exc:
++        raise RuntimeError(
++            f"OpenSCAD 2021.01 version probe timed out after {exc.timeout} s; "
++            f"stdout={exc.stdout!r}; stderr={exc.stderr!r}"
++        ) from exc
++    except OSError as exc:
++        raise RuntimeError(f"OpenSCAD 2021.01 version probe failed: {exc}") from exc
+     output = "\n".join(part.strip() for part in (version.stdout, version.stderr) if part.strip())
+     if version.returncode != 0 or output != "OpenSCAD version 2021.01":
+         raise RuntimeError(
+
+From 18d432eea9f6ab01e43263a8545615d5da9076aa Mon Sep 17 00:00:00 2001
+From: OpenAI <noreply@openai.com>
+Date: Thu, 1 Oct 2026 11:20:08 +0000
+Subject: [PATCH 3/3] docs(mechanical): retain timeout review controls and
+ export identity limits
+
+---
+ docs/REV_A_CARRIER_K2.md                  | 17 +++++++++++++++++
+ docs/checkpoints/20261001_carrier_k2.json | 18 ++++++++++++++++++
+ 2 files changed, 35 insertions(+)
+
+diff --git a/docs/REV_A_CARRIER_K2.md b/docs/REV_A_CARRIER_K2.md
+index d58abf3..5924b65 100644
+--- a/docs/REV_A_CARRIER_K2.md
++++ b/docs/REV_A_CARRIER_K2.md
+@@ -227,6 +227,23 @@ output, nonzero exit, timeout and OS failure are rejected. These are software
+ process doubles, not eleven new native CAD experiments. The actual supported
+ renderer's preflight also passed. CI's pinned package installation is unchanged.
+ 
++Two further review findings, **4154619881** and **4154753831**, concerned
++retained diagnostics: rendering could time out before writing its log, and
++the version preflight replaced timeout/OS details with a generic failure.
++Four new software-double cases reproduced the missing evidence. Rendering now
++streams stdout/stderr to its probe file and records the exception before
++re-raising; version-probe failures propagate captured output and the specific
++OS error into the shared report. No failed render is accepted as clearance,
++and neither timeout was increased. These four cases are ordinary tests, not
++four extra CAD or hardware experiments.
++
++Mesh SHA values identify individual captured exports, not a promise of bytewise
++serialization across runs. A separate extracted-source re-export of the corrected
++bridge had a different STL hash but exactly the same geometric triangle multiset.
++Latest eight-part exports also match the recorded bounds, triangle counts and
++volumes; each delivered export has its own manifest and audit. Native acceptance
++is geometry-based, not a requirement to copy a historical STL byte sequence.
++
+ The final focused geometry selection is **56 cases**, including the two new
+ bridge-facet checks. Ordinary and full hosted/native counts are recorded in
+ PR #72 against their actual tested head; they must not be inferred from an
+diff --git a/docs/checkpoints/20261001_carrier_k2.json b/docs/checkpoints/20261001_carrier_k2.json
+index 2e13459..78a1d3b 100644
+--- a/docs/checkpoints/20261001_carrier_k2.json
++++ b/docs/checkpoints/20261001_carrier_k2.json
+@@ -234,6 +234,24 @@
+       "reject_nonzero_unrecognized_other_version_timeout_OS_error": true,
+       "actual_supported_renderer_preflight_passed": true,
+       "software_doubles_not_native_fault_experiments": true
++    },
++    "diagnostic_retention_fix": {
++      "codex_findings": [
++        4154619881,
++        4154753831
++      ],
++      "red_commit": "47312d7cbcd678416ede5cafdb3211718b1f6c2a",
++      "fix_commit": "ff2b9b43158d8bad7dc9834573739a5436666316",
++      "observed_ordinary_red_cases": 4,
++      "renderer_streams_output_and_retains_exception": true,
++      "version_probe_preserves_partial_output_and_OS_error": true,
++      "timeouts_unchanged": true,
++      "software_doubles_not_native_experiments": true
++    },
++    "export_serialization": {
++      "hashes_identify_captured_exports_not_bitwise_regeneration_contract": true,
++      "independent_extracted_bridge_reexport_triangle_multiset_matches": true,
++      "latest_eight_exports_match_bounds_triangle_counts_and_volumes": true
+     }
+   }
+ }
