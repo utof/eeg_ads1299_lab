@@ -1,0 +1,37 @@
+name: AFE service source
+on:
+  push:
+    branches: [workbench/afe-service-access]
+    paths: [.github/workflows/service-source.yml]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 10676fd14ffdeffe86f338342c9346c28f7cb1c8
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Capture exact authored source and history
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = 10676fd14ffdeffe86f338342c9346c28f7cb1c8
+          test "$(git rev-parse HEAD^{tree})" = 168f0d7b1303c19dbcd1ef488ed294f444e5b5a9
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/source"
+          git branch service-source HEAD
+          git bundle create "$RUNNER_TEMP/source/repository.bundle" service-source
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/source/identity.txt"
+          sha256sum hardware/rev_a/layout/rev_a.kicad_pcb > "$RUNNER_TEMP/source/board.sha256"
+          cd "$RUNNER_TEMP/source"
+          sha256sum repository.bundle identity.txt board.sha256 > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: service-source
+          path: ${{ runner.temp }}/source/
+          if-no-files-found: error
+          retention-days: 7
