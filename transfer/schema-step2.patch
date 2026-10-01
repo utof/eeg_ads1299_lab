@@ -1,0 +1,105 @@
+diff --git a/docs/LLM_HANDOFF.md b/docs/LLM_HANDOFF.md
+index c5c2eea..d0a17d9 100644
+--- a/docs/LLM_HANDOFF.md
++++ b/docs/LLM_HANDOFF.md
+@@ -39,12 +39,20 @@ The native auxiliary source survived in PR75. Its follow-up fixes correct ISO
+ channel-letter names only (2 OUTA,3 INB,6 OUTB,7 INA, TI SLLSEP3G p6); the UART
+ pin directions and wiring were already correct. Do NOT reverse the wiring on
+ the strength of the first review comment. The contract and newly exported graph
+-now have independent manufacturer-based pin assertions. The other finding is
++now have independent manufacturer-based pin assertions. The ERC finding is
+ fixed by requiring explicit empty ERC policy and closed project/library/cache
+ inputs before hashing. A real ERC-suppressed invalid copy is rejected at that
+ boundary. Red4ac666f preserves22 observed focused failures before correction.
+ Read the exact final-head checks/re-review before treating PR75 as accepted.
+ All AFE copper and C3's seven pull values are unchanged by those corrections.
++A final inventory found original finding4157186374 still open: required draft
++status/assumptions/part-sheet metadata had been ignored. Redaf8e5af observed
++25failures/68passes; the parser now validates the complete finite field inventory,
++rejects duplicate keys/noncanonical pins, and the snapshot checks actual native
++sheet placement. Reordering remains benign. No contract/CAD/firmware changed.
++Read all three original threads, not only the latest clean summary. The separate
++K2 binding correction retains a strict current-board hash after byte-identical
++geometry proof; the earlier153pass/1fail hosted run is not a final pass.
+ 
+ ## Next bounded task
+ 
+diff --git a/docs/REV_A_AUXILIARY_C3.md b/docs/REV_A_AUXILIARY_C3.md
+index efce9b6..a85cb0c 100644
+--- a/docs/REV_A_AUXILIARY_C3.md
++++ b/docs/REV_A_AUXILIARY_C3.md
+@@ -234,6 +234,33 @@ and the initial reviewer completion are not acceptance of later source.
+ Primary pin reference for this correction, inspected as a page image:
+ https://www.ti.com/lit/ds/symlink/iso7721.pdf (SLLSEP3G, p6).
+ 
++
++### Complete draft manifest and real sheet location
++
++A final review-thread inventory exposed a third original finding, **4157186374**,
++which remained valid despite the later no-major-issues summary. The public
++parser had silently discarded draft status, external assumptions and per-part
++sheet fields. Test-only `af8e5af` observed **25 intended failures and 68 passes**
++before the correction. These are ordinary source/data regressions, not native
++circuit or physical experiments.
++
++The parser now requires the exact root/part/pin field inventories, explicit C3
++draft status and false approval, the five existing external assumptions exactly
++once (order is immaterial), known pin types and canonical ASCII pin numbers.
++Duplicate JSON fields are rejected instead of silently choosing the last value.
++The source snapshot additionally compares declared component/sheet pairs with
++the actual top-level native instances. Merely naming a valid but wrong sheet
++therefore cannot pass. Object-key/assumption reordering remains benign.
++
++This is closure of the existing finite C3 draft contract, not a new release
++registry or a guarantee that its assumptions hold physically. A later design
++change to an assumption or sheet inventory requires coordinated review and
++updates; no current contract/CAD/BOM/firmware/threshold changed in this fix.
++The focused auxiliary ordinary suite now has **93 cases**; the 12 native cases
++are unchanged. Both full final-head verification and renewed review must be
++read from the PR, not inferred from this focused pass. An initial strict-type
++failure in the new test helper was corrected without changing expectations.
++
+ ## Continuation and scope
+ 
+ **Next: the matching AFE service feed/sense access and its continuity/mating
+diff --git a/docs/REV_A_COMPLETION_ROADMAP.md b/docs/REV_A_COMPLETION_ROADMAP.md
+index 33915ef..6327560 100644
+--- a/docs/REV_A_COMPLETION_ROADMAP.md
++++ b/docs/REV_A_COMPLETION_ROADMAP.md
+@@ -7,6 +7,7 @@ auxiliary board, implemented firmware handshake or qualified powered assembly.
+ The matching AFE service feed/sense access is the next bounded hardware change.
+ 
+ PR75 recovery retains the already-authored circuit and adds the review corrections:
++complete draft-contract validation and native component/sheet binding as well as
+ manufacturer-correct ISO channel names (not a reversal of the valid UART wiring),
+ and fail-closed auxiliary project/ERC/library/cache validation. Acceptance still
+ requires the live final-head checks and review. The next design task remains
+diff --git a/docs/checkpoints/20261001_auxiliary_c3.json b/docs/checkpoints/20261001_auxiliary_c3.json
+index dc5a3fa..5f13501 100644
+--- a/docs/checkpoints/20261001_auxiliary_c3.json
++++ b/docs/checkpoints/20261001_auxiliary_c3.json
+@@ -146,5 +146,24 @@
+     "strict_whole_file_binding_retained": true,
+     "disposable_moved_footprint_and_pad_size_changes_rejected": true,
+     "not_physical_fit_validation": true
++  },
++  "manifest_review_correction": {
++    "finding": 4157186374,
++    "reviewed_parent": "3524a949fa5a8976ca8f668d825df365b7a6eca1",
++    "test_first_commit": "af8e5af21cd5fb63c31ecf01c2495cf36cf3772f",
++    "fix_commit": "430e329fbfe7f67ddc8b325afd74a8883b69c11e",
++    "observed_red_failures": 25,
++    "observed_red_passes": 68,
++    "focused_ordinary_auxiliary_cases": 93,
++    "focused_native_auxiliary_cases_unchanged": 12,
++    "status_assumptions_and_all_record_fields_required": true,
++    "duplicate_JSON_keys_rejected": true,
++    "canonical_ASCII_pin_numbers_and_known_types_required": true,
++    "native_instance_sheet_pairs_checked": true,
++    "object_and_assumption_reordering_accepted": true,
++    "current_contract_CAD_BOM_firmware_unchanged": true,
++    "physical_experiments": false,
++    "initial_test_helper_strict_type_failure_corrected": true,
++    "later_clean_review_did_not_waive_known_original_finding": true
+   }
+ }
