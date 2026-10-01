@@ -68,11 +68,18 @@ def test_fresh_native_fill_does_not_depend_on_a_previously_cached_polygon(
     text = BOARD.read_text()
     if service_last:
         text = _service_after_zone(text)
-    # This board has one zone, last in the file. Keep its source outline and
-    # settings, deliberately remove all cached copper, and require real refill.
+    # Remove only balanced cache forms. Native objects after the zone are intact.
     assert len(re.findall(r"\(zone\s", text)) == 1
-    assert "(filled_polygon" in text
-    stripped = text[: text.index("(filled_polygon")] + ")\n)\n"
+    matches = [
+        m
+        for m in re.finditer(r'"(?:\\.|[^"\\])*"|\(filled_polygon(?=\s)', text)
+        if m[0].startswith("(")
+    ]
+    assert matches
+    stripped = text
+    for match in reversed(matches):
+        end = _form_end(stripped, match.start())
+        stripped = stripped[: match.start()] + stripped[end:]
     (cad / "rev_a.kicad_pcb").write_text(stripped)
     report = _native_report(cad)
     assert report["violations"] == [] and report["schematic_parity"] == []
@@ -94,15 +101,18 @@ def test_removed_or_clipped_plane_cannot_reuse_the_old_connected_copper(
     position = re.search(r"\(zone\s", text)
     assert position is not None
     if fault == "missing-zone":
-        text = text[: position.start()] + ")\n"
+        end = _form_end(text, position.start())
+        text = text[: position.start()] + text[end:]
     else:
         # Only the source outline changes; old full-board copper deliberately
         # remains in the cache. The helper must recompute it before DRC.
-        header, cached = text.split("(filled_polygon", 1)
+        end = _form_end(text, position.start())
+        zone = text[position.start() : end]
+        header, cached = zone.split("(filled_polygon", 1)
         assert "(xy 87.5 10.5)" in header and "(xy 87.5 67.5)" in header
         header = header.replace("(xy 87.5 10.5)", "(xy 60 10.5)")
         header = header.replace("(xy 87.5 67.5)", "(xy 60 67.5)")
-        text = header + "(filled_polygon" + cached
+        text = text[: position.start()] + header + "(filled_polygon" + cached + text[end:]
     (cad / "rev_a.kicad_pcb").write_text(text)
     report = _native_report(cad)
     assert report["schematic_parity"] == []

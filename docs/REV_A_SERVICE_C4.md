@@ -114,8 +114,12 @@ experiments or a guarantee that every wiring fault is detected automatically.
 
 The former fault-copy implementation assumed the zone was the final board
 object; placing J3 after it made a zone-removal mutation also delete J3. The
-recovered canonical source keeps its zone last. No DRC severity, exclusion or
-clearance was relaxed. All full final-head test/review outcomes must be read
+recovery reproduced both failures on an actual reordered source copy (two
+failures, one passing clipped-zone control, test commit`75a6cc9`). The mutators
+now remove only balanced zone/cache forms, preserving trailing native objects;
+both object orders are exercised through fresh refill/DRC. The canonical source
+also retains its zone-last layout. No DRC severity, exclusion or clearance was
+relaxed. All full final-head test/review outcomes must be read
 from the live PR, not inferred from inherited progress messages or these
 prepublication focused checks. Source-bound snapshot inventory includes the new
 service plan, test and consumed footprint. Whole-board carrier binding remains
