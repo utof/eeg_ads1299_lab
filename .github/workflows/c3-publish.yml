@@ -1,0 +1,91 @@
+name: Publish original C3 source
+on:
+  push:
+    branches: [workbench/aux-native-c3]
+    paths: [.github/workflows/c3-publish.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Validate the complete original payload before any reconstruction
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64,hashlib,pathlib
+          expected=[
+              '2712098a73523afb88f3c421e47934ca2afce296c822442c3b3a5a2066466025',
+              'e39b77852858155d0ffb2f116293574f917e16e9c50abe9516d6c86cfe28c8bd',
+              '8c7ed9d8bc3f1f9675b3d864b5da8cf1da12c35a80cade04fbe74884e8e3f0e5',
+              'ab47d29b2f71869556ebd09ee891ce1527cc76f5aeb3c7951d01289fcecd4488',
+              '33e984cd6558d9cddd7f78e55f51f18d58c5aabec25fb24b4a2a4385dc920075',
+              '552be04973859232a2dfd629b4d8d6ad02e47baf4fe18c99e6ef31dc3b1bfaf9',
+              '92d2bcb549a67164388de3f1c3012aa4b0bf3bad34359c6585357f4d7b4bb4ef',
+              '59f2579fc03940549039204b1188732f894b173a6de8d666272742d6d040b9fa',
+              '931b7576ba55a1b6f113e7017ae482b1c45376cbe9908398a80b3d9f0294020f',
+              'f445b58d63ead53a7f482ed146f254d17e0a468b8715fdd627b3bfcb5bc6e4f1',
+              '6de1d91518998293dbe92e97131140c4dbb178b851dba155840203be650eee2a',
+          ]
+          texts=[];bad=[]
+          for i,digest in enumerate(expected):
+              text=pathlib.Path(f'transfer/c3-{i:02d}.b64').read_bytes()
+              actual=hashlib.sha256(text).hexdigest()
+              print(i,len(text),actual,flush=True)
+              if actual!=digest:bad.append(i)
+              texts.append(text.decode().strip())
+          assert not bad, f'Changed transport chunks: {bad}'
+          encoded=''.join(texts);assert len(encoded)==62684
+          data=base64.b64decode(encoded,validate=True)
+          assert len(data)==47012
+          assert hashlib.sha256(data).hexdigest()=='6514e28931f164c977eae0963dadeee28b77a7dc1ef61841ab245d85989c4373'
+          assert hashlib.sha256(pathlib.Path('transfer/reconstruct_c3.py').read_bytes()).hexdigest()=='3c1293512f8f1d891833b278189435b9a4111de58c7e5e893d73426ce3e5406e'
+          pathlib.Path('/tmp/c3-transfer.xz').write_bytes(data)
+          PY
+          git worktree add --detach "$RUNNER_TEMP/rebuilt" 98362c6b6445ddb402ddf942b1c81af738eebe56
+          python3 transfer/reconstruct_c3.py /tmp/c3-transfer.xz "$RUNNER_TEMP/rebuilt"
+          cd "$RUNNER_TEMP/rebuilt"
+          test "$(git rev-parse HEAD)" = d0a9e3acf6ec96f966adcd4258a1ffe48bc3f586
+          test "$(git rev-parse HEAD^{tree})" = 49a8cc8b90f41ee7405e948a951975bbc6221d99
+          test "$(git rev-list --count 98362c6b..HEAD)" = 3
+          git diff --exit-code 98362c6b HEAD -- firmware lab hardware/rev_a/board_profile.json pyproject.toml uv.lock .github
+          git push origin HEAD:refs/heads/feat/auxiliary-c3
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: feat/auxiliary-c3
+          fetch-depth: 0
+          path: fresh
+          persist-credentials: false
+      - name: Verify an independent GitHub checkout and retain exact history
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd fresh
+          test "$(git rev-parse HEAD)" = d0a9e3acf6ec96f966adcd4258a1ffe48bc3f586
+          test "$(git rev-parse HEAD^{tree})" = 49a8cc8b90f41ee7405e948a951975bbc6221d99
+          printf '%s  %s\n' f11c9651fb0cebb01bf2cc7d6ef1be0a0093664dfacc4f193f90aab14bdbd6c7 hardware/rev_a/layout/rev_a.kicad_pcb | sha256sum -c -
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/source"
+          git branch c3-published-source HEAD
+          git bundle create "$RUNNER_TEMP/source/repository.bundle" c3-published-source
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/source/identity.txt"
+          cd "$RUNNER_TEMP/source"
+          sha256sum repository.bundle identity.txt > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: c3-published-source
+          path: ${{ runner.temp }}/source/
+          if-no-files-found: error
+          retention-days: 7
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: failure()
+        with:
+          name: c3-transfer-diagnostics
+          path: transfer/
+          retention-days: 7
