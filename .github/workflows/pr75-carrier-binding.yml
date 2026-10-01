@@ -1,0 +1,52 @@
+name: Publish C3 carrier identity correction
+on:
+  push:
+    branches: [workbench/pr75-review-recovery]
+    paths: [.github/workflows/pr75-carrier-binding.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Verify original bundle before source import
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64, hashlib, pathlib, subprocess
+          data = base64.b64decode(pathlib.Path('transfer/carrier-binding.b64').read_text().strip(), validate=True)
+          assert len(data) == 2344
+          assert hashlib.sha256(data).hexdigest() == 'a6d74f0aedb1e5b24c8237fdd38f8f751f3cb70a74dc01ef14ea3b67ec6e1e85'
+          pathlib.Path('/tmp/binding.bundle').write_bytes(data)
+          subprocess.run(['git','bundle','verify','/tmp/binding.bundle'],check=True)
+          subprocess.run(['git','fetch','/tmp/binding.bundle','HEAD'],check=True)
+          PY
+          test "$(git rev-parse FETCH_HEAD)" = 3524a949fa5a8976ca8f668d825df365b7a6eca1
+          test "$(git rev-parse FETCH_HEAD^)" = b0fcdc515eebf11ae7cc6b8dfacb6e887a7a9d55
+          test "$(git rev-parse FETCH_HEAD^{tree})" = 9a47288094578a61e467cbbafac12880a7ea6dcc
+          test "$(git diff --name-only FETCH_HEAD^ FETCH_HEAD | wc -l)" = 3
+          git diff --exit-code FETCH_HEAD^ FETCH_HEAD -- hardware firmware lab tools pyproject.toml uv.lock .github
+          git push origin 3524a949fa5a8976ca8f668d825df365b7a6eca1:refs/heads/archive/pr75-carrier-binding-3524a94
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: archive/pr75-carrier-binding-3524a94
+          fetch-depth: 0
+          path: fresh
+          persist-credentials: false
+      - name: Verify a separate GitHub checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd fresh
+          test "$(git rev-parse HEAD)" = 3524a949fa5a8976ca8f668d825df365b7a6eca1
+          test "$(git rev-parse HEAD^{tree})" = 9a47288094578a61e467cbbafac12880a7ea6dcc
+          printf '%s  %s\n' f11c9651fb0cebb01bf2cc7d6ef1be0a0093664dfacc4f193f90aab14bdbd6c7 hardware/rev_a/layout/rev_a.kicad_pcb | sha256sum -c -
+          test -z "$(git status --porcelain)"
+          git log -1 --oneline
+          git rev-parse HEAD HEAD^{tree}
