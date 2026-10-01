@@ -112,19 +112,22 @@ module carrier() {
 // Detachable raised guide bridges: remove them before installing/removing PCB.
 // Different 30/36-mm screw spacings prevent a two-fastener wrong-side installation.
 module bridge(port=0) {
-    p=ports()[port]; mx=mount_x(port); half=mount_half_pitch(port);
-    difference() {
+    p=ports()[port]; mx=mount_x(port)-p[0]; half=mount_half_pitch(port);
+    // Build all touching faces in one local datum, then translate the solid.
+    // Mixing translated local geometry with independently rounded global boxes
+    // introduced sub-resolution slivers and collinear triangles in ASCII STL.
+    translate([p[0],p[1],0]) difference() {
         union() {
-            translate([p[0],p[1],0]) receiver(port);
+            receiver(port);
             for(sy=[-1,1]) {
-                yy=p[1]+sy*15;
-                box([min(p[0]-20,mx),yy-0.5,9.5],[max(p[0]+5.2,mx),yy+0.5,12]);
-                box([mx-3.25,p[1]+sy*half-3.25,9.5],
-                    [mx+3.25,p[1]+sy*half+3.25,12]);
+                yy=sy*15;
+                box([min(-20,mx),yy-0.5,9.5],[max(5.2,mx),yy+0.5,12]);
+                box([mx-3.25,sy*half-3.25,9.5],
+                    [mx+3.25,sy*half+3.25,12]);
             }
-            translate([p[0]-16,p[1],0]) saddle();
+            translate([-16,0,0]) saddle();
         }
-        for(sy=[-1,1]) hole_at(mx,p[1]+sy*half,9.4,12.1,2.8);
+        for(sy=[-1,1]) hole_at(mx,sy*half,9.4,12.1,2.8);
     }
 }
 module frame() { carrier(); bridge(0); bridge(1); }
