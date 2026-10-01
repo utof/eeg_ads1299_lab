@@ -33,9 +33,23 @@ jobs:
           '9e219983cbf77360f0aebd701688f625b1dd39edb048fb50e4efbb26f8956deb',
           'f17ef22e83ac79d98dc0fa3b46cbd430eec70d62a009a3192928a0aacbfecb86',
           '878f7b90f8421396a1fdac86e84b39027436120a59eacef9d9408f7be86513da']
+          # Six observed transport transcription differences, not project edits.
+          # Diagnosed from the downloaded remote payload against the local original.
+          # Every original per-chunk AND complete binary digest remains mandatory.
+          corrections={
+            0:[('7ZGb695FI+IuFqXN/fYNG','7ZGb695FI+fuFqXN/fYNG'),
+               ('hg4EeRVGuwMcZI8XGgibR','hg4EeRVGuwqcZI8XGgibR'),
+               ('+YH8kc55ZJJ/yKsmZ+Q1Y','+YH8kc55ZJ/yKsmZ+Q1Y'),
+               ('ZJS0uR3Sm9EtH+0G6M5ce','ZJS0uR3Sm9+tH+0G6M5ce')],
+            6:[('r5YtPaGTpbZZ+/UQfWZHf','r5YtPaGTpbZ+/UQfWZHf')],
+            8:[('ICeTQfzrh3DrzifHkV7S','ICeTQfzrh3zDrzifHkV7S')]}
           chunks=[];bad=[]
           for i,expected in enumerate(hashes):
-              raw=pathlib.Path(f'transfer/source{i:02d}.b64').read_bytes()
+              text=pathlib.Path(f'transfer/source{i:02d}.b64').read_text()
+              for before,after in corrections.get(i,[]):
+                  assert text.count(before)==1
+                  text=text.replace(before,after)
+              raw=text.encode()
               actual=hashlib.sha256(raw).hexdigest()
               print(i,len(raw),actual,flush=True)
               if actual!=expected: bad.append(i)
