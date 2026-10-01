@@ -181,5 +181,20 @@
   "prior_uncommitted_source_byte_identity_claimed": false,
   "firmware_unchanged": true,
   "physical_experiments": false,
-  "approval_changes": false
+  "approval_changes": false,
+  "review_follow_through": {
+    "contact_finding": 4160899391,
+    "contact_finding_disposition": "non_N_part_confirmed_by_actual_JST_page3_table; N_row_not_selected",
+    "contact_mpn_unchanged": "SXH-001T-P0.6",
+    "catalog_wire_OD_mm": [
+      0.9,
+      1.9
+    ],
+    "native_annotation_finding": 4160899397,
+    "native_annotation_red_commit": "a247b2d",
+    "observed_annotation_red_failures": 1,
+    "native_annotation": "AFE J3 present; use inspected C4 cable.",
+    "auxiliary_topology_unchanged": true,
+    "physical_crimp_qualification": false
+  }
 }

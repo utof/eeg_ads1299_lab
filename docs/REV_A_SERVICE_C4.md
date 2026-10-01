@@ -14,7 +14,12 @@ be 0.9–1.9 mm. Target length between housing wire faces is 150 +/-5 mm, a new
 planning choice, not a purchased assembly. The exact wire grade, crimp tooling,
 strip/crimp dimensions, pull acceptance and qualified solder process remain
 open. JST's cited drawings provide the connector dimensions, not those final
-assembly approvals. Pin numbers are cavity identities viewed per the drawing,
+assembly approvals. The exact contact suffix matters: JST's printed page 3
+lists the selected **SXH-001T-P0.6** (without N, shape B) for AWG28-22 and
+insulation OD0.9-1.9mm. The **SXH-001T-P0.6N** row (shape A) instead specifies
+AWG26-22 and OD1.3-1.9mm; it is not the selected contact. Do not conflate these
+rows or treat a catalog range as qualification of an actual crimp.
+Pin numbers are cavity identities viewed per the drawing,
 not inferred from wire color, ribbon numbering, or an opposing end's photograph.
 
 | AFE J3 | Auxiliary J104 | Function |
@@ -124,6 +129,20 @@ from the live PR, not inferred from inherited progress messages or these
 prepublication focused checks. Source-bound snapshot inventory includes the new
 service plan, test and consumed footprint. Whole-board carrier binding remains
 strict and names this reviewed geometry; it is not a metadata-normalizing mask.
+
+## Independent review follow-through
+
+Review4160899391 attributed the N-suffix contact's1.3mm lower insulation bound
+to the selected non-N contact. Inspection of the actual manufacturer page image
+confirmed the0.9-1.9mm row for SXH-001T-P0.6; no substitution or unsupported
+range narrowing was made. The suffix distinction above makes the source explicit.
+
+Review4160899397 correctly found an obsolete "AFE mating connector/pads NOT
+YET ADDED" annotation in the auxiliary root sheet. New test-only commit`a247b2d`
+observed one failure before correcting that native text to "AFE J3 present; use
+inspected C4 cable." This updates the editable drawing and subsequent PDF,
+without changing any symbol, net, footprint or cable requirement. The historical
+C3 missing-access discussion remains historical, not a current wiring instruction.
 
 ## Remaining work and limits
 
