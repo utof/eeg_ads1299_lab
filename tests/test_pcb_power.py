@@ -33,11 +33,41 @@ def test_ground_and_supply_nets_have_no_native_airwires(
     assert fill["zones"] == [{"net": "GND", "layers": ["In1.Cu"], "regions": [1]}]
 
 
+def _form_end(text: str, start: int) -> int:
+    """Locate one balanced native form without treating quoted parentheses as syntax."""
+    depth = 0
+    for token in re.finditer(r'"(?:\\.|[^"\\])*"|[()]', text[start:]):
+        if token[0] == "(":
+            depth += 1
+        elif token[0] == ")":
+            depth -= 1
+            if depth == 0:
+                return start + token.end()
+    raise ValueError("incomplete test source form")
+
+
+def _service_after_zone(text: str) -> str:
+    """Benign native object order from the interrupted failure; never duplicate J3."""
+    for match in re.finditer(r"\(footprint\s", text):
+        start, end = match.start(), _form_end(text, match.start())
+        if re.search(r'"Reference"\s+"J3"', text[start:end]):
+            part = text[start:end]
+            remaining = text[:start] + text[end:]
+            final = remaining.rfind(")")
+            return remaining[:final] + part + "\n" + remaining[final:]
+    raise ValueError("test requires the actual service footprint")
+
+
 @pytest.mark.schematic
-def test_fresh_native_fill_does_not_depend_on_a_previously_cached_polygon(tmp_path: Path) -> None:
+@pytest.mark.parametrize("service_last", [False, True])
+def test_fresh_native_fill_does_not_depend_on_a_previously_cached_polygon(
+    tmp_path: Path, service_last: bool
+) -> None:
     cad = tmp_path / "cad"
     shutil.copytree(CAD, cad)
     text = BOARD.read_text()
+    if service_last:
+        text = _service_after_zone(text)
     # This board has one zone, last in the file. Keep its source outline and
     # settings, deliberately remove all cached copper, and require real refill.
     assert len(re.findall(r"\(zone\s", text)) == 1
@@ -52,12 +82,15 @@ def test_fresh_native_fill_does_not_depend_on_a_previously_cached_polygon(tmp_pa
 
 @pytest.mark.schematic
 @pytest.mark.parametrize("fault", ["missing-zone", "clipped-outline-stale-fill"])
+@pytest.mark.parametrize("service_last", [False, True])
 def test_removed_or_clipped_plane_cannot_reuse_the_old_connected_copper(
-    tmp_path: Path, fault: str
+    tmp_path: Path, fault: str, service_last: bool
 ) -> None:
     cad = tmp_path / "cad"
     shutil.copytree(CAD, cad)
     text = BOARD.read_text()
+    if service_last:
+        text = _service_after_zone(text)
     position = re.search(r"\(zone\s", text)
     assert position is not None
     if fault == "missing-zone":
