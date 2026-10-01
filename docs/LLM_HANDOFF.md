@@ -1,61 +1,77 @@
 # Continue from this repository
 
-**Current checkpoint: C1 controller termination and split-powered console target.**
-Start from live main/open PRs, root `AGENTS.md`, this file and `DEVELOPMENT.md`.
-Record the actual SHA/tree and worktree status. Preserve unrelated edits. Base
-for C1 is merged PR72 main `2b11ddec03a4fad97f6dbec2f00675fe5a48c09c`, tree
-`8b9b175d35f652abe8867f6891827e99040c128d`. Use the live
-`docs/controller-interface-c1` PR until merged, then current main. Do not repeat
-K1's header migration or K2's carrier CAD because an old chat reply was missing.
-Read actual exact-head checks/reviews before merge; preserve merge history.
+**Current checkpoint: C2 pin-level bus-interlock architecture candidate.**
+Start from live main/open PRs, AGENTS.md and DEVELOPMENT.md. Record exact source
+SHA/tree and worktree state. C1 is merged at
+`99bafcea6b3fa518e76704061daf722aae539360`, tree
+`1448f9179fffaa43431053b4383ba9cc80fa98f2`; this continuation is on
+`docs/bus-interlock-c2` until reviewed/merged. Use its live PR, then current main.
+Preserve unrelated edits and merge history; do not repeat K1/K2/C1 because an
+old chat reply is missing. No old ZIP or runtime capture is a source dependency.
 
-Canonical PCB is `hardware/rev_a/layout/rev_a.kicad_pcb`; native project/sheets
-are under `hardware/rev_a/kicad/`. Never rebuild the authored board with the
-parking-grid importer. Current PCB SHA256 remains
-`dfe893f958128ba28eb69188cf6debbbc9fcafa0ef5dd67bd58627d4b8a26842`, with
-582segments/122vias/68footprints/245pads. C1 changes no CAD, BOM/profile,
-firmware, production model, dependencies, old design rules or approval gates.
+Canonical PCB: `hardware/rev_a/layout/rev_a.kicad_pcb`; sheets/project:
+`hardware/rev_a/kicad/`. Never regenerate the authored board with the importer.
+PCB SHA256 `dfe893f958128ba28eb69188cf6debbbc9fcafa0ef5dd67bd58627d4b8a26842`
+remains unchanged, with582segments/122vias/68footprints/245pads. C2 changes no
+CAD, BOM/profile, firmware, production model, dependencies, rules or approval.
 
 ## Current result and next bounded task
 
-Read **`REV_A_CONTROLLER_INTERFACE_C1.md`** and its source-bound
-`checkpoints/20261001_controller_interface_c1.json`. C1 selects a numbered,
-captive solder fanout for the existing K1 free-ended20-contact cable, with
-individual ground landings, separate power branches and permanent controller
-header-tail terminations. This is not a fabricated harness or auxiliary PCB.
-Verify contact identity by continuity, never ribbon color or mating-view guess.
+Read **REV_A_BUS_INTERLOCK_C2.md** and
+`checkpoints/20261001_bus_interlock_c2.json`. Three TXU0304PWR buffers cover
+seven MCU-to-AFE and two AFE-to-MCU lanes; A supply is actual MCU3V3, B supply
+actual AFE DVDD. Four TPS3703 monitors sense MCU3V3, DVDD, AVDD and VIN5, but
+ALL monitor VDD pins use MCU3V3 with the local control logic. The two3.3V
+variants are TPS3703A4330DSER; the two5V variants TPS3703A5500DSER. C2 is a
+pin-level architecture target, **not an installed protection circuit**.
 
-C1 selects **Adafruit CP2102N Friend product5335 + TI ISO7721DR (D8, non-F)**.
-The HOST side uses the module's3V output/same VIO supply; TARGET uses the MCU's
-own3.3V at DEVKIT.J1.2. No isolated power converter or host-ground connection to
-target. ISO.3/2 are host TX/RX; ISO.6/7 connect targetRX17/TX18. Existing
-`INTERFACE` worksheet names refer strictly to ISO's TARGET side, not hostUSB.
-Both DevKit USB sockets stay disconnected in the proposed acquisition setup;
-programming remains DevKit-only with all target accessories disconnected.
-Program before permanently attaching controller tails; later bare-board USB
-programming needs their removal, not merely unplugging HOST USB. A removable
-controller adapter would be a later reviewed alternative, not existing hardware.
-Actual module revision, auxiliary schematic/layout, assembly, USB configuration,
-suspend/load/edge behavior and physical isolation remain unverified. ISO7721's
-unpowered output is **undetermined**, NOT specified high impedance; its default
-high requires the receiving side powered. Brownout is not covered by a binary
-rail-state table. No component rating is whole-system/body-use qualification.
+SN74LVC2G74DCUR plus two Schmitt SN74LVC1G97DBVR gates latch a fresh ARM edge;
+any detected rail fault or SESSION low clears it. Good-rail recovery, SESSION
+release and an ARM input held high across a fault do not automatically restart.
+Prospective controller-only SESSION/ARM_REQ/ARMED/READY roles are GPIO14/9/16/15 at
+DEVKIT.J1.20/15/9/8. READY reads conditioned CLR_N before a fresh arm edge. They are not yet implemented in firmware/profile. All three
+TXU enables share the latch output; the existing seven AFE10k pulldowns remain.
+No hardware or software review gate was enabled.
 
-**Next: resolve the nine-line AFE bus and rail-loss/startup protection.** The
-seven MCU outputs and two AFE outputs are still direct across separate3.3V
-regulators. The console barrier alone does not protect them. Account for actual
-AFE DVDD, MCU3.3V, AVDD and analog-source startup; software R/V acknowledgments
-are not a later-fault interlock. AFE.J1.19 isCLKSEL, NOT aDVDDsense lead; no
-silent J2NC reassignment. Choose one fail-closed hardware architecture with
-actual sensing or a separate explicit limited pilot-risk disposition before
-laying out the combined fanout/interface board. Any new sense lead/pad, buffer,
-supervisor or circuit change needs coordinated review. Do not simply add a
-power-up sequence and call independent rail loss solved.
+Do not claim unconditional brownout safety: detector30us is specified only at
+5%overdrive; startup300us is typical, not a maximum. The5V window's calculated
+UV range4.715-4.785V is not E1's4.75V guaranteed cutoff. Arbitrary fast shorts,
+intermediate/unpowered control behavior, supervisor SENSE back-power and actual
+loaded output/input margins remain explicit. In particular TXU's0.1mA near-rail
+VOH row cannot qualify an existing10k load drawing up to0.36mA. The document
+contains the fixed corner calculation and the concrete4.47925V overdrive
+counterexample. Do not relabel these unknowns as closed by a truth-table pass.
 
-C1's executed ledger/rejection controls are source/data checks, not native CAD,
-electrical emulation or physical tests. They account for20AFEcontacts,8ISO pins
-and16stable rail states; all states keep powered setup prohibited. Read the
-C1 PR's final-head CI and review separately from inherited PR72 results.
+**Next: native auxiliary C1+C2 schematic**, with all numbered cable landings,
+actual rail feed/sense access, buffer/monitor/logic pin nets, bypasses and defined
+passives. Resolve loaded DC margins and detector/sense limits while doing that
+schematic; revise a part or passive explicitly if needed. AFE.C33.1/C32.1 are
+net anchors, not approved physical wire attachments. J1.19 remainsCLKSEL and
+J2NC staysNC. Distinguish buffer power-current feeds from remote sensing and
+provide supported/keyed access. Any necessary AFE pad/connector change must be
+coordinated across schematic/BOM/PCB/tests, not improvised wires or re-imported
+layout. Then implement the matching guarded startup/fault firmware separately,
+failure-first, with actual S3 compilation and no gate relaxation.
+
+VCAP1 and completed clock qualification must remain downstream of bus enable:
+first arm with all seven outputs low, then raise PWDN/CLKSEL, accumulate an
+uninterrupted valid-clock interval and retain fresh VCAP1 confirmation before
+reset. The current150ms wait starts after clock controls are raised. A fault
+must invalidate timing/capture even inside a blocking wait. Digital buffering
+does not protect analog inputs or qualify AVDD-loss/DVDD-alive operation.
+
+C1's Adafruit5335/ISO7721DR separately powered console remains the target;
+HOST/target returns must not be bridged. Existing INTERFACE aliases denote only
+the ISO TARGET side. Permanent controller-tail service/programming restrictions
+remain; neitherDevKitUSB is approved with accessories attached. C2 adds ten
+unpriced auxiliaryICs and13bypass requirements, separate from C1'stwo/AFE's33.
+Actual module/fixture/cable/rail-loss behavior and the delivered budget stayopen.
+
+C2's executable ledger/corner/latch checks are source/data/Boolean analysis,
+not native electronic simulation, installed interlock testing or addedproject
+tests. The baseline99b ordinary gate passed1108+14subtests/86.31%branches; read
+the C2 PR's actual final-head checks/review separately. A clean unchanged-board
+DRC or a firmware compile does not validate a proposed auxiliary circuit.
 
 ## Previous work and still-open evidence
 
