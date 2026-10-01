@@ -2,6 +2,7 @@
 
 import gzip
 import json
+import shutil
 from dataclasses import replace
 from pathlib import Path
 
@@ -10,6 +11,7 @@ import pytest
 from hardware.rev_a import (
     AuxiliaryContract,
     SchematicNetlist,
+    auxiliary_source_snapshot,
     load_documents,
     parse_auxiliary_contract,
     parse_schematic_xml,
@@ -250,3 +252,149 @@ def test_auxiliary_erc_requires_the_exact_four_sheet_report(fault: str) -> None:
     else:
         with pytest.raises(ValueError):
             validate_auxiliary_erc(content)
+
+
+# TI SLLSEP3G p6 Figure 5-4 / ISO7721 D,DWV column, NOT ISO7720.
+# Directions in C1 were correct; the C3 channel letters were swapped.
+@pytest.mark.parametrize("source", ["manifest", "native-export"])
+def test_iso7721d_pin_functions_and_uart_directions_match_manufacturer(source: str) -> None:
+    expected = {
+        "1": ("VCC1", "power_in", "HOST_3V3"),
+        "2": ("OUTA", "output", "HOST_RX"),
+        "3": ("INB", "input", "HOST_TX"),
+        "4": ("GND1", "power_in", "HOST_GND"),
+        "5": ("GND2", "power_in", "TARGET_GND"),
+        "6": ("OUTB", "output", "CONSOLE_RX"),
+        "7": ("INA", "input", "CONSOLE_TX"),
+        "8": ("VCC2", "power_in", "MCU_3V3"),
+    }
+    if source == "manifest":
+        pins = _contract().parts["ISO"].pins
+        assert {n: (p.function, p.kind, p.net) for n, p in pins.items()} == expected
+    else:
+        graph = _fixture()
+        assert {
+            n: (graph.pin_functions[("ISO", n)], graph.pin_types[("ISO", n)]) for n in expected
+        } == {n: (v[0], v[1]) for n, v in expected.items()}
+
+
+@pytest.fixture
+def auxiliary_sources(tmp_path: Path) -> tuple[Path, Path]:
+    cad, libraries = tmp_path / "auxiliary", tmp_path / "installed"
+    shutil.copytree(ROOT / "hardware/rev_a/auxiliary", cad)
+    # Supply explicit empty policy so negative cases isolate one forbidden edit.
+    project = cad / "auxiliary.kicad_pro"
+    value = json.loads(project.read_text())
+    value["erc"] = {"erc_exclusions": [], "rule_severities": {}}
+    project.write_text(json.dumps(value))
+    for part in _contract().parts.values():
+        library, name = part.footprint.split(":")
+        if library != "Aux_Lands":
+            path = libraries / (library + ".pretty") / (name + ".kicad_mod")
+            path.parent.mkdir(parents=True, exist_ok=True)
+            # This tests source closure, not geometry (covered by native tests).
+            path.write_text(f'(footprint "{name}")')
+    return cad, libraries
+
+
+@pytest.mark.parametrize(
+    "erc",
+    [
+        {"erc_exclusions": [], "rule_severities": {"pin_to_pin": "ignore"}},
+        {"erc_exclusions": [], "rule_severities": {"pin_to_pin": "warning"}},
+        {"erc_exclusions": ["excluded"], "rule_severities": {}},
+        {"erc_exclusions": [], "rule_severities": {}, "future_override": True},
+        None,
+        [],
+    ],
+)
+def test_auxiliary_snapshot_rejects_erc_waivers(
+    auxiliary_sources: tuple[Path, Path], erc: object
+) -> None:
+    cad, libraries = auxiliary_sources
+    path = cad / "auxiliary.kicad_pro"
+    value = json.loads(path.read_text())
+    value["erc"] = erc
+    path.write_text(json.dumps(value))
+    with pytest.raises(ValueError, match="ERC"):
+        auxiliary_source_snapshot(cad, libraries)
+
+
+@pytest.mark.parametrize(
+    "key,value",
+    [
+        ("text_variables", {"RAIL": "HOST_3V3"}),
+        ("net_settings", {}),
+        ("meta", {"filename": "another.kicad_pro", "version": 1}),
+    ],
+)
+def test_auxiliary_snapshot_rejects_undeclared_project_settings(
+    auxiliary_sources: tuple[Path, Path], key: str, value: object
+) -> None:
+    cad, libraries = auxiliary_sources
+    path = cad / "auxiliary.kicad_pro"
+    project = json.loads(path.read_text())
+    project[key] = value
+    path.write_text(json.dumps(project))
+    with pytest.raises(ValueError, match="project"):
+        auxiliary_source_snapshot(cad, libraries)
+
+
+@pytest.mark.parametrize(
+    "file,before,after",
+    [
+        ("sym-lib-table", "${KIPRJMOD}/RevA.kicad_sym", "/tmp/other.kicad_sym"),
+        ("sym-lib-table", '(type "KiCad")', '(type "Legacy")'),
+        ("fp-lib-table", "${KICAD9_FOOTPRINT_DIR}/Package_SO.pretty", "/tmp/Package_SO.pretty"),
+        ("fp-lib-table", '(options "")', '(options "override")'),
+        ("auxiliary.kicad_sch", '"bus.kicad_sch"', '"../bus.kicad_sch"'),
+        ("bus.kicad_sch", '"RevA:TXU0304PW"', '"Other:TXU0304PW"'),
+        ("RevA.kicad_sym", '(name "VCC1"', '(name "BAD_VCC1"'),
+    ],
+)
+def test_auxiliary_snapshot_rejects_hidden_or_stale_dependencies(
+    auxiliary_sources: tuple[Path, Path], file: str, before: str, after: str
+) -> None:
+    cad, libraries = auxiliary_sources
+    path = cad / file
+    text = path.read_text()
+    assert before in text
+    path.write_text(text.replace(before, after, 1))
+    with pytest.raises(ValueError):
+        auxiliary_source_snapshot(cad, libraries)
+
+
+@pytest.mark.parametrize("extra", ["hidden.kicad_sch", "Aux_Lands.pretty/extra.kicad_mod"])
+def test_auxiliary_snapshot_rejects_extra_native_inputs(
+    auxiliary_sources: tuple[Path, Path], extra: str
+) -> None:
+    cad, libraries = auxiliary_sources
+    (cad / extra).write_text("undeclared")
+    with pytest.raises(ValueError):
+        auxiliary_source_snapshot(cad, libraries)
+
+
+@pytest.mark.parametrize("directory", ["Aux_Lands.pretty", "Package_SO.pretty"])
+def test_auxiliary_snapshot_rejects_linked_library_directories(
+    auxiliary_sources: tuple[Path, Path], directory: str
+) -> None:
+    cad, libraries = auxiliary_sources
+    path = (cad if directory == "Aux_Lands.pretty" else libraries) / directory
+    target = path.with_name("elsewhere")
+    path.rename(target)
+    path.symlink_to(target, target_is_directory=True)
+    with pytest.raises(ValueError, match="link"):
+        auxiliary_source_snapshot(cad, libraries)
+
+
+def test_auxiliary_snapshot_accepts_whitespace_and_reordered_empty_project(
+    auxiliary_sources: tuple[Path, Path],
+) -> None:
+    cad, libraries = auxiliary_sources
+    before = auxiliary_source_snapshot(cad, libraries)
+    path = cad / "auxiliary.kicad_pro"
+    value = json.loads(path.read_text())
+    path.write_text(json.dumps(dict(reversed(list(value.items()))), indent=4))
+    after = auxiliary_source_snapshot(cad, libraries)
+    assert before.keys() == after.keys()
+    assert before["auxiliary/auxiliary.kicad_pro"] != after["auxiliary/auxiliary.kicad_pro"]
