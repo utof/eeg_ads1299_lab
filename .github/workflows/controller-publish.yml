@@ -1,0 +1,53 @@
+name: Publish exact C1 source
+on:
+  push:
+    branches: [workbench/controller-interface-source]
+    paths: [.github/workflows/controller-publish.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Require original binary and source identity before publication
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64,hashlib,pathlib,subprocess
+          encoded=''.join(pathlib.Path(f'transfer/c1-{i:02d}.b64').read_text().strip() for i in range(6))
+          assert len(encoded)==23344
+          data=base64.b64decode(encoded,validate=True)
+          assert len(data)==17506
+          assert hashlib.sha256(data).hexdigest()=='c6607f8912c6a9b567dffc7ce4d894c96ff3cd8e1d01124111f1d22c0d17e7ba'
+          pathlib.Path('/tmp/c1.bundle').write_bytes(data)
+          subprocess.run(['git','bundle','verify','/tmp/c1.bundle'],check=True)
+          subprocess.run(['git','fetch','/tmp/c1.bundle','HEAD'],check=True)
+          PY
+          test "$(git rev-parse FETCH_HEAD)" = 0216b6a0004f8212e0a6a5a777a83f511e9f1d20
+          test "$(git rev-parse FETCH_HEAD^{tree})" = 1448f9179fffaa43431053b4383ba9cc80fa98f2
+          test "$(git rev-parse FETCH_HEAD^)" = 2b11ddec03a4fad97f6dbec2f00675fe5a48c09c
+          test "$(git diff --name-only 2b11ddec FETCH_HEAD | wc -l)" = 4
+          git diff --exit-code 2b11ddec FETCH_HEAD -- hardware firmware lab tools tests pyproject.toml uv.lock .github
+          git push origin 0216b6a0004f8212e0a6a5a777a83f511e9f1d20:refs/heads/docs/controller-interface-c1
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: docs/controller-interface-c1
+          fetch-depth: 0
+          path: fresh
+          persist-credentials: false
+      - name: Verify independent published checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd fresh
+          test "$(git rev-parse HEAD)" = 0216b6a0004f8212e0a6a5a777a83f511e9f1d20
+          test "$(git rev-parse HEAD^{tree})" = 1448f9179fffaa43431053b4383ba9cc80fa98f2
+          printf '%s  %s\n' dfe893f958128ba28eb69188cf6debbbc9fcafa0ef5dd67bd58627d4b8a26842 hardware/rev_a/layout/rev_a.kicad_pcb | sha256sum -c -
+          test -z "$(git status --porcelain)"
+          git log -1 --oneline
