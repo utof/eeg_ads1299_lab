@@ -1,0 +1,82 @@
+name: Publish original C2 source
+on:
+  push:
+    branches: [workbench/bus-interlock-c2]
+    paths: [.github/workflows/c2-publish.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Require original per-chunk and complete bundle integrity before import
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64,hashlib,pathlib,subprocess
+          digests=[
+              'e7678ba405f505cdd7502b3642d52150d2884dcbe17759209cb3eeb01c1d406f',
+              'd9657d7e3c4f87ca2d1e41b24a8f3b7cb110c30133f3ef61880a1cf9ae91812a',
+              '3c98b9afb8f9d0479a005bc13a9c9151b0f7ac346fb8ff9d990dca2887ca60bb',
+              '9c48c57247b4a6cd7309c6e1b665c82bb73c0809dd5444fc086b01c47888db2c',
+              '4c5951d5ece9884c14c3ddb573319cc026addb42cb5aa99ef2211f990c81f5bf',
+              '228ef18fe2d41e10474d21f1dc790d8127f3792d8488b503cd8cc23c526d9977',
+              '288fc3e88c540352745e54b3b04d1611c1185e679cc1c1a5acc8d7b0a684f18b',
+              '7dfe901d17ec7db80c2277f6edb332dae0ed191c4e4de2ebb57115efe1364f7b',
+          ]
+          chunks=[]
+          for i,digest in enumerate(digests):
+              text=pathlib.Path(f'transfer/c2-{i:02d}.b64').read_text()
+              # Correct a known transport transcription only; original hashes
+              # below are mandatory. No project source is transformed here.
+              if i==2:
+                  assert text.count('3ooKzZjF')==1
+                  text=text.replace('3ooKzZjF','3ooK2ZjF')
+              actual=hashlib.sha256(text.encode()).hexdigest()
+              print(i,len(text),actual,flush=True)
+              assert actual==digest, f'chunk {i} mismatch'
+              chunks.append(text.strip())
+          encoded=''.join(chunks)
+          assert len(encoded)==24524
+          data=base64.b64decode(encoded,validate=True)
+          assert len(data)==18392
+          assert hashlib.sha256(data).hexdigest()=='3520ba724d869a5cf77fb48f3b9ab7fa4054976237fa9a6eb497bd3155019d26'
+          pathlib.Path('/tmp/c2.bundle').write_bytes(data)
+          subprocess.run(['git','bundle','verify','/tmp/c2.bundle'],check=True)
+          subprocess.run(['git','fetch','/tmp/c2.bundle','HEAD'],check=True)
+          PY
+          test "$(git rev-parse FETCH_HEAD)" = d0b2c9acbd198b845f9defd299a4e17be005c119
+          test "$(git rev-parse FETCH_HEAD^{tree})" = d88d3ae402ce9bdfd9d52302f0da37c2faff0ed8
+          test "$(git rev-parse FETCH_HEAD^)" = 99bafcea6b3fa518e76704061daf722aae539360
+          test "$(git diff --name-only 99bafcea FETCH_HEAD | wc -l)" = 4
+          git diff --exit-code 99bafcea FETCH_HEAD -- hardware firmware lab tools tests pyproject.toml uv.lock .github
+          git push origin d0b2c9acbd198b845f9defd299a4e17be005c119:refs/heads/docs/bus-interlock-c2
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: docs/bus-interlock-c2
+          fetch-depth: 0
+          path: fresh
+          persist-credentials: false
+      - name: Verify separate fresh GitHub checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd fresh
+          test "$(git rev-parse HEAD)" = d0b2c9acbd198b845f9defd299a4e17be005c119
+          test "$(git rev-parse HEAD^{tree})" = d88d3ae402ce9bdfd9d52302f0da37c2faff0ed8
+          printf '%s  %s\n' dfe893f958128ba28eb69188cf6debbbc9fcafa0ef5dd67bd58627d4b8a26842 hardware/rev_a/layout/rev_a.kicad_pcb | sha256sum -c -
+          test -z "$(git status --porcelain)"
+          git rev-parse HEAD HEAD^{tree}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: c2-transport-diagnostics
+          path: transfer/c2-*.b64
+          retention-days: 7
+          if-no-files-found: error
