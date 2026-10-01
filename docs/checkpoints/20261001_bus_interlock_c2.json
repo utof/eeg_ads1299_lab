@@ -1,0 +1,440 @@
+{
+  "decision": "C2",
+  "status": "pin_level_architecture_candidate_not_installed_or_qualified",
+  "source_commit": "99bafcea6b3fa518e76704061daf722aae539360",
+  "source_tree": "1448f9179fffaa43431053b4383ba9cc80fa98f2",
+  "pcb_sha256": "dfe893f958128ba28eb69188cf6debbbc9fcafa0ef5dd67bd58627d4b8a26842",
+  "buffers": [
+    {
+      "ref": "BU1",
+      "mpn": "TXU0304PWR",
+      "pins": {
+        "1": "MCU_3V3",
+        "6": "NC",
+        "7": "TARGET_GND",
+        "8": "BUS_OE",
+        "9": "NC",
+        "14": "AFE_DVDD",
+        "2": "MCU_SCLK",
+        "13": "AFE_SCLK",
+        "3": "MCU_MOSI",
+        "12": "AFE_MOSI",
+        "4": "MCU_CS",
+        "11": "AFE_CS",
+        "10": "AFE_MISO",
+        "5": "MCU_MISO"
+      }
+    },
+    {
+      "ref": "BU2",
+      "mpn": "TXU0304PWR",
+      "pins": {
+        "1": "MCU_3V3",
+        "6": "NC",
+        "7": "TARGET_GND",
+        "8": "BUS_OE",
+        "9": "NC",
+        "14": "AFE_DVDD",
+        "2": "MCU_RESET",
+        "13": "AFE_RESET",
+        "3": "MCU_START",
+        "12": "AFE_START",
+        "4": "MCU_PWDN",
+        "11": "AFE_PWDN",
+        "10": "AFE_DRDY",
+        "5": "MCU_DRDY"
+      }
+    },
+    {
+      "ref": "BU3",
+      "mpn": "TXU0304PWR",
+      "pins": {
+        "1": "MCU_3V3",
+        "6": "NC",
+        "7": "TARGET_GND",
+        "8": "BUS_OE",
+        "9": "NC",
+        "14": "AFE_DVDD",
+        "2": "MCU_CLKSEL",
+        "13": "AFE_CLKSEL",
+        "3": "TARGET_GND",
+        "4": "TARGET_GND",
+        "10": "TARGET_GND",
+        "5": "NC",
+        "11": "NC",
+        "12": "NC"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "net": "SCLK",
+      "buffer": "BU1",
+      "input_pin": 2,
+      "output_pin": 13,
+      "afe_contact": 1,
+      "mcu_gpio": 12,
+      "mcu_header_pad": 18,
+      "direction": "MCU_to_AFE"
+    },
+    {
+      "net": "MOSI",
+      "buffer": "BU1",
+      "input_pin": 3,
+      "output_pin": 12,
+      "afe_contact": 3,
+      "mcu_gpio": 11,
+      "mcu_header_pad": 17,
+      "direction": "MCU_to_AFE"
+    },
+    {
+      "net": "CS",
+      "buffer": "BU1",
+      "input_pin": 4,
+      "output_pin": 11,
+      "afe_contact": 7,
+      "mcu_gpio": 10,
+      "mcu_header_pad": 16,
+      "direction": "MCU_to_AFE"
+    },
+    {
+      "net": "MISO",
+      "buffer": "BU1",
+      "input_pin": 10,
+      "output_pin": 5,
+      "afe_contact": 5,
+      "mcu_gpio": 13,
+      "mcu_header_pad": 19,
+      "direction": "AFE_to_MCU"
+    },
+    {
+      "net": "RESET",
+      "buffer": "BU2",
+      "input_pin": 2,
+      "output_pin": 13,
+      "afe_contact": 11,
+      "mcu_gpio": 5,
+      "mcu_header_pad": 5,
+      "direction": "MCU_to_AFE"
+    },
+    {
+      "net": "START",
+      "buffer": "BU2",
+      "input_pin": 3,
+      "output_pin": 12,
+      "afe_contact": 13,
+      "mcu_gpio": 6,
+      "mcu_header_pad": 6,
+      "direction": "MCU_to_AFE"
+    },
+    {
+      "net": "PWDN",
+      "buffer": "BU2",
+      "input_pin": 4,
+      "output_pin": 11,
+      "afe_contact": 15,
+      "mcu_gpio": 7,
+      "mcu_header_pad": 7,
+      "direction": "MCU_to_AFE"
+    },
+    {
+      "net": "DRDY",
+      "buffer": "BU2",
+      "input_pin": 10,
+      "output_pin": 5,
+      "afe_contact": 9,
+      "mcu_gpio": 4,
+      "mcu_header_pad": 4,
+      "direction": "AFE_to_MCU"
+    },
+    {
+      "net": "CLKSEL",
+      "buffer": "BU3",
+      "input_pin": 2,
+      "output_pin": 13,
+      "afe_contact": 19,
+      "mcu_gpio": 8,
+      "mcu_header_pad": 12,
+      "direction": "MCU_to_AFE"
+    }
+  ],
+  "supervisors": [
+    {
+      "ref": "MON_M",
+      "mpn": "TPS3703A4330DSER",
+      "nominal_v": 3.3,
+      "window_fraction": 0.04,
+      "sense_net": "MCU_3V3",
+      "sense_anchor": "DEVKIT.J1.2",
+      "pins": {
+        "1": "MCU_3V3",
+        "2": "MCU_3V3",
+        "3": "CT_10K_TO_MCU_3V3",
+        "4": "RAILS_OK",
+        "5": "TARGET_GND",
+        "6": "STOP_N"
+      }
+    },
+    {
+      "ref": "MON_D",
+      "mpn": "TPS3703A4330DSER",
+      "nominal_v": 3.3,
+      "window_fraction": 0.04,
+      "sense_net": "AFE_DVDD",
+      "sense_anchor": "AFE.C33.1",
+      "pins": {
+        "1": "AFE_DVDD",
+        "2": "MCU_3V3",
+        "3": "CT_10K_TO_MCU_3V3",
+        "4": "RAILS_OK",
+        "5": "TARGET_GND",
+        "6": "STOP_N"
+      }
+    },
+    {
+      "ref": "MON_A",
+      "mpn": "TPS3703A5500DSER",
+      "nominal_v": 5.0,
+      "window_fraction": 0.05,
+      "sense_net": "AFE_AVDD",
+      "sense_anchor": "AFE.C32.1",
+      "pins": {
+        "1": "AFE_AVDD",
+        "2": "MCU_3V3",
+        "3": "CT_10K_TO_MCU_3V3",
+        "4": "RAILS_OK",
+        "5": "TARGET_GND",
+        "6": "STOP_N"
+      }
+    },
+    {
+      "ref": "MON_V",
+      "mpn": "TPS3703A5500DSER",
+      "nominal_v": 5.0,
+      "window_fraction": 0.05,
+      "sense_net": "TARGET_VIN5",
+      "sense_anchor": "SUPPLY.+5V",
+      "pins": {
+        "1": "TARGET_VIN5",
+        "2": "MCU_3V3",
+        "3": "CT_10K_TO_MCU_3V3",
+        "4": "RAILS_OK",
+        "5": "TARGET_GND",
+        "6": "STOP_N"
+      }
+    }
+  ],
+  "logic": [
+    {
+      "ref": "CLEAR_AND",
+      "mpn": "SN74LVC1G97DBVR",
+      "pins": {
+        "1": "TARGET_GND",
+        "2": "TARGET_GND",
+        "3": "SESSION",
+        "4": "CLR_N",
+        "5": "MCU_3V3",
+        "6": "RAILS_OK"
+      }
+    },
+    {
+      "ref": "ARM_BUFFER",
+      "mpn": "SN74LVC1G97DBVR",
+      "pins": {
+        "1": "TARGET_GND",
+        "2": "TARGET_GND",
+        "3": "ARM_REQ",
+        "4": "ARM_CLK",
+        "5": "MCU_3V3",
+        "6": "MCU_3V3"
+      }
+    },
+    {
+      "ref": "ARM_FF",
+      "mpn": "SN74LVC2G74DCUR",
+      "pins": {
+        "1": "ARM_CLK",
+        "2": "MCU_3V3",
+        "3": "NC",
+        "4": "TARGET_GND",
+        "5": "BUS_OE",
+        "6": "CLR_N",
+        "7": "MCU_3V3",
+        "8": "MCU_3V3"
+      }
+    }
+  ],
+  "prospective_controller_roles": {
+    "SESSION": {
+      "gpio": 14,
+      "header_pad": 20,
+      "direction": "out"
+    },
+    "ARM_REQ": {
+      "gpio": 9,
+      "header_pad": 15,
+      "direction": "out"
+    },
+    "ARMED": {
+      "gpio": 16,
+      "header_pad": 9,
+      "direction": "in"
+    },
+    "READY": {
+      "gpio": 15,
+      "header_pad": 8,
+      "direction": "in"
+    }
+  },
+  "resistor_requirements_ohm": {
+    "BUS_OE_to_ground": 100000,
+    "SESSION_to_ground": 10000,
+    "ARM_REQ_to_ground": 10000,
+    "RAILS_OK_to_MCU_3V3": 10000,
+    "STOP_N_to_MCU_3V3": 10000,
+    "each_CT_to_MCU_3V3": 10000,
+    "each_SENSE_to_ground_at_monitor": 100000,
+    "MCU_MISO_to_ground": 10000,
+    "MCU_DRDY_to_ground": 10000
+  },
+  "local_bypass_requirements": {
+    "value_F": 1e-07,
+    "count": 13,
+    "description": "six TXU rail pins, four supervisor VDD pins, three logic VCC pins; auxiliary only; MPN/lands not selected"
+  },
+  "policy": {
+    "arm_rule": "rising_edge_only",
+    "clear_rule": "any_detected_rail_fault_or_session_low",
+    "recover_without_fresh_edge": false,
+    "requires_vcap_before_bus_enable": false,
+    "clock_interval_starts_after_bus_and_clock_enabled": true,
+    "external_analog_startup_protected": false,
+    "monitor_is_E1_voltage_acceptance": false,
+    "universal_shutdown_deadline_us": null,
+    "fast_short_or_arbitrary_ramp_qualified": false,
+    "supervisor_supply": "MCU_3V3",
+    "sense_backpower_at_supervisor_VDD_zero_qualified": false,
+    "hardware_installed": false,
+    "firmware_implements_C2": false,
+    "powered_setup_permitted": false
+  },
+  "analysis": {
+    "3.3V": {
+      "conservative_UV_trip_interval_V": [
+        3.1449,
+        3.1910999999999996
+      ],
+      "conservative_OV_trip_interval_V": [
+        3.407976,
+        3.4560239999999998
+      ],
+      "conservative_inside_hysteresis_interval_V": [
+        3.2175,
+        3.380327808
+      ]
+    },
+    "5V": {
+      "conservative_UV_trip_interval_V": [
+        4.715,
+        4.785
+      ],
+      "conservative_OV_trip_interval_V": [
+        5.21325,
+        5.28675
+      ],
+      "conservative_inside_hysteresis_interval_V": [
+        4.825,
+        5.170956
+      ]
+    },
+    "conditional_reset_release_ms": [
+      140,
+      260
+    ],
+    "detect_max_us_at_five_percent_overdrive": 30,
+    "startup_delay_typ_us": 300,
+    "startup_delay_max_us": null,
+    "five_percent_below_lowest_5V_trip_V": 4.4792499999999995,
+    "nominal_ads_clock_wait_ms": 128.0,
+    "existing_firmware_wait_ms": 150,
+    "state_truth_rows": 256
+  },
+  "approval_changes": false,
+  "hardware_tested": false,
+  "next_task": "Native auxiliary C1+C2 schematic and physically keyed actual-rail feed/sense termination, then separately tested guarded firmware integration; no PCB regeneration or gate enable.",
+  "sources": [
+    {
+      "url": "https://www.ti.com/lit/ds/symlink/txu0304.pdf",
+      "revision": "SCES935A",
+      "printed_pages": [
+        4,
+        6,
+        8,
+        14,
+        21,
+        22,
+        23
+      ],
+      "checked": "2026-10-01"
+    },
+    {
+      "url": "https://www.ti.com/lit/ds/symlink/tps3703.pdf",
+      "revision": "SBVS249B",
+      "printed_pages": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        17,
+        19
+      ],
+      "checked": "2026-10-01"
+    },
+    {
+      "url": "https://www.ti.com/lit/ds/symlink/sn74lvc2g74.pdf",
+      "revision": "SCES203Q",
+      "printed_pages": [
+        3,
+        5,
+        6,
+        7,
+        9
+      ],
+      "checked": "2026-10-01"
+    },
+    {
+      "url": "https://www.ti.com/lit/ds/symlink/sn74lvc1g97.pdf",
+      "revision": "SCES416N",
+      "printed_pages": [
+        3,
+        5,
+        6,
+        9,
+        10
+      ],
+      "checked": "2026-10-01"
+    },
+    {
+      "url": "https://www.ti.com/lit/ds/symlink/ads1299.pdf",
+      "revision": "SBAS499C",
+      "printed_pages": [
+        7,
+        70
+      ],
+      "checked": "2026-10-01"
+    },
+    {
+      "url": "https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/user_guide_v1.1.html",
+      "section": "J1 header table and power alternatives",
+      "checked": "2026-10-01"
+    }
+  ],
+  "reproducer": {
+    "python_block_sha256": "d4cb9fcdc388dec1af4a1071d79ca587e4f94c8c1aee8841b3c3e5424b323fdd",
+    "scope": "source/data/settled_boolean_not_native_electrical",
+    "corrupt_snapshots": 8,
+    "automatic_restart_alternative_rejected": true
+  },
+  "ready_readback_net": "CLR_N"
+}
