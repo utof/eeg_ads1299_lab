@@ -140,6 +140,19 @@ def require_native_tools() -> None:
             raise RuntimeError(f"Native checks require {name}; absence is not a pass")
     if not (shutil.which("g++") or shutil.which("clang++")):
         raise RuntimeError("Native checks require g++ or clang++; absence is not a pass")
+    renderer = shutil.which("openscad")
+    assert renderer is not None  # Required above; use this resolved executable for the probe.
+    try:
+        version = subprocess.run(
+            [renderer, "--version"], capture_output=True, text=True, timeout=10, check=False
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise RuntimeError("OpenSCAD 2021.01 version probe failed") from exc
+    output = "\n".join(part.strip() for part in (version.stdout, version.stderr) if part.strip())
+    if version.returncode != 0 or output != "OpenSCAD version 2021.01":
+        raise RuntimeError(
+            f"OpenSCAD 2021.01 required; probe exit {version.returncode}, output {output!r}"
+        )
 
 
 def _native(out: Path) -> None:
