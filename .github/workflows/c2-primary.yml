@@ -1,0 +1,29 @@
+name: C2 primary sources
+on:
+  push:
+    branches: [workbench/bus-interlock-c2]
+    paths: [.github/workflows/c2-primary.yml]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Retrieve public manufacturer originals
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/primary"
+          cd "$RUNNER_TEMP/primary"
+          for part in txu0304 tps3703 sn74hcs74 ads1299; do
+            curl --fail --location --retry 2 --max-time 45 "https://www.ti.com/lit/ds/symlink/$part.pdf" -o "$part.pdf"
+            test "$(head -c 5 "$part.pdf")" = '%PDF-'
+          done
+          sha256sum *.pdf > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: c2-primary-ti
+          path: ${{ runner.temp }}/primary/
+          if-no-files-found: error
+          retention-days: 7
