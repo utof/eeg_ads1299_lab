@@ -55,24 +55,32 @@ def _render(tmp_path: Path, expression: str) -> float:
     source, output = tmp_path / f"probe-{index:03d}.scad", tmp_path / f"probe-{index:03d}.stl"
     output.unlink(missing_ok=True)
     source.write_text(f"use <{MODEL}>\n{expression}\n")
-    result = subprocess.run(
-        [
-            executable,
-            "--hardwarnings",
-            "--export-format",
-            "asciistl",
-            "-o",
-            str(output),
-            str(source),
-        ],
-        capture_output=True,
-        text=True,
-        timeout=90,
-        check=False,
-    )
-    source.with_suffix(".log").write_text(result.stdout + result.stderr)
-    assert result.returncode == 0, result.stderr
-    assert not re.search(r"(?:WARNING|ERROR):", result.stdout + result.stderr), result.stderr
+    log_path = source.with_suffix(".log")
+    # A real file preserves partial renderer diagnostics even when it times out.
+    with log_path.open("w", encoding="utf-8") as stream:
+        try:
+            result = subprocess.run(
+                [
+                    executable,
+                    "--hardwarnings",
+                    "--export-format",
+                    "asciistl",
+                    "-o",
+                    str(output),
+                    str(source),
+                ],
+                stdout=stream,
+                stderr=subprocess.STDOUT,
+                text=True,
+                timeout=90,
+                check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            stream.write(f"\nOpenSCAD failed: {exc}\n")
+            raise
+    diagnostic = log_path.read_text(encoding="utf-8")
+    assert result.returncode == 0, diagnostic
+    assert not re.search(r"(?:WARNING|ERROR):", diagnostic), diagnostic
     assert output.is_file(), "render produced no fresh mesh"
     return _volume(output)
 

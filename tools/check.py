@@ -146,8 +146,13 @@ def require_native_tools() -> None:
         version = subprocess.run(
             [renderer, "--version"], capture_output=True, text=True, timeout=10, check=False
         )
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        raise RuntimeError("OpenSCAD 2021.01 version probe failed") from exc
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(
+            f"OpenSCAD 2021.01 version probe timed out after {exc.timeout} s; "
+            f"stdout={exc.stdout!r}; stderr={exc.stderr!r}"
+        ) from exc
+    except OSError as exc:
+        raise RuntimeError(f"OpenSCAD 2021.01 version probe failed: {exc}") from exc
     output = "\n".join(part.strip() for part in (version.stdout, version.stderr) if part.strip())
     if version.returncode != 0 or output != "OpenSCAD version 2021.01":
         raise RuntimeError(
