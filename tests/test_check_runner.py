@@ -1,6 +1,7 @@
 """The quality gate must fail closed, not just print a reassuring report."""
 
 import importlib.metadata
+import io
 import json
 import subprocess
 import sys
@@ -9,6 +10,7 @@ from pathlib import Path
 
 import pytest
 
+from tests.test_carrier_cad import _render
 from tools.check import check_branch_coverage, command_plan, main, require_native_tools, run_step
 
 
@@ -145,3 +147,69 @@ def test_native_renderer_version_probe_failure_is_not_a_pass(
     monkeypatch.setattr("tools.check.subprocess.run", run)
     with pytest.raises(RuntimeError, match=r"OpenSCAD.*2021\.01"):
         require_native_tools()
+
+
+@pytest.mark.parametrize("timed_out", [True, False])
+def test_native_renderer_probe_preserves_failure_diagnostics(
+    monkeypatch: pytest.MonkeyPatch, timed_out: bool
+) -> None:
+    def lookup(name: str) -> str:
+        return f"/native/{name}"
+
+    def run(
+        command: Sequence[str], *, capture_output: bool, text: bool, timeout: float, check: bool
+    ) -> subprocess.CompletedProcess[str]:
+        assert capture_output and text and not check
+        if timed_out:
+            raise subprocess.TimeoutExpired(
+                list(command),
+                timeout,
+                output=b"partial version stdout",
+                stderr=b"partial version stderr",
+            )
+        raise OSError("specific renderer execution error")
+
+    monkeypatch.setattr("tools.check.shutil.which", lookup)
+    monkeypatch.setattr("tools.check.subprocess.run", run)
+    with pytest.raises(RuntimeError) as failure:
+        require_native_tools()
+    detail = str(failure.value)
+    if timed_out:
+        assert "partial version stdout" in detail and "partial version stderr" in detail
+        assert "10" in detail and "timed out" in detail
+    else:
+        assert "specific renderer execution error" in detail
+
+
+@pytest.mark.parametrize("timed_out", [True, False])
+def test_cad_renderer_retains_failure_log_without_accepting_a_mesh(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, timed_out: bool
+) -> None:
+    def lookup(_name: str) -> str:
+        return "/native/openscad"
+
+    def run(command: Sequence[str], **options: object) -> subprocess.CompletedProcess[str]:
+        assert options.get("timeout") == 90
+        # Exercise either capture-based or streaming execution with a process double.
+        stream = options.get("stdout")
+        if stream is not None:
+            assert isinstance(stream, io.TextIOBase)
+            stream.write("partial render stdout\npartial render stderr\n")
+        if timed_out:
+            raise subprocess.TimeoutExpired(
+                list(command), 90, output=b"partial render stdout", stderr=b"partial render stderr"
+            )
+        raise OSError("specific CAD execution error")
+
+    monkeypatch.setattr("tests.test_carrier_cad.shutil.which", lookup)
+    monkeypatch.setattr("tests.test_carrier_cad.subprocess.run", run)
+    expected = subprocess.TimeoutExpired if timed_out else OSError
+    with pytest.raises(expected):
+        _render(tmp_path, "cube(1);")
+    log = (tmp_path / "probe-000.log").read_text()
+    if timed_out:
+        assert "partial render stdout" in log and "partial render stderr" in log
+        assert "timed out" in log
+    else:
+        assert "specific CAD execution error" in log
+    assert not list(tmp_path.glob("*.stl")), "A failed renderer must not yield an accepted mesh"
