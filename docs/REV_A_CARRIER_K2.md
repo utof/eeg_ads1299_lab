@@ -227,6 +227,23 @@ output, nonzero exit, timeout and OS failure are rejected. These are software
 process doubles, not eleven new native CAD experiments. The actual supported
 renderer's preflight also passed. CI's pinned package installation is unchanged.
 
+Two further review findings, **4154619881** and **4154753831**, concerned
+retained diagnostics: rendering could time out before writing its log, and
+the version preflight replaced timeout/OS details with a generic failure.
+Four new software-double cases reproduced the missing evidence. Rendering now
+streams stdout/stderr to its probe file and records the exception before
+re-raising; version-probe failures propagate captured output and the specific
+OS error into the shared report. No failed render is accepted as clearance,
+and neither timeout was increased. These four cases are ordinary tests, not
+four extra CAD or hardware experiments.
+
+Mesh SHA values identify individual captured exports, not a promise of bytewise
+serialization across runs. A separate extracted-source re-export of the corrected
+bridge had a different STL hash but exactly the same geometric triangle multiset.
+Latest eight-part exports also match the recorded bounds, triangle counts and
+volumes; each delivered export has its own manifest and audit. Native acceptance
+is geometry-based, not a requirement to copy a historical STL byte sequence.
+
 The final focused geometry selection is **56 cases**, including the two new
 bridge-facet checks. Ordinary and full hosted/native counts are recorded in
 PR #72 against their actual tested head; they must not be inferred from an

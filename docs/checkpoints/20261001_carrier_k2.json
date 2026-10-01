@@ -234,6 +234,24 @@
       "reject_nonzero_unrecognized_other_version_timeout_OS_error": true,
       "actual_supported_renderer_preflight_passed": true,
       "software_doubles_not_native_fault_experiments": true
+    },
+    "diagnostic_retention_fix": {
+      "codex_findings": [
+        4154619881,
+        4154753831
+      ],
+      "red_commit": "47312d7cbcd678416ede5cafdb3211718b1f6c2a",
+      "fix_commit": "ff2b9b43158d8bad7dc9834573739a5436666316",
+      "observed_ordinary_red_cases": 4,
+      "renderer_streams_output_and_retains_exception": true,
+      "version_probe_preserves_partial_output_and_OS_error": true,
+      "timeouts_unchanged": true,
+      "software_doubles_not_native_experiments": true
+    },
+    "export_serialization": {
+      "hashes_identify_captured_exports_not_bitwise_regeneration_contract": true,
+      "independent_extracted_bridge_reexport_triangle_multiset_matches": true,
+      "latest_eight_exports_match_bounds_triangle_counts_and_volumes": true
     }
   }
 }
