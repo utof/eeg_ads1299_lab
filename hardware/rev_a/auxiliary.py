@@ -8,7 +8,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .check_schematic import SchematicNetlist
-from .schematic_sources import read_schematic_file
+from .schematic_sources import _strings, read_schematic_file
+from .schematic_symbols import _children, _Form, _parse, validate_symbol_caches
 
 
 @dataclass(frozen=True)
@@ -222,31 +223,138 @@ def validate_auxiliary_erc(content: str) -> None:
         raise ValueError("C3 ERC sheet identity mismatch")
 
 
-def auxiliary_source_snapshot(cad: Path, footprints: Path) -> dict[str, str]:
-    """Bind the actual authored auxiliary source and selected installed land patterns."""
-    result: dict[str, str] = {}
-    for name in (
-        "auxiliary.kicad_sch",
-        "bus.kicad_sch",
-        "supervision.kicad_sch",
-        "arming.kicad_sch",
-        "auxiliary.kicad_pro",
-        "RevA.kicad_sym",
-        "sym-lib-table",
-        "fp-lib-table",
-        "contract.json",
+_AUX_SHEETS = frozenset(
+    {"auxiliary.kicad_sch", "bus.kicad_sch", "supervision.kicad_sch", "arming.kicad_sch"}
+)
+_AUX_FILES = _AUX_SHEETS | {
+    "auxiliary.kicad_pro",
+    "RevA.kicad_sym",
+    "sym-lib-table",
+    "fp-lib-table",
+}
+_AUX_LIBRARIES = frozenset(
+    {
+        "Package_SO",
+        "Package_SON",
+        "Package_TO_SOT_SMD",
+        "Resistor_SMD",
+        "Capacitor_SMD",
+        "Connector_JST",
+        "Aux_Lands",
+    }
+)
+
+
+def _table_entry(entry: _Form) -> tuple[str, str]:
+    """Read the existing bounded parser's fields; allow only plain KiCad libraries."""
+    fields: dict[str, str] = {}
+    for field in entry.items[1:]:
+        if not isinstance(field, _Form) or len(field.items) != 2:
+            raise ValueError("C3 malformed library field")
+        key, raw = field.items
+        if not isinstance(key, str) or not isinstance(raw, str) or key in fields:
+            raise ValueError("C3 duplicate or malformed library field")
+        value: object = json.loads(raw)
+        if not isinstance(value, str):
+            raise ValueError("C3 library field must be quoted text")
+        fields[key] = value
+    if set(fields) != {"name", "type", "uri", "options", "descr"}:
+        raise ValueError("C3 library field inventory differs")
+    if fields["type"] != "KiCad" or fields["options"] != "":
+        raise ValueError("C3 library type/options override")
+    return fields["name"], fields["uri"]
+
+
+def _library_table(text: str, head: str, expected: dict[str, str]) -> None:
+    table = _parse(text)
+    versions = _children(table, "version")
+    entries = _children(table, "lib")
+    if table.items[0] != head or len(table.items) != 2 + len(entries):
+        raise ValueError("C3 library table structure differs")
+    if len(versions) != 1 or versions[0].items != ("version", "7"):
+        raise ValueError("C3 library table version differs")
+    pairs = [_table_entry(entry) for entry in entries]
+    if len(pairs) != len(expected) or dict(pairs) != expected:
+        raise ValueError("C3 library name/URI inventory differs")
+
+
+def _source_configuration(contents: dict[str, str]) -> None:
+    project = _object(json.loads(contents["auxiliary.kicad_pro"]))
+    if project.get("erc") != {"erc_exclusions": [], "rule_severities": {}}:
+        raise ValueError("C3 ERC exclusions/severity overrides are not permitted")
+    if (
+        set(project) != {"meta", "erc", "text_variables"}
+        or project["meta"] != {"filename": "auxiliary.kicad_pro", "version": 1}
+        or project["text_variables"] != {}
     ):
-        result["auxiliary/" + name] = hashlib.sha256(
-            read_schematic_file(cad / name).encode()
-        ).hexdigest()
-    contract = parse_auxiliary_contract(read_schematic_file(cad / "contract.json"))
-    for identifier in sorted({part.footprint for part in contract.parts.values()}):
+        raise ValueError("C3 undeclared project configuration")
+    children = _strings(r'\(property\s+"Sheetfile"', contents["auxiliary.kicad_sch"])
+    if sorted(children) != ["arming.kicad_sch", "bus.kicad_sch", "supervision.kicad_sch"]:
+        raise ValueError("C3 root hierarchy differs from snapshotted sheets")
+    for name in sorted(_AUX_SHEETS - {"auxiliary.kicad_sch"}):
+        if _strings(r'\(property\s+"Sheetfile"', contents[name]):
+            raise ValueError("C3 nested sheet is not snapshotted")
+    _library_table(
+        contents["sym-lib-table"], "sym_lib_table", {"RevA": "${KIPRJMOD}/RevA.kicad_sym"}
+    )
+    _library_table(
+        contents["fp-lib-table"],
+        "fp_lib_table",
+        {
+            name: "${"
+            + ("KIPRJMOD" if name == "Aux_Lands" else "KICAD9_FOOTPRINT_DIR")
+            + "}/"
+            + name
+            + ".pretty"
+            for name in _AUX_LIBRARIES
+        },
+    )
+    validate_symbol_caches(
+        contents["RevA.kicad_sym"], {n: contents[n] for n in sorted(_AUX_SHEETS)}
+    )
+
+
+def _auxiliary_land_snapshot(
+    cad: Path, footprints: Path, contract: AuxiliaryContract
+) -> dict[str, str]:
+    identifiers = {p.footprint for p in contract.parts.values()}
+    local = cad / "Aux_Lands.pretty"
+    if local.is_symlink() or footprints.is_symlink():
+        raise ValueError("C3 footprint directory link is not permitted")
+    expected = {i.split(":")[1] + ".kicad_mod" for i in identifiers if i.startswith("Aux_Lands:")}
+    if {p.name for p in local.iterdir()} != expected:
+        raise ValueError("C3 local footprint inventory differs")
+    result: dict[str, str] = {}
+    for identifier in sorted(identifiers):
         if re.fullmatch(r"[A-Za-z0-9_.+-]+:[A-Za-z0-9_.+-]+", identifier) is None:
             raise ValueError("C3 invalid footprint identifier")
         library, name = identifier.split(":")
-        base = cad if library == "Aux_Lands" else footprints
-        path = base / (library + ".pretty") / (name + ".kicad_mod")
+        if library not in _AUX_LIBRARIES:
+            raise ValueError("C3 undeclared footprint library")
+        directory = (cad if library == "Aux_Lands" else footprints) / (library + ".pretty")
+        if directory.is_symlink():
+            raise ValueError("C3 footprint library link is not permitted")
         result["auxiliary-footprint/" + identifier] = hashlib.sha256(
-            read_schematic_file(path).encode()
+            read_schematic_file(directory / (name + ".kicad_mod")).encode()
         ).hexdigest()
+    return result
+
+
+def auxiliary_source_snapshot(cad: Path, footprints: Path) -> dict[str, str]:
+    """Reject suppressed ERC/hidden dependencies before hashing the closed C3 input set."""
+    if cad.is_symlink():
+        raise ValueError("C3 CAD directory link is not permitted")
+    actual = {
+        p.name
+        for p in cad.iterdir()
+        if p.suffix.startswith(".kicad_") or p.name.endswith("-lib-table")
+    }
+    if actual != _AUX_FILES:
+        raise ValueError("C3 native CAD input inventory differs")
+    contents = {name: read_schematic_file(cad / name) for name in sorted(_AUX_FILES)}
+    _source_configuration(contents)
+    contents["contract.json"] = read_schematic_file(cad / "contract.json")
+    contract = parse_auxiliary_contract(contents["contract.json"])
+    result = {"auxiliary/" + n: hashlib.sha256(t.encode()).hexdigest() for n, t in contents.items()}
+    result.update(_auxiliary_land_snapshot(cad, footprints, contract))
     return result

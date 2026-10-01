@@ -3,5 +3,9 @@
     "filename": "auxiliary.kicad_pro",
     "version": 1
   },
-  "text_variables": {}
+  "text_variables": {},
+  "erc": {
+    "erc_exclusions": [],
+    "rule_severities": {}
+  }
 }

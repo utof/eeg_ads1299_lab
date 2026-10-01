@@ -370,12 +370,12 @@
         },
         "2": {
           "net": "HOST_RX",
-          "function": "OUTB",
+          "function": "OUTA",
           "type": "output"
         },
         "3": {
           "net": "HOST_TX",
-          "function": "INA",
+          "function": "INB",
           "type": "input"
         },
         "4": {
@@ -390,12 +390,12 @@
         },
         "7": {
           "net": "CONSOLE_TX",
-          "function": "INB",
+          "function": "INA",
           "type": "input"
         },
         "6": {
           "net": "CONSOLE_RX",
-          "function": "OUTA",
+          "function": "OUTB",
           "type": "output"
         },
         "5": {

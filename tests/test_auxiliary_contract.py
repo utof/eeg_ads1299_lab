@@ -394,7 +394,7 @@ def test_auxiliary_snapshot_accepts_whitespace_and_reordered_empty_project(
     before = auxiliary_source_snapshot(cad, libraries)
     path = cad / "auxiliary.kicad_pro"
     value = json.loads(path.read_text())
-    path.write_text(json.dumps(dict(reversed(list(value.items()))), indent=4))
+    path.write_text(json.dumps(value, indent=4, sort_keys=True))
     after = auxiliary_source_snapshot(cad, libraries)
     assert before.keys() == after.keys()
     assert before["auxiliary/auxiliary.kicad_pro"] != after["auxiliary/auxiliary.kicad_pro"]

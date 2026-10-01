@@ -3,6 +3,7 @@
 import csv
 import gzip
 import io
+import json
 import os
 import re
 import shutil
@@ -13,6 +14,7 @@ from pathlib import Path
 import pytest
 
 from hardware.rev_a import (
+    auxiliary_source_snapshot,
     parse_auxiliary_contract,
     parse_schematic_xml,
     read_schematic_file,
@@ -236,3 +238,39 @@ def test_auxiliary_native_footprint_pin_sets_and_solder_land_dimensions(
         assert result.returncode != 0 and "AssertionError" in log.read_text()
     else:
         assert result.returncode == 0, log.read_text()
+
+
+def test_auxiliary_native_suppressed_findings_cannot_be_accepted(tmp_path: Path) -> None:
+    """Real ERC can be made silent by project policy; hashing it is not validation."""
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    _label(cad, "auxiliary", "U101", 2, "HOST_TX")
+    cli = shutil.which("kicad-cli")
+    assert cli is not None
+    libraries = os.environ.get("KICAD9_FOOTPRINT_DIR")
+    assert libraries
+    env = dict(os.environ, KICAD_CONFIG_HOME=str(tmp_path / "config"), LANG="C", LC_ALL="C")
+    command = [cli, "sch", "erc", "--format", "json", "--severity-all", "--exit-code-violations"]
+    for suppressed in (False, True):
+        path = tmp_path / ("suppressed.json" if suppressed else "visible.json")
+        with path.with_suffix(".log").open("w") as log:
+            result = subprocess.run(
+                [*command, "-o", str(path), str(cad / "auxiliary.kicad_sch")],
+                stdout=log,
+                stderr=subprocess.STDOUT,
+                timeout=45,
+                env=env,
+            )
+        assert result.returncode == (0 if suppressed else 5)
+        if suppressed:
+            validate_auxiliary_erc(path.read_text())  # Empty report alone accepts it.
+        else:
+            report = json.loads(path.read_text())
+            kinds = {v["type"] for sheet in report["sheets"] for v in sheet["violations"]}
+            assert kinds == {"pin_not_driven", "global_label_dangling", "pin_to_pin"}
+            project = cad / "auxiliary.kicad_pro"
+            value = json.loads(project.read_text())
+            value["erc"]["rule_severities"] = dict.fromkeys(kinds, "ignore")
+            project.write_text(json.dumps(value))
+    with pytest.raises(ValueError, match="ERC"):
+        auxiliary_source_snapshot(cad, Path(libraries))
