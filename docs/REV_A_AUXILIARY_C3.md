@@ -234,6 +234,33 @@ and the initial reviewer completion are not acceptance of later source.
 Primary pin reference for this correction, inspected as a page image:
 https://www.ti.com/lit/ds/symlink/iso7721.pdf (SLLSEP3G, p6).
 
+
+### Complete draft manifest and real sheet location
+
+A final review-thread inventory exposed a third original finding, **4157186374**,
+which remained valid despite the later no-major-issues summary. The public
+parser had silently discarded draft status, external assumptions and per-part
+sheet fields. Test-only `af8e5af` observed **25 intended failures and 68 passes**
+before the correction. These are ordinary source/data regressions, not native
+circuit or physical experiments.
+
+The parser now requires the exact root/part/pin field inventories, explicit C3
+draft status and false approval, the five existing external assumptions exactly
+once (order is immaterial), known pin types and canonical ASCII pin numbers.
+Duplicate JSON fields are rejected instead of silently choosing the last value.
+The source snapshot additionally compares declared component/sheet pairs with
+the actual top-level native instances. Merely naming a valid but wrong sheet
+therefore cannot pass. Object-key/assumption reordering remains benign.
+
+This is closure of the existing finite C3 draft contract, not a new release
+registry or a guarantee that its assumptions hold physically. A later design
+change to an assumption or sheet inventory requires coordinated review and
+updates; no current contract/CAD/BOM/firmware/threshold changed in this fix.
+The focused auxiliary ordinary suite now has **93 cases**; the 12 native cases
+are unchanged. Both full final-head verification and renewed review must be
+read from the PR, not inferred from this focused pass. An initial strict-type
+failure in the new test helper was corrected without changing expectations.
+
 ## Continuation and scope
 
 **Next: the matching AFE service feed/sense access and its continuity/mating

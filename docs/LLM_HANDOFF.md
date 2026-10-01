@@ -39,12 +39,20 @@ The native auxiliary source survived in PR75. Its follow-up fixes correct ISO
 channel-letter names only (2 OUTA,3 INB,6 OUTB,7 INA, TI SLLSEP3G p6); the UART
 pin directions and wiring were already correct. Do NOT reverse the wiring on
 the strength of the first review comment. The contract and newly exported graph
-now have independent manufacturer-based pin assertions. The other finding is
+now have independent manufacturer-based pin assertions. The ERC finding is
 fixed by requiring explicit empty ERC policy and closed project/library/cache
 inputs before hashing. A real ERC-suppressed invalid copy is rejected at that
 boundary. Red4ac666f preserves22 observed focused failures before correction.
 Read the exact final-head checks/re-review before treating PR75 as accepted.
 All AFE copper and C3's seven pull values are unchanged by those corrections.
+A final inventory found original finding4157186374 still open: required draft
+status/assumptions/part-sheet metadata had been ignored. Redaf8e5af observed
+25failures/68passes; the parser now validates the complete finite field inventory,
+rejects duplicate keys/noncanonical pins, and the snapshot checks actual native
+sheet placement. Reordering remains benign. No contract/CAD/firmware changed.
+Read all three original threads, not only the latest clean summary. The separate
+K2 binding correction retains a strict current-board hash after byte-identical
+geometry proof; the earlier153pass/1fail hosted run is not a final pass.
 
 ## Next bounded task
 

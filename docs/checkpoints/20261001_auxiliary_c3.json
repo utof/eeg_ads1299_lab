@@ -146,5 +146,24 @@
     "strict_whole_file_binding_retained": true,
     "disposable_moved_footprint_and_pad_size_changes_rejected": true,
     "not_physical_fit_validation": true
+  },
+  "manifest_review_correction": {
+    "finding": 4157186374,
+    "reviewed_parent": "3524a949fa5a8976ca8f668d825df365b7a6eca1",
+    "test_first_commit": "af8e5af21cd5fb63c31ecf01c2495cf36cf3772f",
+    "fix_commit": "430e329fbfe7f67ddc8b325afd74a8883b69c11e",
+    "observed_red_failures": 25,
+    "observed_red_passes": 68,
+    "focused_ordinary_auxiliary_cases": 93,
+    "focused_native_auxiliary_cases_unchanged": 12,
+    "status_assumptions_and_all_record_fields_required": true,
+    "duplicate_JSON_keys_rejected": true,
+    "canonical_ASCII_pin_numbers_and_known_types_required": true,
+    "native_instance_sheet_pairs_checked": true,
+    "object_and_assumption_reordering_accepted": true,
+    "current_contract_CAD_BOM_firmware_unchanged": true,
+    "physical_experiments": false,
+    "initial_test_helper_strict_type_failure_corrected": true,
+    "later_clean_review_did_not_waive_known_original_finding": true
   }
 }

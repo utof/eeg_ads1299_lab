@@ -7,6 +7,7 @@ auxiliary board, implemented firmware handshake or qualified powered assembly.
 The matching AFE service feed/sense access is the next bounded hardware change.
 
 PR75 recovery retains the already-authored circuit and adds the review corrections:
+complete draft-contract validation and native component/sheet binding as well as
 manufacturer-correct ISO channel names (not a reversal of the valid UART wiring),
 and fail-closed auxiliary project/ERC/library/cache validation. Acceptance still
 requires the live final-head checks and review. The next design task remains
