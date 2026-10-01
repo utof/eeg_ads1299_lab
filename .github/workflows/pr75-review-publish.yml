@@ -1,0 +1,85 @@
+name: Publish verified PR75 review history
+on:
+  push:
+    branches: [workbench/pr75-review-recovery]
+    paths: [.github/workflows/pr75-review-publish.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Require original data integrity before any Git import
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64, hashlib, pathlib, subprocess
+          digests = [
+              '55281bbad5cd089e7ea49b75747488c85859bcf9e87ea7efc9d963299212c794',
+              '0aac30f9eec0779803c052ca23d678237888a3780981e9649e5569e007fc99d4',
+              '1d4a4e3f8ea1d7f65a759c42eb166bc002e0404f8b349e8bb7d20ad1ca7817fd',
+              'd78d2e97ea23a25e5eb76e05dea9d8db225452c3987d85ffa106d814802ef7fc',
+              'e019d3d15cfd02dedb9c108765935e4c7d2839e5bd931b17702c6b289aa64663',
+              '4f5eb81a62864b16682cf19a7bc8628e8a4c03bf123d7beaaaae2af2dc7af145',
+          ]
+          # Correct known text-transport transcription only. Full original chunk
+          # and binary hashes below must match before source history is imported.
+          corrections = {0: [('PHeYYmv0', 'PHeYmv0')], 3: [('R3E5N6iZj84', 'R3E5N6lZj84'), ('Yh9Q3CBI', 'Yh9QzCBI')]}
+          chunks = []
+          for i, expected in enumerate(digests):
+              text = pathlib.Path(f'transfer/review{i:02d}.b64').read_text()
+              for before, after in corrections.get(i, []):
+                  assert text.count(before) == 1
+                  text = text.replace(before, after)
+              actual = hashlib.sha256(text.encode()).hexdigest()
+              print(i, len(text), actual, flush=True)
+              assert actual == expected, f'chunk {i} differs from original'
+              chunks.append(text.strip())
+          encoded = ''.join(chunks)
+          assert len(encoded) == 22668
+          data = base64.b64decode(encoded, validate=True)
+          assert len(data) == 17001
+          assert hashlib.sha256(data).hexdigest() == 'a87b5c075b1f1ff6d28402a1be25d02e9376cba99722051a32d245dc55d454fd'
+          pathlib.Path('/tmp/review.bundle').write_bytes(data)
+          subprocess.run(['git', 'bundle', 'verify', '/tmp/review.bundle'], check=True)
+          subprocess.run(['git', 'fetch', '/tmp/review.bundle', 'HEAD'], check=True)
+          PY
+          test "$(git rev-parse FETCH_HEAD)" = b0fcdc515eebf11ae7cc6b8dfacb6e887a7a9d55
+          test "$(git rev-parse FETCH_HEAD^{tree})" = 72c1469ab546a95e7e844bb34f14c1fe96ec13ff
+          git merge-base --is-ancestor d0a9e3acf6ec96f966adcd4258a1ffe48bc3f586 FETCH_HEAD
+          test "$(git rev-list --count d0a9e3a..FETCH_HEAD)" = 3
+          git diff --exit-code d0a9e3a FETCH_HEAD -- hardware/rev_a/kicad hardware/rev_a/layout hardware/rev_a/bom.json hardware/rev_a/board_profile.json firmware lab pyproject.toml uv.lock .github
+          git push origin b0fcdc515eebf11ae7cc6b8dfacb6e887a7a9d55:refs/heads/archive/pr75-review-b0fcdc5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: archive/pr75-review-b0fcdc5
+          fetch-depth: 0
+          path: fresh
+          persist-credentials: false
+      - name: Verify independent GitHub checkout and preserve original source
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd fresh
+          test "$(git rev-parse HEAD)" = b0fcdc515eebf11ae7cc6b8dfacb6e887a7a9d55
+          test "$(git rev-parse HEAD^{tree})" = 72c1469ab546a95e7e844bb34f14c1fe96ec13ff
+          printf '%s  %s\n' f11c9651fb0cebb01bf2cc7d6ef1be0a0093664dfacc4f193f90aab14bdbd6c7 hardware/rev_a/layout/rev_a.kicad_pcb | sha256sum -c -
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/source"
+          git branch review-source HEAD
+          git bundle create "$RUNNER_TEMP/source/repository.bundle" review-source
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/source/identity.txt"
+          cd "$RUNNER_TEMP/source"
+          sha256sum repository.bundle identity.txt > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pr75-review-source
+          path: ${{ runner.temp }}/source/
+          if-no-files-found: error
+          retention-days: 7
