@@ -189,6 +189,51 @@ are rejected by gate controls. Native case outputs are retained under the gate's
 schematic-test directory. Full gate/CI/review counts must always be read for the
 actual final head; focused results or inherited AFE DRC are not a later-head pass.
 
+## Recovery review corrections (PR #75)
+
+The interrupted authoring turn published the complete native source before its
+reply failed. Continue that source; do not regenerate the auxiliary or AFE.
+The review correction's observed test-only commit is `4ac666f`: **22 failures
+and 45 passes** in the focused ordinary auxiliary tests before implementation.
+Two failures exposed ISO channel-letter drift; the remaining failures exposed
+accepted ERC overrides, hidden dependencies, stale caches and linked libraries.
+
+**ISO directions versus channel names:** TI SLLSEP3G printed p6, Figure 5-4 and
+the **ISO7721 D/DWV column** specify 2=OUTA, 3=INB, 6=OUTB, 7=INA. Review
+4157186342 proposed the opposite electrical directions; the actual figure does
+not support reversing the existing UART wiring. C1's endpoints were already
+correct. Only C3's channel-letter names were wrong. The local symbol, embedded
+cache, contract and fresh native-export fixture now use the manufacturer names.
+The exported nets, electrical types, pin numbers and component identities are
+unchanged. Independent expectations cover both the manifest and native graph;
+the existing UART wiring is deliberately retained. No zero-error report can
+replace checking the selected part/package column in the primary drawing.
+
+**ERC suppression and source closure:** finding 4157186361 was reproduced.
+The snapshot now requires explicit empty ERC exclusions/severity overrides,
+closed project settings and exact hierarchy/library resolution, and validates
+local-symbol/embedded-cache equality before recording hashes. Extra CAD/local
+land files, linked library directories and alternate URI/type/options cannot
+silently introduce unsnapshotted dependencies. This extends the existing
+project-specific boundary using its bounded S-expression reader, not a new
+CAD generator. Expanding that boundary requires a deliberate reviewed change.
+
+A new native control misconnects ISO pin2 to HOST_TX in a disposable copy.
+Unmodified native ERC returns exit5 with output contention, an undriven input
+and a dangling label. Suppressing those three rule types makes the same native
+copy return exit0 and an empty report, as the review warned. The source snapshot
+now rejects that policy even though the empty report alone passes its parser.
+The invalid copy is never accepted as canonical source. A reordered/whitespace
+changed empty policy remains allowed. No production rule was downgraded.
+
+There are now **12 focused native auxiliary cases** (the initial11 plus this
+suppression control), not12 physical experiments. The exact-head full gate and
+independent re-review outcomes must be read from the live PR; earlier passes
+and the initial reviewer completion are not acceptance of later source.
+
+Primary pin reference for this correction, inspected as a page image:
+https://www.ti.com/lit/ds/symlink/iso7721.pdf (SLLSEP3G, p6).
+
 ## Continuation and scope
 
 **Next: the matching AFE service feed/sense access and its continuity/mating

@@ -94,5 +94,38 @@
     "Yageo_RC_L": "https://yageogroup.com/content/datasheet/asset/file/PYU-RC_GROUP_51_ROHS_L",
     "KEMET_C1002": "https://content.kemet.com/datasheets/KEM_C1002_X7R_SMD.pdf",
     "JST_XH": "https://www.jst-mfg.com/product/pdf/eng/eXH.pdf"
+  },
+  "review_correction": {
+    "reviewed_parent": "d0a9e3acf6ec96f966adcd4258a1ffe48bc3f586",
+    "test_first_commit": "4ac666f8456e9cb20410961e66350e06d877b664",
+    "focused_red_failures": 22,
+    "focused_red_passes": 45,
+    "ISO_finding": 4157186342,
+    "ISO_electrical_directions_already_correct": true,
+    "ISO_corrected_functions": {
+      "2": "OUTA",
+      "3": "INB",
+      "6": "OUTB",
+      "7": "INA"
+    },
+    "ISO_nets_types_numbers_unchanged": true,
+    "ISO_primary": "TI SLLSEP3G p6 Figure5-4 and ISO7721 D/DWV column",
+    "ERC_finding": 4157186361,
+    "native_suppressed_copy": {
+      "visible_exit": 5,
+      "visible_types": [
+        "pin_to_pin",
+        "pin_not_driven",
+        "global_label_dangling"
+      ],
+      "ignored_exit": 0,
+      "ignored_violations": 0,
+      "source_snapshot_rejects": true
+    },
+    "explicit_erc_default_required": true,
+    "project_library_hierarchy_cache_closed": true,
+    "new_native_cases": 1,
+    "focused_native_auxiliary_cases": 12,
+    "physical_experiments": false
   }
 }

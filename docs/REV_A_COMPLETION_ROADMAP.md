@@ -6,6 +6,12 @@ all-terminal/native export checks exist. This is a schematic draft, not a routed
 auxiliary board, implemented firmware handshake or qualified powered assembly.
 The matching AFE service feed/sense access is the next bounded hardware change.
 
+PR75 recovery retains the already-authored circuit and adds the review corrections:
+manufacturer-correct ISO channel names (not a reversal of the valid UART wiring),
+and fail-closed auxiliary project/ERC/library/cache validation. Acceptance still
+requires the live final-head checks and review. The next design task remains
+matching AFE service access; this is not a new architecture milestone.
+
 ## Glanceable roadmap
 
 Remaining substantial chat turns are estimates, not elapsed time or a safety

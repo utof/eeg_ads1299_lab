@@ -33,6 +33,19 @@ arm edge from held ARM. Existing firmware does NOT implement this handshake.
 The native schematic has zero ERC findings under explicit external endpoint
 role assumptions; this is not installed power-loss protection or bench approval.
 
+## Interrupted PR75 review: do not repeat or misapply the repair
+
+The native auxiliary source survived in PR75. Its follow-up fixes correct ISO
+channel-letter names only (2 OUTA,3 INB,6 OUTB,7 INA, TI SLLSEP3G p6); the UART
+pin directions and wiring were already correct. Do NOT reverse the wiring on
+the strength of the first review comment. The contract and newly exported graph
+now have independent manufacturer-based pin assertions. The other finding is
+fixed by requiring explicit empty ERC policy and closed project/library/cache
+inputs before hashing. A real ERC-suppressed invalid copy is rejected at that
+boundary. Red4ac666f preserves22 observed focused failures before correction.
+Read the exact final-head checks/re-review before treating PR75 as accepted.
+All AFE copper and C3's seven pull values are unchanged by those corrections.
+
 ## Next bounded task
 
 **Add the matching, mechanically supported AFE service feed/sense access.**
