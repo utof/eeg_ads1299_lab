@@ -31,6 +31,7 @@ FOOTPRINT_LIBRARIES = frozenset(
         "Capacitor_SMD",
         "RevA_Passives",
         "Connector_PinHeader_2.54mm",
+        "Connector_JST",
     }
 )
 

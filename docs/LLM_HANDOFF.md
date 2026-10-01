@@ -1,77 +1,77 @@
 # Continue from this repository
 
-**Current checkpoint: C3 native auxiliary schematic and coordinated AFE bus pulls.**
+**Current checkpoint: C4 routed AFE service access and carrier backing.**
 Read root `AGENTS.md`, `docs/DEVELOPMENT.md` and the hardware baseline. Fetch live
-main/open PRs, record SHA/tree and `git status --short`, and preserve unrelated
-changes. Start from the C3 PR on `feat/auxiliary-c3` while open; after merge use
-current main. The parent is `98362c6b6445ddb402ddf942b1c81af738eebe56` (PR74).
-Do not assume an old chat report or a queued check describes the current head.
+main/open PRs, record SHA/tree and working-tree state. C4 is on
+`feat/afe-service-access-recovered` until its actual checks/review/merge; after
+merge use current main. Base is merged PR75 `10676fd14ffdeffe86f338342c9346c28f7cb1c8`.
+An old chat progress message is not proof of published or tested source.
 
 ## Authored source and current scope
 
-AFE board: `hardware/rev_a/layout/rev_a.kicad_pcb`; its existing three-sheet
-project lives in `hardware/rev_a/kicad/`. **Never regenerate this board from the
-parking-grid importer.** C3 changes only seven existing bus-pull component
-Value/MPN/BOM_ID fields in the board and digital schematic; reversing those
-fields recovers both original files exactly. All copper, pads, placement and
-zone fill remain intact. The new board hash is
-`f11c9651fb0cebb01bf2cc7d6ef1be0a0093664dfacc4f193f90aab14bdbd6c7`.
-The 68-footprint/245-pad/582-segment/122-via inventory is unchanged.
+Canonical AFE PCB: `hardware/rev_a/layout/rev_a.kicad_pcb`; native project:
+`hardware/rev_a/kicad/rev_a.kicad_pro`. Never regenerate the authored board with
+the deliberately unrouted parking-grid importer. The auxiliary remains at
+`hardware/rev_a/auxiliary/auxiliary.kicad_pro`, four sheets/48instances/212terminals.
+No auxiliary PCB is routed and the firmware has no C2 handshake yet.
 
-**Auxiliary native project:** `hardware/rev_a/auxiliary/auxiliary.kicad_pro`.
-Four editable sheets, separate local symbol/land tables and a complete
-`contract.json`: 48 instances, 212 terminals, 43 native BOM component rows.
-Five numbered solder-land groups are PCB copper, not purchased connectors.
-No auxiliary PCB has been placed or routed. Read `REV_A_AUXILIARY_C3.md` and
-`checkpoints/20261001_auxiliary_c3.json` for exact scope, changed references,
-primary sources, source-only calculations and unresolved physical conditions.
+Read `REV_A_SERVICE_C4.md`, `checkpoints/20261001_service_c4.json` and the cable
+target `hardware/rev_a/service_c4.json`. C4 adds AFE J3/J_SERVICE, matching C3's
+six-way J104. Pin1/5 ground; pin2 actual AFE DVDD feed OUT; pin3 separate DVDD
+sense; pin4 AVDD sense after R11; pin6 NC with no cable contact. Pins2/3 join
+at the AFE rail, never at the auxiliary. No other regulator may drive pin2.
+Existing20-position assignments, including CLKSEL/J2NC, remain unchanged.
 
-The console ISO7721DR remains split-powered HOST versus TARGET. Three TXU0304PWR
-buffers use actual MCU3V3/AFE_DVDD. Four monitors use MCU3V3 for VDD, not the rail
-each senses. ARM_BUFFER is not READY-gated, so recovery cannot manufacture an
-arm edge from held ARM. Existing firmware does NOT implement this handshake.
-The native schematic has zero ERC findings under explicit external endpoint
-role assumptions; this is not installed power-loss protection or bench approval.
+J3 pin1 at75,15mm/180deg has11 new F segments, no new vias; final69footprints,
+251pads,593segments,122vias. Every old68footprint/704track-via raw form remains
+unchanged. The current board hash is
+`60097ff4acf8408d5a172930de74bcd36aa50a379dd30a831e4bc64d3841c8a6`.
+The new paths end at C33.1DVDD and C31.1AVDD. This is local rail sensing, not a
+Kelvin connection at the ADC die. Native 0.95mm holes are not guaranteed
+finished-hole dimensions. Exact assembly and process qualification are open.
 
-## Interrupted PR75 review: do not repeat or misapply the repair
+Two carrier backing blocks brace the service connector at screened underside
+regions without mounting holes. Nominal body/mate, solder-tail and northward
+wire envelopes clear the existing frame/IDC parts in finite rigid checks.
+K2 cartridges/bridges are unchanged; base support geometry and component
+allocation changed. Real print/material tolerances, solder clearance, board
+bending, pull retention, cable routing and tilted assembly still need unpowered
+validation. Strict carrier/board binding was updated after this scoped review,
+not weakened to accept arbitrary geometry changes.
 
-The native auxiliary source survived in PR75. Its follow-up fixes correct ISO
-channel-letter names only (2 OUTA,3 INB,6 OUTB,7 INA, TI SLLSEP3G p6); the UART
-pin directions and wiring were already correct. Do NOT reverse the wiring on
-the strength of the first review comment. The contract and newly exported graph
-now have independent manufacturer-based pin assertions. The ERC finding is
-fixed by requiring explicit empty ERC policy and closed project/library/cache
-inputs before hashing. A real ERC-suppressed invalid copy is rejected at that
-boundary. Red4ac666f preserves22 observed focused failures before correction.
-Read the exact final-head checks/re-review before treating PR75 as accepted.
-All AFE copper and C3's seven pull values are unchanged by those corrections.
-A final inventory found original finding4157186374 still open: required draft
-status/assumptions/part-sheet metadata had been ignored. Redaf8e5af observed
-25failures/68passes; the parser now validates the complete finite field inventory,
-rejects duplicate keys/noncanonical pins, and the snapshot checks actual native
-sheet placement. Reordering remains benign. No contract/CAD/firmware changed.
-Read all three original threads, not only the latest clean summary. The separate
-K2 binding correction retains a strict current-board hash after byte-identical
-geometry proof; the earlier153pass/1fail hosted run is not a final pass.
+Cable target: twoXHP-6 housings, tenSXH-001T-P0.6 contacts, fiveAWG24 wires,
+150+/-5mm between wire faces, insulationOD0.9–1.9mm. Supplier wire/crimp process
+is not selected or qualified. First test the detached cable1:1/isolation and
+empty cavity6, then unpowered assembled continuity. The intentional on-board
+DVDD and ground joins make assembled-only checks insufficient to detect every
+cable wiring error. No powered mating; independent cable restraint required.
 
-## Next bounded task
+## Recovery and next bounded task
 
-**Add the matching, mechanically supported AFE service feed/sense access.**
-The auxiliary now selects J104 `B6B-XH-A(LF)(SN)` with pins1/5 return,2 actual
-AFE DVDD feed,3 separately carried DVDD sense,4 AVDD sense,6 NC. The matching
-AFE connector/pads and cable were deliberately NOT added by C3. Identify a
-real placement with access/clearance and power-return review, then migrate
-AFE schematic/BOM/profile/board/contract/native fixtures together. Preserve all
-existing K1/K2 contacts and route guards. Do not repurpose CLKSEL or J2 NC,
-join remote sense to its feed locally, or authorize wires on tiny C32/C33 pads.
-The existing board is not yet the complete physical C1+C2 assembly.
+The failed turn retained its baseline source capture but not the uncommitted
+service implementation. This continuation recovered recorded authoring operations
+and reconstructed the design against exact main. New deterministic item UUIDs
+and new red/fix recovery commits are intentional; no byte-identical restoration
+of the lost uncommitted candidate or invented old ancestry is claimed.
+Fresh missing-service and missing-support failures preceded the implementation.
+Read the live PR's actual final-head evidence/review, not inherited counts.
+The ground plane remains a single zone; its old mutation-order issue is
+explicitly documented. No test or DRC threshold was relaxed.
 
-After service access, implement the C2 firmware handshake test-first and then
-auxiliary layout. Seven MCU outputs start parked low; firmware requires settled
-READY and a fresh ARM, then starts the existing clock/VCAP/reset sequence.
-Do not require completed VCAP/clock qualification before the control signals
-that start that clock can pass. Detected faults invalidate the whole session.
-Do not enable acquisition or body use as part of these edits.
+**Next: implement guarded SESSION/ARM/READY/ARMED firmware integration test-first.**
+Use the existing C2/C3 pin contract rather than a new pin-map redesign. Park
+seven outputs low, wait for actual READY, create a fresh arm edge, and only then
+start the existing clock/VCAP/reset sequence. A detected fault invalidates the
+whole capture and requires a fresh sequence; restored rails alone must not
+restart. Do not require the clock qualification before the control signals
+which start the clock can propagate. Keep all external acquisition/release/body
+use gates false. Then route the already-authored auxiliary schematic.
+
+C3 review corrections are completed in PR75: ISO channel names2OUTA/3INB/
+6OUTB/7INA were fixed without reversing valid electrical wiring; ERC suppression
+and incomplete manifest/sheet validation were reproduced and closed. Preserve
+those checks. C4 changes only the matching service-access assumption in the
+auxiliary contract/validator, not its topology or previously selected pull values.
 
 ## Electrical limits that must survive continuation
 

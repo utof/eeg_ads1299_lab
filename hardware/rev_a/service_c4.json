@@ -1,0 +1,63 @@
+{
+  "revision": "C4",
+  "status": "routed_afe_access_not_powered_release",
+  "afe_reference": "J3",
+  "auxiliary_reference": "J104",
+  "header_mpn_each_board": "B6B-XH-A(LF)(SN)",
+  "housing": {
+    "mpn": "XHP-6",
+    "quantity": 2
+  },
+  "contact": {
+    "mpn": "SXH-001T-P0.6",
+    "quantity": 10
+  },
+  "wire_target": {
+    "awg": 24,
+    "conductor_count": 5,
+    "insulation_OD_mm": [
+      0.9,
+      1.9
+    ],
+    "length_between_housing_wire_faces_mm": 150,
+    "length_tolerance_mm": 5,
+    "supplier_wire_grade_and_crimp_process_qualified": false
+  },
+  "continuity_afe_pin_to_aux_pin": [
+    [
+      1,
+      1
+    ],
+    [
+      2,
+      2
+    ],
+    [
+      3,
+      3
+    ],
+    [
+      4,
+      4
+    ],
+    [
+      5,
+      5
+    ]
+  ],
+  "empty_housing_cavities_each": [
+    6
+  ],
+  "rails": {
+    "1": "GND",
+    "2": "DVDD_FEED_OUT",
+    "3": "DVDD_SENSE",
+    "4": "AVDD_SENSE",
+    "5": "GND"
+  },
+  "feed_sense_join": "AFE_local_rail_only_not_auxiliary",
+  "acceptance": "test_detached_cable_1_to_1_no_shorts_then_unpowered_assembled_continuity",
+  "power_removed_before_mating": true,
+  "retention": "XH_friction_lock_plus_independent_external_cable_restraint_pending_physical_fit",
+  "purchase_or_powered_approval": false
+}

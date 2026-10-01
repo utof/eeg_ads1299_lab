@@ -39,8 +39,8 @@ def _seed(xml: str = XML, libraries: dict[str, str] | None = None) -> str:
 def test_seed_contains_all_board_instances_and_no_invented_routes_or_outline() -> None:
     board = _seed()
     assert board.startswith("(kicad_pcb ")
-    assert board.count('(footprint "') == 68
-    assert board.count('(pad "') == 245  # 256 terminals minus 11 off-board MOD1 pins.
+    assert board.count('(footprint "') == 69
+    assert board.count('(pad "') == 251  # 262 terminals minus 11 off-board MOD1 pins.
     assert board.count(" dnp)") == 8
     assert '"MOD1"' not in board
     assert '(property "Reference" "U1"' in board

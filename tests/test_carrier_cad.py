@@ -211,12 +211,12 @@ def test_release_strain_bar_before_withdrawal(tmp_path: Path) -> None:
 
 
 def test_carrier_is_bound_to_reviewed_board() -> None:
-    # C3 changed seven Value/MPN/BOM_ID groups only; reversing those edits
-    # reconstructs K2's complete original board. See REV_A_CARRIER_K2.md.
+    # C4 adds J3 and service routes, with independent mating/support checks.
+    # All old raw footprint/copper forms remain unchanged; see REV_A_SERVICE_C4.md.
     # Keep a strict whole-file binding: future geometry changes still fail.
     board = ROOT / "hardware/rev_a/layout/rev_a.kicad_pcb"
     assert hashlib.sha256(board.read_bytes()).hexdigest() == (
-        "f11c9651fb0cebb01bf2cc7d6ef1be0a0093664dfacc4f193f90aab14bdbd6c7"
+        "60097ff4acf8408d5a172930de74bcd36aa50a379dd30a831e4bc64d3841c8a6"
     )
 
 

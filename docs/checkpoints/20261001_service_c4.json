@@ -1,0 +1,185 @@
+{
+  "revision": "C4",
+  "scope": "reconstructed_service_candidate_not_physical_qualification",
+  "source_base": "10676fd14ffdeffe86f338342c9346c28f7cb1c8",
+  "base_tree": "168f0d7b1303c19dbcd1ef488ed294f444e5b5a9",
+  "board_sha256": "60097ff4acf8408d5a172930de74bcd36aa50a379dd30a831e4bc64d3841c8a6",
+  "old_board_sha256": "f11c9651fb0cebb01bf2cc7d6ef1be0a0093664dfacc4f193f90aab14bdbd6c7",
+  "old_footprints_raw_preserved": 68,
+  "old_segments_and_vias_raw_preserved": 704,
+  "all_old_nonzone_root_forms_preserved": true,
+  "added": {
+    "footprints": 1,
+    "pads": 6,
+    "segments": 11,
+    "vias": 0
+  },
+  "counts": {
+    "footprints": 69,
+    "pads": 251,
+    "segments": 593,
+    "vias": 122
+  },
+  "routes": [
+    {
+      "role": "feed",
+      "J3_pin": "2",
+      "target": "C33.1",
+      "width_mm": 0.4,
+      "layer": "F.Cu",
+      "centreline_mm": 8.642031021678298,
+      "points_mm": [
+        [
+          72.5,
+          15.0
+        ],
+        [
+          72.5,
+          18.0
+        ],
+        [
+          74.05,
+          19.55
+        ],
+        [
+          74.05,
+          23.0
+        ]
+      ],
+      "track_uuids": [
+        "bce19394-90f5-5182-a2ae-acefa669cb76",
+        "d26b66c9-b1e4-5e39-bbac-71e8c8dddae4",
+        "18da194b-01ce-5851-9bac-d4f6363e1c36"
+      ]
+    },
+    {
+      "role": "dvdd_sense",
+      "J3_pin": "3",
+      "target": "C33.1",
+      "width_mm": 0.2,
+      "layer": "F.Cu",
+      "centreline_mm": 9.677564927611034,
+      "points_mm": [
+        [
+          70.0,
+          15.0
+        ],
+        [
+          70.0,
+          17.0
+        ],
+        [
+          73.4,
+          20.4
+        ],
+        [
+          73.4,
+          22.35
+        ],
+        [
+          74.05,
+          23.0
+        ]
+      ],
+      "track_uuids": [
+        "ab4bc143-cce5-5ddf-9e94-934ddb599a5b",
+        "7b907a4a-9411-5e85-a4d0-192178ffc81d",
+        "3e335f09-8cad-5070-be19-6c7c1f1ca789",
+        "d6ed545e-5e0e-52b7-a526-5df738a18db1"
+      ]
+    },
+    {
+      "role": "avdd_sense",
+      "J3_pin": "4",
+      "target": "C31.1",
+      "width_mm": 0.2,
+      "layer": "F.Cu",
+      "centreline_mm": 19.926955262170047,
+      "points_mm": [
+        [
+          67.5,
+          15.0
+        ],
+        [
+          67.5,
+          17.4
+        ],
+        [
+          66.4,
+          18.5
+        ],
+        [
+          52.55,
+          18.5
+        ],
+        [
+          51.05,
+          20.0
+        ]
+      ],
+      "track_uuids": [
+        "c8ca5816-ff29-5bdd-b932-cd83471db016",
+        "daa648cd-e98b-5291-ba21-427193c5d770",
+        "17240d59-a2eb-59cf-82ee-fceaa1c7a50f",
+        "be727d61-214c-5d91-969c-8c79f37b81fa"
+      ]
+    }
+  ],
+  "backing_regions_xy_mm": [
+    [
+      59,
+      11.5,
+      61,
+      18
+    ],
+    [
+      76.5,
+      11.5,
+      78.5,
+      18
+    ]
+  ],
+  "backing_surface_AABB_min_gap_mm": [
+    0.6499999999999986,
+    0.6500000000000057
+  ],
+  "backing_z_mm": [
+    -7.01,
+    -1.6
+  ],
+  "body_mate_allocation_mm": {
+    "origin": [
+      59.5,
+      11,
+      0
+    ],
+    "size": [
+      18.5,
+      8,
+      12
+    ]
+  },
+  "vertical_lift_samples_mm": [
+    0,
+    5,
+    20
+  ],
+  "wire_north_exit_mm": {
+    "origin": [
+      59.5,
+      4,
+      12
+    ],
+    "size": [
+      18.5,
+      15,
+      6
+    ]
+  },
+  "no_board_mounting_holes_added": true,
+  "new_footprint_item_UUIDs_are_recovery_identifiers": true,
+  "prior_uncommitted_source_byte_identity_claimed": false,
+  "firmware_unchanged": true,
+  "physical_experiments": false,
+  "approval_changes": false
+}

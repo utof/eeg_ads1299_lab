@@ -42,6 +42,7 @@
 "D8","D_IN4N","BAV199,215","BAV199,215","Package_TO_SOT_SMD:SOT-23","dnp","DNP",""
 "J1","J_DIG","HTSW-110-07-T-D","HTSW-110-07-T-D","Connector_PinHeader_2.54mm:PinHeader_2x10_P2.54mm_Vertical","fit","",""
 "J2","J_INPUT","HTSW-110-07-T-D","HTSW-110-07-T-D","Connector_PinHeader_2.54mm:PinHeader_2x10_P2.54mm_Vertical","fit","",""
+"J3","J_SERVICE","B6B-XH-A(LF)(SN)","B6B-XH-A(LF)(SN)","Connector_JST:JST_XH_B6B-XH-A_1x06_P2.50mm_Vertical","fit","",""
 "MOD1","MOD1","ESP32-S3-DevKitC-1-N8R8","ESP32-S3-DevKitC-1-N8R8","","fit","","Excluded from board"
 "R1","R_IN1P","4.99k","RC0603FR-074K99L","Resistor_SMD:R_0603_1608Metric","fit","",""
 "R2","R_IN1N","4.99k","RC0603FR-074K99L","Resistor_SMD:R_0603_1608Metric","fit","",""

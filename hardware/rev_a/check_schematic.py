@@ -51,6 +51,7 @@ FOOTPRINTS = {
     "bulk_10u": "Capacitor_SMD:C_0805_2012Metric",
     "vcap1": "RevA_Passives:T491D_7343_DensityB",
     "vref": "RevA_Passives:T491B_3528_DensityB",
+    "service_header": "Connector_JST:JST_XH_B6B-XH-A_1x06_P2.50mm_Vertical",
     "headers": "Connector_PinHeader_2.54mm:PinHeader_2x10_P2.54mm_Vertical",
     "clamps": "Package_TO_SOT_SMD:SOT-23",
 }
@@ -177,6 +178,7 @@ def _symbol(item: str) -> str:
         "controller": "External_S3",
         "dvdd_ldo": "TPS7A2033",
         "headers": "Header_2x10",
+        "service_header": "Service_1x06",
         "clamps": "BAV199",
         "vcap1": "CP",
         "vref": "CP",

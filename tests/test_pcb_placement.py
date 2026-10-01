@@ -16,8 +16,8 @@ BOARD = ROOT / "hardware/rev_a/layout/rev_a.kicad_pcb"
 
 def test_editable_placement_is_a_tracked_design_not_a_parking_grid() -> None:
     text = BOARD.read_text()
-    assert text.count('(footprint "') == 68
-    assert text.count('(pad "') == 245
+    assert text.count('(footprint "') == 69
+    assert text.count('(pad "') == 251
     assert text.count(" dnp)") == 8
     assert "(gr_rect " in text and '(layer "Edge.Cuts")' in text
     assert '(1 "In1.Cu" power)' in text and '(2 "In2.Cu" signal)' in text

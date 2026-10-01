@@ -62,6 +62,19 @@ for n,net in {'1':'GND','2':'DVDD','3':'DVDD','4':'AVDD','5':'GND','6':'unconnec
     a=pads[n]
     assert a.GetNetname()==net and a.GetDrillSize().x==950000
     assert a.GetAttribute()==p.PAD_ATTRIB_PTH
+# The underside backing must not cover pads, tracks or vias. AABB distances
+# conservatively bound these outer-layer shapes, excluding inner copper/fill.
+import math
+rectangles=[(59,11.5,61,18),(76.5,11.5,78.5,18)]
+items=[a for fp in b.GetFootprints() for a in fp.Pads() if a.IsOnLayer(p.B_Cu)]
+items += [t for t in b.GetTracks() if t.IsOnLayer(p.B_Cu)]
+for x0,y0,x1,y1 in rectangles:
+    distances=[]
+    for item in items:
+        bb=item.GetBoundingBox()
+        a,c,e,g=[v/1e6 for v in (bb.GetX(),bb.GetY(),bb.GetRight(),bb.GetBottom())]
+        distances.append(math.hypot(max(x0-e,a-x1,0),max(y0-g,c-y1,0)))
+    assert min(distances)>=0.5, min(distances)
 """
     result = subprocess.run(
         [
@@ -110,7 +123,7 @@ def test_each_service_feed_or_sense_cut_is_a_native_disconnection(
     assert report["schematic_parity"] == []
     violations = report["violations"]
     assert isinstance(violations, list) and len(violations) == 1
-    violation = violations[0]
+    violation: object = violations[0]
     assert isinstance(violation, dict) and violation["type"] == "track_dangling"
     assert f"PTH pad {pin} [{net}] of J3" in json.dumps(report["unconnected_items"])
 
@@ -184,3 +197,118 @@ def test_service_north_exit_does_not_cross_ribbon_or_frame(tmp_path: Path) -> No
     }
     """
     assert abs(_overlap(tmp_path, obstacles, "translate([59.5,4,12]) cube([18.5,15,6]);")) < 1e-4
+
+
+# Independent planned cable specification, not an automatically qualified assembly.
+EXPECTED_CABLE = json.loads(r"""
+{
+  "revision": "C4",
+  "status": "routed_afe_access_not_powered_release",
+  "afe_reference": "J3",
+  "auxiliary_reference": "J104",
+  "header_mpn_each_board": "B6B-XH-A(LF)(SN)",
+  "housing": {
+    "mpn": "XHP-6",
+    "quantity": 2
+  },
+  "contact": {
+    "mpn": "SXH-001T-P0.6",
+    "quantity": 10
+  },
+  "wire_target": {
+    "awg": 24,
+    "conductor_count": 5,
+    "insulation_OD_mm": [
+      0.9,
+      1.9
+    ],
+    "length_between_housing_wire_faces_mm": 150,
+    "length_tolerance_mm": 5,
+    "supplier_wire_grade_and_crimp_process_qualified": false
+  },
+  "continuity_afe_pin_to_aux_pin": [
+    [
+      1,
+      1
+    ],
+    [
+      2,
+      2
+    ],
+    [
+      3,
+      3
+    ],
+    [
+      4,
+      4
+    ],
+    [
+      5,
+      5
+    ]
+  ],
+  "empty_housing_cavities_each": [
+    6
+  ],
+  "rails": {
+    "1": "GND",
+    "2": "DVDD_FEED_OUT",
+    "3": "DVDD_SENSE",
+    "4": "AVDD_SENSE",
+    "5": "GND"
+  },
+  "feed_sense_join": "AFE_local_rail_only_not_auxiliary",
+  "acceptance": "test_detached_cable_1_to_1_no_shorts_then_unpowered_assembled_continuity",
+  "power_removed_before_mating": true,
+  "retention": "XH_friction_lock_plus_independent_external_cable_restraint_pending_physical_fit",
+  "purchase_or_powered_approval": false
+}
+""")
+
+
+def _checked_service_plan(data: object) -> None:
+    # Keep types, keys and finite numeric values, not Python's True == 1 shortcut.
+    if json.dumps(data, sort_keys=True, allow_nan=False) != json.dumps(
+        EXPECTED_CABLE, sort_keys=True
+    ):
+        raise ValueError("C4 service harness differs from reviewed target")
+
+
+def test_service_harness_matches_both_board_endpoints() -> None:
+    from hardware.rev_a import parse_auxiliary_contract
+
+    data = json.loads((ROOT / "hardware/rev_a/service_c4.json").read_text())
+    _checked_service_plan(data)
+    contract = parse_auxiliary_contract(
+        (ROOT / "hardware/rev_a/auxiliary/contract.json").read_text()
+    )
+    part = contract.parts["AFE_RAIL_ACCESS"]
+    assert part.reference == "J104" and part.mpn == "B6B-XH-A(LF)(SN)"
+    assert [part.pins[str(n)].net for n in range(1, 7)] == [
+        "TARGET_GND",
+        "AFE_DVDD",
+        "AFE_DVDD_SENSE",
+        "AFE_AVDD_SENSE",
+        "TARGET_GND",
+        None,
+    ]
+
+
+@pytest.mark.parametrize(
+    "fault", ["feed_sense_swap", "populated_nc", "auxiliary_join", "hot_mate", "approval"]
+)
+def test_service_plan_rejects_wrong_or_unapproved_harness(fault: str) -> None:
+    data = json.loads((ROOT / "hardware/rev_a/service_c4.json").read_text())
+    if fault == "feed_sense_swap":
+        data["continuity_afe_pin_to_aux_pin"][1:3] = [[2, 3], [3, 2]]
+    elif fault == "populated_nc":
+        data["empty_housing_cavities_each"] = []
+    elif fault == "auxiliary_join":
+        data["feed_sense_join"] = "short at auxiliary"
+    elif fault == "hot_mate":
+        data["power_removed_before_mating"] = False
+    else:
+        data["purchase_or_powered_approval"] = True
+    with pytest.raises(ValueError):
+        _checked_service_plan(data)

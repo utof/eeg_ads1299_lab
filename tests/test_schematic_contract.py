@@ -31,8 +31,8 @@ def test_native_fixture_has_complete_known_inventory(
     circuit: tuple[SchematicNetlist, BoardProfile, BillOfMaterials],
 ) -> None:
     netlist, profile, bom = circuit
-    assert len(netlist.parts) == 69
-    assert len(netlist.nets) == 256
+    assert len(netlist.parts) == 70
+    assert len(netlist.nets) == 262
     assert validate_schematic(netlist, profile, bom) == []
     assert all(value is False for value in profile["gates"].values())
 
@@ -49,7 +49,7 @@ def test_every_single_pin_move_to_another_existing_net_is_rejected(
             assert validate_schematic(netlist, profile, bom), (pin, original, destination)
             count += 1
         netlist.nets[pin] = original
-    assert count == 14592
+    assert count == 15196
     assert validate_schematic(netlist, profile, bom) == []
 
 

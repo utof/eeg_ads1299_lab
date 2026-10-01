@@ -13,8 +13,8 @@ def footprint_sources() -> dict[str, str]:
         if identifier in result or len(content) > 100_000:
             raise ValueError("invalid frozen footprint entry")
         result[identifier] = content
-    if len(result) != 9:
-        raise ValueError("expected exactly nine frozen footprint sources")
+    if len(result) != 10:
+        raise ValueError("expected exactly ten frozen footprint sources")
     return result
 
 
