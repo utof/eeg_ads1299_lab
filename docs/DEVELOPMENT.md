@@ -45,11 +45,11 @@ On Debian/Ubuntu:
 
 ```bash
 sudo apt-get update
-sudo apt-get install --no-install-recommends ngspice g++ nodejs
+sudo apt-get install --no-install-recommends ngspice g++ nodejs openscad=2021.01-6build4
 uv run --locked python -m tools.check --native
 ```
 
-The native mode requires ngspice, Node, and g++ or clang++. Their absence is a failure, not a simulator pass. It verifies the existing educational circuit against the independent nodal solution, tests portable firmware helpers, and exercises synthetic transport over real localhost UDP. It does not compile an ESP32 target, introduce the next Rev A SPICE model, measure hardware, or establish body-interface safety.
+The native mode requires ngspice, Node, and g++ or clang++. Their absence is a failure, not a simulator pass. The native gate also requires OpenSCAD 2021.01 for the K2 mechanical solid/collision tests (Ubuntu 24.04 package 2021.01-6build4); these are geometry checks, not fabrication qualification. Native test temporary files are retained under the chosen output directory. It verifies the existing educational circuit against the independent nodal solution, tests portable firmware helpers, and exercises synthetic transport over real localhost UDP. It does not compile an ESP32 target, introduce the next Rev A SPICE model, measure hardware, or establish body-interface safety.
 
 Logs, JUnit results, coverage, and `CHECK_REPORT.json` are written under ignored `reports/check/`; use `--out PATH` for a separate evidence directory. CI uploads these as artifacts, including on failure. Routine quality checks must not overwrite the committed historical `results/`, `VALIDATION.json`, `requirements-tested.txt`, or `SHA256SUMS.txt`. `uv run --locked python run_lab.py verify` delegates to this same gate; `--native` (or the old `--require-ngspice` alias) adds native checks. The redundant `tools.validate` implementation was deleted.
 
