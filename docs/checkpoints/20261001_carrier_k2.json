@@ -6,7 +6,7 @@
   "engine": "OpenSCAD version 2021.01",
   "parts": {
     "bridge_J1": {
-      "volume_mm3": 962.9216631955318,
+      "volume_mm3": 962.9215666205358,
       "bbox_min_mm": [
         61.27,
         20.18,
@@ -17,12 +17,12 @@
         56.68,
         14.5
       ],
-      "triangles": 796,
+      "triangles": 788,
       "connected_surface_components": 1,
-      "mesh_sha256": "02515c0e4d37de3cb1cbf4fb21f521118ffc474636e30ef3046068e2e0a1dcf4"
+      "mesh_sha256": "336532ef615934ddbd530710b461bccfba8727777deafe2ad4f58d8ce7cab8de"
     },
     "bridge_J2": {
-      "volume_mm3": 928.4229143893971,
+      "volume_mm3": 928.4228176388037,
       "bbox_min_mm": [
         -3.73,
         22.18,
@@ -35,10 +35,10 @@
       ],
       "triangles": 764,
       "connected_surface_components": 1,
-      "mesh_sha256": "dc5335a128fddd407c702c29cc46c80f14c19ee55d8786210f2ac7612d27a257"
+      "mesh_sha256": "9e646b9f9c901df567db9f936304d226bc5c5f3815b736d22c9ece29768cc511"
     },
     "cap": {
-      "volume_mm3": 553.0251818679999,
+      "volume_mm3": 553.0251818680011,
       "bbox_min_mm": [
         -6.0,
         -14.3,
@@ -51,10 +51,10 @@
       ],
       "triangles": 572,
       "connected_surface_components": 1,
-      "mesh_sha256": "8ed3cd88bc19818d489ac0ae15beb677fdef66085c40ab89510ae06dc76c8c65"
+      "mesh_sha256": "07a18ee0d6ade6405a5a71ca2ea552f7568fb8a80e559621b48a5bea62fcb563"
     },
     "carrier": {
-      "volume_mm3": 29566.893922134055,
+      "volume_mm3": 29566.893922134077,
       "bbox_min_mm": [
         -6.0,
         4.0,
@@ -67,10 +67,10 @@
       ],
       "triangles": 1756,
       "connected_surface_components": 1,
-      "mesh_sha256": "5002dadb32761a069a89ab2e48cd6ad0c61aad89b6e8b22880b55adbd5282298"
+      "mesh_sha256": "0d6631f6afcb7f046d7e90efdac5e22c052faf9a5d4fa2ee2e87f864494ecc1d"
     },
     "cartridge_J1": {
-      "volume_mm3": 1176.2876568880108,
+      "volume_mm3": 1176.2876568880054,
       "bbox_min_mm": [
         -6.0,
         -14.3,
@@ -83,10 +83,10 @@
       ],
       "triangles": 636,
       "connected_surface_components": 1,
-      "mesh_sha256": "eadd904bd0b77ec9f169f362eeed527152ffa254b9f71e13d5eee39901190b03"
+      "mesh_sha256": "0a12857a9c99adefde074c842250e3a324962938a0a768a31f59de7bc0089f66"
     },
     "cartridge_J2": {
-      "volume_mm3": 1176.287656888011,
+      "volume_mm3": 1176.2876568880054,
       "bbox_min_mm": [
         -6.0,
         -14.3,
@@ -99,10 +99,10 @@
       ],
       "triangles": 636,
       "connected_surface_components": 1,
-      "mesh_sha256": "387c3bb0e9b602551233683f8c6b29de0b280221de6c98b1900f380552c6a26b"
+      "mesh_sha256": "087fc5d2b8b5ab571523407933a0ae2422b318b733cc719d8bfff3dfb902d200"
     },
     "edge_clip": {
-      "volume_mm3": 78.75456910259975,
+      "volume_mm3": 78.75456910259982,
       "bbox_min_mm": [
         3.5,
         0.0,
@@ -115,10 +115,10 @@
       ],
       "triangles": 152,
       "connected_surface_components": 1,
-      "mesh_sha256": "b9eebb6a9f949c607ef00a456fcfe4ca4b739bdd5316755589f7a3eb3913c111"
+      "mesh_sha256": "6500b1dc21048d75834475fc4c70b7692d0194ba7b409c03705ffe4ee5de1af8"
     },
     "strain_bar": {
-      "volume_mm3": 372.6690507696,
+      "volume_mm3": 372.6690507695993,
       "bbox_min_mm": [
         -4.0,
         -16.0,
@@ -152,8 +152,7 @@
       "result": "complete assembly cable check: 2 failures/6 passes; J2 seated214.569967 and lift2mm20.811966 mm3"
     }
   ],
-  "focused_native_cases": 54,
-  "passed_focused_run": "/mnt/data/k2-native-final.log (temporary execution log, not a dependency)",
+  "focused_native_cases": 56,
   "limits": [
     "finite rigid single-axis tilt samples on J1, not arbitrary trajectories",
     "accepted socket width<=5.30mm is an inspection requirement, not a manufacturer maximum",
@@ -162,5 +161,79 @@
     "board thickness/shims and controller-side termination remain open"
   ],
   "physical_tested": false,
-  "approval_changes": false
+  "approval_changes": false,
+  "recovery_review": {
+    "recovered_head": "5426bf1853134ec30ad9a614996e301167836711",
+    "date": "2026-10-01",
+    "original_collected_CAD_cases": 54,
+    "not_the_chat_progress_102_count": true,
+    "transport_bundle_sha256": "35d9a176178e0af1ddf6506051edab45ae72d013d9adebfe41aca5cc0a40a880",
+    "publication": "PR72 / feat/carrier-k2; read its actual final-head checks/review",
+    "previous_publish_failure": "workflow token lacked workflows permission; original bundle and Git object identities passed before rejection",
+    "bridge_export_fix": {
+      "red_commit": "46140804d761a6ce69a861387db7015323b551e6",
+      "fix_commit": "5b73dfd79988bcb7125071edad8fa4a373d36196",
+      "observed_red_native_failures": 2,
+      "old_zero_area_triangles_J1_J2": [
+        8,
+        7
+      ],
+      "original_bridge_exports": {
+        "bridge_J1": {
+          "volume_mm3": 962.9216631955318,
+          "bbox_min_mm": [
+            61.27,
+            20.18,
+            7.0
+          ],
+          "bbox_max_mm": [
+            94.75,
+            56.68,
+            14.5
+          ],
+          "triangles": 796,
+          "connected_surface_components": 1,
+          "mesh_sha256": "02515c0e4d37de3cb1cbf4fb21f521118ffc474636e30ef3046068e2e0a1dcf4"
+        },
+        "bridge_J2": {
+          "volume_mm3": 928.4229143893971,
+          "bbox_min_mm": [
+            -3.73,
+            22.18,
+            7.0
+          ],
+          "bbox_max_mm": [
+            21.47,
+            64.68,
+            14.5
+          ],
+          "triangles": 764,
+          "connected_surface_components": 1,
+          "mesh_sha256": "dc5335a128fddd407c702c29cc46c80f14c19ee55d8786210f2ac7612d27a257"
+        }
+      },
+      "correction": "assemble each bridge in a single local coordinate frame then translate once; no intended dimensional change",
+      "after_exports_zero_area_triangles": [
+        0,
+        0
+      ],
+      "after_export_bounds_unchanged": true,
+      "small_tessellation_volume_deltas_mm3": {
+        "bridge_J1": -9.657499595050467e-05,
+        "bridge_J2": -9.675059334313119e-05
+      },
+      "separate_eight_part_audit": "finite vertices, positive triangle area, paired opposite directed edges, one connected triangle surface, positive volume and recorded bounds; not a general self-intersection or physical fit proof"
+    },
+    "renderer_version_fix": {
+      "codex_finding": 4154619872,
+      "red_commit": "19ca8592189fe10cf806ef18470f59604edc2da7",
+      "fix_commit": "9bb9c992642da1c064d06e1ec2e6682c18f26318",
+      "observed_red_unit_failures": 11,
+      "supported_output": "OpenSCAD version 2021.01",
+      "probe_timeout_seconds": 10,
+      "reject_nonzero_unrecognized_other_version_timeout_OS_error": true,
+      "actual_supported_renderer_preflight_passed": true,
+      "software_doubles_not_native_fault_experiments": true
+    }
+  }
 }

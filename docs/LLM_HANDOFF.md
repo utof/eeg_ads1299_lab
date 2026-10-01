@@ -16,7 +16,7 @@ importer. Read `DEVELOPMENT.md` and `HARDWARE_BASELINE_REV_A.md` before edits.
 **K2 dimensioned fit-prototype CAD is now authored** in
 `hardware/rev_a/mechanical/view_k2.scad` and `carrier_k2.scad`. Read
 `REV_A_CARRIER_K2.md` for dimensions, assembly order, source identity and limits.
-The K2 continuation is on `feat/carrier-k2`; use its live PR until merged, then
+The K2 continuation is PR #72 on `feat/carrier-k2`; use its live PR until merged, then
 current main. The earlier K1 header migration is complete; do not repeat it.
 
 The base accepts the PCB before two separately removable, differently mounted
@@ -37,6 +37,14 @@ image. `tools.check --native` now requires OpenSCAD2021.01 as well as the prior
 native tools; the Ubuntu24.04 CI package is2021.01-6build4. No Python dependency
 or parallel verification orchestrator is added. Native test temporary files
 are retained under the selected output. The ordinary gate is still renderer-free.
+Recovery added two failure-first bridge-facet checks and fixed zero-area STL
+triangles by constructing each bridge in one datum. Codex's version-preflight
+gap was reproduced and corrected: an arbitrary renderer on PATH no longer
+satisfies the documented 2021.01 requirement. The final CAD selection is56cases;
+54 was the recovered source count, not the earlier chat's102. Read PR #72 for
+actual exact-head local/hosted outcomes and independent review. Neither source
+publication nor the following physical review items may be inferred from a
+missing or old chat report.
 The tests cover sampled rigid contact/collision cases, not all tilt angles,
 material deflection, manufacturing uncertainty or physical fit.
 

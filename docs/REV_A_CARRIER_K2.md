@@ -188,11 +188,58 @@ also failed before OpenSCAD was added as a required native tool. Final gates
 must be read at their actual commit; intermediate failures are not passes.
 No electrical model, tolerance threshold or existing hardware gate was relaxed.
 
+## Recovery and concrete review corrections
+
+The interrupted source was recovered as the original nine commits ending at
+`5426bf1853134ec30ad9a614996e301167836711`. Its complete bundle and Git objects
+matched their recorded identities. The old workflow had passed those checks
+but could not publish a branch containing a workflow change with its token.
+The authorized connector subsequently published the same source in PR #72.
+No old PCB was reconstructed or overwritten. Temporary transfer data and tools
+are not project dependencies.
+
+That recovered head contains **54 focused native CAD cases**, not the 102 cases
+mentioned in an earlier chat progress excerpt. Recovery reran those 54 and
+selected original failure-first revisions (missing CAD, closed cable wall,
+board installation and complete-support J2 cable collisions). The latter are
+historical failure reproductions, not extra final passing tests.
+
+An independent eight-part mesh audit found **eight and seven zero-area STL
+triangles in the J1/J2 bridges**. These slipped through the original paired-edge
+and volume checks. Two new native cases reproduced the failures before the fix.
+Each bridge now constructs its connected geometry in one local datum and only
+then translates the complete solid: this avoids near-coincident faces from
+mixing independently rounded global/local coordinates. All nominal dimensions
+and exported bounds are retained. The two mesh volumes differ by approximately
+0.000097 mm3 due to tessellation, not an intended clearance change. The corrected
+exports have no collapsed triangles; their new hashes and prior records are
+retained in the checkpoint. The separate eight-part audit also checks finite
+vertices, paired opposite directed edges and one connected triangle surface;
+those checks do not establish self-intersection freedom for arbitrary meshes
+or physical manufacturability.
+
+Codex finding **4154619872** exposed a separate preflight gap: merely finding an
+`openscad` executable accepted any version. Eleven focused unit cases failed
+before correction. The shared native preflight now requires a successful,
+10-second-bounded version probe with exactly `OpenSCAD version 2021.01`, allowing
+the normal response on stdout or stderr. Unsupported, malformed or warning-bearing
+output, nonzero exit, timeout and OS failure are rejected. These are software
+process doubles, not eleven new native CAD experiments. The actual supported
+renderer's preflight also passed. CI's pinned package installation is unchanged.
+
+The final focused geometry selection is **56 cases**, including the two new
+bridge-facet checks. Ordinary and full hosted/native counts are recorded in
+PR #72 against their actual tested head; they must not be inferred from an
+older run or summed with the focused subset. The correction does not change
+PCB, circuit, component, firmware, electrical-model or approval state. Physical
+fit/process/retention questions remain exactly as scoped above.
+
 ## Reproduce
 
 Ubuntu 24.04's pinned native package is `openscad=2021.01-6build4` [3]. No new
 Python dependency or separate verification orchestrator is introduced. The
-ordinary gate remains renderer-free; `tools.check --native` now requires it,
+ordinary gate remains renderer-free; `tools.check --native` checks the supported
+release before running native tests,
 and pytest temporary geometry/logs are retained below the selected native output.
 
 ```sh
