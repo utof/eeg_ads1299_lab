@@ -1,0 +1,488 @@
+{
+  "decision": "C1",
+  "date": "2026-10-01",
+  "status": "selected_architecture_not_built_or_released",
+  "source_commit": "2b11ddec03a4fad97f6dbec2f00675fe5a48c09c",
+  "source_tree": "8b9b175d35f652abe8867f6891827e99040c128d",
+  "pcb_sha256": "dfe893f958128ba28eb69188cf6debbbc9fcafa0ef5dd67bd58627d4b8a26842",
+  "host_module": {
+    "manufacturer": "Adafruit",
+    "product_id": 5335,
+    "name": "CP2102N Friend",
+    "reference_repo": "adafruit/Adafruit-CP2102N-Friend-PCB",
+    "commit": "1c29f780bdc7503e18c8b6d29d1f8fb7cc1510bb",
+    "schematic_blob": "62b31c86dc915b4632b9f943c0a2c92f8c3f4a17",
+    "interface_rail": "JP4.2 3V, common with IC1 VIO and VDD",
+    "not_usb_5V_header": "JP1.3"
+  },
+  "isolator": {
+    "mpn": "ISO7721DR",
+    "package": "D, 8-pin SOIC",
+    "default_when_output_up_input_down": "high",
+    "output_when_own_supply_down": "undetermined",
+    "bypass_F_each": 1e-07,
+    "bypass_mpn": null,
+    "no_isolated_power_converter": true
+  },
+  "fanout": [
+    {
+      "contact": "AFE.J1.1",
+      "landing": "FAN.C01",
+      "net": "SCLK / GPIO12",
+      "destination": "DEVKIT.J1.18",
+      "role": "MCU_to_AFE"
+    },
+    {
+      "contact": "AFE.J1.2",
+      "landing": "FAN.C02",
+      "net": "Common return",
+      "destination": "TARGET.GND_BUS",
+      "role": "return"
+    },
+    {
+      "contact": "AFE.J1.3",
+      "landing": "FAN.C03",
+      "net": "MOSI / GPIO11",
+      "destination": "DEVKIT.J1.17",
+      "role": "MCU_to_AFE"
+    },
+    {
+      "contact": "AFE.J1.4",
+      "landing": "FAN.C04",
+      "net": "Common return",
+      "destination": "TARGET.GND_BUS",
+      "role": "return"
+    },
+    {
+      "contact": "AFE.J1.5",
+      "landing": "FAN.C05",
+      "net": "MISO / GPIO13",
+      "destination": "DEVKIT.J1.19",
+      "role": "AFE_to_MCU"
+    },
+    {
+      "contact": "AFE.J1.6",
+      "landing": "FAN.C06",
+      "net": "Common return",
+      "destination": "TARGET.GND_BUS",
+      "role": "return"
+    },
+    {
+      "contact": "AFE.J1.7",
+      "landing": "FAN.C07",
+      "net": "CS / GPIO10",
+      "destination": "DEVKIT.J1.16",
+      "role": "MCU_to_AFE"
+    },
+    {
+      "contact": "AFE.J1.8",
+      "landing": "FAN.C08",
+      "net": "Common return",
+      "destination": "TARGET.GND_BUS",
+      "role": "return"
+    },
+    {
+      "contact": "AFE.J1.9",
+      "landing": "FAN.C09",
+      "net": "DRDY / GPIO4",
+      "destination": "DEVKIT.J1.4",
+      "role": "AFE_to_MCU"
+    },
+    {
+      "contact": "AFE.J1.10",
+      "landing": "FAN.C10",
+      "net": "Common return",
+      "destination": "TARGET.GND_BUS",
+      "role": "return"
+    },
+    {
+      "contact": "AFE.J1.11",
+      "landing": "FAN.C11",
+      "net": "RESET / GPIO5",
+      "destination": "DEVKIT.J1.5",
+      "role": "MCU_to_AFE"
+    },
+    {
+      "contact": "AFE.J1.12",
+      "landing": "FAN.C12",
+      "net": "Common return",
+      "destination": "TARGET.GND_BUS",
+      "role": "return"
+    },
+    {
+      "contact": "AFE.J1.13",
+      "landing": "FAN.C13",
+      "net": "START / GPIO6",
+      "destination": "DEVKIT.J1.6",
+      "role": "MCU_to_AFE"
+    },
+    {
+      "contact": "AFE.J1.14",
+      "landing": "FAN.C14",
+      "net": "Common return",
+      "destination": "TARGET.GND_BUS",
+      "role": "return"
+    },
+    {
+      "contact": "AFE.J1.15",
+      "landing": "FAN.C15",
+      "net": "PWDN / GPIO7",
+      "destination": "DEVKIT.J1.7",
+      "role": "MCU_to_AFE"
+    },
+    {
+      "contact": "AFE.J1.16",
+      "landing": "FAN.C16",
+      "net": "Common return",
+      "destination": "TARGET.GND_BUS",
+      "role": "return"
+    },
+    {
+      "contact": "AFE.J1.17",
+      "landing": "FAN.C17",
+      "net": "External regulated 5 V",
+      "destination": "SUPPLY.+5V",
+      "role": "power_branch"
+    },
+    {
+      "contact": "AFE.J1.18",
+      "landing": "FAN.C18",
+      "net": "Common return",
+      "destination": "TARGET.GND_BUS",
+      "role": "return"
+    },
+    {
+      "contact": "AFE.J1.19",
+      "landing": "FAN.C19",
+      "net": "CLKSEL / GPIO8",
+      "destination": "DEVKIT.J1.12",
+      "role": "MCU_to_AFE"
+    },
+    {
+      "contact": "AFE.J1.20",
+      "landing": "FAN.C20",
+      "net": "Common return",
+      "destination": "TARGET.GND_BUS",
+      "role": "return"
+    }
+  ],
+  "console_groups": [
+    {
+      "name": "HOST_3V3",
+      "endpoints": [
+        "HOST.JP4.2",
+        "ISO.1",
+        "CH.1"
+      ]
+    },
+    {
+      "name": "HOST_GND",
+      "endpoints": [
+        "HOST.JP1.1",
+        "ISO.4",
+        "CH.2"
+      ]
+    },
+    {
+      "name": "HOST_TX",
+      "endpoints": [
+        "HOST.JP1.4",
+        "ISO.3"
+      ]
+    },
+    {
+      "name": "HOST_RX",
+      "endpoints": [
+        "ISO.2",
+        "HOST.JP1.5"
+      ]
+    },
+    {
+      "name": "TARGET_3V3",
+      "endpoints": [
+        "DEVKIT.J1.2",
+        "ISO.8",
+        "CT.1"
+      ]
+    },
+    {
+      "name": "TARGET_GND",
+      "endpoints": [
+        "TARGET.GND_BUS",
+        "DEVKIT.J1.22",
+        "SUPPLY.RETURN",
+        "ISO.5",
+        "CT.2",
+        "INTERFACE.GND"
+      ]
+    },
+    {
+      "name": "TARGET_RX",
+      "endpoints": [
+        "ISO.6",
+        "DEVKIT.J1.10",
+        "INTERFACE.TX_3V3"
+      ]
+    },
+    {
+      "name": "TARGET_TX",
+      "endpoints": [
+        "DEVKIT.J1.11",
+        "ISO.7",
+        "INTERFACE.RX_3V3"
+      ]
+    }
+  ],
+  "logical_to_physical_alias": {
+    "INTERFACE.TX_3V3": "ISO.6",
+    "INTERFACE.RX_3V3": "ISO.7",
+    "INTERFACE.GND": "ISO.5"
+  },
+  "power_states": [
+    {
+      "host_up": false,
+      "mcu_up": false,
+      "afe_dvdd_up": false,
+      "afe_avdd_up": false,
+      "console_at_mcu": "undetermined",
+      "console_at_host": "undetermined",
+      "possible_driven_into_off_receiver": [],
+      "adc_rails_mismatched": false,
+      "powered_setup_permitted": false
+    },
+    {
+      "host_up": false,
+      "mcu_up": false,
+      "afe_dvdd_up": false,
+      "afe_avdd_up": true,
+      "console_at_mcu": "undetermined",
+      "console_at_host": "undetermined",
+      "possible_driven_into_off_receiver": [],
+      "adc_rails_mismatched": true,
+      "powered_setup_permitted": false
+    },
+    {
+      "host_up": false,
+      "mcu_up": false,
+      "afe_dvdd_up": true,
+      "afe_avdd_up": false,
+      "console_at_mcu": "undetermined",
+      "console_at_host": "undetermined",
+      "possible_driven_into_off_receiver": [
+        "MISO",
+        "DRDY"
+      ],
+      "adc_rails_mismatched": true,
+      "powered_setup_permitted": false
+    },
+    {
+      "host_up": false,
+      "mcu_up": false,
+      "afe_dvdd_up": true,
+      "afe_avdd_up": true,
+      "console_at_mcu": "undetermined",
+      "console_at_host": "undetermined",
+      "possible_driven_into_off_receiver": [
+        "MISO",
+        "DRDY"
+      ],
+      "adc_rails_mismatched": false,
+      "powered_setup_permitted": false
+    },
+    {
+      "host_up": false,
+      "mcu_up": true,
+      "afe_dvdd_up": false,
+      "afe_avdd_up": false,
+      "console_at_mcu": "default_high",
+      "console_at_host": "undetermined",
+      "possible_driven_into_off_receiver": [
+        "SCLK",
+        "MOSI",
+        "CS",
+        "RESET",
+        "START",
+        "PWDN",
+        "CLKSEL"
+      ],
+      "adc_rails_mismatched": false,
+      "powered_setup_permitted": false
+    },
+    {
+      "host_up": false,
+      "mcu_up": true,
+      "afe_dvdd_up": false,
+      "afe_avdd_up": true,
+      "console_at_mcu": "default_high",
+      "console_at_host": "undetermined",
+      "possible_driven_into_off_receiver": [
+        "SCLK",
+        "MOSI",
+        "CS",
+        "RESET",
+        "START",
+        "PWDN",
+        "CLKSEL"
+      ],
+      "adc_rails_mismatched": true,
+      "powered_setup_permitted": false
+    },
+    {
+      "host_up": false,
+      "mcu_up": true,
+      "afe_dvdd_up": true,
+      "afe_avdd_up": false,
+      "console_at_mcu": "default_high",
+      "console_at_host": "undetermined",
+      "possible_driven_into_off_receiver": [],
+      "adc_rails_mismatched": true,
+      "powered_setup_permitted": false
+    },
+    {
+      "host_up": false,
+      "mcu_up": true,
+      "afe_dvdd_up": true,
+      "afe_avdd_up": true,
+      "console_at_mcu": "default_high",
+      "console_at_host": "undetermined",
+      "possible_driven_into_off_receiver": [],
+      "adc_rails_mismatched": false,
+      "powered_setup_permitted": false
+    },
+    {
+      "host_up": true,
+      "mcu_up": false,
+      "afe_dvdd_up": false,
+      "afe_avdd_up": false,
+      "console_at_mcu": "undetermined",
+      "console_at_host": "default_high",
+      "possible_driven_into_off_receiver": [],
+      "adc_rails_mismatched": false,
+      "powered_setup_permitted": false
+    },
+    {
+      "host_up": true,
+      "mcu_up": false,
+      "afe_dvdd_up": false,
+      "afe_avdd_up": true,
+      "console_at_mcu": "undetermined",
+      "console_at_host": "default_high",
+      "possible_driven_into_off_receiver": [],
+      "adc_rails_mismatched": true,
+      "powered_setup_permitted": false
+    },
+    {
+      "host_up": true,
+      "mcu_up": false,
+      "afe_dvdd_up": true,
+      "afe_avdd_up": false,
+      "console_at_mcu": "undetermined",
+      "console_at_host": "default_high",
+      "possible_driven_into_off_receiver": [
+        "MISO",
+        "DRDY"
+      ],
+      "adc_rails_mismatched": true,
+      "powered_setup_permitted": false
+    },
+    {
+      "host_up": true,
+      "mcu_up": false,
+      "afe_dvdd_up": true,
+      "afe_avdd_up": true,
+      "console_at_mcu": "undetermined",
+      "console_at_host": "default_high",
+      "possible_driven_into_off_receiver": [
+        "MISO",
+        "DRDY"
+      ],
+      "adc_rails_mismatched": false,
+      "powered_setup_permitted": false
+    },
+    {
+      "host_up": true,
+      "mcu_up": true,
+      "afe_dvdd_up": false,
+      "afe_avdd_up": false,
+      "console_at_mcu": "data_or_idle",
+      "console_at_host": "data_or_idle",
+      "possible_driven_into_off_receiver": [
+        "SCLK",
+        "MOSI",
+        "CS",
+        "RESET",
+        "START",
+        "PWDN",
+        "CLKSEL"
+      ],
+      "adc_rails_mismatched": false,
+      "powered_setup_permitted": false
+    },
+    {
+      "host_up": true,
+      "mcu_up": true,
+      "afe_dvdd_up": false,
+      "afe_avdd_up": true,
+      "console_at_mcu": "data_or_idle",
+      "console_at_host": "data_or_idle",
+      "possible_driven_into_off_receiver": [
+        "SCLK",
+        "MOSI",
+        "CS",
+        "RESET",
+        "START",
+        "PWDN",
+        "CLKSEL"
+      ],
+      "adc_rails_mismatched": true,
+      "powered_setup_permitted": false
+    },
+    {
+      "host_up": true,
+      "mcu_up": true,
+      "afe_dvdd_up": true,
+      "afe_avdd_up": false,
+      "console_at_mcu": "data_or_idle",
+      "console_at_host": "data_or_idle",
+      "possible_driven_into_off_receiver": [],
+      "adc_rails_mismatched": true,
+      "powered_setup_permitted": false
+    },
+    {
+      "host_up": true,
+      "mcu_up": true,
+      "afe_dvdd_up": true,
+      "afe_avdd_up": true,
+      "console_at_mcu": "data_or_idle",
+      "console_at_host": "data_or_idle",
+      "possible_driven_into_off_receiver": [],
+      "adc_rails_mismatched": false,
+      "powered_setup_permitted": false
+    }
+  ],
+  "pending": [
+    "nine_direct_AFE_signals_have_no_rail_loss_interlock",
+    "AFE_DVDD_not_exposed_on_J1_19",
+    "analog_rail_and_source_startup",
+    "auxiliary_interface_schematic_layout_assembly",
+    "physical_fanout_and_cable_verification",
+    "USB_configuration_suspend_and_measurement",
+    "target_board_revision",
+    "factory_K2_capacitor_E1_existing_gates"
+  ],
+  "default_firmware_changed": false,
+  "approval_changes": false,
+  "hardware_tested": false,
+  "interface_purchased": false,
+  "source_capture_run": 36857634863,
+  "reproduction": {
+    "code_sha256": "fa1d03b135358d2b751525878b47a1b8e2e654ee99729d02f09631cd767cb7c5",
+    "contacts": 20,
+    "isolator_pins": 8,
+    "stable_states": 16,
+    "bad_snapshots_rejected": 6,
+    "not_added_project_tests": true,
+    "native_CAD_or_physical_test": false
+  },
+  "controller_service": "initial programming before permanent tails; later bare-board programming requires accessory-tail removal"
+}
