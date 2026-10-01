@@ -19,6 +19,7 @@ from pathlib import Path
 from tempfile import mkdtemp
 
 from hardware.rev_a import (
+    auxiliary_source_snapshot,
     bench_harness,
     load_documents,
     parse_schematic_xml,
@@ -330,6 +331,7 @@ def _firmware(out: Path) -> None:
 
 def _schematic_snapshot(cad: Path, footprints: Path) -> dict[str, str]:
     result = schematic_source_snapshot(cad, footprints)
+    result.update(auxiliary_source_snapshot(cad.parent / "auxiliary", footprints))
     for name in (
         "board_profile.json",
         "bom.json",
@@ -343,6 +345,7 @@ def _schematic_snapshot(cad: Path, footprints: Path) -> dict[str, str]:
         "pcb_seed.py",
         "layout/rev_a.kicad_pcb",
         "harness.py",
+        "auxiliary.py",
         "__init__.py",
     ):
         path = cad.parent / name
@@ -359,6 +362,8 @@ def _schematic_snapshot(cad: Path, footprints: Path) -> dict[str, str]:
         "tests/test_bench_harness.py",
         "tests/test_pcb_placement.py",
         "tests/test_pcb_power.py",
+        "tests/test_auxiliary_contract.py",
+        "tests/test_auxiliary_native.py",
         "tests/native_sketch_startup_test.cpp",
         *(
             "firmware/esp32_ads1299_bench/" + name
@@ -377,6 +382,14 @@ def _schematic_snapshot(cad: Path, footprints: Path) -> dict[str, str]:
         ),
     ):
         result[name] = hashlib.sha256(read_schematic_file(ROOT / name).encode()).hexdigest()
+    for name in (
+        "tests/fixtures/auxiliary_c3_netlist.xml.gz",
+        "tests/fixtures/rev_a_netlist.xml.gz",
+    ):
+        path = ROOT / name
+        if path.is_symlink() or not path.is_file() or path.stat().st_size > 2_000_000:
+            raise ValueError("invalid native graph fixture")
+        result[name] = hashlib.sha256(path.read_bytes()).hexdigest()
     return result
 
 

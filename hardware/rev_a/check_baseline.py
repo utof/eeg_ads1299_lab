@@ -632,14 +632,32 @@ def _validate_network(
         "VCAP3 bypass needs suitable voltage rating",
     )
     straps = parts["straps"]
-    require(straps["quantity"] == 12, "digital strap count drift")
+    require(straps["quantity"] == 5, "reserved digital strap count drift")
+    bus_pulls = parts["bus_pulldowns"]
+    require(
+        set(bus_pulls["references"])
+        == {
+            "R_CS_DN",
+            "R_CLKSEL_DN",
+            "R_RESET_DN",
+            "R_PWDN_DN",
+            "R_START_DN",
+            "R_SCLK_DN",
+            "R_DIN_DN",
+        }
+        and bus_pulls["quantity"] == 7
+        and bus_pulls["population"] == "fit"
+        and bus_pulls["mpn"] == "RC0603FR-0742K2L"
+        and bus_pulls["spec"]["resistance_ohm"] == 42200,
+        "C3 receiver-side bus pulldown contract drift",
+    )
     require(
         "R_DAISY_DN" not in straps["references"] and profile["afe"]["daisy_chain"] is False,
         "unused daisy input must connect directly to DGND, not through a strap",
     )
     require(
-        "R_CS_DN" in straps["references"]
-        and "R_CLKSEL_DN" in straps["references"]
+        "R_CS_DN" in bus_pulls["references"]
+        and "R_CLKSEL_DN" in bus_pulls["references"]
         and "R_CS_UP" not in straps["references"]
         and "R_CLKSEL_UP" not in straps["references"],
         "CS and CLKSEL must use low-safe power-up straps",

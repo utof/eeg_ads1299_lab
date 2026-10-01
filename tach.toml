@@ -117,7 +117,7 @@ expose = ["load_data", "make_plots", "run_demo", "save_data"]
 
 [[interfaces]]
 from = ["hardware.rev_a"]
-expose = ["BillOfMaterials", "BoardProfile", "CostTotals", "FootprintPad", "HarnessNet", "SchematicNetlist", "SchematicPart", "SourcesDocument", "bench_harness", "load_documents", "make_pcb_seed", "parse_schematic_xml", "read_schematic_file", "schematic_source_snapshot", "totals", "validate", "validate_erc", "validate_footprint", "validate_schematic", "validate_schematic_bom"]
+expose = ["AuxiliaryContract", "auxiliary_source_snapshot", "parse_auxiliary_contract", "validate_auxiliary", "validate_auxiliary_erc", "BillOfMaterials", "BoardProfile", "CostTotals", "FootprintPad", "HarnessNet", "SchematicNetlist", "SchematicPart", "SourcesDocument", "bench_harness", "load_documents", "make_pcb_seed", "parse_schematic_xml", "read_schematic_file", "schematic_source_snapshot", "totals", "validate", "validate_erc", "validate_footprint", "validate_schematic", "validate_schematic_bom"]
 
 [[interfaces]]
 from = ["tools.run_loopback"]

@@ -342,23 +342,16 @@
       "id": "straps",
       "mpn": "RC0603FR-0710KL",
       "manufacturer": "Yageo",
-      "description": "Control defaults and unused digital input termination",
+      "description": "Reserved CLK and GPIO1-4 termination; unchanged 10-kohm parts",
       "package": "0603",
       "references": [
-        "R_CS_DN",
-        "R_CLKSEL_DN",
         "R_CLK_DN",
-        "R_RESET_DN",
-        "R_PWDN_DN",
-        "R_START_DN",
-        "R_SCLK_DN",
-        "R_DIN_DN",
         "R_GPIO1_DN",
         "R_GPIO2_DN",
         "R_GPIO3_DN",
         "R_GPIO4_DN"
       ],
-      "quantity": 12,
+      "quantity": 5,
       "population": "fit",
       "planning_unit_usd": "0.06",
       "source_ids": [
@@ -368,6 +361,36 @@
       "evidence": "exact MPN appears in EVM; proposed low-safe power-up strap population follows ADS1299 power-up sequencing and remains a new design decision",
       "spec": {
         "resistance_ohm": 10000,
+        "tolerance_fraction": 0.01,
+        "rated_power_w": 0.1
+      }
+    },
+    {
+      "id": "bus_pulldowns",
+      "mpn": "RC0603FR-0742K2L",
+      "manufacturer": "Yageo",
+      "description": "C3 light-load, low-default digital controls; conditional DC budget",
+      "package": "0603",
+      "references": [
+        "R_CS_DN",
+        "R_CLKSEL_DN",
+        "R_RESET_DN",
+        "R_PWDN_DN",
+        "R_START_DN",
+        "R_SCLK_DN",
+        "R_DIN_DN"
+      ],
+      "quantity": 7,
+      "population": "fit",
+      "planning_unit_usd": "0.06",
+      "source_ids": [
+        "TI_ADS_DS",
+        "TI_TXU_C3",
+        "YAGEO_RC_C3"
+      ],
+      "evidence": "Reviewed C3 migration: preserve startup polarity and reserve TXU 100-uA VOH test load. Conditional 3.0-3.6 V, 20-30 C and explicit leakage/installed-resistance limits; not a physical fault qualification.",
+      "spec": {
+        "resistance_ohm": 42200,
         "tolerance_fraction": 0.01,
         "rated_power_w": 0.1
       }
