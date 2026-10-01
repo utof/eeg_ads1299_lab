@@ -1,0 +1,76 @@
+name: Publish verified C3 manifest correction
+on:
+  push:
+    branches: [workbench/pr75-review-recovery]
+    paths: [.github/workflows/pr75-manifest-publish.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Verify readable patches and recover original Git objects
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, os, pathlib, subprocess
+          base = '3524a949fa5a8976ca8f668d825df365b7a6eca1'
+          rows = [
+              ('514f84c1d77c517b6cf042df068b90e12277293eb16a79fa7aa9b462f142a943', '57dfe83796c505ad2688eff167a902a5e873ef0c', 'af8e5af21cd5fb63c31ecf01c2495cf36cf3772f', 1790880098, 'test(hardware): expose incomplete auxiliary manifest metadata validation'),
+              ('e6b8725f7a93d3ca00df61028d54178d91b4ffa2d660470e8e1d057c5ffeab8c', '95be07dbd3d03c42e76265c7b1635420f73b28db', '430e329fbfe7f67ddc8b325afd74a8883b69c11e', 1790880215, 'fix(hardware): validate complete C3 manifest and native sheet assignment'),
+              ('c743384f3e8a818ea9e516fff197ee64af717be8319aaed07f4cd08fecfa10b1', '168f0d7b1303c19dbcd1ef488ed294f444e5b5a9', 'c5749be31510f314c2817e6bc7b5f82b7e048444', 1790880273, 'docs(hardware): retain third C3 review failure and closed manifest scope'),
+          ]
+          patches = [pathlib.Path(f'transfer/schema-step{i}.patch').read_bytes() for i in range(3)]
+          for patch, row in zip(patches, rows):
+              assert hashlib.sha256(patch).hexdigest() == row[0]
+          work = pathlib.Path(os.environ['RUNNER_TEMP']) / 'manifest-source'
+          subprocess.run(['git', 'worktree', 'add', '--detach', str(work), base], check=True)
+          parent = base
+          for patch, (_, tree, expected, timestamp, subject) in zip(patches, rows):
+              subprocess.run(['git', 'apply', '--index', '-'], input=patch, cwd=work, check=True)
+              assert subprocess.check_output(['git', 'write-tree'], cwd=work, text=True).strip() == tree
+              # These are the original local commit bytes, not replacement ancestry.
+              identity = f'utof <38869938+utof@users.noreply.github.com> {timestamp} +0000'
+              raw = f'tree {tree}\nparent {parent}\nauthor {identity}\ncommitter {identity}\n\n{subject}\n'.encode()
+              actual = subprocess.check_output(['git', 'hash-object', '-t', 'commit', '-w', '--stdin'], input=raw, cwd=work).decode().strip()
+              assert actual == expected
+              subprocess.run(['git', 'checkout', '--detach', expected], cwd=work, check=True)
+              assert not subprocess.check_output(['git', 'status', '--porcelain'], cwd=work)
+              parent = expected
+          subprocess.run(['git', 'diff', '--exit-code', base, parent, '--', 'hardware/rev_a/auxiliary', 'hardware/rev_a/kicad', 'hardware/rev_a/layout', 'hardware/rev_a/bom.json', 'hardware/rev_a/board_profile.json', 'firmware', 'lab', 'pyproject.toml', 'uv.lock', '.github'], cwd=work, check=True)
+          subprocess.run(['git', 'push', 'origin', parent + ':refs/heads/archive/pr75-manifest-c5749be'], cwd=work, check=True)
+          PY
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: archive/pr75-manifest-c5749be
+          fetch-depth: 0
+          path: fresh
+          persist-credentials: false
+      - name: Verify separate published checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd fresh
+          test "$(git rev-parse HEAD)" = c5749be31510f314c2817e6bc7b5f82b7e048444
+          test "$(git rev-parse HEAD^{tree})" = 168f0d7b1303c19dbcd1ef488ed294f444e5b5a9
+          test "$(git rev-list --count 3524a94..HEAD)" = 3
+          printf '%s  %s\n' f11c9651fb0cebb01bf2cc7d6ef1be0a0093664dfacc4f193f90aab14bdbd6c7 hardware/rev_a/layout/rev_a.kicad_pcb | sha256sum -c -
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/source"
+          git branch manifest-reviewed-source HEAD
+          git bundle create "$RUNNER_TEMP/source/repository.bundle" manifest-reviewed-source
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/source/identity.txt"
+          cd "$RUNNER_TEMP/source"
+          sha256sum repository.bundle identity.txt > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pr75-manifest-source
+          path: ${{ runner.temp }}/source/
+          if-no-files-found: error
+          retention-days: 7
