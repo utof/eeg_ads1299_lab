@@ -2,7 +2,9 @@
 
 import importlib.metadata
 import json
+import subprocess
 import sys
+from collections.abc import Sequence
 from pathlib import Path
 
 import pytest
@@ -77,4 +79,69 @@ def test_native_gate_requires_cad_renderer(monkeypatch: pytest.MonkeyPatch) -> N
 
     monkeypatch.setattr("tools.check.shutil.which", lookup)
     with pytest.raises(RuntimeError, match="openscad"):
+        require_native_tools()
+
+
+@pytest.mark.parametrize(
+    "stdout,stderr,returncode,accepted",
+    [
+        ("", "OpenSCAD version 2021.01\n", 0, True),
+        ("OpenSCAD version 2021.01\n", "", 0, True),
+        ("", "OpenSCAD version 2019.05\n", 0, False),
+        ("", "OpenSCAD version 2021.01.01\n", 0, False),
+        ("", "OpenSCAD version 2026.10\n", 0, False),
+        ("", "OpenSCAD version 2021.01\n", 1, False),
+        ("", "unrecognized version", 0, False),
+        ("", "", 0, False),
+        ("OpenSCAD version 2021.01\n", "WARNING: broken setup", 0, False),
+    ],
+)
+def test_native_renderer_release_is_checked(
+    monkeypatch: pytest.MonkeyPatch,
+    stdout: str,
+    stderr: str,
+    returncode: int,
+    accepted: bool,
+) -> None:
+    calls: list[list[str]] = []
+
+    def lookup(name: str) -> str:
+        return f"/native/{name}"
+
+    def run(
+        command: Sequence[str], *, capture_output: bool, text: bool, timeout: float, check: bool
+    ) -> subprocess.CompletedProcess[str]:
+        assert list(command) == ["/native/openscad", "--version"]
+        assert capture_output and text and not check and 0 < timeout <= 10
+        calls.append(list(command))
+        return subprocess.CompletedProcess(list(command), returncode, stdout, stderr)
+
+    monkeypatch.setattr("tools.check.shutil.which", lookup)
+    monkeypatch.setattr("tools.check.subprocess.run", run)
+    if accepted:
+        require_native_tools()
+    else:
+        with pytest.raises(RuntimeError, match=r"OpenSCAD.*2021\.01"):
+            require_native_tools()
+    assert len(calls) == 1
+
+
+@pytest.mark.parametrize("timed_out", [True, False])
+def test_native_renderer_version_probe_failure_is_not_a_pass(
+    monkeypatch: pytest.MonkeyPatch, timed_out: bool
+) -> None:
+    def lookup(name: str) -> str:
+        return f"/native/{name}"
+
+    def run(
+        command: Sequence[str], *, capture_output: bool, text: bool, timeout: float, check: bool
+    ) -> subprocess.CompletedProcess[str]:
+        assert capture_output and text and not check and 0 < timeout <= 10
+        if timed_out:
+            raise subprocess.TimeoutExpired(list(command), timeout)
+        raise OSError("renderer disappeared")
+
+    monkeypatch.setattr("tools.check.shutil.which", lookup)
+    monkeypatch.setattr("tools.check.subprocess.run", run)
+    with pytest.raises(RuntimeError, match=r"OpenSCAD.*2021\.01"):
         require_native_tools()
