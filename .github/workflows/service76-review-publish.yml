@@ -1,0 +1,56 @@
+name: Publish verified service review correction
+on:
+  push:
+    branches: [workbench/service76-recovery]
+    paths: [.github/workflows/service76-review-publish.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Verify original binary before importing recovery history
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64,hashlib,pathlib,subprocess
+          text=pathlib.Path('transfer/review.bundle.b64').read_text().strip()
+          # One known transport-text error; original binary digest is mandatory.
+          bad='Lrsq2tVXq5T6R+KB'
+          assert text.count(bad)==1
+          text=text.replace(bad,'Lrsq2tVT6R+KB')
+          assert len(text)==3656
+          data=base64.b64decode(text,validate=True)
+          assert len(data)==2740
+          assert hashlib.sha256(data).hexdigest()=='9ac1bafadbc1bc5a84db1cd17c20c124c10b71c538d12a04123fb51a06819230'
+          pathlib.Path('/tmp/review.bundle').write_bytes(data)
+          subprocess.run(['git','bundle','verify','/tmp/review.bundle'],check=True)
+          subprocess.run(['git','fetch','/tmp/review.bundle','HEAD'],check=True)
+          PY
+          test "$(git rev-parse FETCH_HEAD)" = 65c55d511734b269537f4891aaa660f2c3bf1e37
+          test "$(git rev-parse FETCH_HEAD^{tree})" = 65f1602f8c37437fb2351570432c53a77a27f8ca
+          test "$(git rev-list --count ceb10d4..FETCH_HEAD)" = 2
+          git diff --exit-code ceb10d4 FETCH_HEAD -- hardware/rev_a/layout hardware/rev_a/kicad hardware/rev_a/service_c4.json hardware/rev_a/bom.json hardware/rev_a/board_profile.json firmware lab pyproject.toml uv.lock .github
+          git push origin 65c55d511734b269537f4891aaa660f2c3bf1e37:refs/heads/archive/service76-review-65c55d5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: archive/service76-review-65c55d5
+          fetch-depth: 0
+          path: fresh
+          persist-credentials: false
+      - name: Verify separate published source
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd fresh
+          test "$(git rev-parse HEAD)" = 65c55d511734b269537f4891aaa660f2c3bf1e37
+          test "$(git rev-parse HEAD^{tree})" = 65f1602f8c37437fb2351570432c53a77a27f8ca
+          test -z "$(git status --porcelain)"
+          git log -2 --oneline
+          printf '%s  %s\n' 60097ff4acf8408d5a172930de74bcd36aa50a379dd30a831e4bc64d3841c8a6 hardware/rev_a/layout/rev_a.kicad_pcb | sha256sum -c -
