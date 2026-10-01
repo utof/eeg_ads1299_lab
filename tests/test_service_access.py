@@ -312,3 +312,10 @@ def test_service_plan_rejects_wrong_or_unapproved_harness(fault: str) -> None:
         data["purchase_or_powered_approval"] = True
     with pytest.raises(ValueError):
         _checked_service_plan(data)
+
+
+def test_auxiliary_native_note_identifies_installed_service_access() -> None:
+    """The editable schematic must not send a fresh agent back to missing-J3 work."""
+    text = (ROOT / "hardware/rev_a/auxiliary/auxiliary.kicad_sch").read_text()
+    assert "AFE J3 present; use inspected C4 cable." in text
+    assert "AFE mating connector/pads NOT YET ADDED." not in text
