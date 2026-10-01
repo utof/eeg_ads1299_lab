@@ -398,3 +398,86 @@ def test_auxiliary_snapshot_accepts_whitespace_and_reordered_empty_project(
     after = auxiliary_source_snapshot(cad, libraries)
     assert before.keys() == after.keys()
     assert before["auxiliary/auxiliary.kicad_pro"] != after["auxiliary/auxiliary.kicad_pro"]
+
+
+def _changed_manifest(path: tuple[str | int, ...], value: object, remove: bool) -> str:
+    data = json.loads((ROOT / "hardware/rev_a/auxiliary/contract.json").read_text())
+    node = data
+    for key in path[:-1]:
+        node = node[key]
+    if remove:
+        del node[path[-1]]
+    else:
+        node[path[-1]] = value
+    return json.dumps(data)
+
+
+@pytest.mark.parametrize(
+    "path,value,remove",
+    [
+        (("status",), None, True),
+        (("status",), "released", False),
+        (("status",), None, False),
+        (("external_assumptions",), None, True),
+        (("external_assumptions",), "not a list", False),
+        (("external_assumptions",), {}, False),
+        (("external_assumptions",), [], False),
+        (("external_assumptions",), [""], False),
+        (("external_assumptions",), [3], False),
+        (("external_assumptions", 0), "external ports are always powered", False),
+        (("external_assumptions", 0), None, True),
+        (("parts", 0, "sheet"), None, True),
+        (("parts", 0, "sheet"), None, False),
+        (("parts", 0, "sheet"), "../bus.kicad_sch", False),
+        (("extra_approval",), True, False),
+        (("parts", 0, "extra_population"), "DNP", False),
+        (("parts", 0, "pins", "1", "ignored_type"), "passive", False),
+        (("parts", 0, "pins", "1", "type"), "unknown", False),
+    ],
+)
+def test_auxiliary_manifest_closes_metadata_and_record_fields(
+    path: tuple[str | int, ...], value: object, remove: bool
+) -> None:
+    """Required draft metadata cannot silently disappear or acquire release semantics."""
+    with pytest.raises(ValueError):
+        parse_auxiliary_contract(_changed_manifest(path, value, remove))
+
+
+@pytest.mark.parametrize("field", ["status", "sheet", "net"])
+def test_auxiliary_manifest_rejects_duplicate_json_fields(field: str) -> None:
+    text = (ROOT / "hardware/rev_a/auxiliary/contract.json").read_text()
+    assert f'"{field}":' in text
+    text = text.replace(f'"{field}":', f'"{field}": "discarded", "{field}":', 1)
+    with pytest.raises(ValueError):
+        parse_auxiliary_contract(text)
+
+
+@pytest.mark.parametrize("number", ["01", "\u0661"])
+def test_auxiliary_manifest_requires_canonical_pin_numbers(number: str) -> None:
+    text = (ROOT / "hardware/rev_a/auxiliary/contract.json").read_text()
+    with pytest.raises(ValueError):
+        parse_auxiliary_contract(text.replace('"1": {', f'"{number}": {{', 1))
+
+
+def test_auxiliary_manifest_rejects_duplicate_assumptions() -> None:
+    data = json.loads((ROOT / "hardware/rev_a/auxiliary/contract.json").read_text())
+    data["external_assumptions"].append(data["external_assumptions"][0])
+    with pytest.raises(ValueError):
+        parse_auxiliary_contract(json.dumps(data))
+
+
+def test_auxiliary_manifest_accepts_reordered_objects_and_assumptions() -> None:
+    data = json.loads((ROOT / "hardware/rev_a/auxiliary/contract.json").read_text())
+    data["external_assumptions"].reverse()
+    assert parse_auxiliary_contract(json.dumps(data, sort_keys=True, indent=4)) == _contract()
+
+
+def test_auxiliary_snapshot_checks_declared_sheet_against_native_instances(
+    auxiliary_sources: tuple[Path, Path],
+) -> None:
+    cad, libraries = auxiliary_sources
+    # This is a valid filename but a false physical sheet location for J101.
+    path = cad / "contract.json"
+    path.write_text(_changed_manifest(("parts", 0, "sheet"), "bus.kicad_sch", False))
+    with pytest.raises(ValueError, match="sheet"):
+        auxiliary_source_snapshot(cad, libraries)
