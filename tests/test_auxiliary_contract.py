@@ -400,15 +400,35 @@ def test_auxiliary_snapshot_accepts_whitespace_and_reordered_empty_project(
     assert before["auxiliary/auxiliary.kicad_pro"] != after["auxiliary/auxiliary.kicad_pro"]
 
 
+def _manifest_child(node: object, key: str | int) -> object:
+    if isinstance(node, dict) and isinstance(key, str):
+        mapping: dict[str, object] = node
+        return mapping[key]
+    assert isinstance(node, list) and isinstance(key, int)
+    sequence: list[object] = node
+    return sequence[key]
+
+
 def _changed_manifest(path: tuple[str | int, ...], value: object, remove: bool) -> str:
-    data = json.loads((ROOT / "hardware/rev_a/auxiliary/contract.json").read_text())
+    data: object = json.loads((ROOT / "hardware/rev_a/auxiliary/contract.json").read_text())
     node = data
     for key in path[:-1]:
-        node = node[key]
-    if remove:
-        del node[path[-1]]
+        node = _manifest_child(node, key)
+    last = path[-1]
+    if isinstance(last, str):
+        assert isinstance(node, dict)
+        mapping: dict[str, object] = node
+        if remove:
+            del mapping[last]
+        else:
+            mapping[last] = value
     else:
-        node[path[-1]] = value
+        assert isinstance(node, list)
+        sequence: list[object] = node
+        if remove:
+            del sequence[last]
+        else:
+            sequence[last] = value
     return json.dumps(data)
 
 

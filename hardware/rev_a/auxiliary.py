@@ -9,7 +9,7 @@ from pathlib import Path
 
 from .check_schematic import SchematicNetlist
 from .schematic_sources import _strings, read_schematic_file
-from .schematic_symbols import _children, _Form, _parse, validate_symbol_caches
+from .schematic_symbols import _children, _Form, _name, _parse, validate_symbol_caches
 
 
 @dataclass(frozen=True)
@@ -28,6 +28,7 @@ class AuxiliaryPart:
     footprint: str
     in_bom: bool
     pins: dict[str, AuxiliaryPin]
+    sheet: str
 
 
 @dataclass(frozen=True)
@@ -53,53 +54,121 @@ def _string(value: object) -> str:
     return value
 
 
+_ROOT_FIELDS = frozenset({"revision", "status", "parts", "external_assumptions", "approval"})
+_PART_FIELDS = frozenset(
+    {"reference", "contract_ref", "symbol", "value", "mpn", "footprint", "in_bom", "pins", "sheet"}
+)
+_PIN_FIELDS = frozenset({"net", "function", "type"})
+_PIN_TYPES = frozenset(
+    {
+        "input",
+        "no_connect",
+        "open_collector",
+        "output",
+        "passive",
+        "power_in",
+        "power_out",
+        "tri_state",
+    }
+)
+_EXTERNAL_ASSUMPTIONS = frozenset(
+    {
+        "interface pin types describe actual external endpoint roles, not always-powered sources",
+        "AFE six-way mating rail access is not implemented on the current AFE board",
+        "MCU tails remain permanent; bare-board USB programming requires removal",
+        "no HOST/TARGET power or ground jumper",
+        "no current firmware C2 handshake or automatic analog source isolation",
+    }
+)
+
+
+def _unique_json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("C3 duplicate JSON field")
+        result[key] = value
+    return result
+
+
+def _closed_object(value: object, fields: frozenset[str]) -> dict[str, object]:
+    result = _object(value)
+    if set(result) != fields:
+        raise ValueError("C3 record field inventory differs")
+    return result
+
+
+def _member(value: object, permitted: frozenset[str], field: str) -> str:
+    text = _string(value)
+    if text not in permitted:
+        raise ValueError(f"C3 invalid {field}")
+    return text
+
+
+def _assumptions(value: object) -> None:
+    # Fixed draft scope: changing an assumption requires a coordinated design review.
+    if not isinstance(value, list) or len(value) != len(_EXTERNAL_ASSUMPTIONS):
+        raise ValueError("C3 external assumptions inventory differs")
+    items: list[object] = value
+    if {_string(item) for item in items} != _EXTERNAL_ASSUMPTIONS:
+        raise ValueError("C3 external assumptions differ")
+
+
 def _pins(value: object) -> dict[str, AuxiliaryPin]:
     result: dict[str, AuxiliaryPin] = {}
     for number, raw in _object(value).items():
-        if not number.isdecimal() or int(number) < 1:
+        if re.fullmatch(r"[1-9][0-9]*", number) is None:
             raise ValueError("C3 invalid pin number")
-        pin = _object(raw)
-        if "net" not in pin:
-            raise ValueError("C3 pin requires an explicit net or null")
+        pin = _closed_object(raw, _PIN_FIELDS)
         net = pin["net"]
         result[number] = AuxiliaryPin(
             None if net is None else _string(net),
-            _string(pin.get("function")),
-            _string(pin.get("type")),
+            _string(pin["function"]),
+            _member(pin["type"], _PIN_TYPES, "pin type"),
         )
     if not result:
         raise ValueError("C3 empty pin inventory")
     return result
 
 
+def _part(row: dict[str, object]) -> AuxiliaryPart:
+    if not isinstance(row["in_bom"], bool):
+        raise ValueError("C3 invalid BOM flag")
+    return AuxiliaryPart(
+        _string(row["reference"]),
+        _string(row["symbol"]),
+        _string(row["value"]),
+        _string(row["mpn"]),
+        _string(row["footprint"]),
+        row["in_bom"] is True,
+        _pins(row["pins"]),
+        _member(row["sheet"], _AUX_SHEETS, "sheet"),
+    )
+
+
 def parse_auxiliary_contract(content: str) -> AuxiliaryContract:
-    """Validate the small source manifest, never use a cast as schema validation."""
+    """Validate the complete finite draft manifest, including discarded metadata."""
     if len(content) > 200_000:
         raise ValueError("C3 manifest too large")
-    root = _object(json.loads(content))
-    if root.get("revision") != "C3" or root.get("approval") is not False:
+    root = _closed_object(json.loads(content, object_pairs_hook=_unique_json_object), _ROOT_FIELDS)
+    if root["revision"] != "C3" or root["approval"] is not False:
         raise ValueError("C3 revision/approval drift")
-    rows = root.get("parts")
+    if root["status"] != "native_schematic_draft_not_layout_or_powered_release":
+        raise ValueError("C3 draft status differs")
+    _assumptions(root["external_assumptions"])
+    rows = root["parts"]
     if not isinstance(rows, list) or not rows:
         raise ValueError("C3 expected nonempty parts list")
     items: list[object] = rows
     parts: dict[str, AuxiliaryPart] = {}
     references: set[str] = set()
     for item in items:
-        row = _object(item)
-        ref, native = _string(row.get("contract_ref")), _string(row.get("reference"))
-        if ref in parts or native in references or not isinstance(row.get("in_bom"), bool):
-            raise ValueError("C3 duplicate part or invalid BOM flag")
-        references.add(native)
-        parts[ref] = AuxiliaryPart(
-            native,
-            _string(row.get("symbol")),
-            _string(row.get("value")),
-            _string(row.get("mpn")),
-            _string(row.get("footprint")),
-            row["in_bom"] is True,
-            _pins(row.get("pins")),
-        )
+        row = _closed_object(item, _PART_FIELDS)
+        ref, part = _string(row["contract_ref"]), _part(row)
+        if ref in parts or part.reference in references:
+            raise ValueError("C3 duplicate part")
+        references.add(part.reference)
+        parts[ref] = part
     return AuxiliaryContract(parts)
 
 
@@ -314,6 +383,28 @@ def _source_configuration(contents: dict[str, str]) -> None:
     )
 
 
+def _instance_reference(symbol: _Form) -> str:
+    fields = [p for p in _children(symbol, "property") if _name(p) == "Reference"]
+    if len(fields) != 1 or len(fields[0].items) < 3:
+        raise ValueError("C3 sheet symbol requires one Reference")
+    raw = fields[0].items[2]
+    if not isinstance(raw, str) or not raw.startswith('"'):
+        raise ValueError("C3 sheet symbol Reference must be quoted")
+    return _string(json.loads(raw))
+
+
+def _sheet_assignments(contents: dict[str, str], contract: AuxiliaryContract) -> None:
+    """Bind declared sheet metadata to actual top-level instances, not just file names."""
+    actual = Counter(
+        (_instance_reference(symbol), sheet)
+        for sheet in sorted(_AUX_SHEETS)
+        for symbol in _children(_parse(contents[sheet]), "symbol")
+    )
+    expected = Counter((part.reference, part.sheet) for part in contract.parts.values())
+    if actual != expected:
+        raise ValueError("C3 native sheet assignments differ from manifest")
+
+
 def _auxiliary_land_snapshot(
     cad: Path, footprints: Path, contract: AuxiliaryContract
 ) -> dict[str, str]:
@@ -355,6 +446,7 @@ def auxiliary_source_snapshot(cad: Path, footprints: Path) -> dict[str, str]:
     _source_configuration(contents)
     contents["contract.json"] = read_schematic_file(cad / "contract.json")
     contract = parse_auxiliary_contract(contents["contract.json"])
+    _sheet_assignments(contents, contract)
     result = {"auxiliary/" + n: hashlib.sha256(t.encode()).hexdigest() for n, t in contents.items()}
     result.update(_auxiliary_land_snapshot(cad, footprints, contract))
     return result
