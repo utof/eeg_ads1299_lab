@@ -236,3 +236,24 @@ def test_cable_clears_complete_installed_support(tmp_path: Path, port: int, lift
     obstacles += "}"
     cable = f"p=ports()[{port}]; translate([p[0],p[1],{2.54 + lift}]) cable_envelope();"
     assert abs(_overlap(tmp_path, obstacles, cable)) < 1e-4
+
+
+@pytest.mark.parametrize("port", [0, 1])
+def test_bridge_export_has_no_collapsed_triangles(tmp_path: Path, port: int) -> None:
+    """A closed edge graph alone can still contain collinear STL triangles."""
+    _render(tmp_path, f"bridge({port});")
+    vertices: list[Point] = []
+    for line in (tmp_path / "probe-000.stl").read_text().splitlines():
+        if line.strip().startswith("vertex "):
+            _, x, y, z = line.split()
+            vertices.append((float(x), float(y), float(z)))
+    for i in range(0, len(vertices), 3):
+        a, b, c = vertices[i : i + 3]
+        u = tuple(b[k] - a[k] for k in range(3))
+        v = tuple(c[k] - a[k] for k in range(3))
+        cross = (
+            u[1] * v[2] - u[2] * v[1],
+            u[2] * v[0] - u[0] * v[2],
+            u[0] * v[1] - u[1] * v[0],
+        )
+        assert any(component != 0 for component in cross), "collapsed exported triangle"
