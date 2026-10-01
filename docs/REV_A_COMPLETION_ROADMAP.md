@@ -1,12 +1,11 @@
 # Finish the person-disconnected Rev A prototype design
 
-**Current checkpoint: K2 initial dimensioned carrier/cartridge CAD.**
-Editable solid models and native collision/mesh tests now exist. The base uses
-no new PCB holes; raised bridges are removable for board installation, the
-side-exiting cable has a window, and capture/cable-restraint parts are modeled.
-This is an unapproved fit prototype, not a qualified interlock or finished
-manufacturing process. Physical fit/force/continuity and material/fastener/
-termination evidence remain open. K1 header migration is not repeated.
+**Current checkpoint: C1 controller termination and split-powered console target.**
+The K2 carrier CAD and earlier repairs are already merged. C1 chooses an exact
+host module/isolator, power domains and numbered solder fanout, without changing
+the AFE hardware or enabling operation. The nine direct digital bus connections
+remain a distinct rail-loss blocker; a console barrier does not protect them.
+Next is that finite bus/sequencing decision before auxiliary-board layout.
 
 ## Glanceable roadmap
 
@@ -22,7 +21,7 @@ these are neither promises nor a safety/readiness score.
 | Stackup and E1 definition | 0 for targets; 1–2 plus external evidence to close | Named construction and numerical targets | Factory drawing and calibrated fixture/uncertainty capability |
 | Capacitor decision/migration | 1 coordinated review after evidence | Exact shortlist and33-node accounting, not substitutions | #48 lifecycle/assembly/biased-C/impedance evidence |
 | Mechanical carrier and coded cartridges | 0 for initial CAD; 1–2 plus physical fit/process review | Executable K2 solids and scoped native collision tests | Actual dimensions, captive assembly, retention/tilt/force, controller support and cable route |
-| Controller termination and power-off interface | 1–3 plus physical checks | Logical map exists; actual wiring/rail-loss behavior unqualified | **Next: one exact cable-end/console architecture and startup/back-power restrictions** |
+| Controller termination and power-off interface | 1–2 for bus decision/auxiliary design, plus physical checks | C1 host5335/ISO7721DR and numbered fanout target defined; not built | **Next: nine-line AFE rail-loss and AVDD/startup architecture, then coordinated auxiliary schematic/layout** |
 | Fabrication outputs and delivered budget | 1–2 after blockers close | No release/purchase approval | Separate release review, consistent files and delivered quote |
 | Person-disconnected bench validation | 2–4 guided turns plus bench work | Not started | Unpowered inspection, then staged dummy-source tests after prerequisites |
 
@@ -34,10 +33,16 @@ material tolerance qualification. Bridges must be removed for PCB installation;
 release cable bars before withdrawal. Controller and free-end cable termination
 remain independently supported/insulated requirements, not depicted hardware.
 
-Next source work is the actual controller-side termination and powered-off
-console/interface plan, using the existing pin map rather than making another
-pin list. Carry concrete K2 fit/process questions on#45 while advancing this
-finite task. The prior capacitor and stackup/E1 limitations remain unchanged.
+Read `REV_A_CONTROLLER_INTERFACE_C1.md` and its checkpoint: HOST and TARGET
+are different power/ground domains, ISO's dead output is undetermined (not Hi-Z),
+and an isolated console does not remove the seven/two potentially driven-off
+AFE/MCU paths. Use actual required rail sensing, not VIN or J1.19 (CLKSEL) as
+DVDD evidence. No silent NC reassignment. Define one fail-closed interposer/
+sequencing solution or a separately reviewed limited-pilot disposition before
+laying out the fanout board. Keep auxiliary assembly, USB suspend/throughput,
+physical fit/continuity and all prior #45/#48 questions explicit. C1 is not a
+new powered-setup permission. The$5.95 host-module listing is not a full interface
+quote; existing$94.34 subtotal/$3harness reserve does not establish$100compliance.
 
 ## Three different finish lines
 
@@ -77,7 +82,7 @@ adapter remains unauthorized. Selected parts are not proof of purchase;
 actual owned board revision, lead information and delivered quote remain needed.
 
 Reference entry points: `AGENTS.md`, `LLM_HANDOFF.md`,
-`REV_A_MECHANICAL_ENVELOPE.md`, `REV_A_CAPACITOR_E1_DECISION.md`,
+`REV_A_CONTROLLER_INTERFACE_C1.md`, `REV_A_MECHANICAL_ENVELOPE.md`, `REV_A_CAPACITOR_E1_DECISION.md`,
 `REV_A_STACKUP_BENCH_REQUIREMENTS.md`,
 `REV_A_UPSTREAM_COUPLING_DISPOSITION.md`, `REV_A_CH1N_CORRIDOR_REPAIR.md`,
 `REV_A_INPUT_LAYOUT_REVIEW.md`, `REV_A_DIGITAL_OUTPUT_REPAIR.md`,
