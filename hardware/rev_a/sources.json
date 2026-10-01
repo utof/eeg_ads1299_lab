@@ -108,6 +108,20 @@
       "title": "HTSW-110-07-T-D high-temperature header; K1 selection 2026-09-30",
       "url": "https://www.samtec.com/products/htsw-110-07-t-d",
       "verification": "Exact 20-position identity, HTSW/TSW catalog, linked BQ series drawing and revision B footprint inspected; see docs/REV_A_CONNECTOR_K1.md for source hashes and limits. Family lead-free suitability is not a job-specific process qualification."
+    },
+    {
+      "id": "TI_TXU_C3",
+      "title": "TXU0304 SCES935A",
+      "url": "https://www.ti.com/lit/ds/symlink/txu0304.pdf",
+      "sections": "pp4,6-8,14; pin roles, 100-uA output guarantee and conditional off-state currents",
+      "verification": "C3: manufacturer tables inspected, no loaded board measurements"
+    },
+    {
+      "id": "YAGEO_RC_C3",
+      "title": "Yageo RC_L V.14, 2025-11-14",
+      "url": "https://yageogroup.com/content/datasheet/asset/file/PYU-RC_GROUP_51_ROHS_L",
+      "sections": "RC0603 1% standard E96 value 42.2k; exact RC0603FR-0742K2L ordering code",
+      "verification": "Manufacturer ordering code and RC0603 table inspected; no lot availability or installed resistance measurement"
     }
   ],
   "limitations": [

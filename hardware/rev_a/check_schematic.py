@@ -42,6 +42,7 @@ FOOTPRINTS = {
     "input_r": "Resistor_SMD:R_0603_1608Metric",
     "bias_r": "Resistor_SMD:R_0603_1608Metric",
     "straps": "Resistor_SMD:R_0603_1608Metric",
+    "bus_pulldowns": "Resistor_SMD:R_0603_1608Metric",
     "analog_feed": "Resistor_SMD:R_0603_1608Metric",
     "input_c": "Capacitor_SMD:C_0603_1608Metric",
     "bias_c": "Capacitor_SMD:C_0603_1608Metric",
@@ -182,7 +183,7 @@ def _symbol(item: str) -> str:
     }
     if item in choices:
         return choices[item]
-    return "R" if item in {"input_r", "bias_r", "straps", "analog_feed"} else "C"
+    return "R" if item in {"input_r", "bias_r", "straps", "bus_pulldowns", "analog_feed"} else "C"
 
 
 def _value_errors(part: SchematicPart, row: BomItem, errors: list[str]) -> None:

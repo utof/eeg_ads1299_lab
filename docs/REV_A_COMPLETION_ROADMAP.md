@@ -1,105 +1,87 @@
-# Finish the person-disconnected Rev A prototype design
+# Rev A person-disconnected prototype roadmap
 
-**Current checkpoint: C2 pin-level bus-interlock architecture candidate.**
-C1 defines the console/fanout; C2 now selects directional receiver-powered
-buffers, actual-rail supervision and a fresh-edge arm latch. It is not installed
-hardware or a completed protection qualification. Recovery alone must not rearm;
-clock startup occurs after initial bus enable. Concrete detector-delay, loaded
-output-margin, sensing and firmware-integration limits remain open. Next is
-one native auxiliary schematic, not another generic GPIO or catalog review.
+**Current checkpoint: native C3 auxiliary schematic and loaded bus-pull migration.**
+C1/C2 are no longer only pin-map prose: the four-sheet auxiliary project and
+all-terminal/native export checks exist. This is a schematic draft, not a routed
+auxiliary board, implemented firmware handshake or qualified powered assembly.
+The matching AFE service feed/sense access is the next bounded hardware change.
+
+PR75 recovery retains the already-authored circuit and adds the review corrections:
+complete draft-contract validation and native component/sheet binding as well as
+manufacturer-correct ISO channel names (not a reversal of the valid UART wiring),
+and fail-closed auxiliary project/ERC/library/cache validation. Acceptance still
+requires the live final-head checks and review. The next design task remains
+matching AFE service access; this is not a new architecture milestone.
 
 ## Glanceable roadmap
 
-Ranges are estimated remaining substantial chat turns, excluding supplier,
-manufacturing, shipping and physical measurement time. Categories overlap;
-these are neither promises nor a safety/readiness score.
+Remaining substantial chat turns are estimates, not elapsed time or a safety
+score. Categories overlap. Exclude supplier response, fabrication/shipping and
+physical measurement time; do not sum these into a promised completion date.
 
-| Category | Estimated remaining turns | Done / current status | Next slice or blocker |
+| Category | Estimated turns remaining | Done / current status | Next slice or blocker |
 |---|---:|---|---|
-| Source continuity and core software | 0 for baseline; maintain | Published source, handoff and pinned checks | Keep actual source/review/test heads aligned |
-| Initial routing and scoped repairs | 0 for completed scope | AVDD1, MISO/DRDY, CH1N and HTSW identity changes retained | Preserve physical-performance limitations |
-| Residual input/supply coupling | 1 combined decision after confirmations | Nine locations remain one six-pair item | Confirmed stack/E1 evidence, then combined repair or separate pilot risk |
-| Stackup and E1 definition | 0 for targets; 1–2 plus external evidence to close | Named construction and numerical targets | Factory drawing and calibrated fixture/uncertainty capability |
-| Capacitor decision/migration | 1 coordinated review after evidence | Exact shortlist and33-node accounting, not substitutions | #48 lifecycle/assembly/biased-C/impedance evidence |
-| Mechanical carrier and coded cartridges | 0 for initial CAD; 1–2 plus physical fit/process review | Executable K2 solids and scoped native collision tests | Actual dimensions, captive assembly, retention/tilt/force, controller support and cable route |
-| Controller termination and power-off interface | 2–3 for auxiliary schematic/layout and guarded firmware; physical checks separate | C1 console and C2 buffer/supervisor/latch architecture defined; not installed or qualified | **Next: native C1+C2 auxiliary schematic with actual-rail access and loaded logic checks, then fault-aware firmware and layout** |
-| Fabrication outputs and delivered budget | 1–2 after blockers close | No release/purchase approval | Separate release review, consistent files and delivered quote |
-| Person-disconnected bench validation | 2–4 guided turns plus bench work | Not started | Unpowered inspection, then staged dummy-source tests after prerequisites |
+| Repository continuity | 0 for current milestone; maintain | Native sources, tests and current handoff are in the C3 branch/PR | Verify live PR/main, publish and review each actual head |
+| Original AFE routing and scoped repairs | 0 for completed scope | All AVDD1/output/CH1N copper preserved; seven pull identities updated | Preserve routing except explicitly reviewed service-access edits |
+| Remaining input/supply coupling | 1 combined decision after confirmations | Nine locations remain one six-pair assessment | Confirmed construction/E1 inputs, then combined rework or separate pilot-risk decision |
+| Stackup and bench envelope | 0 for targets; 1–2 plus outside evidence to close | Named construction and E1 numerical targets defined | Actual vendor drawing/tolerances and calibrated fixture/measurement floor |
+| Capacitor decision/migration | 1 coordinated review after evidence | 33 AFE capacitors accounted; exact shortlist still not substituted | #48 lifecycle/effective-C/assembly conditions; new auxiliary bypasses separately |
+| Carrier and cartridges | 0 for initial CAD; 1–2 plus physical fit/process | K2 editable solids and geometry checks exist | Fit, retention, materials, cable and controller support |
+| **C1+C2 auxiliary and rail access** | **2–3 for remaining source work; physical tests separate** | **Native four-sheet schematic, 212-terminal contract, 43-row BOM and conditional pull budget implemented** | **Next: matching AFE service feed/sense access; then firmware handshake and auxiliary layout** |
+| Real power/console faults | 1–3 plus physical checks | Circuit and steady-state budgets explicit; not qualified | Supply trajectories, actual leakage/edges, sense/feed breaks and disabled-state behavior |
+| Fabrication package and delivered budget | 1–2 after prerequisites | Not ready for fabrication or purchase | Separate release review, coherent outputs and delivered quote |
+| Person-disconnected bench verification | 2–4 guided turns plus bench work | Physical validation has not begun | Unpowered inspection, then staged dummy-source tests after prerequisites |
 
-Read `REV_A_CARRIER_K2.md` before interpreting the CAD. K2 replaces the closed
-K1 receiver rectangle with a slotted 3D guide and independently checks it;
-do not recycle the912-pose K1 rectangle count as a K2 mechanical proof. The
-modeled16 tilt cases are finite rigid probes, not continuous trajectory or
-material tolerance qualification. Bridges must be removed for PCB installation;
-release cable bars before withdrawal. Controller and free-end cable termination
-remain independently supported/insulated requirements, not depicted hardware.
+## Next bounded step
 
-Read `REV_A_CONTROLLER_INTERFACE_C1.md` and `REV_A_BUS_INTERLOCK_C2.md`.
-Three TXU0304PWR devices replace direct bus connections only in the proposed
-auxiliary architecture; no AFE or firmware migration happened in this slice.
-Four local-control-powered TPS3703 supervisors and an edge latch prevent
-logical automatic recovery after a detected fault. Prospective SESSION/ARM_REQ/
-ARMED/READY are not implemented. Explicit native pin nets, real rail feeds/sensing,
-loaded output margins and controlled startup/fault integration must precede
-assembly. Old pin maps/CAD are not alternative approved unbuffered wiring.
+Add mechanically supported **AFE service feed/sense access** corresponding to
+auxiliary J104: ground, DVDD feed, separate DVDD sense, AVDD sense, ground, NC.
+Use an actual placement and coordinated native all-pin/BOM/board checks. The
+auxiliary header does not create the missing AFE connection by itself. Preserve
+existing20-pin connector assignments, K2 clearances and prior routing guards;
+do not authorize small-pad flying wires or assign J2NC/CLKSEL as a sense pin.
 
-The supervisor's30us table entry is conditional on5%overdrive, not a universal
-shutdown bound. Its5V window is not E1voltage acceptance. Unknown fast-fall,
-partial-rail and SENSE-injection behavior is not solved by a256-row Boolean
-model. Do not require VCAP/finishedclock before the bus can enablePWDN/CLKSEL:
-that creates a startup dependency cycle. No analog-input protection, continuous
-physical fault monitoring or safety certification has been implemented.
+Then implement the actual firmware SESSION/ARM/READY/ARMED contract, followed by
+auxiliary placement/routing and a separate power-fault review. Do not restart a
+new architecture catalog search or call current firmware compatible with C2.
+The 42.2k pull migration is explicitly conditional: disabled-low budget has only
+24mV remaining under its stated assumptions. Unspecified intermediate-rail IOZ,
+installed resistance/leakage and abrupt-fault timing remain open. No test passing
+on nominal values converts those conditions into guaranteed hardware behavior.
 
-Make the next bounded auxiliary schematic resolve those concrete constraints,
-then a separate guarded firmware change and layout, rather than repeat another
-architecture-only report. All current gates stay false. Actual cable/fixture,
-K2fit, supplier and#48evidence remain open. C2's tenICs/thirteenbypasses plus C1,
-cable, support andassembly are unquoted; old$94.34/$3reserve is not$100compliance.
+## Three finish lines, not one checkbox
 
-## Three different finish lines
+A **native schematic draft** is editable connectivity with reviewed component
+identities, explicit external interfaces and reproducible checks. It is not a
+manufacturing package or an assembled circuit. C3 reaches this source milestone.
 
-**Design-support simulation complete** means relevant selected-circuit cases
-run under stated assumptions, with unknowns and failures explicit. It does
-not require a transistor-level ADS1299 model or invented electrode/PCB values.
-BIAS studies remain bounded hypotheses; external acquisition and body use stay
-disabled. The optional TPS7A20 reference-engine discrepancy requires a finite
-disposition or justified deferral, not unlimited simulator work on the PCB path.
+A **pilot design ready for release review** additionally needs completed AFE and
+auxiliary routing, power/sense and firmware integration, final stack/mating/
+mechanical/assembly choices, coherent manufacturing files and a delivered quote.
+Pre-pilot risk review can happen before the first PCB exists; actual performance
+cannot be measured before assembly. Do not make that circular, or silently treat
+a planned experiment as permission to order or energize it.
 
-**Ready-to-fabricate bench design** requires final native schematic/routing,
-outline/stackup/mates, consistent qualified-or-explicit-pilot-risk BOM, reviewed
-polarity/placement, clean complete ERC/DRC/parity, and a consistent Gerber/drill/
-assembly/placement package. It needs a wiring worksheet, separate programming
-and acquisition power arrangements, no-person bring-up procedure and delivered
-quote. Exported files or an empty parity array are not sufficient.
+**Validated person-disconnected hardware** requires physical assembly, inspection,
+calibrated measurements and explicit pass/fail scope. Simulations, CI and source
+review cannot supply missing electrical or mechanical measurements. Body use is
+another revision/review, not unlocked by this table or by a number of chat turns.
 
-**Working hardware validated** additionally requires actual assembly/inspection
-and person-disconnected measurements. Firmware compilation and simulations do
-not supply real rail-loss, noise, fixture or interface evidence. Body connection
-requires its own later revision/review, not a fixed number of turns.
+## Scope and budget discipline
 
-## Avoid repeated or unbounded work
+Existing analog/BIAS/supply studies, portable/target firmware guards, native AFE
+schematic/routing and K2 mechanical source should not be recreated. Read detailed
+review files rather than applying their old authoring scripts. Keep the #45/#48
+requirements specific; do not add a general risk registry for every unknown.
 
-The passive-input and bounded BIAS/supply studies, guarded S3 firmware,
-three-sheet schematic, all-pad/BOM/cache and footprint checks, logical UART/
-header worksheet, T491 land choice, routing and AVDD1/output/CH1N repairs are
-already implemented. Do not recreate them. Historical detailed results remain
-in Git and their specific reports. Temporary source-transfer/tool iterations
-are delivery friction, not additional engineering milestones or dependencies.
+The AFE planning subtotal is still$94.34 with its old resistor allowance. The
+auxiliary's11ICs/15bypasses/16resistors/service header, cable mates, manufacture,
+retention and labor are not priced in it. This does not establish the user's
+$100 additional-parts target. Parts are choices, not proof of purchase. No
+unsolicited supplier message, purchase, fabrication, powered setup or body
+connection is authorized. Every such gate remains false.
 
-`REV_A_BENCH_HARNESS.md` already maps GPIO to actual DevKit/AFE pads. Remaining
-work is cable/interface/orientation and operating behavior, not another pin
-list. Both boards use J1; keep AFE/DEVKIT prefixes. UART17/18 is routing, not
-isolation. Simultaneous normal DevKit USB/header supply or an unknown live
-adapter remains unauthorized. Selected parts are not proof of purchase;
-actual owned board revision, lead information and delivered quote remain needed.
-
-Reference entry points: `AGENTS.md`, `LLM_HANDOFF.md`,
-`REV_A_BUS_INTERLOCK_C2.md`, `REV_A_CONTROLLER_INTERFACE_C1.md`, `REV_A_MECHANICAL_ENVELOPE.md`, `REV_A_CAPACITOR_E1_DECISION.md`,
-`REV_A_STACKUP_BENCH_REQUIREMENTS.md`,
-`REV_A_UPSTREAM_COUPLING_DISPOSITION.md`, `REV_A_CH1N_CORRIDOR_REPAIR.md`,
-`REV_A_INPUT_LAYOUT_REVIEW.md`, `REV_A_DIGITAL_OUTPUT_REPAIR.md`,
-`REV_A_AVDD1_REPAIR.md`, `REV_A_SCHEMATIC.md`, `REV_A_BENCH_HARNESS.md`,
-`REV_A_FOOTPRINT_REVIEW.md`, `REV_A_TANTALUM_LANDS.md`,
-`REV_A_CAPACITOR_EVIDENCE.md`, `REV_A_BULK_CAPACITOR_ASSESSMENT.md`,
-`REV_A_SUPPLY_TIMING.md`, and open #45/#48. All purchasing, release,
-physical-validation, powered-connection and body-use gates remain unchanged.
+Entry points: `LLM_HANDOFF.md`, `HARDWARE_BASELINE_REV_A.md`,
+`REV_A_AUXILIARY_C3.md`, `REV_A_BUS_INTERLOCK_C2.md`,
+`REV_A_CONTROLLER_INTERFACE_C1.md`, `REV_A_STACKUP_BENCH_REQUIREMENTS.md`,
+`REV_A_UPSTREAM_COUPLING_DISPOSITION.md`, K2/connector documents and open#45/#48.

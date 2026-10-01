@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pytest
 
+from hardware.rev_a import parse_auxiliary_contract
 from lab.validation import read_object
 from tests.footprint_fixtures import write_footprint_library
 from tools.check import main
@@ -27,7 +28,19 @@ def _fake_project(root: Path) -> Path:
     (root / "tools").mkdir()
     shutil.copyfile(ROOT / "tools/check.py", root / "tools/check.py")
     shutil.copyfile(ROOT / "pyproject.toml", root / "pyproject.toml")
-    return write_footprint_library(root / "footprints")
+    footprints = write_footprint_library(root / "footprints")
+    contract = parse_auxiliary_contract(
+        (root / "hardware/rev_a/auxiliary/contract.json").read_text()
+    )
+    for part in contract.parts.values():
+        library, name = part.footprint.split(":")
+        if library == "Aux_Lands":
+            continue
+        path = footprints / (library + ".pretty") / (name + ".kicad_mod")
+        if not path.exists():
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("SOFTWARE-ONLY footprint snapshot double; not native geometry")
+    return footprints
 
 
 def _clean_erc() -> str:
@@ -109,6 +122,11 @@ def _bom_output(fault: str) -> str:
 
 def _change_dependency(root: Path, fault: str) -> None:
     files = {
+        "change-auxiliary": root / "hardware/rev_a/auxiliary/bus.kicad_sch",
+        "change-aux-contract": root / "hardware/rev_a/auxiliary/contract.json",
+        "change-aux-library": root
+        / "footprints/Package_SO.pretty/TSSOP-14_4.4x5mm_P0.65mm.kicad_mod",
+        "change-aux-fixture": root / "tests/fixtures/auxiliary_c3_netlist.xml.gz",
         "change-child": root / "hardware/rev_a/kicad/power.kicad_sch",
         "change-board": root / "hardware/rev_a/layout/rev_a.kicad_pcb",
         "change-board-test": root / "tests/test_pcb_placement.py",
@@ -126,7 +144,7 @@ def _change_dependency(root: Path, fault: str) -> None:
         files[fault] = root / "footprints/Package_QFP.pretty/TQFP-64_10x10mm_P0.5mm.kicad_mod"
     path = files.get(fault)
     if path is not None:
-        path.write_text(path.read_text() + "\n")
+        path.write_bytes(path.read_bytes() + b"\n")
 
 
 @pytest.mark.parametrize(
@@ -146,6 +164,10 @@ def _change_dependency(root: Path, fault: str) -> None:
         "partial-bom",
         "wrong-bom-flag",
         "change-child",
+        "change-aux-fixture",
+        "change-auxiliary",
+        "change-aux-contract",
+        "change-aux-library",
         "change-board",
         "change-board-test",
         "change-power-test",
@@ -207,7 +229,7 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
         assert report["physical_hardware_tested"] is False
         assert report["body_connection_authorized"] is False
         assert report["schematic_released"] is False
-        assert len(read_object(report["source_sha256"], "hashes")) == 48
+        assert len(read_object(report["source_sha256"], "hashes")) == 74
         directory = out / str(report["artifact_directory"])
         harness = read_object(json.loads((directory / "harness.json").read_text()), "harness")
         assert harness["physical_wiring_approved"] is False

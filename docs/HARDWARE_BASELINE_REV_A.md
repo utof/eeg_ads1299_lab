@@ -39,7 +39,8 @@ The machine-readable source of truth is [`hardware/rev_a/bom.json`](../hardware/
 | `GRM188R71H104KA93D` | 7 | FIT | $0.70 |
 | `GRM219R61A106KE44D` | 4 | FIT | $1.40 |
 | `RC0603FR-0710RL` | 1 | FIT | $0.08 |
-| `RC0603FR-0710KL` | 12 | FIT | $0.72 |
+| `RC0603FR-0710KL` | 5 | FIT | $0.30 |
+| `RC0603FR-0742K2L` | 7 | FIT | $0.42 |
 | `HTSW-110-07-T-D` | 2 | FIT | $4.00 |
 | `BAV199,215` | 8 | DNP | $2.40 |
 
@@ -100,7 +101,10 @@ low during rail startup and be asserted only after supplies stabilize. J_DIG pin
 The ADS1299 power-up sequence requires its digital and analog inputs low until
 the supplies stabilize. Therefore SCLK, DIN/MOSI, CS, RESET, START, PWDN and
 CLKSEL all have a declared power-up level of 0 in `board_profile.json`. CS and
-CLKSEL use 10 kΩ pulldowns, not pullups. The intended operational CLKSEL level
+CLKSEL use 42.2 kΩ pulldowns after the coordinated C3 light-load migration, not pullups.
+All seven receiver-side bus defaults use the same 42.2 kΩ value; the reserved
+CLK/GPIO1-4 terminations stay 10 kΩ. See `REV_A_AUXILIARY_C3.md` for the
+conditional loaded-high/disabled-low budget; no power-up/fault qualification follows. The intended operational CLKSEL level
 remains 1 for the internal oscillator; firmware must make that transition only
 after the supply-stable boundary. This contract does not claim that rail timing
 has been measured. CLK itself (ADS pin 37, not pin 51) has a fitted 10 kΩ

@@ -95,7 +95,7 @@ class BaselineTests(unittest.TestCase):
             {"signal": "CLKSEL", "gpio": 8, "ads_pin": 52, "direction_from_mcu": "out"},
         )
         self.assertEqual(self.profile["interface_headers"]["J_DIG"]["pin_map"]["19"], "CLKSEL")
-        straps = next(row for row in self.bom["line_items"] if row["id"] == "straps")
+        straps = next(row for row in self.bom["line_items"] if row["id"] == "bus_pulldowns")
         self.assertIn("R_CS_DN", straps["references"])
         self.assertIn("R_CLKSEL_DN", straps["references"])
         self.assertNotIn("R_CS_UP", straps["references"])

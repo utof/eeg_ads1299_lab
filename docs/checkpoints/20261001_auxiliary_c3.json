@@ -1,0 +1,169 @@
+{
+  "scope": "C3 native auxiliary draft and seven AFE pull metadata changes; no auxiliary layout or physical qualification",
+  "base": "98362c6b6445ddb402ddf942b1c81af738eebe56",
+  "base_tree": "d88d3ae402ce9bdfd9d52302f0da37c2faff0ed8",
+  "red_commit": "56b699d6cb1891bf2fe4c1a7329bf1c2493f67ba",
+  "red_failures": 8,
+  "red_failure_scope": "seven old 10k loaded-current cases and missing native auxiliary source",
+  "board_before_sha256": "dfe893f958128ba28eb69188cf6debbbc9fcafa0ef5dd67bd58627d4b8a26842",
+  "board_after_sha256": "f11c9651fb0cebb01bf2cc7d6ef1be0a0093664dfacc4f193f90aab14bdbd6c7",
+  "copper_unchanged": true,
+  "whole_files_recovered_by_metadata_reversal": [
+    "hardware/rev_a/layout/rev_a.kicad_pcb",
+    "hardware/rev_a/kicad/digital.kicad_sch"
+  ],
+  "AFE_counts": {
+    "footprints": 68,
+    "pads": 245,
+    "segments": 582,
+    "vias": 122
+  },
+  "auxiliary_counts": {
+    "instances": 48,
+    "terminals": 212,
+    "ICs": 11,
+    "capacitors": 15,
+    "resistors": 16,
+    "service_headers": 1,
+    "fabricated_land_groups": 5,
+    "native_BOM_rows": 43,
+    "sheets": 4,
+    "unique_footprints": 12
+  },
+  "pulls": {
+    "references": [
+      "R_CS_DN",
+      "R_CLKSEL_DN",
+      "R_RESET_DN",
+      "R_PWDN_DN",
+      "R_START_DN",
+      "R_SCLK_DN",
+      "R_DIN_DN"
+    ],
+    "old_ohm": 10000,
+    "new_ohm": 42200,
+    "new_mpn": "RC0603FR-0742K2L",
+    "reserved_pulls_still_10k": 5,
+    "rail_analysis_V": [
+      3.0,
+      3.6
+    ],
+    "assumed_total_resistance_bound_fraction": 0.0105,
+    "additional_leakage_requirement_uA": 1,
+    "driven_high_budget_uA": 97.21329648513179,
+    "conditional_stopped_budget_V": 0.5756818499999999,
+    "conditional_stopped_margin_V": 0.02431815000000004,
+    "intermediate_rail_or_all_voltage_IOZ_guarantee": false,
+    "installed_resistance_measured": false
+  },
+  "native_initial_results": {
+    "source": "implementation before final publication; final-head verification tracked separately",
+    "auxiliary_ERC_violations": 0,
+    "native_cases": 11,
+    "harmful_ERC_clean_connections": 6,
+    "benign_native_circuits": 2,
+    "footprint_cases": 2,
+    "graph_single_terminal_moves_rejected": 212
+  },
+  "implementation_gate_initial_failure": "one facade export-order disagreement; 1155 tests passed and 14 subtests before correction; not final full-gate success",
+  "source_snapshot_entries": 74,
+  "rail_access": {
+    "auxiliary_connector": "B6B-XH-A(LF)(SN)",
+    "auxiliary_pin_map": {
+      "1": "TARGET_GND",
+      "2": "AFE_DVDD",
+      "3": "AFE_DVDD_SENSE",
+      "4": "AFE_AVDD_SENSE",
+      "5": "TARGET_GND",
+      "6": null
+    },
+    "matching_AFE_access_added": false,
+    "small_capacitor_pad_flying_wires_approved": false,
+    "broken_feed_vs_sense_qualified": false,
+    "DVDD_bleed_ohm": 100000,
+    "bleed_guaranteed_fast_discharge": false
+  },
+  "approval": false,
+  "physical_hardware_tested": false,
+  "auxiliary_board_routed": false,
+  "firmware_handshake_implemented": false,
+  "next_task": "coordinate matching AFE service feed/sense access and mating; then guarded C2 firmware, auxiliary layout and bounded power-fault qualification",
+  "sources": {
+    "TXU0304": "https://www.ti.com/lit/ds/symlink/txu0304.pdf",
+    "ADS1299": "https://www.ti.com/lit/ds/symlink/ads1299.pdf",
+    "Yageo_RC_L": "https://yageogroup.com/content/datasheet/asset/file/PYU-RC_GROUP_51_ROHS_L",
+    "KEMET_C1002": "https://content.kemet.com/datasheets/KEM_C1002_X7R_SMD.pdf",
+    "JST_XH": "https://www.jst-mfg.com/product/pdf/eng/eXH.pdf"
+  },
+  "review_correction": {
+    "reviewed_parent": "d0a9e3acf6ec96f966adcd4258a1ffe48bc3f586",
+    "test_first_commit": "4ac666f8456e9cb20410961e66350e06d877b664",
+    "focused_red_failures": 22,
+    "focused_red_passes": 45,
+    "ISO_finding": 4157186342,
+    "ISO_electrical_directions_already_correct": true,
+    "ISO_corrected_functions": {
+      "2": "OUTA",
+      "3": "INB",
+      "6": "OUTB",
+      "7": "INA"
+    },
+    "ISO_nets_types_numbers_unchanged": true,
+    "ISO_primary": "TI SLLSEP3G p6 Figure5-4 and ISO7721 D/DWV column",
+    "ERC_finding": 4157186361,
+    "native_suppressed_copy": {
+      "visible_exit": 5,
+      "visible_types": [
+        "pin_to_pin",
+        "pin_not_driven",
+        "global_label_dangling"
+      ],
+      "ignored_exit": 0,
+      "ignored_violations": 0,
+      "source_snapshot_rejects": true
+    },
+    "explicit_erc_default_required": true,
+    "project_library_hierarchy_cache_closed": true,
+    "new_native_cases": 1,
+    "focused_native_auxiliary_cases": 12,
+    "physical_experiments": false
+  },
+  "carrier_identity_review": {
+    "failed_hosted_run": 36904442121,
+    "failed_hosted_job": 110511329137,
+    "failed_head": "b0fcdc515eebf11ae7cc6b8dfacb6e887a7a9d55",
+    "local_same_failure_reproduced": true,
+    "reason": "strict K2 identity still named board before seven pull-property groups changed",
+    "old_board_sha256": "dfe893f958128ba28eb69188cf6debbbc9fcafa0ef5dd67bd58627d4b8a26842",
+    "accepted_board_sha256": "f11c9651fb0cebb01bf2cc7d6ef1be0a0093664dfacc4f193f90aab14bdbd6c7",
+    "exact_reversal_properties_each_count": {
+      "Value": 7,
+      "MPN": 7,
+      "BOM_ID": 7
+    },
+    "whole_prior_board_reconstructed_byte_for_byte": true,
+    "unchanged_K2_solid_sources": true,
+    "strict_whole_file_binding_retained": true,
+    "disposable_moved_footprint_and_pad_size_changes_rejected": true,
+    "not_physical_fit_validation": true
+  },
+  "manifest_review_correction": {
+    "finding": 4157186374,
+    "reviewed_parent": "3524a949fa5a8976ca8f668d825df365b7a6eca1",
+    "test_first_commit": "af8e5af21cd5fb63c31ecf01c2495cf36cf3772f",
+    "fix_commit": "430e329fbfe7f67ddc8b325afd74a8883b69c11e",
+    "observed_red_failures": 25,
+    "observed_red_passes": 68,
+    "focused_ordinary_auxiliary_cases": 93,
+    "focused_native_auxiliary_cases_unchanged": 12,
+    "status_assumptions_and_all_record_fields_required": true,
+    "duplicate_JSON_keys_rejected": true,
+    "canonical_ASCII_pin_numbers_and_known_types_required": true,
+    "native_instance_sheet_pairs_checked": true,
+    "object_and_assumption_reordering_accepted": true,
+    "current_contract_CAD_BOM_firmware_unchanged": true,
+    "physical_experiments": false,
+    "initial_test_helper_strict_type_failure_corrected": true,
+    "later_clean_review_did_not_waive_known_original_finding": true
+  }
+}

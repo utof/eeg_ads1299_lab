@@ -16,7 +16,7 @@ def test_external_clock_pin_has_declared_low_termination() -> None:
         "return_net": "DGND",
     }
     straps = next(row for row in bom["line_items"] if row["id"] == "straps")
-    assert straps["quantity"] == 12
+    assert straps["quantity"] == 5
     assert "R_CLK_DN" in straps["references"]
     assert straps["spec"]["resistance_ohm"] == 10000
     assert straps["population"] == "fit"

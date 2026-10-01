@@ -6,6 +6,29 @@ Base `dbc99981a592904428f2432094dc62c4a13dcc55`; PCB SHA256
 No PCB, pin mapping, BOM, firmware, electrical model or approval flag changed.
 K1's HTSW migration is already complete. Historical M1/K1 records stay unchanged.
 
+## C3 metadata-only continuity review
+
+The original K2 source identity above is historical. After the coordinated C3
+seven-pulldown migration, the current strict carrier test binds PCB SHA256
+`f11c9651fb0cebb01bf2cc7d6ef1be0a0093664dfacc4f193f90aab14bdbd6c7`.
+The first full hosted native suite correctly failed because that binding still
+named the pre-C3 file; the same failure was reproduced locally before correction.
+
+Reversing exactly seven `Value` (42.2k to 10k), seven `MPN`
+(RC0603FR-0742K2L to RC0603FR-0710KL), and seven `BOM_ID`
+(bus_pulldowns to straps) properties reconstructs the **entire original board
+byte-for-byte**. No other bytes are omitted or normalized by this comparison.
+The footprints remain the same 0603 land geometry; outline, placements, pads,
+drills, copper and fill are identical. Both editable K2 SCAD files also remain
+byte-identical. Accordingly the nominal carrier geometry carries forward;
+physical part/fixture fit and process qualification remain unproved.
+
+The test still compares the complete current file with one exact hash. It does
+not accept a list of arbitrary boards or strip future geometry/metadata edits.
+Separate disposable copies with a shifted footprint and an altered pad size
+are rejected. Those are source-identity controls, not native collision or
+physical measurements. The original K2 checkpoint is retained unchanged.
+
 ## What now exists
 
 Open `hardware/rev_a/mechanical/view_k2.scad` in **OpenSCAD 2021.01**. Select

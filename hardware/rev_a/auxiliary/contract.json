@@ -1,0 +1,1650 @@
+{
+  "revision": "C3",
+  "status": "native_schematic_draft_not_layout_or_powered_release",
+  "parts": [
+    {
+      "reference": "J101",
+      "contract_ref": "AFE_TAILS",
+      "symbol": "AFE_TAILS",
+      "value": "K1_NUMBERED_SOLDER_TAILS",
+      "mpn": "PCB_LANDINGS_ONLY",
+      "footprint": "Aux_Lands:SolderTails_20",
+      "in_bom": false,
+      "pins": {
+        "1": {
+          "net": "AFE_SCLK",
+          "function": "SCLK",
+          "type": "input"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "GND",
+          "type": "passive"
+        },
+        "3": {
+          "net": "AFE_MOSI",
+          "function": "MOSI",
+          "type": "input"
+        },
+        "4": {
+          "net": "TARGET_GND",
+          "function": "GND",
+          "type": "passive"
+        },
+        "5": {
+          "net": "AFE_MISO",
+          "function": "MISO",
+          "type": "output"
+        },
+        "6": {
+          "net": "TARGET_GND",
+          "function": "GND",
+          "type": "passive"
+        },
+        "7": {
+          "net": "AFE_CS",
+          "function": "CS",
+          "type": "input"
+        },
+        "8": {
+          "net": "TARGET_GND",
+          "function": "GND",
+          "type": "passive"
+        },
+        "9": {
+          "net": "AFE_DRDY",
+          "function": "DRDY",
+          "type": "output"
+        },
+        "10": {
+          "net": "TARGET_GND",
+          "function": "GND",
+          "type": "passive"
+        },
+        "20": {
+          "net": "TARGET_GND",
+          "function": "GND",
+          "type": "passive"
+        },
+        "19": {
+          "net": "AFE_CLKSEL",
+          "function": "CLKSEL",
+          "type": "input"
+        },
+        "18": {
+          "net": "TARGET_GND",
+          "function": "GND",
+          "type": "passive"
+        },
+        "17": {
+          "net": "TARGET_VIN5",
+          "function": "VIN5_TO_AFE",
+          "type": "power_in"
+        },
+        "16": {
+          "net": "TARGET_GND",
+          "function": "GND",
+          "type": "passive"
+        },
+        "15": {
+          "net": "AFE_PWDN",
+          "function": "PWDN",
+          "type": "input"
+        },
+        "14": {
+          "net": "TARGET_GND",
+          "function": "GND",
+          "type": "passive"
+        },
+        "13": {
+          "net": "AFE_START",
+          "function": "START",
+          "type": "input"
+        },
+        "12": {
+          "net": "TARGET_GND",
+          "function": "GND",
+          "type": "passive"
+        },
+        "11": {
+          "net": "AFE_RESET",
+          "function": "RESET",
+          "type": "input"
+        }
+      },
+      "sheet": "auxiliary.kicad_sch"
+    },
+    {
+      "reference": "J102",
+      "contract_ref": "MCU_TAILS",
+      "symbol": "MCU_TAILS",
+      "value": "DEVKIT_J1_NUMBERED_TAILS",
+      "mpn": "PCB_LANDINGS_ONLY",
+      "footprint": "Aux_Lands:SolderTails_22",
+      "in_bom": false,
+      "pins": {
+        "1": {
+          "net": "TARGET_GND",
+          "function": "GND",
+          "type": "power_out"
+        },
+        "2": {
+          "net": "MCU_3V3",
+          "function": "MCU_3V3_FROM_J1_2",
+          "type": "power_out"
+        },
+        "3": {
+          "net": null,
+          "function": "UNUSED",
+          "type": "no_connect"
+        },
+        "4": {
+          "net": "MCU_DRDY",
+          "function": "GPIO4_DRDY",
+          "type": "input"
+        },
+        "5": {
+          "net": "MCU_RESET",
+          "function": "GPIO5_RESET",
+          "type": "output"
+        },
+        "6": {
+          "net": "MCU_START",
+          "function": "GPIO6_START",
+          "type": "output"
+        },
+        "7": {
+          "net": "MCU_PWDN",
+          "function": "GPIO7_PWDN",
+          "type": "output"
+        },
+        "8": {
+          "net": "CLR_N",
+          "function": "GPIO15_READY",
+          "type": "input"
+        },
+        "9": {
+          "net": "BUS_OE",
+          "function": "GPIO16_ARMED",
+          "type": "input"
+        },
+        "10": {
+          "net": "CONSOLE_RX",
+          "function": "GPIO17_UART_RX",
+          "type": "input"
+        },
+        "11": {
+          "net": "CONSOLE_TX",
+          "function": "GPIO18_UART_TX",
+          "type": "output"
+        },
+        "22": {
+          "net": "TARGET_GND",
+          "function": "GND",
+          "type": "passive"
+        },
+        "21": {
+          "net": "TARGET_VIN5",
+          "function": "VIN5_TO_DEVKIT",
+          "type": "power_in"
+        },
+        "20": {
+          "net": "SESSION",
+          "function": "GPIO14_SESSION",
+          "type": "output"
+        },
+        "19": {
+          "net": "MCU_MISO",
+          "function": "GPIO13_MISO",
+          "type": "input"
+        },
+        "18": {
+          "net": "MCU_SCLK",
+          "function": "GPIO12_SCLK",
+          "type": "output"
+        },
+        "17": {
+          "net": "MCU_MOSI",
+          "function": "GPIO11_MOSI",
+          "type": "output"
+        },
+        "16": {
+          "net": "MCU_CS",
+          "function": "GPIO10_CS",
+          "type": "output"
+        },
+        "15": {
+          "net": "ARM_REQ",
+          "function": "GPIO9_ARM",
+          "type": "output"
+        },
+        "14": {
+          "net": null,
+          "function": "UNUSED",
+          "type": "no_connect"
+        },
+        "13": {
+          "net": null,
+          "function": "UNUSED",
+          "type": "no_connect"
+        },
+        "12": {
+          "net": "MCU_CLKSEL",
+          "function": "GPIO8_CLKSEL",
+          "type": "output"
+        }
+      },
+      "sheet": "auxiliary.kicad_sch"
+    },
+    {
+      "reference": "J103",
+      "contract_ref": "HOST_TAILS",
+      "symbol": "HOST_TAILS",
+      "value": "ADAFRUIT_5335_TAILS",
+      "mpn": "PCB_LANDINGS_ONLY",
+      "footprint": "Aux_Lands:SolderTails_4",
+      "in_bom": false,
+      "pins": {
+        "1": {
+          "net": "HOST_3V3",
+          "function": "JP4_2_3V3",
+          "type": "power_out"
+        },
+        "2": {
+          "net": "HOST_GND",
+          "function": "JP1_1_GND",
+          "type": "power_out"
+        },
+        "4": {
+          "net": "HOST_RX",
+          "function": "JP1_5_RX",
+          "type": "input"
+        },
+        "3": {
+          "net": "HOST_TX",
+          "function": "JP1_4_TX",
+          "type": "output"
+        }
+      },
+      "sheet": "auxiliary.kicad_sch"
+    },
+    {
+      "reference": "J104",
+      "contract_ref": "AFE_RAIL_ACCESS",
+      "symbol": "AFE_RAIL_ACCESS",
+      "value": "B6B-XH-A(LF)(SN)",
+      "mpn": "B6B-XH-A(LF)(SN)",
+      "footprint": "Connector_JST:JST_XH_B6B-XH-A_1x06_P2.50mm_Vertical",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "TARGET_GND",
+          "function": "RETURN",
+          "type": "passive"
+        },
+        "2": {
+          "net": "AFE_DVDD",
+          "function": "DVDD_FEED",
+          "type": "power_out"
+        },
+        "3": {
+          "net": "AFE_DVDD_SENSE",
+          "function": "DVDD_SENSE",
+          "type": "output"
+        },
+        "6": {
+          "net": null,
+          "function": "UNUSED",
+          "type": "no_connect"
+        },
+        "5": {
+          "net": "TARGET_GND",
+          "function": "RETURN",
+          "type": "passive"
+        },
+        "4": {
+          "net": "AFE_AVDD_SENSE",
+          "function": "AVDD_SENSE",
+          "type": "output"
+        }
+      },
+      "sheet": "auxiliary.kicad_sch"
+    },
+    {
+      "reference": "J105",
+      "contract_ref": "POWER_IN",
+      "symbol": "POWER_IN",
+      "value": "REGULATED_5V_TAILS",
+      "mpn": "PCB_LANDINGS_ONLY",
+      "footprint": "Aux_Lands:SolderTails_2",
+      "in_bom": false,
+      "pins": {
+        "1": {
+          "net": "TARGET_VIN5",
+          "function": "VIN5_REGULATED",
+          "type": "power_out"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "TARGET_RETURN",
+          "type": "passive"
+        }
+      },
+      "sheet": "auxiliary.kicad_sch"
+    },
+    {
+      "reference": "J106",
+      "contract_ref": "STOP_TAILS",
+      "symbol": "STOP_TAILS",
+      "value": "REMOTE_NO_STOP_CONTACT",
+      "mpn": "PCB_LANDINGS_ONLY",
+      "footprint": "Aux_Lands:SolderTails_2",
+      "in_bom": false,
+      "pins": {
+        "1": {
+          "net": "STOP_N",
+          "function": "STOP_N",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "TARGET_RETURN",
+          "type": "passive"
+        }
+      },
+      "sheet": "arming.kicad_sch"
+    },
+    {
+      "reference": "U101",
+      "contract_ref": "ISO",
+      "symbol": "ISO7721D",
+      "value": "ISO7721DR",
+      "mpn": "ISO7721DR",
+      "footprint": "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "HOST_3V3",
+          "function": "VCC1",
+          "type": "power_in"
+        },
+        "2": {
+          "net": "HOST_RX",
+          "function": "OUTA",
+          "type": "output"
+        },
+        "3": {
+          "net": "HOST_TX",
+          "function": "INB",
+          "type": "input"
+        },
+        "4": {
+          "net": "HOST_GND",
+          "function": "GND1",
+          "type": "power_in"
+        },
+        "8": {
+          "net": "MCU_3V3",
+          "function": "VCC2",
+          "type": "power_in"
+        },
+        "7": {
+          "net": "CONSOLE_TX",
+          "function": "INA",
+          "type": "input"
+        },
+        "6": {
+          "net": "CONSOLE_RX",
+          "function": "OUTB",
+          "type": "output"
+        },
+        "5": {
+          "net": "TARGET_GND",
+          "function": "GND2",
+          "type": "power_in"
+        }
+      },
+      "sheet": "auxiliary.kicad_sch"
+    },
+    {
+      "reference": "U102",
+      "contract_ref": "BU1",
+      "symbol": "TXU0304PW",
+      "value": "TXU0304PWR",
+      "mpn": "TXU0304PWR",
+      "footprint": "Package_SO:TSSOP-14_4.4x5mm_P0.65mm",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "MCU_3V3",
+          "function": "VCCA",
+          "type": "power_in"
+        },
+        "2": {
+          "net": "MCU_SCLK",
+          "function": "A1",
+          "type": "input"
+        },
+        "3": {
+          "net": "MCU_MOSI",
+          "function": "A2",
+          "type": "input"
+        },
+        "4": {
+          "net": "MCU_CS",
+          "function": "A3",
+          "type": "input"
+        },
+        "5": {
+          "net": "MCU_MISO",
+          "function": "A4Y",
+          "type": "tri_state"
+        },
+        "6": {
+          "net": null,
+          "function": "NC",
+          "type": "no_connect"
+        },
+        "7": {
+          "net": "TARGET_GND",
+          "function": "GND",
+          "type": "power_in"
+        },
+        "14": {
+          "net": "AFE_DVDD",
+          "function": "VCCB",
+          "type": "power_in"
+        },
+        "13": {
+          "net": "AFE_SCLK",
+          "function": "B1Y",
+          "type": "tri_state"
+        },
+        "12": {
+          "net": "AFE_MOSI",
+          "function": "B2Y",
+          "type": "tri_state"
+        },
+        "11": {
+          "net": "AFE_CS",
+          "function": "B3Y",
+          "type": "tri_state"
+        },
+        "10": {
+          "net": "AFE_MISO",
+          "function": "B4",
+          "type": "input"
+        },
+        "9": {
+          "net": null,
+          "function": "NC",
+          "type": "no_connect"
+        },
+        "8": {
+          "net": "BUS_OE",
+          "function": "OE",
+          "type": "input"
+        }
+      },
+      "sheet": "bus.kicad_sch"
+    },
+    {
+      "reference": "U103",
+      "contract_ref": "BU2",
+      "symbol": "TXU0304PW",
+      "value": "TXU0304PWR",
+      "mpn": "TXU0304PWR",
+      "footprint": "Package_SO:TSSOP-14_4.4x5mm_P0.65mm",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "MCU_3V3",
+          "function": "VCCA",
+          "type": "power_in"
+        },
+        "2": {
+          "net": "MCU_RESET",
+          "function": "A1",
+          "type": "input"
+        },
+        "3": {
+          "net": "MCU_START",
+          "function": "A2",
+          "type": "input"
+        },
+        "4": {
+          "net": "MCU_PWDN",
+          "function": "A3",
+          "type": "input"
+        },
+        "5": {
+          "net": "MCU_DRDY",
+          "function": "A4Y",
+          "type": "tri_state"
+        },
+        "6": {
+          "net": null,
+          "function": "NC",
+          "type": "no_connect"
+        },
+        "7": {
+          "net": "TARGET_GND",
+          "function": "GND",
+          "type": "power_in"
+        },
+        "14": {
+          "net": "AFE_DVDD",
+          "function": "VCCB",
+          "type": "power_in"
+        },
+        "13": {
+          "net": "AFE_RESET",
+          "function": "B1Y",
+          "type": "tri_state"
+        },
+        "12": {
+          "net": "AFE_START",
+          "function": "B2Y",
+          "type": "tri_state"
+        },
+        "11": {
+          "net": "AFE_PWDN",
+          "function": "B3Y",
+          "type": "tri_state"
+        },
+        "10": {
+          "net": "AFE_DRDY",
+          "function": "B4",
+          "type": "input"
+        },
+        "9": {
+          "net": null,
+          "function": "NC",
+          "type": "no_connect"
+        },
+        "8": {
+          "net": "BUS_OE",
+          "function": "OE",
+          "type": "input"
+        }
+      },
+      "sheet": "bus.kicad_sch"
+    },
+    {
+      "reference": "U104",
+      "contract_ref": "BU3",
+      "symbol": "TXU0304PW",
+      "value": "TXU0304PWR",
+      "mpn": "TXU0304PWR",
+      "footprint": "Package_SO:TSSOP-14_4.4x5mm_P0.65mm",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "MCU_3V3",
+          "function": "VCCA",
+          "type": "power_in"
+        },
+        "2": {
+          "net": "MCU_CLKSEL",
+          "function": "A1",
+          "type": "input"
+        },
+        "3": {
+          "net": "TARGET_GND",
+          "function": "A2",
+          "type": "input"
+        },
+        "4": {
+          "net": "TARGET_GND",
+          "function": "A3",
+          "type": "input"
+        },
+        "5": {
+          "net": null,
+          "function": "A4Y",
+          "type": "tri_state"
+        },
+        "6": {
+          "net": null,
+          "function": "NC",
+          "type": "no_connect"
+        },
+        "7": {
+          "net": "TARGET_GND",
+          "function": "GND",
+          "type": "power_in"
+        },
+        "14": {
+          "net": "AFE_DVDD",
+          "function": "VCCB",
+          "type": "power_in"
+        },
+        "13": {
+          "net": "AFE_CLKSEL",
+          "function": "B1Y",
+          "type": "tri_state"
+        },
+        "12": {
+          "net": null,
+          "function": "B2Y",
+          "type": "tri_state"
+        },
+        "11": {
+          "net": null,
+          "function": "B3Y",
+          "type": "tri_state"
+        },
+        "10": {
+          "net": "TARGET_GND",
+          "function": "B4",
+          "type": "input"
+        },
+        "9": {
+          "net": null,
+          "function": "NC",
+          "type": "no_connect"
+        },
+        "8": {
+          "net": "BUS_OE",
+          "function": "OE",
+          "type": "input"
+        }
+      },
+      "sheet": "bus.kicad_sch"
+    },
+    {
+      "reference": "U105",
+      "contract_ref": "MON_M",
+      "symbol": "TPS3703DSE",
+      "value": "TPS3703A4330DSER",
+      "mpn": "TPS3703A4330DSER",
+      "footprint": "Package_SON:WSON-6_1.5x1.5mm_P0.5mm",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "MCU_3V3",
+          "function": "SENSE",
+          "type": "input"
+        },
+        "2": {
+          "net": "MCU_3V3",
+          "function": "VDD",
+          "type": "power_in"
+        },
+        "3": {
+          "net": "CT_MON_M",
+          "function": "CT",
+          "type": "input"
+        },
+        "6": {
+          "net": "STOP_N",
+          "function": "MR_N",
+          "type": "input"
+        },
+        "5": {
+          "net": "TARGET_GND",
+          "function": "GND",
+          "type": "power_in"
+        },
+        "4": {
+          "net": "RAILS_OK",
+          "function": "RESET_N",
+          "type": "open_collector"
+        }
+      },
+      "sheet": "supervision.kicad_sch"
+    },
+    {
+      "reference": "U106",
+      "contract_ref": "MON_D",
+      "symbol": "TPS3703DSE",
+      "value": "TPS3703A4330DSER",
+      "mpn": "TPS3703A4330DSER",
+      "footprint": "Package_SON:WSON-6_1.5x1.5mm_P0.5mm",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "AFE_DVDD_SENSE",
+          "function": "SENSE",
+          "type": "input"
+        },
+        "2": {
+          "net": "MCU_3V3",
+          "function": "VDD",
+          "type": "power_in"
+        },
+        "3": {
+          "net": "CT_MON_D",
+          "function": "CT",
+          "type": "input"
+        },
+        "6": {
+          "net": "STOP_N",
+          "function": "MR_N",
+          "type": "input"
+        },
+        "5": {
+          "net": "TARGET_GND",
+          "function": "GND",
+          "type": "power_in"
+        },
+        "4": {
+          "net": "RAILS_OK",
+          "function": "RESET_N",
+          "type": "open_collector"
+        }
+      },
+      "sheet": "supervision.kicad_sch"
+    },
+    {
+      "reference": "U107",
+      "contract_ref": "MON_A",
+      "symbol": "TPS3703DSE",
+      "value": "TPS3703A5500DSER",
+      "mpn": "TPS3703A5500DSER",
+      "footprint": "Package_SON:WSON-6_1.5x1.5mm_P0.5mm",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "AFE_AVDD_SENSE",
+          "function": "SENSE",
+          "type": "input"
+        },
+        "2": {
+          "net": "MCU_3V3",
+          "function": "VDD",
+          "type": "power_in"
+        },
+        "3": {
+          "net": "CT_MON_A",
+          "function": "CT",
+          "type": "input"
+        },
+        "6": {
+          "net": "STOP_N",
+          "function": "MR_N",
+          "type": "input"
+        },
+        "5": {
+          "net": "TARGET_GND",
+          "function": "GND",
+          "type": "power_in"
+        },
+        "4": {
+          "net": "RAILS_OK",
+          "function": "RESET_N",
+          "type": "open_collector"
+        }
+      },
+      "sheet": "supervision.kicad_sch"
+    },
+    {
+      "reference": "U108",
+      "contract_ref": "MON_V",
+      "symbol": "TPS3703DSE",
+      "value": "TPS3703A5500DSER",
+      "mpn": "TPS3703A5500DSER",
+      "footprint": "Package_SON:WSON-6_1.5x1.5mm_P0.5mm",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "TARGET_VIN5",
+          "function": "SENSE",
+          "type": "input"
+        },
+        "2": {
+          "net": "MCU_3V3",
+          "function": "VDD",
+          "type": "power_in"
+        },
+        "3": {
+          "net": "CT_MON_V",
+          "function": "CT",
+          "type": "input"
+        },
+        "6": {
+          "net": "STOP_N",
+          "function": "MR_N",
+          "type": "input"
+        },
+        "5": {
+          "net": "TARGET_GND",
+          "function": "GND",
+          "type": "power_in"
+        },
+        "4": {
+          "net": "RAILS_OK",
+          "function": "RESET_N",
+          "type": "open_collector"
+        }
+      },
+      "sheet": "supervision.kicad_sch"
+    },
+    {
+      "reference": "U109",
+      "contract_ref": "CLEAR_AND",
+      "symbol": "SN74LVC1G97DBV",
+      "value": "SN74LVC1G97DBVR",
+      "mpn": "SN74LVC1G97DBVR",
+      "footprint": "Package_TO_SOT_SMD:SOT-23-6",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "TARGET_GND",
+          "function": "IN0",
+          "type": "input"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "GND",
+          "type": "power_in"
+        },
+        "3": {
+          "net": "SESSION",
+          "function": "IN1",
+          "type": "input"
+        },
+        "6": {
+          "net": "RAILS_OK",
+          "function": "IN2",
+          "type": "input"
+        },
+        "5": {
+          "net": "MCU_3V3",
+          "function": "VCC",
+          "type": "power_in"
+        },
+        "4": {
+          "net": "CLR_N",
+          "function": "Y",
+          "type": "output"
+        }
+      },
+      "sheet": "arming.kicad_sch"
+    },
+    {
+      "reference": "U110",
+      "contract_ref": "ARM_BUFFER",
+      "symbol": "SN74LVC1G97DBV",
+      "value": "SN74LVC1G97DBVR",
+      "mpn": "SN74LVC1G97DBVR",
+      "footprint": "Package_TO_SOT_SMD:SOT-23-6",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "TARGET_GND",
+          "function": "IN0",
+          "type": "input"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "GND",
+          "type": "power_in"
+        },
+        "3": {
+          "net": "ARM_REQ",
+          "function": "IN1",
+          "type": "input"
+        },
+        "6": {
+          "net": "MCU_3V3",
+          "function": "IN2",
+          "type": "input"
+        },
+        "5": {
+          "net": "MCU_3V3",
+          "function": "VCC",
+          "type": "power_in"
+        },
+        "4": {
+          "net": "ARM_CLK",
+          "function": "Y",
+          "type": "output"
+        }
+      },
+      "sheet": "arming.kicad_sch"
+    },
+    {
+      "reference": "U111",
+      "contract_ref": "ARM_FF",
+      "symbol": "SN74LVC2G74DCU",
+      "value": "SN74LVC2G74DCUR",
+      "mpn": "SN74LVC2G74DCUR",
+      "footprint": "Package_SO:VSSOP-8_2.3x2mm_P0.5mm",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "ARM_CLK",
+          "function": "CLK",
+          "type": "input"
+        },
+        "2": {
+          "net": "MCU_3V3",
+          "function": "D",
+          "type": "input"
+        },
+        "3": {
+          "net": null,
+          "function": "Q_N",
+          "type": "output"
+        },
+        "4": {
+          "net": "TARGET_GND",
+          "function": "GND",
+          "type": "power_in"
+        },
+        "8": {
+          "net": "MCU_3V3",
+          "function": "VCC",
+          "type": "power_in"
+        },
+        "7": {
+          "net": "MCU_3V3",
+          "function": "PRE_N",
+          "type": "input"
+        },
+        "6": {
+          "net": "CLR_N",
+          "function": "CLR_N",
+          "type": "input"
+        },
+        "5": {
+          "net": "BUS_OE",
+          "function": "Q",
+          "type": "output"
+        }
+      },
+      "sheet": "arming.kicad_sch"
+    },
+    {
+      "reference": "C101",
+      "contract_ref": "C_ISO_HOST",
+      "symbol": "C",
+      "value": "100n",
+      "mpn": "C0603C104K5RACTU",
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "HOST_3V3",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "HOST_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "auxiliary.kicad_sch"
+    },
+    {
+      "reference": "C102",
+      "contract_ref": "C_ISO_TARGET",
+      "symbol": "C",
+      "value": "100n",
+      "mpn": "C0603C104K5RACTU",
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "MCU_3V3",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "auxiliary.kicad_sch"
+    },
+    {
+      "reference": "C103",
+      "contract_ref": "C_BU1_A",
+      "symbol": "C",
+      "value": "100n",
+      "mpn": "C0603C104K5RACTU",
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "MCU_3V3",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "bus.kicad_sch"
+    },
+    {
+      "reference": "C104",
+      "contract_ref": "C_BU1_B",
+      "symbol": "C",
+      "value": "100n",
+      "mpn": "C0603C104K5RACTU",
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "AFE_DVDD",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "bus.kicad_sch"
+    },
+    {
+      "reference": "C105",
+      "contract_ref": "C_BU2_A",
+      "symbol": "C",
+      "value": "100n",
+      "mpn": "C0603C104K5RACTU",
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "MCU_3V3",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "bus.kicad_sch"
+    },
+    {
+      "reference": "C106",
+      "contract_ref": "C_BU2_B",
+      "symbol": "C",
+      "value": "100n",
+      "mpn": "C0603C104K5RACTU",
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "AFE_DVDD",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "bus.kicad_sch"
+    },
+    {
+      "reference": "C107",
+      "contract_ref": "C_BU3_A",
+      "symbol": "C",
+      "value": "100n",
+      "mpn": "C0603C104K5RACTU",
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "MCU_3V3",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "bus.kicad_sch"
+    },
+    {
+      "reference": "C108",
+      "contract_ref": "C_BU3_B",
+      "symbol": "C",
+      "value": "100n",
+      "mpn": "C0603C104K5RACTU",
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "AFE_DVDD",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "bus.kicad_sch"
+    },
+    {
+      "reference": "C109",
+      "contract_ref": "C_MON_M",
+      "symbol": "C",
+      "value": "100n",
+      "mpn": "C0603C104K5RACTU",
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "MCU_3V3",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "supervision.kicad_sch"
+    },
+    {
+      "reference": "C110",
+      "contract_ref": "C_MON_D",
+      "symbol": "C",
+      "value": "100n",
+      "mpn": "C0603C104K5RACTU",
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "MCU_3V3",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "supervision.kicad_sch"
+    },
+    {
+      "reference": "C111",
+      "contract_ref": "C_MON_A",
+      "symbol": "C",
+      "value": "100n",
+      "mpn": "C0603C104K5RACTU",
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "MCU_3V3",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "supervision.kicad_sch"
+    },
+    {
+      "reference": "C112",
+      "contract_ref": "C_MON_V",
+      "symbol": "C",
+      "value": "100n",
+      "mpn": "C0603C104K5RACTU",
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "MCU_3V3",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "supervision.kicad_sch"
+    },
+    {
+      "reference": "C113",
+      "contract_ref": "C_CLEAR_AND",
+      "symbol": "C",
+      "value": "100n",
+      "mpn": "C0603C104K5RACTU",
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "MCU_3V3",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "arming.kicad_sch"
+    },
+    {
+      "reference": "C114",
+      "contract_ref": "C_ARM_BUFFER",
+      "symbol": "C",
+      "value": "100n",
+      "mpn": "C0603C104K5RACTU",
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "MCU_3V3",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "arming.kicad_sch"
+    },
+    {
+      "reference": "C115",
+      "contract_ref": "C_ARM_FF",
+      "symbol": "C",
+      "value": "100n",
+      "mpn": "C0603C104K5RACTU",
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "MCU_3V3",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "arming.kicad_sch"
+    },
+    {
+      "reference": "R101",
+      "contract_ref": "R_CT_M",
+      "symbol": "R",
+      "value": "10k",
+      "mpn": "RC0603FR-0710KL",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "MCU_3V3",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "CT_MON_M",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "supervision.kicad_sch"
+    },
+    {
+      "reference": "R102",
+      "contract_ref": "R_SENSE_M",
+      "symbol": "R",
+      "value": "100k",
+      "mpn": "RC0603FR-07100KL",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "MCU_3V3",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "supervision.kicad_sch"
+    },
+    {
+      "reference": "R103",
+      "contract_ref": "R_CT_D",
+      "symbol": "R",
+      "value": "10k",
+      "mpn": "RC0603FR-0710KL",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "MCU_3V3",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "CT_MON_D",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "supervision.kicad_sch"
+    },
+    {
+      "reference": "R104",
+      "contract_ref": "R_SENSE_D",
+      "symbol": "R",
+      "value": "100k",
+      "mpn": "RC0603FR-07100KL",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "AFE_DVDD_SENSE",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "supervision.kicad_sch"
+    },
+    {
+      "reference": "R105",
+      "contract_ref": "R_CT_A",
+      "symbol": "R",
+      "value": "10k",
+      "mpn": "RC0603FR-0710KL",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "MCU_3V3",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "CT_MON_A",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "supervision.kicad_sch"
+    },
+    {
+      "reference": "R106",
+      "contract_ref": "R_SENSE_A",
+      "symbol": "R",
+      "value": "100k",
+      "mpn": "RC0603FR-07100KL",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "AFE_AVDD_SENSE",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "supervision.kicad_sch"
+    },
+    {
+      "reference": "R107",
+      "contract_ref": "R_CT_V",
+      "symbol": "R",
+      "value": "10k",
+      "mpn": "RC0603FR-0710KL",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "MCU_3V3",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "CT_MON_V",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "supervision.kicad_sch"
+    },
+    {
+      "reference": "R108",
+      "contract_ref": "R_SENSE_V",
+      "symbol": "R",
+      "value": "100k",
+      "mpn": "RC0603FR-07100KL",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "TARGET_VIN5",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "supervision.kicad_sch"
+    },
+    {
+      "reference": "R109",
+      "contract_ref": "R_OE",
+      "symbol": "R",
+      "value": "100k",
+      "mpn": "RC0603FR-07100KL",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "BUS_OE",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "arming.kicad_sch"
+    },
+    {
+      "reference": "R110",
+      "contract_ref": "R_SESSION",
+      "symbol": "R",
+      "value": "10k",
+      "mpn": "RC0603FR-0710KL",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "SESSION",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "arming.kicad_sch"
+    },
+    {
+      "reference": "R111",
+      "contract_ref": "R_ARM",
+      "symbol": "R",
+      "value": "10k",
+      "mpn": "RC0603FR-0710KL",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "ARM_REQ",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "arming.kicad_sch"
+    },
+    {
+      "reference": "R112",
+      "contract_ref": "R_GOOD",
+      "symbol": "R",
+      "value": "10k",
+      "mpn": "RC0603FR-0710KL",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "RAILS_OK",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "MCU_3V3",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "arming.kicad_sch"
+    },
+    {
+      "reference": "R113",
+      "contract_ref": "R_STOP",
+      "symbol": "R",
+      "value": "10k",
+      "mpn": "RC0603FR-0710KL",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "STOP_N",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "MCU_3V3",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "arming.kicad_sch"
+    },
+    {
+      "reference": "R114",
+      "contract_ref": "R_MISO",
+      "symbol": "R",
+      "value": "42.2k",
+      "mpn": "RC0603FR-0742K2L",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "MCU_MISO",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "bus.kicad_sch"
+    },
+    {
+      "reference": "R115",
+      "contract_ref": "R_DRDY",
+      "symbol": "R",
+      "value": "42.2k",
+      "mpn": "RC0603FR-0742K2L",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "MCU_DRDY",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "bus.kicad_sch"
+    },
+    {
+      "reference": "R116",
+      "contract_ref": "R_DVDD_BLEED",
+      "symbol": "R",
+      "value": "100k",
+      "mpn": "RC0603FR-07100KL",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "AFE_DVDD",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "TARGET_GND",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "bus.kicad_sch"
+    }
+  ],
+  "external_assumptions": [
+    "interface pin types describe actual external endpoint roles, not always-powered sources",
+    "AFE six-way mating rail access is not implemented on the current AFE board",
+    "MCU tails remain permanent; bare-board USB programming requires removal",
+    "no HOST/TARGET power or ground jumper",
+    "no current firmware C2 handshake or automatic analog source isolation"
+  ],
+  "approval": false
+}
