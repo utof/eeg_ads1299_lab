@@ -127,5 +127,24 @@
     "new_native_cases": 1,
     "focused_native_auxiliary_cases": 12,
     "physical_experiments": false
+  },
+  "carrier_identity_review": {
+    "failed_hosted_run": 36904442121,
+    "failed_hosted_job": 110511329137,
+    "failed_head": "b0fcdc515eebf11ae7cc6b8dfacb6e887a7a9d55",
+    "local_same_failure_reproduced": true,
+    "reason": "strict K2 identity still named board before seven pull-property groups changed",
+    "old_board_sha256": "dfe893f958128ba28eb69188cf6debbbc9fcafa0ef5dd67bd58627d4b8a26842",
+    "accepted_board_sha256": "f11c9651fb0cebb01bf2cc7d6ef1be0a0093664dfacc4f193f90aab14bdbd6c7",
+    "exact_reversal_properties_each_count": {
+      "Value": 7,
+      "MPN": 7,
+      "BOM_ID": 7
+    },
+    "whole_prior_board_reconstructed_byte_for_byte": true,
+    "unchanged_K2_solid_sources": true,
+    "strict_whole_file_binding_retained": true,
+    "disposable_moved_footprint_and_pad_size_changes_rejected": true,
+    "not_physical_fit_validation": true
   }
 }

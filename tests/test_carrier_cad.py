@@ -211,10 +211,12 @@ def test_release_strain_bar_before_withdrawal(tmp_path: Path) -> None:
 
 
 def test_carrier_is_bound_to_reviewed_board() -> None:
-    # A changed PCB must have its mechanical relationship reviewed, not inherit K2.
+    # C3 changed seven Value/MPN/BOM_ID groups only; reversing those edits
+    # reconstructs K2's complete original board. See REV_A_CARRIER_K2.md.
+    # Keep a strict whole-file binding: future geometry changes still fail.
     board = ROOT / "hardware/rev_a/layout/rev_a.kicad_pcb"
     assert hashlib.sha256(board.read_bytes()).hexdigest() == (
-        "dfe893f958128ba28eb69188cf6debbbc9fcafa0ef5dd67bd58627d4b8a26842"
+        "f11c9651fb0cebb01bf2cc7d6ef1be0a0093664dfacc4f193f90aab14bdbd6c7"
     )
 
 
