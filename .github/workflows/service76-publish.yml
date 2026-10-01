@@ -1,0 +1,93 @@
+name: Publish verified service76 recovery
+on:
+  push:
+    branches: [workbench/service76-recovery]
+    paths: [.github/workflows/service76-publish.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Require complete original recovery bundle before Git import
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64,hashlib,pathlib,subprocess
+          hashes=[
+          'd137a5047dd19ce026f2b9f6ed3045ace1fcba30f708b201dce41db0fc1ae428',
+          'ab5dfdc86254c68bb215a010ba4f1bee8eba4219a6381212b61d354d075dedc9',
+          '7d57e050e867a159525faeb096e35b6e3c51c25a43e27b99fc04005c50715f8c',
+          'ae4fd4745393ad50e10b6341959077860e25d7b03b7cdeb9ad1b9769258b4b8c',
+          '51c3c08f6a128e3929c832751fdf1717fe6a62162f71a82f89880b18e1242c97',
+          'a05f7eb3c29b38100916ce6d05952f59876f438344ca9949c1a37d2d0d7658d3',
+          'e036ffd9f9575e4188cc530da342114f9cb96efa2ac8985ef036f6df010df052',
+          'd3660970561cc5f7d298eb33edc06a62aba541dae245d99759c4f4409ddd6709',
+          '31ccef043b6b8490190bba6122e9bde50ed4a5741618d8cca575dd97d9f53aeb',
+          '9e219983cbf77360f0aebd701688f625b1dd39edb048fb50e4efbb26f8956deb',
+          'f17ef22e83ac79d98dc0fa3b46cbd430eec70d62a009a3192928a0aacbfecb86',
+          '878f7b90f8421396a1fdac86e84b39027436120a59eacef9d9408f7be86513da']
+          chunks=[];bad=[]
+          for i,expected in enumerate(hashes):
+              raw=pathlib.Path(f'transfer/source{i:02d}.b64').read_bytes()
+              actual=hashlib.sha256(raw).hexdigest()
+              print(i,len(raw),actual,flush=True)
+              if actual!=expected: bad.append(i)
+              chunks.append(raw.strip())
+          assert not bad, f'Transport differs in chunks {bad}; nothing imported'
+          encoded=b''.join(chunks)
+          assert len(encoded)==55680
+          data=base64.b64decode(encoded,validate=True)
+          assert len(data)==41758
+          assert hashlib.sha256(data).hexdigest()=='3bf85c6123bacfe2cdf3ffb445643d74881e350a9a173df243c55a680709f09b'
+          pathlib.Path('/tmp/recovery.bundle').write_bytes(data)
+          subprocess.run(['git','bundle','verify','/tmp/recovery.bundle'],check=True)
+          subprocess.run(['git','fetch','/tmp/recovery.bundle','HEAD'],check=True)
+          PY
+          test "$(git rev-parse FETCH_HEAD)" = ceb10d4483fbb87dcdb8b29ff57ce20b4818aa0c
+          test "$(git rev-parse FETCH_HEAD^{tree})" = f4cb1ec16e472feff4b96d34146948526f22758d
+          git merge-base --is-ancestor 10676fd14ffdeffe86f338342c9346c28f7cb1c8 FETCH_HEAD
+          test "$(git rev-list --count 10676fd1..FETCH_HEAD)" = 5
+          git diff --exit-code 10676fd1 FETCH_HEAD -- firmware lab pyproject.toml uv.lock .github
+          git push origin ceb10d4483fbb87dcdb8b29ff57ce20b4818aa0c:refs/heads/archive/service76-recovery-ceb10d4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: archive/service76-recovery-ceb10d4
+          fetch-depth: 0
+          path: fresh
+          persist-credentials: false
+      - name: Verify independent published source checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd fresh
+          test "$(git rev-parse HEAD)" = ceb10d4483fbb87dcdb8b29ff57ce20b4818aa0c
+          test "$(git rev-parse HEAD^{tree})" = f4cb1ec16e472feff4b96d34146948526f22758d
+          printf '%s  %s\n' 60097ff4acf8408d5a172930de74bcd36aa50a379dd30a831e4bc64d3841c8a6 hardware/rev_a/layout/rev_a.kicad_pcb | sha256sum -c -
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/source"
+          git branch service-recovery-source HEAD
+          git bundle create "$RUNNER_TEMP/source/repository.bundle" service-recovery-source
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/source/identity.txt"
+          cd "$RUNNER_TEMP/source"
+          sha256sum repository.bundle identity.txt > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: success()
+        with:
+          name: service76-published-source
+          path: ${{ runner.temp }}/source/
+          if-no-files-found: error
+          retention-days: 7
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: service76-transport-diagnostics
+          path: transfer/source*.b64
+          if-no-files-found: error
+          retention-days: 7
