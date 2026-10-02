@@ -120,6 +120,16 @@ else:
             assert tr.Type()==p.PCB_VIA_T and tr.GetNetname() in bynet,'ground-only vias'
             assert tr.TopLayer()==p.F_Cu and tr.BottomLayer()==p.B_Cu,'through-via layer pair'
             assert tr.GetWidth(p.F_Cu)==p.FromMM(.6) and tr.GetDrillValue()==p.FromMM(.3),'via size'
+            # Same-net copper clearance is not necessarily enforced by DRC.
+            # Keep the annulus >=0.20mm from every SMD pad bounding box too.
+            x,y=xy(tr)
+            for f in fs.values():
+                for a in f.Pads():
+                    if a.GetAttribute()!=p.PAD_ATTRIB_SMD:continue
+                    box=a.GetBoundingBox()
+                    dx=max(box.GetX()-x,x-box.GetRight(),0);dy=max(box.GetY()-y,y-box.GetBottom(),0)
+                    assert math.hypot(dx,dy)-p.FromMM(.3)>=p.FromMM(.2),'same-net via pad spacing'
+
 
     print(json.dumps(rows,indent=2))
 """
