@@ -14175,10 +14175,10 @@
 (segment (start 48.65 58) (end 48.65 57.4) (width 0.2) (layer "F.Cu") (net 40) (uuid "00631da9-e47a-53a5-a05d-e0bd442456d4"))
 (via (at 48.65 57.4) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net 40) (uuid "944bb784-7619-57cf-8336-4eb0363eab79"))
 (segment (start 59.8625 57.05) (end 58.65 57.05) (width 0.2) (layer "F.Cu") (net 40) (uuid "57daa0e5-2c6b-518c-9095-19802066e307"))
-(segment (start 58.65 57.05) (end 58.65 57.4) (width 0.2) (layer "F.Cu") (net 40) (uuid "dd8d7b27-fcb8-5eec-9bed-ae1537f94d95"))
+(segment (start 58.65 57.05) (end 58.65 57.2) (width 0.2) (layer "F.Cu") (net 40) (uuid "dd8d7b27-fcb8-5eec-9bed-ae1537f94d95"))
 (segment (start 59.8625 58) (end 58.65 58) (width 0.2) (layer "F.Cu") (net 40) (uuid "ac1a8baa-4ac1-5a22-8053-72ea69507ab8"))
-(segment (start 58.65 58) (end 58.65 57.4) (width 0.2) (layer "F.Cu") (net 40) (uuid "a2e1a6af-4c39-532b-8f71-d22c24eead27"))
-(via (at 58.65 57.4) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net 40) (uuid "a5c72579-0480-5829-9a84-a8c4bae83a1c"))
+(segment (start 58.65 58) (end 58.65 57.2) (width 0.2) (layer "F.Cu") (net 40) (uuid "a2e1a6af-4c39-532b-8f71-d22c24eead27"))
+(via (at 58.65 57.2) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net 40) (uuid "a5c72579-0480-5829-9a84-a8c4bae83a1c"))
 (zone
 		(net 0)
 		(net_name "")
