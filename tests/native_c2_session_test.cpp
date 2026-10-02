@@ -8,7 +8,7 @@ std::vector<Event> events;
 std::deque<char> input;
 std::string scenario;
 std::uint64_t elapsed=0;
-std::uint64_t clockAt=0, sessionAt=0, armAt=0;
+std::uint64_t clockAt=0, sessionAt=0, armAt=0, haltAt=0;
 bool clockSeen=false, sessionSeen=false, faulted=false, halted=false;
 bool postSetup=false, transmittingFrame=false;
 unsigned packets=0, spiBegins=0, reads=0;
@@ -30,11 +30,14 @@ void printed(const char* text) {
     if(s.find("BENCH: measure VCAP1")!=std::string::npos) {
         if(scenario=="vcap-fault")fault(); else input.push_back('V');
     }
-    if(s.find("HALTED")!=std::string::npos) { halted=true;rails=true;deadline=elapsed+20000; }
+    if(s.find("HALTED")!=std::string::npos) { halted=true;haltAt=elapsed;rails=true;deadline=elapsed+20000; }
 }
 void tickFaults() {
     if(faulted || halted)return;
     if(scenario=="no-ready")rails=false;
+    if(scenario=="ready-glitch" && sessionSeen) {
+        const auto age=elapsed-sessionAt;rails=!(age>=3 && age<6);
+    }
     if(scenario=="wait-fault" && clockSeen && elapsed-clockAt>=1000)fault();
     if(scenario=="reference-fault" && regs[0x17]==0 && regs[0x03]==0xe0 && elapsed>clockAt+151000)fault();
     if(scenario=="arm-fault" && levels[9] && elapsed-armAt>=1)fault();
@@ -74,20 +77,22 @@ int main(int argc,char**argv) {
         if(scenario=="idle-fault" || scenario=="recover-fault") {fault();if(scenario=="recover-fault")rails=true;loop();}
         else { transmittingFrame=true;onDataReady();loop(); }
     } catch(const Stop&) {}
-    const bool success=scenario=="good" || scenario=="wrap";
+    const bool success=scenario=="good" || scenario=="wrap" || scenario=="ready-glitch";
     if(success) {
         require(postSetup && !halted && packets==1,"good handshake/capture failed");
         auto session=at("latch",14,1), arm=at("latch",9,1), drop=at("latch",9,0,arm+1);
         require(session<arm && arm<drop,"fresh arm order");
-        require(events[arm].us-events[session].us>=10,"READY stability too short");
+        require(events[arm].us-events[session].us>=(scenario=="ready-glitch" ? 16u : 10u),"READY stability too short");
         require(events[drop].us-events[arm].us>=10,"ARM pulse too short");
         for(int pin:{12,11,10,5,6,7,8})require(at("latch",pin,0)<session,"not parked before SESSION");
         require(drop<at("latch",8,1),"clock before confirmed arm");
         require(events[at("latch",5,0,at("latch",5,1)+1)].us-clockAt>=132000,"startup interval not preserved");
     } else {
         require(halted,"fault did not halt the actual sketch");
+        if(scenario=="wait-fault")require(haltAt-clockAt<=2000,"startup wait was not polled in slices");
         require(levels[14]==0 && levels[9]==0,"SESSION/ARM not cleared");
         require(!latched,"hardware latch still on");
+        if(spiBegins)require(std::any_of(events.begin(),events.end(),[](const Event&e){return e.kind=="spi-end";}),"SPI was not ended");
         for(int pin:{12,11,10,5,6,7,8})require(levels[pin]==0,"bus control not parked after failure");
         require(channels==0 && consumed==0 && overruns==0 && lastGoodMs==0,"capture state survived fault");
         require(edgeCount==0 && edgeMicros==0,"DRDY state survived fault");

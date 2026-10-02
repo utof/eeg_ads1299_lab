@@ -29,7 +29,7 @@ STUBS = ROOT / "tests/firmware_stubs"
             )
         ),
         ("guard", "if(!BOARD_PROFILE_REVIEWED)", "if(false)"),
-        ("queued", "while(Serial.available()>0)Serial.read();", ""),
+        ("queued", "while(Serial.available()>0) {", "if(false) {"),
         ("fresh", "eeglab::startRevA(startup);", "(void)startup;"),
         ("fresh", "awaitBenchKey('V'", "awaitBenchKey('R'"),
         ("gpio-failure", ")!=ESP_OK)", ")==9999)"),
