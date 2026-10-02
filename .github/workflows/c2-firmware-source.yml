@@ -1,0 +1,36 @@
+name: Guarded firmware source
+on:
+  push:
+    branches: [workbench/c2-firmware-source]
+    paths: [.github/workflows/c2-firmware-source.yml]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: c8c8a12cd0ca92bef0edc938794fa662a6204d61
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Preserve original merged source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = c8c8a12cd0ca92bef0edc938794fa662a6204d61
+          test "$(git rev-parse HEAD^{tree})" = e956d55b655290ce1db2c3a0cc8266c25cf9a8bc
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/source"
+          git branch firmware-source HEAD
+          git bundle create "$RUNNER_TEMP/source/repository.bundle" firmware-source
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/source/identity.txt"
+          cd "$RUNNER_TEMP/source"
+          sha256sum repository.bundle identity.txt > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: c2-firmware-source
+          path: ${{ runner.temp }}/source/
+          if-no-files-found: error
+          retention-days: 7
