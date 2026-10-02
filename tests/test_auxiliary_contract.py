@@ -501,3 +501,33 @@ def test_auxiliary_snapshot_checks_declared_sheet_against_native_instances(
     path.write_text(_changed_manifest(("parts", 0, "sheet"), "bus.kicad_sch", False))
     with pytest.raises(ValueError, match="sheet"):
         auxiliary_source_snapshot(cad, libraries)
+
+
+def test_auxiliary_snapshot_includes_placement_rules_and_mechanical_land(
+    auxiliary_sources: tuple[Path, Path],
+) -> None:
+    cad, libraries = auxiliary_sources
+    p = libraries / "MountingHole.pretty/MountingHole_2.7mm_M2.5.kicad_mod"
+    p.parent.mkdir(exist_ok=True)
+    p.write_text("mechanical land hash fixture, not native geometry")
+    snapshot = auxiliary_source_snapshot(cad, libraries)
+    assert {
+        "auxiliary/auxiliary.kicad_pcb",
+        "auxiliary/auxiliary.kicad_dru",
+        "auxiliary-footprint/MountingHole:MountingHole_2.7mm_M2.5",
+    } <= snapshot.keys()
+
+
+@pytest.mark.parametrize("before,after", [("0.15mm", "0.1mm"), ("3.0mm", "0.3mm"), ("U111", "U*")])
+def test_auxiliary_snapshot_rejects_weakened_placement_rules(
+    auxiliary_sources: tuple[Path, Path],
+    before: str,
+    after: str,
+) -> None:
+    cad, libraries = auxiliary_sources
+    p = cad / "auxiliary.kicad_dru"
+    original = p.read_text()
+    assert before in original
+    p.write_text(original.replace(before, after))
+    with pytest.raises(ValueError, match="P1 rules"):
+        auxiliary_source_snapshot(cad, libraries)
