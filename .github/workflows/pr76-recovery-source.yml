@@ -1,0 +1,37 @@
+name: PR76 recovery source
+on:
+  push:
+    branches: [workbench/pr76-final-recovery]
+    paths: [.github/workflows/pr76-recovery-source.yml]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 65c55d511734b269537f4891aaa660f2c3bf1e37
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Preserve exact published source, not regenerated CAD
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = 65c55d511734b269537f4891aaa660f2c3bf1e37
+          test "$(git rev-parse HEAD^{tree})" = 65f1602f8c37437fb2351570432c53a77a27f8ca
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/source"
+          git branch pr76-recovered HEAD
+          git bundle create "$RUNNER_TEMP/source/repository.bundle" pr76-recovered
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/source/identity.txt"
+          sha256sum hardware/rev_a/layout/rev_a.kicad_pcb > "$RUNNER_TEMP/source/board.sha256"
+          cd "$RUNNER_TEMP/source"
+          sha256sum repository.bundle identity.txt board.sha256 > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pr76-recovered-source
+          path: ${{ runner.temp }}/source/
+          if-no-files-found: error
+          retention-days: 7
