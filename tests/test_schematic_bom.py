@@ -46,7 +46,7 @@ def test_every_csv_field_is_compared_with_the_xml(column: int) -> None:
         validate_schematic_bom(_write(rows), NETLIST)
 
 
-@pytest.mark.parametrize("row_index", range(1, 70))
+@pytest.mark.parametrize("row_index", range(1, len(list(csv.reader(io.StringIO(BOM_CSV))))))
 def test_every_component_including_dnp_and_offboard_must_be_present(row_index: int) -> None:
     rows = list(csv.reader(io.StringIO(BOM_CSV)))
     del rows[row_index]

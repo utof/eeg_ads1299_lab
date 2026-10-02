@@ -114,11 +114,20 @@ positive and wrong-but-ERC-clean auxiliary copies are tested. Gate source hashes
 include the auxiliary, selected library lands, validator/tests and frozen graphs.
 Keep transient output under ignored reports, never rewrite historical evidence.
 
-The first observed red had8 failures. The implementation run found one facade
-export-order mismatch after1155 tests passed; it was corrected rather than
-relaxing the policy. Read the PR's final-head results for completed verification,
-not the baseline or focused native run. Native fault copies/data perturbations
-are not physical experiments. AI review is not professional qualification.
+PR76 now preserves the published C4 recovery; do not reconstruct J3 again.
+During the final resumption, the collected BOM-deletion matrix had69 cases for
+70 components, omitting U2. Review4160974153 is corrected by deriving the range
+from parsed CSV records (excluding the header), not another hardcoded count.
+The collection check now covers all70 references and the full BOM module passes.
+The earlier native-sheet annotation fix and manufacturer-verified non-N contact
+selection remain intact. Check all three review threads and actual final-head
+CI before merging; a completed review summary alone is not acceptance.
+
+C4's recovery observed three missing-service failures, then the backing witness,
+and two zone-order mutation failures before their respective fixes. The older
+C3 eight-failure/facade-order narrative is not this C4 recovery's result. Native
+fault copies/data perturbations are not physical experiments. AI review is not
+professional qualification.
 
 ## Continue without private handoff dependencies
 
