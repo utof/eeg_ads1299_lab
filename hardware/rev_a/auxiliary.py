@@ -77,7 +77,7 @@ _EXTERNAL_ASSUMPTIONS = frozenset(
         "AFE six-way rail access requires the separate inspected 1:1 service harness; no hot mating",
         "MCU tails remain permanent; bare-board USB programming requires removal",
         "no HOST/TARGET power or ground jumper",
-        "no current firmware C2 handshake or automatic analog source isolation",
+        "F1 implements the C2 handshake; automatic analog source isolation remains absent",
     }
 )
 
@@ -297,6 +297,8 @@ _AUX_SHEETS = frozenset(
 )
 _AUX_FILES = _AUX_SHEETS | {
     "auxiliary.kicad_pro",
+    "auxiliary.kicad_pcb",
+    "auxiliary.kicad_dru",
     "RevA.kicad_sym",
     "sym-lib-table",
     "fp-lib-table",
@@ -310,6 +312,7 @@ _AUX_LIBRARIES = frozenset(
         "Capacitor_SMD",
         "Connector_JST",
         "Aux_Lands",
+        "MountingHole",
     }
 )
 
@@ -347,7 +350,21 @@ def _library_table(text: str, head: str, expected: dict[str, str]) -> None:
         raise ValueError("C3 library name/URI inventory differs")
 
 
+_P1_RULES = """(version 1)
+(rule "U111 selected 0.5mm-pitch native land"
+  (condition "A.Type == 'Pad' && B.Type == 'Pad' && A.memberOfFootprint('U111') && B.memberOfFootprint('U111')")
+  (constraint clearance (min 0.15mm)))
+(rule "HOST TARGET external copper separation"
+  (condition "(A.NetName == 'HOST_*' && B.NetName != 'HOST_*' && B.NetName != '') || (B.NetName == 'HOST_*' && A.NetName != 'HOST_*' && A.NetName != '')")
+  (constraint clearance (min 3.0mm)))
+"""
+
+
 def _source_configuration(contents: dict[str, str]) -> None:
+    if _parse("(rules " + contents["auxiliary.kicad_dru"] + ")") != _parse(
+        "(rules " + _P1_RULES + ")"
+    ):
+        raise ValueError("P1 rules differ from the reviewed placement constraints")
     project = _object(json.loads(contents["auxiliary.kicad_pro"]))
     if project.get("erc") != {"erc_exclusions": [], "rule_severities": {}}:
         raise ValueError("C3 ERC exclusions/severity overrides are not permitted")
@@ -408,7 +425,9 @@ def _sheet_assignments(contents: dict[str, str], contract: AuxiliaryContract) ->
 def _auxiliary_land_snapshot(
     cad: Path, footprints: Path, contract: AuxiliaryContract
 ) -> dict[str, str]:
-    identifiers = {p.footprint for p in contract.parts.values()}
+    identifiers = {p.footprint for p in contract.parts.values()} | {
+        "MountingHole:MountingHole_2.7mm_M2.5"
+    }
     local = cad / "Aux_Lands.pretty"
     if local.is_symlink() or footprints.is_symlink():
         raise ValueError("C3 footprint directory link is not permitted")

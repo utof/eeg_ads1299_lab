@@ -40,6 +40,9 @@ def _fake_project(root: Path) -> Path:
         if not path.exists():
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("SOFTWARE-ONLY footprint snapshot double; not native geometry")
+    mount = footprints / "MountingHole.pretty/MountingHole_2.7mm_M2.5.kicad_mod"
+    mount.parent.mkdir(exist_ok=True)
+    mount.write_text("source-only mounting-land stub, not native geometry")
     return footprints
 
 
@@ -236,7 +239,7 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
         assert report["physical_hardware_tested"] is False
         assert report["body_connection_authorized"] is False
         assert report["schematic_released"] is False
-        assert len(read_object(report["source_sha256"], "hashes")) == 80
+        assert len(read_object(report["source_sha256"], "hashes")) == 85
         directory = out / str(report["artifact_directory"])
         harness = read_object(json.loads((directory / "harness.json").read_text()), "harness")
         assert harness["physical_wiring_approved"] is False

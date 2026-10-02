@@ -294,6 +294,9 @@ def auxiliary_sources(tmp_path: Path) -> tuple[Path, Path]:
             path.parent.mkdir(parents=True, exist_ok=True)
             # This tests source closure, not geometry (covered by native tests).
             path.write_text(f'(footprint "{name}")')
+    mount = libraries / "MountingHole.pretty/MountingHole_2.7mm_M2.5.kicad_mod"
+    mount.parent.mkdir(exist_ok=True)
+    mount.write_text("source-only mounting-land stub, not native geometry")
     return cad, libraries
 
 

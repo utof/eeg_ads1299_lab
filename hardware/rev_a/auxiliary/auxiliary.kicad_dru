@@ -1,0 +1,7 @@
+(version 1)
+(rule "U111 selected 0.5mm-pitch native land"
+  (condition "A.Type == 'Pad' && B.Type == 'Pad' && A.memberOfFootprint('U111') && B.memberOfFootprint('U111')")
+  (constraint clearance (min 0.15mm)))
+(rule "HOST TARGET external copper separation"
+  (condition "(A.NetName == 'HOST_*' && B.NetName != 'HOST_*' && B.NetName != '') || (B.NetName == 'HOST_*' && A.NetName != 'HOST_*' && A.NetName != '')")
+  (constraint clearance (min 3.0mm)))

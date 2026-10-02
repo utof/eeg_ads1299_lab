@@ -1,9 +1,8 @@
 # Continue from this repository
 
-## Current continuation: F1 guarded firmware
+## Current continuation: P1 auxiliary placement; F1 completed
 
-Use the live `feat/c2-guarded-firmware` PR while open, then current main. Base is
-C4 main c8c8a12c. Read `REV_A_C2_FIRMWARE.md`: the reviewed S3 path now requires
+F1 was merged in PR77 at bc761c69; its base was C4 main c8c8a12c. Read `REV_A_C2_FIRMWARE.md`: the reviewed S3 path now requires
 SESSION/ARM/READY/ARMED, uses the real feedback through startup/SPI/capture,
 and halts terminally on detected failure. Default BOARD_PROFILE_REVIEWED stays
 false; no operational permission is added. Original ESP32 wiring is unchanged.
@@ -13,15 +12,38 @@ latency or host-side automatic recording revocation is implied.
 The other chat branch had an incomplete encoded transfer, not a finished PR.
 Complete firmware blobs were recovered and reused with independently rebuilt
 failure-first tests. The missing tail and full original tree/history were NOT
-recovered; current commits have the actual main as their parent. See the F1
+recovered; F1 commits have the actual C4 main as their parent. See the F1
 record for precise scope and use this PR's actual tested head, never prior counts.
 
-**Next: auxiliary PCB placement from the authored C3 schematic**, followed by
-routing. Preserve isolation spacing, local bypasses, actual feed/sense and
-mechanical/controller support. J3 is done; do not reconstruct it. F1 is now
-implemented software but physical C1/C2/C3/C4 and K2 qualification remains open.
-The retained C4 text below is prior-slice context, not an instruction to redo F1.
+**Current next task: route the P1 auxiliary placement**, ground references and
+short bypass loops first, then power/signals and native fill/DRC. The editable
+board is `hardware/rev_a/auxiliary/auxiliary.kicad_pcb`, adjacent to its project.
+Read `REV_A_AUXILIARY_PLACEMENT_P1.md` and
+`checkpoints/20261002_auxiliary_placement_p1.json`; use the live
+`feat/auxiliary-placement-p1` PR until merged, then main. Base is F1 main
+bc761c69558bbcf87a4c357c778828cc4da4928f, tree0c4da842a103d0708cfbcc889696bf98373ef5e8.
 
+P1 is90x75mm/four layers/nominal1.6mm,48electrical footprints/212terminals plus
+four board-only2.7mmNPTHs (52footprints/216pads). There are NO tracks/vias/planes:
+157unconnected with native parity0/other0/exit5 is expected, not routedDRCclean.
+Keep the3mm x20.5..23.5 full-height copper-free corridor on ALLfour layers and
+separate HOST/TARGET copper. TI's4-layer layout guidance informed the target;
+no supplier-specific stackup/EMI/insulation guarantee is implied. One narrowly
+scoped U111 pad-pair0.15mm rule accommodates the unchanged0.5mm-pitch land;
+other clearances are not relaxed, no findings excluded, vendorDFM remainsopen.
+All15bypasses are within2.5mm supply-pad-centre distance, not routed-loop proof.
+Four6x6mount allocations and wire/mate rectangles are planning budgets only.
+No fixtures, wire restraint or forces are qualified. Reference labels are onFab;
+final assembly silkscreen remains to be finished. Do not run old authoring
+helpers over either authored PCB. Use COPY projects for native saves/exports:
+KiCad may expand .pro or create .prl; strict source configuration stays guarded.
+
+The original AFE/circuit/BOM/profile/F1firmware/K2 source remains unchanged.
+J3 is complete, F1 is implemented, P1 placement is now source: do not repeat them
+because an old checkpoint says otherwise. Both barriers, C4 feed/sense and all
+physical/gate limitations remain. Native placement/source-snapshot tests are
+executed by the existing --schematic gate, not a parallel verification command.
+The retained C4 text below is historical context, not a fresh implementation task.
 
 **Retained C4 source context (completed in PR #76).**
 Read root `AGENTS.md`, `docs/DEVELOPMENT.md` and the hardware baseline. Fetch live
@@ -177,6 +199,6 @@ construction. The six-pair upstream coupling item, #48 capacitor qualification,
 #45 vendor/fixture/mechanical/interface evidence and earlier supply/output-route
 tradeoffs remain open. Fifteen new auxiliary bypasses do not count as the33AFE
 capacitors or qualify their replacements. All costs for the auxiliary/cables/
-service access remain unquoted; old$94.34 planning does not prove$100compliance.
+service assembly remain unquoted; the$94.84AFE planning subtotal does not prove$100compliance.
 The user is learning electronics; explain decisions plainly and keep slices finite.
 All purchasing/fabrication/powered-connection/body-use flags remain false.
