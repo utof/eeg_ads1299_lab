@@ -1,0 +1,35 @@
+name: P2 Source Context
+on:
+  push:
+    branches: [workbench/p2-routing-context]
+    paths: [.github/workflows/p2-source.yml]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 3926fa02816b6812bcacd6113db180278186c258
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Capture immutable source
+        run: |
+          set -eu
+          test "$(git rev-parse HEAD)" = 3926fa02816b6812bcacd6113db180278186c258
+          test "$(git rev-parse HEAD^{tree})" = d3020772347f15b5c13db31703ba18d7e7a2e195
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/context"
+          git branch captured-p1 HEAD
+          git bundle create "$RUNNER_TEMP/context/repository.bundle" captured-p1
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/context/identity.txt"
+          cd "$RUNNER_TEMP/context"
+          sha256sum repository.bundle identity.txt > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p2-source-context
+          path: ${{ runner.temp }}/context/
+          retention-days: 7
+          if-no-files-found: error
