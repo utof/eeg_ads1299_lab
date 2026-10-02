@@ -105,10 +105,10 @@ mask registration, solderability or the supplier's production limits.
 ## Mounting and cable access
 
 Four **2.7mm nominal NPTH clearance holes for an M2.5-style support** sit at
-(5,5),(85,5),(5,70),(85,70)mm. They are mechanical-only, excluded from the
+(5,5),(85,5),(5,70),(86.5,70)mm. They are mechanical-only, excluded from the
 schematic, electrical BOM and placement output. No fastener or spacer is
 selected or purchased. Each has a6x6mm reserved mounting allocation checked
-against native copper-pad boxes; the minimum allocation-to-pad gap is1.0mm.
+against native copper-pad boxes; the minimum allocation-to-pad gap is1.46mm.
 Use independently supported, nonconductive fixture elements until a mechanical
 assembly is reviewed. Hole diameter alone does not qualify a screw-head, washer,
 post, force, board deflection or a conductive base crossing both domains.
@@ -122,7 +122,9 @@ Declared XY working allocations (mm) are:
 | J103 HOST tails | 0,29,14.5,35 |
 | J104 XH rail service | 27,50,45.5,58 |
 
-Other component courtyards do not enter them. These rectangles reserve design
+Other component courtyards do not enter them. Every mounting allocation is now
+also checked against every termination allocation, with at least0.5mm planned
+separation. These rectangles reserve design
 space but are not exact maximum mate, tool, strain-relief or cable envelopes.
 The MCU/module are independently supported outside this board; no daughterboard
 or enclosure is implicitly suspended from the wire joints. J104's five-wire1:1
@@ -132,6 +134,32 @@ Reference labels are on Fab for the placement inspection view; large functional
 warnings are on silkscreen. Final assembly artwork, circuit labels, cable
 restraint and mounting drawings remain unfinished. No ready-to-print carrier
 or assembled enclosure is delivered by P1.
+
+## Review recovery: mounting versus wire access
+
+PR #78 preserved the interrupted source as `1ef134104ce552cd41c013c306838b765f882df6`. Review finding4166671956
+correctly identified a1x6mm overlap between the original H4 mounting allocation
+[82,67,88,73] and J102's unchanged working area[26,61.5,83,75]. The old checks
+compared mounts with pads and termination areas with electrical courtyards, but
+did not compare those two reserved spaces with each other. Original KiCad DRC
+still reported only unrouted connections: that did not establish mechanical fit.
+
+Test-only `7adbc3ad795ac680a2f39aa3f025e70f075e2f84` added the missing cross-check and observed the intended native
+canonical failure before any board edit. Move only H4 by+1.5mm in X, leaving
+its6x6mm allocation at[83.5,67,89.5,73]. J102 and its entire cable/tool allocation
+are unchanged. The new0.5mm gap is a chosen design allowance, not a guaranteed
+assembled tolerance. The mounting allocation also ends0.5mm from the board
+outline; the nominal2.7mm hole edge remains2.15mm from that edge. H4 is no longer
+on the same X datum as H2: use the actual coordinates in a future fixture rather
+than assuming a rectangular hole pattern. Fastener/washer size, board-edge
+variation, force and actual cable/tool envelopes still need review.
+
+All48 electrical footprint forms, the other three mounts, barrier, pads, rules,
+outline and other board forms remain byte-identical. Reversing that single H4
+origin edit reconstructs the whole pre-review board. New native copies restore
+the old overlap, create exact contact, or leave only0.25mm clearance; each fails
+the new0.5mm allowance check. A harmless0.25mm Y movement of H4 remains accepted.
+These are rigid source-geometry tests, not physical tests or a routing release.
 
 ## Checks and reproducibility
 
@@ -151,7 +179,7 @@ buffer orientation and the separate feed/sense nets. Native parity independently
 compares the actual board and four-sheet schematic. A benign placement move must
 still pass; corruption controls must fail the relevant geometric or native rule.
 
-The focused file has16cases: one ordinary presence/state check and15native CAD
+The focused file has20cases: one ordinary presence/state check and19native CAD
 cases. It includes real outer- and inner-layer barrier violations, an off-strip
 HOST/TARGET spacing fault and an underspaced U111 pad pair. Missing-board,
 source-snapshot/policy and four-layer requirements were observed failing before

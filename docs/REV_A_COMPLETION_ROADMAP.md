@@ -7,6 +7,10 @@ are checked;157connections remain unfinished. Native0parity/0other/exit5 is not
 clean routing DRC. F1 firmware and C4 J3 are complete source milestones.
 Read the live P1 PR/head and `REV_A_AUXILIARY_PLACEMENT_P1.md`.
 
+PR78 recovery also resolves the H4/MCU-wire allocation overlap. Only H4 moves
++1.5mm in X; the full working area and electrical placement stay intact. The
+0.5mm planned mount/access margin is not physical tolerance or load validation.
+
 ## Glanceable roadmap
 
 Remaining substantial chat turns are estimates, not elapsed time or a safety

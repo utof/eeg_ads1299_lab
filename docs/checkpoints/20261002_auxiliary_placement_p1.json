@@ -4,7 +4,7 @@
   "base_commit": "bc761c69558bbcf87a4c357c778828cc4da4928f",
   "base_tree": "0c4da842a103d0708cfbcc889696bf98373ef5e8",
   "board_path": "hardware/rev_a/auxiliary/auxiliary.kicad_pcb",
-  "board_sha256": "7b583b9fe7acc8c40b851b2b86d013e11128fd3852f2962d060b3da3878ec427",
+  "board_sha256": "19dcd4fd8ffa933cba4bd1b44d976925641c9832ca17f40eed53cacd85c28262",
   "rules_sha256": "6ebebbcca143584268afcdb9b1c95d38006082a538815981dcfe92f3ab044b52",
   "main_AFE_board_unchanged_sha256": "60097ff4acf8408d5a172930de74bcd36aa50a379dd30a831e4bc64d3841c8a6",
   "nominal_outline_mm": [
@@ -59,7 +59,7 @@
       "H1": 19.0,
       "H2": 1.4600000000000009,
       "H3": 19.026297590440446,
-      "H4": 1.0
+      "H4": 1.5315351775261292
     },
     "mating_allocations_mm": {
       "J101": [
@@ -87,6 +87,51 @@
         58
       ]
     },
+    "mount_allocations_mm": {
+      "H1": [
+        2.0,
+        2.0,
+        8.0,
+        8.0
+      ],
+      "H2": [
+        82.0,
+        2.0,
+        88.0,
+        8.0
+      ],
+      "H3": [
+        2.0,
+        67.0,
+        8.0,
+        73.0
+      ],
+      "H4": [
+        83.5,
+        67.0,
+        89.5,
+        73.0
+      ]
+    },
+    "mount_to_termination_gaps_mm": {
+      "J101/H1": 18.0,
+      "J101/H2": 3.5,
+      "J101/H3": 57.87054518492115,
+      "J101/H4": 55.226805085936306,
+      "J102/H1": 56.44687768158661,
+      "J102/H2": 53.5,
+      "J102/H3": 18.0,
+      "J102/H4": 0.5,
+      "J103/H1": 21.0,
+      "J103/H2": 70.69123000768907,
+      "J103/H3": 32.0,
+      "J103/H4": 76.05918747922567,
+      "J104/H1": 46.09772228646444,
+      "J104/H2": 55.64395744373328,
+      "J104/H3": 21.02379604162864,
+      "J104/H4": 39.05124837953327
+    },
+    "minimum_mount_to_termination_gap_mm": 0.5,
     "physical_qualification": false
   },
   "barrier_mm": [
@@ -133,13 +178,14 @@
         70
       ],
       [
-        85,
+        86.5,
         70
       ]
     ],
     "reserved_half_width_mm": 3,
     "board_only_NPTH": true,
-    "fasteners_materials_forces_qualified": false
+    "fasteners_materials_forces_qualified": false,
+    "minimum_allocation_to_termination_gap_mm": 0.5
   },
   "bypass_count": 15,
   "maximum_selected_supply_pad_centre_distance_mm": 2.5,
@@ -169,7 +215,7 @@
     "snapshot_policy": 4,
     "four_layer_target_on_initial_two_layer_draft": 1
   },
-  "focused_native_test_count": 15,
+  "focused_native_test_count": 19,
   "ordinary_placement_presence_test_count": 1,
   "scope_of_fault_controls": "independent source and native CAD mutations, not physical experiments or exhaustive coverage",
   "source_capture_run": 37013580838,
@@ -205,5 +251,38 @@
   "physical_hardware_tested": false,
   "approval_changes": false,
   "budget_quote_or_purchase": false,
-  "next_task": "Route auxiliary ground references and short bypass loops first while preserving all-layer HOST/TARGET exclusion; then power and signals, native refill/DRC and scoped return-path review."
+  "next_task": "Route auxiliary ground references and short bypass loops first while preserving all-layer HOST/TARGET exclusion; then power and signals, native refill/DRC and scoped return-path review.",
+  "review_correction": {
+    "finding": 4166671956,
+    "recovered_head": "1ef134104ce552cd41c013c306838b765f882df6",
+    "original_board_sha256": "7b583b9fe7acc8c40b851b2b86d013e11128fd3852f2962d060b3da3878ec427",
+    "test_first_commit": "7adbc3ad795ac680a2f39aa3f025e70f075e2f84",
+    "geometry_fix_commit": "069953e37c89b8c7e1bc858a9d291751ab1f893c",
+    "original_H4_J102_overlap_mm": [
+      1,
+      6
+    ],
+    "H4_translation_mm": [
+      1.5,
+      0
+    ],
+    "J102_termination_allocation_changed": false,
+    "only_one_authored_origin_changed": true,
+    "all_48_electrical_footprints_byte_identical": true,
+    "other_three_mounts_and_all_other_board_forms_byte_identical": true,
+    "reversed_origin_restores_complete_pre_review_board": true,
+    "native_red_cases_observed": 1,
+    "new_bad_geometry_modes": [
+      "mount-into-access",
+      "mount-touch-access",
+      "mount-near-access"
+    ],
+    "additional_benign_mount_move_tested": true,
+    "native_focused_cases_after_correction": 19,
+    "ordinary_presence_case": 1,
+    "new_geometry_guard": "all sixteen mount/termination pairs require at least 0.5mm planned gap",
+    "H4_mount_allocation_to_board_edge_mm": 0.5,
+    "H4_nominal_hole_edge_to_board_edge_mm": 2.15,
+    "physical_fit_tolerance_and_load_validation": false
+  }
 }

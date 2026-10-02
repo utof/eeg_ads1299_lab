@@ -33,6 +33,11 @@ scoped U111 pad-pair0.15mm rule accommodates the unchanged0.5mm-pitch land;
 other clearances are not relaxed, no findings excluded, vendorDFM remainsopen.
 All15bypasses are within2.5mm supply-pad-centre distance, not routed-loop proof.
 Four6x6mount allocations and wire/mate rectangles are planning budgets only.
+PR78 review corrected H4/J102 allocation overlap by moving ONLY H4 from85,70
+to86.5,70mm, retaining all electrical placement and the full J102 area. All16
+mount/termination pairs now require0.5mm planned gap, with overlap/contact/near
+faults and a benign control. H4 is not on H2's X datum; actual fixture/tolerance
+and hole-edge strength need review. Do not restore the old symmetric pattern.
 No fixtures, wire restraint or forces are qualified. Reference labels are onFab;
 final assembly silkscreen remains to be finished. Do not run old authoring
 helpers over either authored PCB. Use COPY projects for native saves/exports:
