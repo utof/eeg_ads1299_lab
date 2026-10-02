@@ -1,0 +1,254 @@
+From 6877a09e42eae6a01d759f3199135e7f18def968 Mon Sep 17 00:00:00 2001
+From: Repository assistant <assistant@users.noreply.github.com>
+Date: Fri, 2 Oct 2026 16:17:21 +0000
+Subject: [PATCH 3/3] docs(hardware): record P1 mounting review correction and
+ remaining fit limits
+
+---
+ docs/LLM_HANDOFF.md                           |  5 +
+ docs/REV_A_AUXILIARY_PLACEMENT_P1.md          | 36 +++++++-
+ docs/REV_A_COMPLETION_ROADMAP.md              |  4 +
+ .../20261002_auxiliary_placement_p1.json      | 91 +++++++++++++++++--
+ 4 files changed, 126 insertions(+), 10 deletions(-)
+
+diff --git a/docs/LLM_HANDOFF.md b/docs/LLM_HANDOFF.md
+index 9edfa19..5d27243 100644
+--- a/docs/LLM_HANDOFF.md
++++ b/docs/LLM_HANDOFF.md
+@@ -33,6 +33,11 @@ scoped U111 pad-pair0.15mm rule accommodates the unchanged0.5mm-pitch land;
+ other clearances are not relaxed, no findings excluded, vendorDFM remainsopen.
+ All15bypasses are within2.5mm supply-pad-centre distance, not routed-loop proof.
+ Four6x6mount allocations and wire/mate rectangles are planning budgets only.
++PR78 review corrected H4/J102 allocation overlap by moving ONLY H4 from85,70
++to86.5,70mm, retaining all electrical placement and the full J102 area. All16
++mount/termination pairs now require0.5mm planned gap, with overlap/contact/near
++faults and a benign control. H4 is not on H2's X datum; actual fixture/tolerance
++and hole-edge strength need review. Do not restore the old symmetric pattern.
+ No fixtures, wire restraint or forces are qualified. Reference labels are onFab;
+ final assembly silkscreen remains to be finished. Do not run old authoring
+ helpers over either authored PCB. Use COPY projects for native saves/exports:
+diff --git a/docs/REV_A_AUXILIARY_PLACEMENT_P1.md b/docs/REV_A_AUXILIARY_PLACEMENT_P1.md
+index 2682801..5ee455a 100644
+--- a/docs/REV_A_AUXILIARY_PLACEMENT_P1.md
++++ b/docs/REV_A_AUXILIARY_PLACEMENT_P1.md
+@@ -105,10 +105,10 @@ mask registration, solderability or the supplier's production limits.
+ ## Mounting and cable access
+ 
+ Four **2.7mm nominal NPTH clearance holes for an M2.5-style support** sit at
+-(5,5),(85,5),(5,70),(85,70)mm. They are mechanical-only, excluded from the
++(5,5),(85,5),(5,70),(86.5,70)mm. They are mechanical-only, excluded from the
+ schematic, electrical BOM and placement output. No fastener or spacer is
+ selected or purchased. Each has a6x6mm reserved mounting allocation checked
+-against native copper-pad boxes; the minimum allocation-to-pad gap is1.0mm.
++against native copper-pad boxes; the minimum allocation-to-pad gap is1.46mm.
+ Use independently supported, nonconductive fixture elements until a mechanical
+ assembly is reviewed. Hole diameter alone does not qualify a screw-head, washer,
+ post, force, board deflection or a conductive base crossing both domains.
+@@ -122,7 +122,9 @@ Declared XY working allocations (mm) are:
+ | J103 HOST tails | 0,29,14.5,35 |
+ | J104 XH rail service | 27,50,45.5,58 |
+ 
+-Other component courtyards do not enter them. These rectangles reserve design
++Other component courtyards do not enter them. Every mounting allocation is now
++also checked against every termination allocation, with at least0.5mm planned
++separation. These rectangles reserve design
+ space but are not exact maximum mate, tool, strain-relief or cable envelopes.
+ The MCU/module are independently supported outside this board; no daughterboard
+ or enclosure is implicitly suspended from the wire joints. J104's five-wire1:1
+@@ -133,6 +135,32 @@ warnings are on silkscreen. Final assembly artwork, circuit labels, cable
+ restraint and mounting drawings remain unfinished. No ready-to-print carrier
+ or assembled enclosure is delivered by P1.
+ 
++## Review recovery: mounting versus wire access
++
++PR #78 preserved the interrupted source as `1ef134104ce552cd41c013c306838b765f882df6`. Review finding4166671956
++correctly identified a1x6mm overlap between the original H4 mounting allocation
++[82,67,88,73] and J102's unchanged working area[26,61.5,83,75]. The old checks
++compared mounts with pads and termination areas with electrical courtyards, but
++did not compare those two reserved spaces with each other. Original KiCad DRC
++still reported only unrouted connections: that did not establish mechanical fit.
++
++Test-only `7adbc3ad795ac680a2f39aa3f025e70f075e2f84` added the missing cross-check and observed the intended native
++canonical failure before any board edit. Move only H4 by+1.5mm in X, leaving
++its6x6mm allocation at[83.5,67,89.5,73]. J102 and its entire cable/tool allocation
++are unchanged. The new0.5mm gap is a chosen design allowance, not a guaranteed
++assembled tolerance. The mounting allocation also ends0.5mm from the board
++outline; the nominal2.7mm hole edge remains2.15mm from that edge. H4 is no longer
++on the same X datum as H2: use the actual coordinates in a future fixture rather
++than assuming a rectangular hole pattern. Fastener/washer size, board-edge
++variation, force and actual cable/tool envelopes still need review.
++
++All48 electrical footprint forms, the other three mounts, barrier, pads, rules,
++outline and other board forms remain byte-identical. Reversing that single H4
++origin edit reconstructs the whole pre-review board. New native copies restore
++the old overlap, create exact contact, or leave only0.25mm clearance; each fails
++the new0.5mm allowance check. A harmless0.25mm Y movement of H4 remains accepted.
++These are rigid source-geometry tests, not physical tests or a routing release.
++
+ ## Checks and reproducibility
+ 
+ Run the existing locked entry point from the repository root:
+@@ -151,7 +179,7 @@ buffer orientation and the separate feed/sense nets. Native parity independently
+ compares the actual board and four-sheet schematic. A benign placement move must
+ still pass; corruption controls must fail the relevant geometric or native rule.
+ 
+-The focused file has16cases: one ordinary presence/state check and15native CAD
++The focused file has20cases: one ordinary presence/state check and19native CAD
+ cases. It includes real outer- and inner-layer barrier violations, an off-strip
+ HOST/TARGET spacing fault and an underspaced U111 pad pair. Missing-board,
+ source-snapshot/policy and four-layer requirements were observed failing before
+diff --git a/docs/REV_A_COMPLETION_ROADMAP.md b/docs/REV_A_COMPLETION_ROADMAP.md
+index d550c8b..ce80346 100644
+--- a/docs/REV_A_COMPLETION_ROADMAP.md
++++ b/docs/REV_A_COMPLETION_ROADMAP.md
+@@ -7,6 +7,10 @@ are checked;157connections remain unfinished. Native0parity/0other/exit5 is not
+ clean routing DRC. F1 firmware and C4 J3 are complete source milestones.
+ Read the live P1 PR/head and `REV_A_AUXILIARY_PLACEMENT_P1.md`.
+ 
++PR78 recovery also resolves the H4/MCU-wire allocation overlap. Only H4 moves
+++1.5mm in X; the full working area and electrical placement stay intact. The
++0.5mm planned mount/access margin is not physical tolerance or load validation.
++
+ ## Glanceable roadmap
+ 
+ Remaining substantial chat turns are estimates, not elapsed time or a safety
+diff --git a/docs/checkpoints/20261002_auxiliary_placement_p1.json b/docs/checkpoints/20261002_auxiliary_placement_p1.json
+index c5b7fab..13d36a0 100644
+--- a/docs/checkpoints/20261002_auxiliary_placement_p1.json
++++ b/docs/checkpoints/20261002_auxiliary_placement_p1.json
+@@ -4,7 +4,7 @@
+   "base_commit": "bc761c69558bbcf87a4c357c778828cc4da4928f",
+   "base_tree": "0c4da842a103d0708cfbcc889696bf98373ef5e8",
+   "board_path": "hardware/rev_a/auxiliary/auxiliary.kicad_pcb",
+-  "board_sha256": "7b583b9fe7acc8c40b851b2b86d013e11128fd3852f2962d060b3da3878ec427",
++  "board_sha256": "19dcd4fd8ffa933cba4bd1b44d976925641c9832ca17f40eed53cacd85c28262",
+   "rules_sha256": "6ebebbcca143584268afcdb9b1c95d38006082a538815981dcfe92f3ab044b52",
+   "main_AFE_board_unchanged_sha256": "60097ff4acf8408d5a172930de74bcd36aa50a379dd30a831e4bc64d3841c8a6",
+   "nominal_outline_mm": [
+@@ -59,7 +59,7 @@
+       "H1": 19.0,
+       "H2": 1.4600000000000009,
+       "H3": 19.026297590440446,
+-      "H4": 1.0
++      "H4": 1.5315351775261292
+     },
+     "mating_allocations_mm": {
+       "J101": [
+@@ -87,6 +87,51 @@
+         58
+       ]
+     },
++    "mount_allocations_mm": {
++      "H1": [
++        2.0,
++        2.0,
++        8.0,
++        8.0
++      ],
++      "H2": [
++        82.0,
++        2.0,
++        88.0,
++        8.0
++      ],
++      "H3": [
++        2.0,
++        67.0,
++        8.0,
++        73.0
++      ],
++      "H4": [
++        83.5,
++        67.0,
++        89.5,
++        73.0
++      ]
++    },
++    "mount_to_termination_gaps_mm": {
++      "J101/H1": 18.0,
++      "J101/H2": 3.5,
++      "J101/H3": 57.87054518492115,
++      "J101/H4": 55.226805085936306,
++      "J102/H1": 56.44687768158661,
++      "J102/H2": 53.5,
++      "J102/H3": 18.0,
++      "J102/H4": 0.5,
++      "J103/H1": 21.0,
++      "J103/H2": 70.69123000768907,
++      "J103/H3": 32.0,
++      "J103/H4": 76.05918747922567,
++      "J104/H1": 46.09772228646444,
++      "J104/H2": 55.64395744373328,
++      "J104/H3": 21.02379604162864,
++      "J104/H4": 39.05124837953327
++    },
++    "minimum_mount_to_termination_gap_mm": 0.5,
+     "physical_qualification": false
+   },
+   "barrier_mm": [
+@@ -133,13 +178,14 @@
+         70
+       ],
+       [
+-        85,
++        86.5,
+         70
+       ]
+     ],
+     "reserved_half_width_mm": 3,
+     "board_only_NPTH": true,
+-    "fasteners_materials_forces_qualified": false
++    "fasteners_materials_forces_qualified": false,
++    "minimum_allocation_to_termination_gap_mm": 0.5
+   },
+   "bypass_count": 15,
+   "maximum_selected_supply_pad_centre_distance_mm": 2.5,
+@@ -169,7 +215,7 @@
+     "snapshot_policy": 4,
+     "four_layer_target_on_initial_two_layer_draft": 1
+   },
+-  "focused_native_test_count": 15,
++  "focused_native_test_count": 19,
+   "ordinary_placement_presence_test_count": 1,
+   "scope_of_fault_controls": "independent source and native CAD mutations, not physical experiments or exhaustive coverage",
+   "source_capture_run": 37013580838,
+@@ -205,5 +251,38 @@
+   "physical_hardware_tested": false,
+   "approval_changes": false,
+   "budget_quote_or_purchase": false,
+-  "next_task": "Route auxiliary ground references and short bypass loops first while preserving all-layer HOST/TARGET exclusion; then power and signals, native refill/DRC and scoped return-path review."
++  "next_task": "Route auxiliary ground references and short bypass loops first while preserving all-layer HOST/TARGET exclusion; then power and signals, native refill/DRC and scoped return-path review.",
++  "review_correction": {
++    "finding": 4166671956,
++    "recovered_head": "1ef134104ce552cd41c013c306838b765f882df6",
++    "original_board_sha256": "7b583b9fe7acc8c40b851b2b86d013e11128fd3852f2962d060b3da3878ec427",
++    "test_first_commit": "7adbc3ad795ac680a2f39aa3f025e70f075e2f84",
++    "geometry_fix_commit": "069953e37c89b8c7e1bc858a9d291751ab1f893c",
++    "original_H4_J102_overlap_mm": [
++      1,
++      6
++    ],
++    "H4_translation_mm": [
++      1.5,
++      0
++    ],
++    "J102_termination_allocation_changed": false,
++    "only_one_authored_origin_changed": true,
++    "all_48_electrical_footprints_byte_identical": true,
++    "other_three_mounts_and_all_other_board_forms_byte_identical": true,
++    "reversed_origin_restores_complete_pre_review_board": true,
++    "native_red_cases_observed": 1,
++    "new_bad_geometry_modes": [
++      "mount-into-access",
++      "mount-touch-access",
++      "mount-near-access"
++    ],
++    "additional_benign_mount_move_tested": true,
++    "native_focused_cases_after_correction": 19,
++    "ordinary_presence_case": 1,
++    "new_geometry_guard": "all sixteen mount/termination pairs require at least 0.5mm planned gap",
++    "H4_mount_allocation_to_board_edge_mm": 0.5,
++    "H4_nominal_hole_edge_to_board_edge_mm": 2.15,
++    "physical_fit_tolerance_and_load_validation": false
++  }
+ }
