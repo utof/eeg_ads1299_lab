@@ -23,11 +23,10 @@ implemented software but physical C1/C2/C3/C4 and K2 qualification remains open.
 The retained C4 text below is prior-slice context, not an instruction to redo F1.
 
 
-**Current checkpoint: C4 routed AFE service access and carrier backing.**
+**Retained C4 source context (completed in PR #76).**
 Read root `AGENTS.md`, `docs/DEVELOPMENT.md` and the hardware baseline. Fetch live
-main/open PRs, record SHA/tree and working-tree state. C4 is on
-`feat/afe-service-access-recovered` until its actual checks/review/merge; after
-merge use current main. Base is merged PR75 `10676fd14ffdeffe86f338342c9346c28f7cb1c8`.
+main/open PRs, record SHA/tree and working-tree state. C4 is merged; the following parent refers to that historical slice, not a
+current open PR. Its base was merged PR75 `10676fd14ffdeffe86f338342c9346c28f7cb1c8`.
 An old chat progress message is not proof of published or tested source.
 
 ## Authored source and current scope
@@ -70,7 +69,7 @@ empty cavity6, then unpowered assembled continuity. The intentional on-board
 DVDD and ground joins make assembled-only checks insufficient to detect every
 cable wiring error. No powered mating; independent cable restraint required.
 
-## Recovery and next bounded task
+## Historical C4 recovery
 
 The failed turn retained its baseline source capture but not the uncommitted
 service implementation. This continuation recovered recorded authoring operations

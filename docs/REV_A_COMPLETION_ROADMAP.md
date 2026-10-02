@@ -7,13 +7,6 @@ actual auxiliary latch and does not qualify power-loss or physical behavior.
 Read the live guarded-firmware PR/head and `REV_A_C2_FIRMWARE.md`.
 
 
-**Previous C4 checkpoint: C4 AFE service connection routed; cable target and backing defined.**
-The six-way service header now exists on the AFE; all earlier copper and
-placements are retained. C3 auxiliary schematic remains unrouted and the C2
-firmware handshake is still unimplemented. Physical mating, crimp, process,
-fault and measurement conditions remain open. Use current main/open PR source,
-not a missing or stale chat reply.
-
 ## Glanceable roadmap
 
 Remaining substantial chat turns are estimates, not elapsed time or a safety
@@ -22,26 +15,27 @@ physical measurement time; do not sum these into a promised completion date.
 
 | Category | Estimated turns remaining | Done / current status | Next slice or blocker |
 |---|---:|---|---|
-| Repository continuity | 0 for current milestone; maintain | C4 source, tests and current handoff are in its recovery branch/PR | Verify live PR/main, publish and review each actual head |
+| Repository continuity | 0 for current milestone; maintain | C4 is merged; F1 firmware and tests are in the current guarded-firmware PR | Verify live PR/main, publish and review each actual head |
 | Original AFE routing and scoped repairs | 0 for completed scope | All old copper preserved; J3 and11 service segments added | Preserve routing except explicitly reviewed service-access edits |
 | Remaining input/supply coupling | 1 combined decision after confirmations | Nine locations remain one six-pair assessment | Confirmed construction/E1 inputs, then combined rework or separate pilot-risk decision |
 | Stackup and bench envelope | 0 for targets; 1–2 plus outside evidence to close | Named construction and E1 numerical targets defined | Actual vendor drawing/tolerances and calibrated fixture/measurement floor |
 | Capacitor decision/migration | 1 coordinated review after evidence | 33 AFE capacitors accounted; exact shortlist still not substituted | #48 lifecycle/effective-C/assembly conditions; new auxiliary bypasses separately |
 | Carrier and cartridges | 0 for initial CAD; 1–2 plus physical fit/process | K2 solids plus C4 service backing and mating envelopes checked | Fit, retention, materials, cable and controller support |
-| **C1+C2 auxiliary and rail access** | **2–3 for remaining source work; physical tests separate** | **C3 schematic and matching routed AFE J3 now implemented in source** | **Next: guarded C2 firmware handshake; then auxiliary placement/routing** |
+| **C1+C2 auxiliary and rail access** | **1–2 for auxiliary placement/routing; physical tests separate** | **C3 schematic, routed AFE J3 and guarded F1 firmware implemented in source** | **Next: auxiliary PCB placement, then routing and mechanical/interface review** |
 | Real power/console faults | 1–3 plus physical checks | Circuit and steady-state budgets explicit; not qualified | Supply trajectories, actual leakage/edges, sense/feed breaks and disabled-state behavior |
 | Fabrication package and delivered budget | 1–2 after prerequisites | Not ready for fabrication or purchase | Separate release review, coherent outputs and delivered quote |
 | Person-disconnected bench verification | 2–4 guided turns plus bench work | Physical validation has not begun | Unpowered inspection, then staged dummy-source tests after prerequisites |
 
 ## Next bounded step
 
-Implement the actual **SESSION/ARM/READY/ARMED firmware handshake**, with
-failure-first startup/fault/rearm tests and exact S3 compilation. The matching
-AFE J3 is already implemented: do not repeat its placement or change the two
-20-position headers. Retain the no-hot-mating and independent feed/sense cable
-checks in `REV_A_SERVICE_C4.md`. Finish the auxiliary layout afterward and
-review power-fault behavior separately. Current firmware is not automatically
-C2-compatible merely because the schematic and service port exist.
+Place the **auxiliary PCB from the existing four-sheet C3 schematic**, preserving
+HOST/TARGET separation, local bypasses, C4's distinct supply feed and sense,
+and the mounting/cable-access requirements. Then route and review it. F1's
+SESSION/ARM/READY/ARMED integration is implemented; do not reconstruct J3 or
+repeat the handshake based on an old chat checkpoint. Hardware qualification,
+source faults and automatic host-side recording invalidation remain separate;
+firmware cannot retract a packet already delivered during a later fault.
+All existing external-acquisition and release gates remain false.
 The 42.2k pull migration is explicitly conditional: disabled-low budget has only
 24mV remaining under its stated assumptions. Unspecified intermediate-rail IOZ,
 installed resistance/leakage and abrupt-fault timing remain open. No test passing
