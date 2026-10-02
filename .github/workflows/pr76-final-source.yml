@@ -1,0 +1,39 @@
+name: PR76 final source
+on:
+  push:
+    branches: [workbench/pr76-final-recovery]
+    paths: [.github/workflows/pr76-final-source.yml]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: b3ba2d76df572b374bf8d9b4ea0be730d6fa2e91
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify exact published tree and preserve original objects
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = b3ba2d76df572b374bf8d9b4ea0be730d6fa2e91
+          test "$(git rev-parse HEAD^{tree})" = e956d55b655290ce1db2c3a0cc8266c25cf9a8bc
+          test "$(git rev-parse HEAD^)" = 65c55d511734b269537f4891aaa660f2c3bf1e37
+          test "$(git diff --name-only HEAD^ HEAD | wc -l)" = 2
+          git diff --exit-code HEAD^ HEAD -- hardware firmware lab tools pyproject.toml uv.lock .github
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/source"
+          git branch pr76-final HEAD
+          git bundle create "$RUNNER_TEMP/source/repository.bundle" pr76-final
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/source/identity.txt"
+          cd "$RUNNER_TEMP/source"
+          sha256sum repository.bundle identity.txt > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pr76-final-source
+          path: ${{ runner.temp }}/source/
+          if-no-files-found: error
+          retention-days: 7
