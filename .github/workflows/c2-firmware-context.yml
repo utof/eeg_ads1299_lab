@@ -1,0 +1,42 @@
+name: C2 Firmware Context
+on:
+  push:
+    branches: [workbench/c2-firmware-context]
+permissions:
+  contents: read
+jobs:
+  context:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: c8c8a12cd0ca92bef0edc938794fa662a6204d61
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.13'
+      - name: Capture verified source and locked cache
+        run: |
+          set -eu
+          python -m pip install uv==0.12.18
+          export UV_CACHE_DIR="$RUNNER_TEMP/uv-cache"
+          uv sync --locked --all-extras
+          test "$(git rev-parse HEAD)" = c8c8a12cd0ca92bef0edc938794fa662a6204d61
+          test "$(git rev-parse HEAD^{tree})" = e956d55b655290ce1db2c3a0cc8266c25cf9a8bc
+          git diff --exit-code HEAD
+          mkdir -p "$RUNNER_TEMP/context"
+          git branch captured-main HEAD
+          git bundle create "$RUNNER_TEMP/context/repository.bundle" captured-main
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/context/identity.txt"
+          cp "$(command -v uv)" "$RUNNER_TEMP/context/uv"
+          tar -C "$RUNNER_TEMP" -czf "$RUNNER_TEMP/context/uv-cache.tar.gz" uv-cache
+          cd "$RUNNER_TEMP/context"
+          sha256sum repository.bundle identity.txt uv uv-cache.tar.gz > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: c2-firmware-context
+          path: ${{ runner.temp }}/context/
+          retention-days: 7
+          if-no-files-found: error
