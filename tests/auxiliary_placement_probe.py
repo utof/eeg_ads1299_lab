@@ -13,6 +13,10 @@ if mode=='far-bypass':move('C110',0,-6)
 elif mode=='host-in-target':move('J103',30,0)
 elif mode=='blocked-mating':move('R116',6,7)
 elif mode=='mount-over-pad':move('H2',-57,3)
+elif mode in ('mount-into-access','mount-touch-access','mount-near-access'):
+    x={'mount-into-access':85,'mount-touch-access':86,'mount-near-access':86.25}[mode]
+    fs['H4'].SetPosition(p.VECTOR2I(p.FromMM(x),p.FromMM(70)))
+elif mode=='mount-benign':move('H4',0,-.25)
 elif mode=='wrong-sense':
     next(z for z in fs['J104'].Pads() if z.GetNumber()=='3').SetNet(b.FindNet('AFE_DVDD'))
 elif mode=='outer-only-barrier':
@@ -88,19 +92,24 @@ for cap,ic,n in pairs:
     a=pad(cap,1);v=pad(ic,n);assert a.GetNetname()==v.GetNetname()
     d=dist(pos(a),pos(v));assert d<=2.5,cap+' bypass distance';measured[cap]=d
 # Native copper/pads, not component centers, establish the mechanical fastener budget.
-hole_margins={}
+hole_margins={};mount_areas={}
 for ref in ('H1','H2','H3','H4'):
     f=fs[ref];ps=list(f.Pads());assert len(ps)==1
     z=ps[0];assert z.GetAttribute()==p.PAD_ATTRIB_NPTH and z.GetDrillSize()==p.VECTOR2I(p.FromMM(2.7),p.FromMM(2.7))
     assert f.GetAttributes() & p.FP_BOARD_ONLY and f.IsExcludedFromBOM()
-    X,Y=pos(z);area=[X-3,Y-3,X+3,Y+3]
+    X,Y=pos(z);area=[X-3,Y-3,X+3,Y+3];mount_areas[ref]=area
     assert area[0]>=.5 and area[1]>=.5 and area[2]<=89.5 and area[3]<=74.5
     distances=[gap(area,bounds(a.GetBoundingBox())) for r in contract['parts'] for a in fs[r['reference']].Pads()]
     assert min(distances)>.25,'mount copper allocation';hole_margins[ref]=min(distances)
 # Termination and plug/tool envelopes are declared allocations, not vendor maximums.
 areas={'J101':[26,0,78.5,12],'J102':[26,61.5,83,75],'J103':[0,29,14.5,35],
        'J104':[27,50,45.5,58]}
+mount_access_gaps={}
 for ref,area in areas.items():
+    for mount,reserved in mount_areas.items():
+        d=gap(area,reserved)
+        assert d>=.5,ref+' mount/termination clearance to '+mount
+        mount_access_gaps[ref+'/'+mount]=d
     for other,court in courts.items():
         if other!=ref: assert gap(area,court)>0,ref+' mating/termination envelope'
 for ref in ('U102','U103','U104'):
@@ -111,5 +120,7 @@ for r,u in [('R102','U105'),('R104','U106'),('R106','U107'),('R108','U108')]:
 assert pad('J104',2).GetNetCode()!=pad('J104',3).GetNetCode(),'premature feed/sense join'
 print(json.dumps({'mode':mode,'circuit_footprints':48,'mechanical_NPTH':4,'all_pads':sum(len(list(f.Pads())) for f in fs.values()),
     'host_target_pad_bbox_gap_mm':separation,'bypass_supply_pad_centers_mm':measured,
-    'hole_reserved_box_to_pad_gap_mm':hole_margins,'mating_allocations_mm':areas,'physical_qualification':False},indent=2))
+    'hole_reserved_box_to_pad_gap_mm':hole_margins,'mating_allocations_mm':areas,
+    'mount_allocations_mm':mount_areas,'mount_to_termination_gaps_mm':mount_access_gaps,
+    'minimum_mount_to_termination_gap_mm':min(mount_access_gaps.values()),'physical_qualification':False},indent=2))
 """

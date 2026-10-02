@@ -71,7 +71,7 @@ def _probe(cad: Path, mode: str, out: Path) -> subprocess.CompletedProcess[str]:
 
 
 @pytest.mark.schematic
-@pytest.mark.parametrize("mode", ["canonical", "benign"])
+@pytest.mark.parametrize("mode", ["canonical", "benign", "mount-benign"])
 def test_auxiliary_native_placement_geometry(tmp_path: Path, mode: str) -> None:
     cad = tmp_path / "cad"
     shutil.copytree(CAD, cad)
@@ -88,6 +88,9 @@ def test_auxiliary_native_placement_geometry(tmp_path: Path, mode: str) -> None:
         ("host-in-target", "host side"),
         ("blocked-mating", "mating/termination"),
         ("mount-over-pad", "mount copper"),
+        ("mount-into-access", "mount/termination clearance"),
+        ("mount-touch-access", "mount/termination clearance"),
+        ("mount-near-access", "mount/termination clearance"),
         ("wrong-sense", "net mismatch"),
         ("weaken-keepout", "keepout policy"),
         ("outer-only-barrier", "barrier layers"),
