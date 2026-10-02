@@ -1,6 +1,6 @@
 # Continue from this repository
 
-## Current continuation: P1 auxiliary placement; F1 completed
+## Current continuation: P2 auxiliary grounds/bypasses; F1 and P1 completed
 
 F1 was merged in PR77 at bc761c69; its base was C4 main c8c8a12c. Read `REV_A_C2_FIRMWARE.md`: the reviewed S3 path now requires
 SESSION/ARM/READY/ARMED, uses the real feedback through startup/SPI/capture,
@@ -15,40 +15,53 @@ failure-first tests. The missing tail and full original tree/history were NOT
 recovered; F1 commits have the actual C4 main as their parent. See the F1
 record for precise scope and use this PR's actual tested head, never prior counts.
 
-**Current next task: route the P1 auxiliary placement**, ground references and
-short bypass loops first, then power/signals and native fill/DRC. The editable
-board is `hardware/rev_a/auxiliary/auxiliary.kicad_pcb`, adjacent to its project.
-Read `REV_A_AUXILIARY_PLACEMENT_P1.md` and
-`checkpoints/20261002_auxiliary_placement_p1.json`; use the live
-`feat/auxiliary-placement-p1` PR until merged, then main. Base is F1 main
-bc761c69558bbcf87a4c357c778828cc4da4928f, tree0c4da842a103d0708cfbcc889696bf98373ef5e8.
+**Current next task: complete remaining global feeds and signals on P2.**
+Read `REV_A_AUXILIARY_GROUND_P2.md` and
+`checkpoints/20261002_auxiliary_ground_p2.json`; use the live
+`feat/auxiliary-ground-p2` PR until reviewed/merged, then main. Base is merged
+P1 main3926fa02816b6812bcacd6113db180278186c258,
+treed3020772347f15b5c13db31703ba18d7e7a2e195. The authored board is
+`hardware/rev_a/auxiliary/auxiliary.kicad_pcb`, adjacent to its native project.
+Never regenerate either authored PCB from an importer or old routing helper.
 
-P1 is90x75mm/four layers/nominal1.6mm,48electrical footprints/212terminals plus
-four board-only2.7mmNPTHs (52footprints/216pads). There are NO tracks/vias/planes:
-157unconnected with native parity0/other0/exit5 is expected, not routedDRCclean.
-Keep the3mm x20.5..23.5 full-height copper-free corridor on ALLfour layers and
-separate HOST/TARGET copper. TI's4-layer layout guidance informed the target;
-no supplier-specific stackup/EMI/insulation guarantee is implied. One narrowly
-scoped U111 pad-pair0.15mm rule accommodates the unchanged0.5mm-pitch land;
-other clearances are not relaxed, no findings excluded, vendorDFM remainsopen.
-All15bypasses are within2.5mm supply-pad-centre distance, not routed-loop proof.
-Four6x6mount allocations and wire/mate rectangles are planning budgets only.
-PR78 review corrected H4/J102 allocation overlap by moving ONLY H4 from85,70
-to86.5,70mm, retaining all electrical placement and the full J102 area. All16
-mount/termination pairs now require0.5mm planned gap, with overlap/contact/near
-faults and a benign control. H4 is not on H2's X datum; actual fixture/tolerance
-and hole-edge strength need review. Do not restore the old symmetric pattern.
-No fixtures, wire restraint or forces are qualified. Reference labels are onFab;
-final assembly silkscreen remains to be finished. Do not run old authoring
-helpers over either authored PCB. Use COPY projects for native saves/exports:
-KiCad may expand .pro or create .prl; strict source configuration stays guarded.
+P2 retains90x75mm/four layers/nominal1.6mm and all52footprints/216pads unchanged.
+It adds62front0.20mm tracks,39ground-only0.60/0.30mm through vias and two actually
+filled In1 references: HOST_GND and TARGET_GND, one region each. All59ground
+terminals and15local cap-to-IC supply paths connect;157airwires become85.
+Native0parity/0other/85unconnected requires exit5, NOT completed-routing success.
+Global HOST_3V3/MCU_3V3/AFE_DVDD feeds, controls/UART/SPI/sense remain unfinished.
+Neither local bypass completion nor ground continuity powers the entire circuit.
 
-The original AFE/circuit/BOM/profile/F1firmware/K2 source remains unchanged.
-J3 is complete, F1 is implemented, P1 placement is now source: do not repeat them
-because an old checkpoint says otherwise. Both barriers, C4 feed/sense and all
-physical/gate limitations remain. Native placement/source-snapshot tests are
-executed by the existing --schematic gate, not a parallel verification command.
-The retained C4 text below is historical context, not a fresh implementation task.
+Preserve the3mm x20.5..23.5 all-layer HOST/TARGET exclusion and independent3mm
+clearance rule. The separate zone edge gap is3.5mm. Four added all-layer mounting
+keepouts prohibit tracks/vias/fills while allowing native NPTH PADs; P1's separate
+electrical pad/mount checks still enforce the full6x6 budgets. H4 remains86.5,70,
+not the old symmetric85,70 pattern, preserving its0.5mm planned J102-access gap.
+No placement/land or old rule changed. No stackup/process/insulation qualification
+is inferred from four layers, keepouts or gap arithmetic.
+
+P2 tests require actual short F.Cu paths, refilled ground connectivity and a
+continuous0.20mm-wide In1 reference corridor under each bypass and between its
+cap/IC ground vias. Native polygon subtraction detects voids between sample
+points. Longest F bypass2.1875mm; longest ground-via separation11.57mm: NOT a
+2mm complete bypass loop or an inductance/noise measurement. Future vias/cuts
+must preserve these references or make an explicit tested local reroute. There
+is no implied In2/B ground reference. Complete and review those layer changes
+when routing the remaining signals. Maintain C4 separate feed/sense nets.
+
+A same-net via-spacing proof moved only one U110 return via0.2mm in Y; no SMD
+or mount moved. Original AFE/circuit/BOM/profile/F1/K2/dependencies remain exact.
+New40P2 CAD cases join the existing --schematic gate, not a second orchestrator;
+its two proof files are source-hashed. Focused cases are subsets of whole gates.
+Read actual final-head local/hosted results in the PR. A transitional local gate
+run across source edits correctly rejected the changed snapshot; it is not a
+clean-final success. F1/J3/P1 are implemented: do not repeat them from stalechat.
+
+Use COPY projects for native saves/exports: KiCad may expand .pro/create .prl;
+strict source configuration stays guarded. No fixture, cable retention, forces,
+rail-fault response or body safety is qualified. Reference labels remain onFab;
+final assembly silkscreen is unfinished. Every release/purchase/powered/bodygate
+stays false; keep #45/#48 and the delivered budget requirements explicit.
 
 **Retained C4 source context (completed in PR #76).**
 Read root `AGENTS.md`, `docs/DEVELOPMENT.md` and the hardware baseline. Fetch live
@@ -62,7 +75,7 @@ Canonical AFE PCB: `hardware/rev_a/layout/rev_a.kicad_pcb`; native project:
 `hardware/rev_a/kicad/rev_a.kicad_pro`. Never regenerate the authored board with
 the deliberately unrouted parking-grid importer. The auxiliary remains at
 `hardware/rev_a/auxiliary/auxiliary.kicad_pro`, four sheets/48instances/212terminals.
-No auxiliary PCB is routed. F1 now implements the reviewed-path C2 handshake;
+The auxiliary is partially routed through P2, with85connections still open. F1 implements the reviewed-path C2 handshake;
 all physical hardware/release gates remain false.
 
 Read `REV_A_SERVICE_C4.md`, `checkpoints/20261001_service_c4.json` and the cable

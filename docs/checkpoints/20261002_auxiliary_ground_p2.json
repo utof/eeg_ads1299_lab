@@ -1,0 +1,298 @@
+{
+  "milestone": "P2",
+  "status": "partial_routing_not_a_release",
+  "base_commit": "3926fa02816b6812bcacd6113db180278186c258",
+  "base_tree": "d3020772347f15b5c13db31703ba18d7e7a2e195",
+  "native_version": "9.0.2",
+  "auxiliary_board_sha256": "57e54660e1cb99f74091f4d7e43ce4a942171a477320cf630a8343d72cf86d1c",
+  "unchanged_placement_footprint_forms": 52,
+  "original_isolation_rule_area_unchanged": true,
+  "other_changed_original_forms": [
+    "title_block",
+    "draft_scope_gr_text"
+  ],
+  "board_counts": {
+    "footprints": 52,
+    "pads": 216,
+    "tracks": 62,
+    "vias": 39,
+    "zones": 7
+  },
+  "ground_terminals": {
+    "HOST_GND": 3,
+    "TARGET_GND": 56
+  },
+  "ground_planes": {
+    "HOST_GND": {
+      "filled_area_mm2": 1369.168055883165,
+      "filled_regions": 1,
+      "SMD_ground_access_mm": {
+        "C101.2": 1.0,
+        "U101.4": 1.725
+      }
+    },
+    "TARGET_GND": {
+      "filled_area_mm2": 4546.490435232236,
+      "filled_regions": 1,
+      "SMD_ground_access_mm": {
+        "R115.2": 1.0,
+        "C112.2": 1.0,
+        "U106.5": 1.0,
+        "R116.2": 1.0,
+        "U104.3": 1.5375,
+        "U104.4": 2.1875,
+        "U104.7": 1.2000000000004167,
+        "U104.10": 1.4375,
+        "C103.2": 1.0,
+        "C107.2": 1.0,
+        "C113.2": 1.0,
+        "R104.2": 1.0,
+        "U107.5": 1.0,
+        "C106.2": 1.0,
+        "C110.2": 1.0,
+        "U102.7": 1.2000000000004167,
+        "U109.1": 1.5625,
+        "U109.2": 1.8125,
+        "C102.2": 1.0,
+        "C109.2": 1.0,
+        "U110.1": 1.3624999999999998,
+        "U110.2": 2.0125,
+        "R108.2": 1.0,
+        "C111.2": 1.0,
+        "U111.4": 1.3,
+        "C104.2": 1.0,
+        "U105.5": 1.0,
+        "C105.2": 1.0,
+        "C115.2": 1.0,
+        "C114.2": 1.0,
+        "R114.2": 1.0,
+        "U103.7": 1.2000000000004167,
+        "R109.2": 1.0,
+        "U108.5": 1.0,
+        "U101.5": 1.725,
+        "R111.2": 1.0,
+        "R106.2": 1.0,
+        "R110.2": 1.0,
+        "C108.2": 1.0,
+        "R102.2": 1.0
+      }
+    }
+  },
+  "bypass_paths": [
+    {
+      "capacitor": "C101",
+      "ic": "U101",
+      "pin": 1,
+      "front_path_mm": 1.950006410245874,
+      "reference_corridor_width_mm": 0.2,
+      "return_via_separation_mm": 4.7094214081986765
+    },
+    {
+      "capacitor": "C102",
+      "ic": "U101",
+      "pin": 8,
+      "front_path_mm": 1.950006410245874,
+      "reference_corridor_width_mm": 0.2,
+      "return_via_separation_mm": 4.7094214081986765
+    },
+    {
+      "capacitor": "C103",
+      "ic": "U102",
+      "pin": 1,
+      "front_path_mm": 2.1125,
+      "reference_corridor_width_mm": 0.2,
+      "return_via_separation_mm": 6.910059013858058
+    },
+    {
+      "capacitor": "C104",
+      "ic": "U102",
+      "pin": 14,
+      "front_path_mm": 2.1125,
+      "reference_corridor_width_mm": 0.2,
+      "return_via_separation_mm": 11.57195469551281
+    },
+    {
+      "capacitor": "C105",
+      "ic": "U103",
+      "pin": 1,
+      "front_path_mm": 2.1125,
+      "reference_corridor_width_mm": 0.2,
+      "return_via_separation_mm": 6.910059013858058
+    },
+    {
+      "capacitor": "C106",
+      "ic": "U103",
+      "pin": 14,
+      "front_path_mm": 2.1125,
+      "reference_corridor_width_mm": 0.2,
+      "return_via_separation_mm": 11.57195469551281
+    },
+    {
+      "capacitor": "C107",
+      "ic": "U104",
+      "pin": 1,
+      "front_path_mm": 2.1125,
+      "reference_corridor_width_mm": 0.2,
+      "return_via_separation_mm": 6.910059013858058
+    },
+    {
+      "capacitor": "C108",
+      "ic": "U104",
+      "pin": 14,
+      "front_path_mm": 2.1125,
+      "reference_corridor_width_mm": 0.2,
+      "return_via_separation_mm": 11.57195469551281
+    },
+    {
+      "capacitor": "C109",
+      "ic": "U105",
+      "pin": 2,
+      "front_path_mm": 1.75,
+      "reference_corridor_width_mm": 0.2,
+      "return_via_separation_mm": 6.45
+    },
+    {
+      "capacitor": "C110",
+      "ic": "U106",
+      "pin": 2,
+      "front_path_mm": 1.75,
+      "reference_corridor_width_mm": 0.2,
+      "return_via_separation_mm": 6.45
+    },
+    {
+      "capacitor": "C111",
+      "ic": "U107",
+      "pin": 2,
+      "front_path_mm": 1.75,
+      "reference_corridor_width_mm": 0.2,
+      "return_via_separation_mm": 6.45
+    },
+    {
+      "capacitor": "C112",
+      "ic": "U108",
+      "pin": 2,
+      "front_path_mm": 1.75,
+      "reference_corridor_width_mm": 0.2,
+      "return_via_separation_mm": 6.45
+    },
+    {
+      "capacitor": "C113",
+      "ic": "U109",
+      "pin": 5,
+      "front_path_mm": 2.1875,
+      "reference_corridor_width_mm": 0.2,
+      "return_via_separation_mm": 8.24685546132585
+    },
+    {
+      "capacitor": "C114",
+      "ic": "U110",
+      "pin": 5,
+      "front_path_mm": 2.187499,
+      "reference_corridor_width_mm": 0.2,
+      "return_via_separation_mm": 8.2638131967029
+    },
+    {
+      "capacitor": "C115",
+      "ic": "U111",
+      "pin": 8,
+      "front_path_mm": 2.025,
+      "reference_corridor_width_mm": 0.2,
+      "return_via_separation_mm": 8.80372790356449
+    }
+  ],
+  "native_drc": {
+    "parity": 0,
+    "other": 0,
+    "unconnected": 85,
+    "exit": 5
+  },
+  "prior_unconnected": 157,
+  "newly_completed_topological_connections": 72,
+  "plane_layer": "In1.Cu",
+  "plane_x_ranges_mm": {
+    "HOST_GND": [
+      0.5,
+      20.25
+    ],
+    "TARGET_GND": [
+      23.75,
+      89.5
+    ]
+  },
+  "nominal_plane_edge_gap_mm": 3.5,
+  "plane_y_range_mm": [
+    0.5,
+    74.5
+  ],
+  "local_track_width_mm": 0.2,
+  "via_diameter_drill_mm": [
+    0.6,
+    0.3
+  ],
+  "plane_clearance_mm": 0.25,
+  "plane_min_thickness_mm": 0.2,
+  "PTH_thermal_gap_spoke_mm": [
+    0.25,
+    0.3
+  ],
+  "mount_all_layer_exclusions": 4,
+  "mount_keepout_pad_policy": "Native NPTH PADs allowed; P1 independent pad/mount check forbids electrical pad entry",
+  "reference_coverage": "0.20mm strips under each local supply path and between respective ground vias; Boolean polygon subtraction at 1e-6mm^2 allowance, not impedance modeling",
+  "failure_first": {
+    "missing_paths_commit": "82a3a08f539f41bf66114400e91aa81562591622",
+    "missing_path_cases": 16,
+    "reference_void_commit": "b262b23f540753ade53529a48fa13c2fd79ff548",
+    "reference_void_cases": 1,
+    "source_snapshot_commit": "ad5011c8e09bd8218525b2598988678e5f384377",
+    "source_snapshot_cases": 2,
+    "same_net_via_spacing_red_commit": "13dfc4e6a459b80e2f8e72cedc113f32ecea95aa",
+    "same_net_via_spacing_fix_commit": "e6056227f13b36a63d202a8a79727f6549f5b489",
+    "same_net_via_spacing_native_failures": 1
+  },
+  "physical_hardware_tested": false,
+  "BOM_schematic_firmware_approval_change": false,
+  "primary_references": [
+    {
+      "url": "https://www.ti.com/lit/ds/symlink/iso7721.pdf",
+      "revision": "SLLSEP3G",
+      "pages": [
+        31,
+        32
+      ],
+      "scope": "local bypass and isolated domain reference guidance, not whole-assembly certification"
+    },
+    {
+      "url": "https://www.ti.com/lit/ds/symlink/txu0304.pdf",
+      "revision": "SCES935A",
+      "pages": [
+        25,
+        26
+      ],
+      "scope": "power-supply/bypass/ground return guidance, not measured circuit behavior"
+    }
+  ],
+  "next": "Complete global HOST_3V3, MCU_3V3, AFE_DVDD feeds and remaining control/data/sense paths without bypassing C4 separate sense; then refilled native DRC and actual return-path review. Do not infer B.Cu/In2 return references from these In1 planes.",
+  "same_net_via_spacing": {
+    "minimum_annulus_to_SMD_bbox_mm": 0.2,
+    "changed_via_xy_mm": {
+      "before": [
+        58.65,
+        57.4
+      ],
+      "after": [
+        58.65,
+        57.2
+      ]
+    },
+    "prior_minimum_mm": 0.113824,
+    "not_native_same_net_DRC_requirement": true,
+    "physical_process_qualified": false
+  },
+  "verification_scope": {
+    "focused_CAD_cases": 40,
+    "project_ordinary_new_cases": 2,
+    "final_native_results": "Read exact-head PR/check artifacts; not prior transient runs",
+    "authoring_scratch_not_project_dependency": true,
+    "remaining_connections": 85
+  }
+}
