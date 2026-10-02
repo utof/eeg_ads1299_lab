@@ -1,0 +1,74 @@
+name: Publish P1 Placement
+on:
+  push:
+    branches: [workbench/p1-placement-publish]
+    paths: [.github/workflows/p1-publish.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+      - name: Verify transport and restore exact original objects
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import base64,hashlib,io,lzma,os,re,subprocess,tarfile,uuid
+          hashes=['7cd3493d791ac2080d43ee4847755f04eaa964470be284619677dd5bc381faa8','d720c07b836988f009eb02199116fef71cbf31c95aa56c964630a4a517333bbc','cb37e4ac67ebfaccffed47d155ce57cd12c0534cc7c515f6737acd14920cb727','41502199db0682117ed4067526474cc29cd30b5ab10cf328370abb38afe0758f','b0996c8f4c59e25fd9045801244b5a24fa82f080499c0445cabaea9a52f1213d','eb74fe30ebf56614ee25508f12594afa10466a1dc3da596bdda2a6254346d4b5','4dfeb55df261202856d3c0aea876ba0cc44281f097487603b9499a9bf626a432','0db12080f1eb826fafb28def8b1c1313b9a0a1cb5c0408ed64895a7097dab463','4108f2b7587aa67946ee025135e1e18f875b1b24b8e93cfc589350aa9196f5ea','e0832375127e98c2e2985b8869805c7bbd5ecea78cd5bf6ddba5b0c605c50fa6','9540142505799a7386670d9a49943a56c1582cd1f383f9e872ee5c7129424b82','4791e3c8b482091192136cdb5b4611f8b9f281572584aeaf8dd578a0f3d57a2a','dab1c7683d7cd860448df32ae4fd0568c2c2870d5c26cb1b67c5fe2c764b0816','a1c219291aef517f4f111863aac3ffe84e287c34216dd673136df45bf1325222','7e719532be275a478566fde6a762e1bb9b9df6325e15c25554b1dc7b86eb5378b','28f7a3f29d1c327d0a28e4e2e8d290ae4d01a4cebce576fda97e21778b123d76']
+          # Correct expected l14 digest copied from the independently checked local manifest.
+          hashes[14]='7e719532be275a478566fde6a762e1bb9bdf6325e15c25554b1dc7b86eb5378b'
+          chunks=[];errors=[]
+          for i,h in enumerate(hashes):
+              data=Path(f'encoded/l{i:02}.b64').read_bytes()
+              if hashlib.sha256(data).hexdigest()!=h: errors.append((i,len(data),hashlib.sha256(data).hexdigest()))
+              chunks.append(data.strip())
+          assert not errors,errors
+          raw=base64.b64decode(b''.join(chunks),validate=True)
+          assert len(raw)==33932 and hashlib.sha256(raw).hexdigest()=='0b8171ca08b5e813d2e64cb5ceda5135cc1a2c97b0403df362022bedf16784e1'
+          with tarfile.open(fileobj=io.BytesIO(lzma.decompress(raw))) as tar:
+              assert {m.name for m in tar.getmembers()}=={'board.encoded','source.bundle'}
+              board=tar.extractfile('board.encoded').read()
+              bundle=tar.extractfile('source.bundle').read()
+          ns=uuid.UUID('f7139c64-919f-442a-8245-a393ca1c3c27')
+          board=re.sub(rb'P1UUID(\d{4})',lambda m:str(uuid.uuid5(ns,str(int(m[1])))).encode(),board)
+          assert hashlib.sha256(board).hexdigest()=='7b583b9fe7acc8c40b851b2b86d013e11128fd3852f2962d060b3da3878ec427'
+          assert subprocess.check_output(['git','hash-object','-w','--stdin'],input=board).decode().strip()=='4d0479233b15439c410554151427c00bd6467656'
+          p=Path(os.environ['RUNNER_TEMP'])/'candidate.bundle';p.write_bytes(bundle)
+          subprocess.run(['git','bundle','verify',str(p)],check=True)
+          subprocess.run(['git','fetch',str(p),'HEAD'],check=True)
+          PY
+      - name: Publish only exact candidate ancestry
+        run: |
+          set -eu
+          BASE=bc761c69558bbcf87a4c357c778828cc4da4928f
+          HEAD=1ef134104ce552cd41c013c306838b765f882df6
+          TREE=a6d8a3e407277573c8088a8746452c211ccc3904
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$BASE"
+          test "$(git rev-parse FETCH_HEAD)" = "$HEAD"
+          test "$(git rev-parse "$HEAD^{tree}")" = "$TREE"
+          test "$(git rev-list --count "$BASE..$HEAD")" = 4
+          git fsck --full --no-dangling
+          existing=$(git ls-remote origin refs/heads/feat/auxiliary-placement-p1 | cut -f1)
+          test -z "$existing" || test "$existing" = "$HEAD"
+          git push origin "$HEAD:refs/heads/feat/auxiliary-placement-p1"
+          git clone --no-local --branch feat/auxiliary-placement-p1 "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$RUNNER_TEMP/fresh"
+          cd "$RUNNER_TEMP/fresh"
+          test "$(git rev-parse HEAD)" = "$HEAD"
+          test "$(git rev-parse HEAD^{tree})" = "$TREE"
+          test -z "$(git status --porcelain)"
+          git fsck --full --no-dangling
+          mkdir -p "$RUNNER_TEMP/receipt"
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/receipt/identity.txt"
+          git bundle create "$RUNNER_TEMP/receipt/source.bundle" HEAD
+          cd "$RUNNER_TEMP/receipt"
+          sha256sum source.bundle identity.txt > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: published-p1-source
+          path: ${{ runner.temp }}/receipt/
+          retention-days: 7
+          if-no-files-found: error
