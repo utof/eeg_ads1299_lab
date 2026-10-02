@@ -1,0 +1,60 @@
+name: Publish P1 Review Corrections
+on:
+  push:
+    branches: [workbench/p1-review-recovery]
+    paths: [.github/workflows/p1-review-publish.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+      - name: Verify exact readable patch bytes before applying
+        run: |
+          set -eu
+          mkdir -p "$RUNNER_TEMP/p1-patches"
+          cp patches/correction-*.patch "$RUNNER_TEMP/p1-patches/"
+          cd "$RUNNER_TEMP/p1-patches"
+          cat > SHA256SUMS <<'HASHES'
+          24df48b1717ca17be1a45d1ceaf33fe7c8cdca4ccd5abbdca21d7dbf8efa47d7  correction-1.patch
+          6be277cddb9734c34918b001a909e274b76fb2179a97564e71603c04bb6b2580  correction-2.patch
+          05c380ba5b23621dd78b4d32f3fe1699be7768da13a9790f5f9151db6607a2c2  correction-3.patch
+          HASHES
+          sha256sum -c SHA256SUMS
+      - name: Preserve exact test-first history on a staging ref
+        run: |
+          set -eu
+          BASE=1ef134104ce552cd41c013c306838b765f882df6
+          HEAD=6877a09e42eae6a01d759f3199135e7f18def968
+          TREE=d3020772347f15b5c13db31703ba18d7e7a2e195
+          git checkout --detach "$BASE"
+          git config user.name 'Repository assistant'
+          git config user.email 'assistant@users.noreply.github.com'
+          git am --committer-date-is-author-date "$RUNNER_TEMP"/p1-patches/correction-*.patch
+          test "$(git rev-parse HEAD)" = "$HEAD"
+          test "$(git rev-parse HEAD^{tree})" = "$TREE"
+          test "$(git rev-list --count "$BASE..HEAD")" = 3
+          test -z "$(git status --porcelain)"
+          git fsck --no-dangling
+          git push origin "$HEAD:refs/heads/verified/p1-review-6877a09"
+          git clone --no-local --branch verified/p1-review-6877a09 "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$RUNNER_TEMP/fresh"
+          cd "$RUNNER_TEMP/fresh"
+          test "$(git rev-parse HEAD)" = "$HEAD"
+          test "$(git rev-parse HEAD^{tree})" = "$TREE"
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/receipt"
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/receipt/identity.txt"
+          git bundle create "$RUNNER_TEMP/receipt/source.bundle" HEAD
+          cp "$RUNNER_TEMP/p1-patches/SHA256SUMS" "$RUNNER_TEMP/receipt/patch-hashes.txt"
+          cd "$RUNNER_TEMP/receipt"
+          sha256sum source.bundle identity.txt patch-hashes.txt > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: verified-p1-review-source
+          path: ${{ runner.temp }}/receipt/
+          retention-days: 7
+          if-no-files-found: error
