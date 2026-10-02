@@ -103,3 +103,46 @@ def test_each_bypass_has_a_short_native_copper_path(
 ) -> None:
     proof = _probe(p2_canonical[0], "bypass-" + cap)
     assert proof.returncode == 0, proof.stdout + proof.stderr
+
+
+@pytest.mark.schematic
+def test_a_reference_window_cannot_masquerade_as_a_short_bypass_loop(tmp_path: Path) -> None:
+    """Still-connected copper can have an unwanted local return-plane void."""
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    _mutate(cad, "reference-window")
+    report = _fresh(cad)
+    assert report["schematic_parity"] == [] and report["violations"] == []
+    proof = _probe(cad, "bypass-C110")
+    assert proof.returncode != 0 and "local reference gap" in proof.stderr
+
+
+def _mutate(cad: Path, mode: str) -> None:
+    script = r"""
+import sys,pcbnew as p
+path,mode=sys.argv[1:];b=p.LoadBoard(path)
+if mode in ('reference-window','benign-window'):
+    z=p.ZONE(b);z.SetIsRuleArea(True);z.SetLayer(p.In1_Cu);z.SetZoneName('P2_fault_window')
+    z.SetDoNotAllowTracks(False);z.SetDoNotAllowVias(False);z.SetDoNotAllowPads(False)
+    z.SetDoNotAllowCopperPour(True);z.SetDoNotAllowFootprints(False)
+    y=46 if mode=='reference-window' else 40
+    o=z.Outline();o.NewOutline()
+    for x,yy in [(51.2,y-.2),(51.4,y-.2),(51.4,y+.2),(51.2,y+.2)]:o.Append(p.FromMM(x),p.FromMM(yy))
+    b.Add(z)
+else:raise AssertionError(mode)
+p.SaveBoard(path,b)
+"""
+    result = subprocess.run(
+        [
+            os.environ.get("KICAD_PYTHON", "/usr/bin/python3"),
+            "-c",
+            script,
+            str(cad / BOARD.name),
+            mode,
+        ],
+        capture_output=True,
+        text=True,
+        timeout=45,
+    )
+    (cad / "mutation.log").write_text(result.stdout + result.stderr)
+    assert result.returncode == 0, result.stderr
