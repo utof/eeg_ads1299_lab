@@ -1,0 +1,63 @@
+name: Publish F1 Candidate
+on:
+  push:
+    branches: [workbench/c2-firmware-f1-publish]
+    paths: [.github/workflows/f1-publish.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+      - name: Validate transport before importing any objects
+        run: |
+          python - <<'PY'
+          import base64,hashlib,pathlib,os
+          hashes = ['94e05e6aaf9ed647fe2a2b35ec4a1c025e04310b56768dac9072e3a4f27acbb6','2d0fc2530a5a2c68611b2bd0f92ec7c0d8d4446aed31290eb8b7836ee8f9fdd7','e4b9b9d21567541b80456c306620f3ace1b148ce07fe85effa08c14fc0154371','d3284b279b0d7a56d8fc81fa1cc6a10f56a20c95e70a5f5a590847d77a076a79','8e4bc9303dbfa3ec3c59bff46a5f5581bc7dc7886ae5120b0991895ba31ffadd','e059befe8cb2218b44c6baa644b3476a01c26f95947b84a19c8c22d5c002ccb9','391e68f87627279a4dea452fd6baa322a8b09a97d3afa5045dcd2f33e605cf44','dc46d4172026dd4305c72f9fa0337ad0d72e0303422bd1fe6041b5966be29909','8e506b23d4dc22ceabc0edb88ef4e70300cef22c6bfd6f909bc76d6cb1249c56','87a6515ef4ed4fe49616725301f48f5a78ada59ead0517831cd3304105eb5449','9d0b404c8fb69109d7bbb4a5cf5634c30cbeb24287d2270024c3ef1d9784ff26','e13a45588783568dbc5948ef0e15b8fbebce2c70114519550984f4f5069d1b19']
+          chunks=[]; errors=[]
+          for i,h in enumerate(hashes):
+              names = [f'c{i:02d}.b64'] if i<9 else [f'c{i:02d}-{j}.b64' for j in range(2 if i==11 else 3)]
+              if i==5: names=['c05-fixed.b64']
+              data=b''.join(pathlib.Path('small',n).read_bytes().strip() for n in names)+b'\n'
+              if hashlib.sha256(data).hexdigest()!=h: errors.append((i,len(data),hashlib.sha256(data).hexdigest()))
+              chunks.append(data.strip())
+          assert not errors, errors
+          bundle=base64.b64decode(b''.join(chunks),validate=True)
+          assert len(bundle)==17298 and hashlib.sha256(bundle).hexdigest()=='4e93ccde5683cfc8422a1ec8c976479dacc0dec19ce6398a6e421dc683b38476'
+          pathlib.Path(os.environ['RUNNER_TEMP'],'candidate.bundle').write_bytes(bundle)
+          PY
+      - name: Preserve original commits on the scoped feature branch
+        run: |
+          set -eu
+          BASE=c8c8a12cd0ca92bef0edc938794fa662a6204d61
+          HEAD=bd6ff58bb3a80b728943aaf92880ce96bf924288
+          TREE=0c4da842a103d0708cfbcc889696bf98373ef5e8
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$BASE"
+          git bundle verify "$RUNNER_TEMP/candidate.bundle"
+          git fetch "$RUNNER_TEMP/candidate.bundle" HEAD
+          test "$(git rev-parse FETCH_HEAD)" = "$HEAD"
+          test "$(git rev-parse "$HEAD^{tree}")" = "$TREE"
+          test "$(git rev-list --count "$BASE..$HEAD")" = 6
+          git fsck --no-dangling "$HEAD"
+          existing=$(git ls-remote origin refs/heads/feat/c2-guarded-firmware | cut -f1)
+          test -z "$existing" || test "$existing" = "$HEAD"
+          git push origin "$HEAD:refs/heads/feat/c2-guarded-firmware"
+          git clone --no-local --branch feat/c2-guarded-firmware "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$RUNNER_TEMP/fresh"
+          cd "$RUNNER_TEMP/fresh"
+          test "$(git rev-parse HEAD)" = "$HEAD"
+          test "$(git rev-parse HEAD^{tree})" = "$TREE"
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/receipt"
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/receipt/identity.txt"
+          git bundle create "$RUNNER_TEMP/receipt/source.bundle" HEAD
+          sha256sum "$RUNNER_TEMP/candidate.bundle" "$RUNNER_TEMP/receipt/source.bundle" > "$RUNNER_TEMP/receipt/hashes.txt"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: published-f1-source
+          path: ${{ runner.temp }}/receipt/
+          retention-days: 7
+          if-no-files-found: error
