@@ -1,6 +1,13 @@
 # Rev A person-disconnected prototype roadmap
 
-**Current checkpoint: C4 AFE service connection routed; cable target and backing defined.**
+**Current checkpoint: F1 guarded C2 firmware implemented.** C4 service access
+remains the unchanged electrical baseline. Next is auxiliary PCB placement and
+routing, not another connector or handshake redesign. Firmware depends on the
+actual auxiliary latch and does not qualify power-loss or physical behavior.
+Read the live guarded-firmware PR/head and `REV_A_C2_FIRMWARE.md`.
+
+
+**Previous C4 checkpoint: C4 AFE service connection routed; cable target and backing defined.**
 The six-way service header now exists on the AFE; all earlier copper and
 placements are retained. C3 auxiliary schematic remains unrouted and the C2
 firmware handshake is still unimplemented. Physical mating, crimp, process,

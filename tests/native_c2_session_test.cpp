@@ -68,7 +68,7 @@ int main(int argc,char**argv) {
  try {
     require(argc==2,"scenario needed");using namespace hostbench; scenario=argv[1];
     completeSpi=true;tickHook=tickFaults;transactionHook=transaction;transferHook=transferByte;writeHook=writer;
-    if(scenario=="wrap"){elapsed=0xffffff00ULL;deadline=elapsed+3000000;}
+    if(scenario=="wrap"){elapsed=0x100000000ULL-500015;deadline=elapsed+3000000;}
     if(scenario=="stuck-ready")stuckReady=true;
     if(scenario=="stuck-armed")stuckArmed=true;
     if(scenario=="no-armed")ignoreArm=true;
