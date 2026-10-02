@@ -1,0 +1,30 @@
+name: Prior Firmware Transfer
+on:
+  push:
+    branches: [workbench/c2-firmware-context]
+    paths: [.github/workflows/c2-prior-transfer.yml]
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 842f707afc7720bb3f7e5c3a9ba874c0f3988b1e
+          persist-credentials: false
+      - name: Preserve data without executing it
+        run: |
+          set -eu
+          mkdir -p "$RUNNER_TEMP/prior"
+          cp -a transfer "$RUNNER_TEMP/prior/"
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/prior/identity.txt"
+          cd "$RUNNER_TEMP/prior"
+          sha256sum transfer/* identity.txt > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: prior-firmware-transfer
+          path: ${{ runner.temp }}/prior/
+          retention-days: 7
+          if-no-files-found: error
