@@ -367,6 +367,8 @@ def _schematic_snapshot(cad: Path, footprints: Path) -> dict[str, str]:
         "tests/test_auxiliary_contract.py",
         "tests/test_auxiliary_native.py",
         "tests/native_sketch_startup_test.cpp",
+        "tests/native_c2_session_test.cpp",
+        "tests/test_firmware_interlock.py",
         *(
             "firmware/esp32_ads1299_bench/" + name
             for name in (
@@ -376,6 +378,7 @@ def _schematic_snapshot(cad: Path, footprints: Path) -> dict[str, str]:
                 "esp32_ads1299_bench.ino",
                 "portable_core.h",
                 "rev_a_startup.h",
+                "c2_interlock.h",
             )
         ),
         *(
@@ -556,6 +559,7 @@ def _harness_console_proof(out: Path) -> None:
             "-q",
             "tests/test_firmware_sketch_startup.py",
             "tests/test_bench_harness.py",
+            "tests/test_firmware_interlock.py",
             "-m",
             "native",
             f"--junitxml={out / 'harness-console-pytest.xml'}",
