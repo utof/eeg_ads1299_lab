@@ -74,6 +74,7 @@ def _fake_native_step(name: str, command: Sequence[str], out: Path, root: Path, 
     if name == "harness-console-tests":
         assert "tests/test_firmware_sketch_startup.py" in command
         assert "tests/test_bench_harness.py" in command
+        assert "tests/test_firmware_interlock.py" in command
         assert command[command.index("-m", 3) + 1] == "native"
         assert not list(out.glob("schematic-*/harness.json")), (
             "harness published before console proof"
@@ -133,6 +134,9 @@ def _change_dependency(root: Path, fault: str) -> None:
         "change-power-test": root / "tests/test_pcb_power.py",
         "change-library": root / "hardware/rev_a/kicad/RevA.kicad_sym",
         "change-console": root / "firmware/esp32_ads1299_bench/bench_console.h",
+        "change-interlock": root / "firmware/esp32_ads1299_bench/c2_interlock.h",
+        "change-interlock-test": root / "tests/test_firmware_interlock.py",
+        "change-interlock-oracle": root / "tests/native_c2_session_test.cpp",
         "change-sketch": root / "firmware/esp32_ads1299_bench/esp32_ads1299_bench.ino",
         "change-profile": root / "firmware/esp32_ads1299_bench/board_config_rev_a_s3.h",
         "change-local-footprint": root
@@ -175,6 +179,9 @@ def _change_dependency(root: Path, fault: str) -> None:
         "change-console",
         "change-sketch",
         "change-profile",
+        "change-interlock",
+        "change-interlock-test",
+        "change-interlock-oracle",
         "console-route-fails",
         "missing-console-compiler",
         "wrong-footprint-pad",
@@ -229,7 +236,7 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
         assert report["physical_hardware_tested"] is False
         assert report["body_connection_authorized"] is False
         assert report["schematic_released"] is False
-        assert len(read_object(report["source_sha256"], "hashes")) == 77
+        assert len(read_object(report["source_sha256"], "hashes")) == 80
         directory = out / str(report["artifact_directory"])
         harness = read_object(json.loads((directory / "harness.json").read_text()), "harness")
         assert harness["physical_wiring_approved"] is False

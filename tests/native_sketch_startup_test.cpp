@@ -56,8 +56,12 @@ void check(bool spi) {
     }
     if(scenario=="gpio-failure") {
         require(!spi,"GPIO failure allowed SPI");
-        for(std::size_t i=4;i<events.size();++i)
-            require(events[i].kind=="latch" && events[i].value==0,"GPIO failure enabled an output");
+        for(std::size_t i=4;i<events.size();++i) {
+            const auto& e=events[i];
+            if(e.kind=="mode" && e.value==OUTPUT)
+                require(e.pin==14 || e.pin==9,"GPIO failure enabled an ADC output");
+            if(e.kind=="latch")require(e.value==0,"GPIO failure raised a control");
+        }
         return;
     }
     const auto rails=event("prompt",-1,'R');

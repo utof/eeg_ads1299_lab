@@ -7,10 +7,11 @@ struct SpiDouble {
     void begin(int sclk,int miso,int mosi,int cs) {
         const int pins[]={sclk,miso,mosi,cs};
         for(int i=0;i<4;++i)hostbench::record("spi-pin",i,pins[i]);
-        hostbench::record("spi");throw hostbench::SpiReached{};
+        hostbench::record("spi");if(!hostbench::completeSpi)throw hostbench::SpiReached{};
     }
-    void beginTransaction(const SPISettings&) {}
+    void end() { hostbench::record("spi-end"); }
+    void beginTransaction(const SPISettings&) { hostbench::record("transaction"); if(hostbench::transactionHook)hostbench::transactionHook(); }
     void endTransaction() {}
-    std::uint8_t transfer(std::uint8_t) { return 0; }
+    std::uint8_t transfer(std::uint8_t value) { return hostbench::transferHook ? hostbench::transferHook(value) : 0; }
 };
 inline SpiDouble SPI;

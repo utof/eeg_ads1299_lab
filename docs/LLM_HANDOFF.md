@@ -1,10 +1,32 @@
 # Continue from this repository
 
-**Current checkpoint: C4 routed AFE service access and carrier backing.**
+## Current continuation: F1 guarded firmware
+
+Use the live `feat/c2-guarded-firmware` PR while open, then current main. Base is
+C4 main c8c8a12c. Read `REV_A_C2_FIRMWARE.md`: the reviewed S3 path now requires
+SESSION/ARM/READY/ARMED, uses the real feedback through startup/SPI/capture,
+and halts terminally on detected failure. Default BOARD_PROFILE_REVIEWED stays
+false; no operational permission is added. Original ESP32 wiring is unchanged.
+C2 depends on the physical latched output and valid control power; no polling
+latency or host-side automatic recording revocation is implied.
+
+The other chat branch had an incomplete encoded transfer, not a finished PR.
+Complete firmware blobs were recovered and reused with independently rebuilt
+failure-first tests. The missing tail and full original tree/history were NOT
+recovered; current commits have the actual main as their parent. See the F1
+record for precise scope and use this PR's actual tested head, never prior counts.
+
+**Next: auxiliary PCB placement from the authored C3 schematic**, followed by
+routing. Preserve isolation spacing, local bypasses, actual feed/sense and
+mechanical/controller support. J3 is done; do not reconstruct it. F1 is now
+implemented software but physical C1/C2/C3/C4 and K2 qualification remains open.
+The retained C4 text below is prior-slice context, not an instruction to redo F1.
+
+
+**Retained C4 source context (completed in PR #76).**
 Read root `AGENTS.md`, `docs/DEVELOPMENT.md` and the hardware baseline. Fetch live
-main/open PRs, record SHA/tree and working-tree state. C4 is on
-`feat/afe-service-access-recovered` until its actual checks/review/merge; after
-merge use current main. Base is merged PR75 `10676fd14ffdeffe86f338342c9346c28f7cb1c8`.
+main/open PRs, record SHA/tree and working-tree state. C4 is merged; the following parent refers to that historical slice, not a
+current open PR. Its base was merged PR75 `10676fd14ffdeffe86f338342c9346c28f7cb1c8`.
 An old chat progress message is not proof of published or tested source.
 
 ## Authored source and current scope
@@ -13,7 +35,8 @@ Canonical AFE PCB: `hardware/rev_a/layout/rev_a.kicad_pcb`; native project:
 `hardware/rev_a/kicad/rev_a.kicad_pro`. Never regenerate the authored board with
 the deliberately unrouted parking-grid importer. The auxiliary remains at
 `hardware/rev_a/auxiliary/auxiliary.kicad_pro`, four sheets/48instances/212terminals.
-No auxiliary PCB is routed and the firmware has no C2 handshake yet.
+No auxiliary PCB is routed. F1 now implements the reviewed-path C2 handshake;
+all physical hardware/release gates remain false.
 
 Read `REV_A_SERVICE_C4.md`, `checkpoints/20261001_service_c4.json` and the cable
 target `hardware/rev_a/service_c4.json`. C4 adds AFE J3/J_SERVICE, matching C3's
@@ -46,7 +69,7 @@ empty cavity6, then unpowered assembled continuity. The intentional on-board
 DVDD and ground joins make assembled-only checks insufficient to detect every
 cable wiring error. No powered mating; independent cable restraint required.
 
-## Recovery and next bounded task
+## Historical C4 recovery
 
 The failed turn retained its baseline source capture but not the uncommitted
 service implementation. This continuation recovered recorded authoring operations
@@ -58,7 +81,7 @@ Read the live PR's actual final-head evidence/review, not inherited counts.
 The ground plane remains a single zone; its old mutation-order issue is
 explicitly documented. No test or DRC threshold was relaxed.
 
-**Next: implement guarded SESSION/ARM/READY/ARMED firmware integration test-first.**
+**Prior C4 next task, now implemented in F1: guarded firmware integration.**
 Use the existing C2/C3 pin contract rather than a new pin-map redesign. Park
 seven outputs low, wait for actual READY, create a fresh arm edge, and only then
 start the existing clock/VCAP/reset sequence. A detected fault invalidates the

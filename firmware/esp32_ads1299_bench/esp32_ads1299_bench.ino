@@ -17,6 +17,7 @@
 #if defined(EEGLAB_REV_A_S3)
 #include <driver/gpio.h>
 #include "rev_a_startup.h"
+#include "c2_interlock.h"
 #endif
 
 // Target guards live with the explicit profile selection in board_config.h.
@@ -28,6 +29,18 @@ portMUX_TYPE irqMux=portMUX_INITIALIZER_UNLOCKED;
 volatile uint32_t edgeCount=0,edgeMicros=0;
 uint32_t consumed=0,overruns=0,lastGoodMs=0;
 uint8_t channels=0;
+bool spiOpened=false,transactionOpen=false;
+#if defined(EEGLAB_REV_A_S3)
+eeglab::C2Interlock interlock;
+bool controlsConfigured=false;
+#endif
+void requireBus();
+[[noreturn]] void fail(const char* why);
+void waitBenchMs(unsigned value) {
+    for(unsigned i=0;i<value;++i){requireBus();delay(1);}
+    requireBus();
+}
+
 
 void IRAM_ATTR onDataReady() {
     portENTER_CRITICAL_ISR(&irqMux);
@@ -39,51 +52,109 @@ void snapshot(uint32_t &count,uint32_t &tick) {
     count=edgeCount;tick=edgeMicros;
     portEXIT_CRITICAL(&irqMux);
 }
-void fail(const char* why) {
+[[noreturn]] void fail(const char* why) {
+#if defined(EEGLAB_REV_A_S3)
+    // Drop SESSION BEFORE potentially blocking console or peripheral teardown.
+    // Best-effort GPIO cleanup is not protection against a failed MCU/rail.
+    if(interlock.started()) {
+        interlock.invalidate();
+        gpio_set_level(static_cast<gpio_num_t>(eeglab::C2_SESSION),0);
+        gpio_set_level(static_cast<gpio_num_t>(eeglab::C2_ARM_REQ),0);
+        detachInterrupt(digitalPinToInterrupt(PIN_DRDY));
+        if(transactionOpen){SPI.endTransaction();transactionOpen=false;}
+        if(spiOpened){SPI.end();spiOpened=false;}
+        constexpr int controls[]={PIN_SCLK,PIN_MOSI,PIN_CS,PIN_RESET,PIN_START,PIN_PWDN,PIN_CLKSEL};
+        for(int pin:controls)gpio_set_level(static_cast<gpio_num_t>(pin),0);
+        if(controlsConfigured)for(int pin:controls)pinMode(pin,OUTPUT);
+        portENTER_CRITICAL(&irqMux);
+        edgeCount=0;edgeMicros=0;
+        portEXIT_CRITICAL(&irqMux);
+        channels=0;consumed=0;overruns=0;lastGoodMs=0;
+    }
+#else
     digitalWrite(PIN_START,LOW);
     digitalWrite(PIN_PWDN,LOW); // START low alone does not cancel a command-started conversion
-    Serial.print("\nHALTED / BENCH ONLY: ");Serial.println(why);
+    #endif
+    Serial.print("\nHALTED / BENCH ONLY; CAPTURE INVALID: ");Serial.println(why);
     while(true)delay(1000);
 }
-void selectChip() { SPI.beginTransaction(settings);digitalWrite(PIN_CS,LOW);delayMicroseconds(3); }
-void releaseChip() { delayMicroseconds(3);digitalWrite(PIN_CS,HIGH);SPI.endTransaction();delayMicroseconds(3); }
-void command(uint8_t op) { selectChip();SPI.transfer(op);delayMicroseconds(3);releaseChip(); }
+void selectChip() {
+    requireBus();SPI.beginTransaction(settings);transactionOpen=true;
+    requireBus();digitalWrite(PIN_CS,LOW);delayMicroseconds(3);
+}
+void releaseChip() {
+    requireBus();delayMicroseconds(3);requireBus();digitalWrite(PIN_CS,HIGH);
+    SPI.endTransaction();transactionOpen=false;delayMicroseconds(3);requireBus();
+}
+uint8_t busTransfer(uint8_t value) {
+    requireBus();const auto received=SPI.transfer(value);requireBus();return received;
+}
+void command(uint8_t op) { selectChip();busTransfer(op);delayMicroseconds(3);releaseChip(); }
 void writeReg(uint8_t addr,uint8_t value) {
-    selectChip();SPI.transfer(0x40|addr);delayMicroseconds(3);
-    SPI.transfer(0);delayMicroseconds(3);SPI.transfer(value);delayMicroseconds(3);releaseChip();
+    selectChip();busTransfer(0x40|addr);delayMicroseconds(3);
+    busTransfer(0);delayMicroseconds(3);busTransfer(value);delayMicroseconds(3);releaseChip();
 }
 uint8_t readReg(uint8_t addr) {
-    selectChip();SPI.transfer(0x20|addr);delayMicroseconds(3);
-    SPI.transfer(0);delayMicroseconds(3);uint8_t r=SPI.transfer(0);releaseChip();return r;
+    selectChip();busTransfer(0x20|addr);delayMicroseconds(3);
+    busTransfer(0);delayMicroseconds(3);uint8_t r=busTransfer(0);releaseChip();return r;
 }
 void checkedReg(uint8_t addr,uint8_t value,uint8_t mask=0xff) {
     writeReg(addr,value);
     if((readReg(addr)&mask)!=(value&mask))fail("Register readback mismatch; inspect supply/clock/SPI.");
 }
 #if defined(EEGLAB_REV_A_S3)
+struct C2Io {
+    void level(int pin,int value) {
+        const auto status=gpio_set_level(static_cast<gpio_num_t>(pin),value);
+        if(status!=ESP_OK)fail("C2 GPIO latch operation failed.");
+    }
+    void output(int pin) { pinMode(pin,OUTPUT); }
+    void inputPulldown(int pin) { pinMode(pin,INPUT_PULLDOWN); }
+    bool read(int pin) { return digitalRead(pin)==HIGH; }
+    uint32_t nowUs() { return micros(); }
+    void waitUs(unsigned value) { delayMicroseconds(value); }
+};
+C2Io c2io;
+#endif
+void requireBus() {
+#if defined(EEGLAB_REV_A_S3)
+    if(!interlock.valid(c2io))fail("C2 not armed or rail fault; restart the complete reviewed sequence.");
+#endif
+}
+#if defined(EEGLAB_REV_A_S3)
 void awaitBenchKey(char key, const char* message) {
     // Ignore queued acknowledgments: each measurement needs a fresh response.
-    while(Serial.available()>0)Serial.read();
+    while(Serial.available()>0) {
+        if(interlock.monitoring())requireBus();
+        Serial.read();
+    }
+    if(interlock.monitoring())requireBus();
     Serial.println(message);
     while(true) {
-        if(Serial.available()>0 && Serial.read()==key)return;
+        if(interlock.monitoring())requireBus();
+        if(Serial.available()>0 && Serial.read()==key) {
+            if(interlock.monitoring())requireBus();
+            return;
+        }
         delay(10);
     }
 }
 struct RevAStartupIo {
     void level(int pin, int value) {
+        if(value || interlock.monitoring())requireBus();
         // ESP-IDF permits setting the output latch before pinMode enables it.
         // Arduino digitalWrite before pinMode is not a portable substitute.
         if(gpio_set_level(static_cast<gpio_num_t>(pin),value)!=ESP_OK) {
-            Serial.println("HALTED: GPIO latch operation failed.");
-            while(true)delay(1000);
+            fail("GPIO latch operation failed.");
         }
     }
     void output(int pin) { pinMode(pin,OUTPUT); }
-    void waitMs(unsigned value) { delay(value); }
-    void waitUs(unsigned value) { delayMicroseconds(value); }
+    void waitMs(unsigned value) { waitBenchMs(value); }
+    void waitUs(unsigned value) { requireBus();delayMicroseconds(value);requireBus(); }
     void confirmRailsAndInputs() {
+        controlsConfigured=true;
         awaitBenchKey('R',"BENCH: verify ADS rails stable and passive startup fixture holds analog inputs low; then type R. No body or powered source.");
+        if(!interlock.arm(c2io))fail("C2 fresh arm failed; no automatic retry.");
     }
     void confirmVcap1() {
         awaitBenchKey('V',"BENCH: measure VCAP1 > 1.1 V with ADS rails still stable; then type V. This firmware does not sense those voltages.");
@@ -110,6 +181,7 @@ void setup() {
         while(true)delay(1000);
     }
 #if defined(EEGLAB_REV_A_S3)
+    if(!interlock.prepare(c2io))fail("C2 did not clear while SESSION was low.");
     RevAStartupIo startup;
     eeglab::startRevA(startup);
 #else
@@ -119,7 +191,10 @@ void setup() {
     pinMode(PIN_PWDN,OUTPUT);digitalWrite(PIN_PWDN,HIGH);
 #endif
     pinMode(PIN_DRDY,INPUT);
+    requireBus();
     SPI.begin(PIN_SCLK,PIN_MISO,PIN_MOSI,PIN_CS);
+    spiOpened=true;
+    requireBus();
 #if !defined(EEGLAB_REV_A_S3)
     delay(500);digitalWrite(PIN_RESET,HIGH);delay(500);
 #endif
@@ -140,22 +215,24 @@ void setup() {
     for(uint8_t addr=0x0d;addr<=0x11;++addr)checkedReg(addr,0); // bias and lead-off sense OFF
     checkedReg(0x15,0); // SRB1 OFF
     checkedReg(0x17,0); // continuous conversions, lead-off comparator OFF
-    delay(500); // reference settling; verify actual reference capacitors/voltage on bench
+    waitBenchMs(500); // reference settling; verify actual reference capacitors/voltage on bench
     if(USE_WIFI_UDP) {
         if(!host.fromString(UDP_HOST))fail("Invalid UDP_HOST");
-        WiFi.mode(WIFI_STA);WiFi.begin(WIFI_SSID,WIFI_PASSWORD);
+        requireBus();WiFi.mode(WIFI_STA);WiFi.begin(WIFI_SSID,WIFI_PASSWORD);requireBus();
         uint32_t start=millis();
-        while(WiFi.status()!=WL_CONNECTED&&millis()-start<15000)delay(100);
+        while(WiFi.status()!=WL_CONNECTED&&millis()-start<15000)waitBenchMs(100);
         if(WiFi.status()!=WL_CONNECTED)fail("Wi-Fi timeout");
-        WiFi.setSleep(false);
+        requireBus();WiFi.setSleep(false);requireBus();
         if(!udp.begin(9001))fail("UDP initialization failed");
+        requireBus();
     }
     attachInterrupt(digitalPinToInterrupt(PIN_DRDY),onDataReady,FALLING);
     command(0x10); // RDATAC
     command(0x08); // START while physical START stays low
-    lastGoodMs=millis();
+    requireBus();lastGoodMs=millis();
 }
 void loop() {
+    requireBus();
     uint32_t seq,tick;snapshot(seq,tick);
     if(seq==consumed) {
         if(millis()-lastGoodMs>2000)fail("No valid data for 2 s; inspect DRDY and clock.");
@@ -165,7 +242,7 @@ void loop() {
     consumed=seq;
     uint8_t frame[27];
     selectChip();
-    for(uint8_t i=0;i<3+3*channels;++i)frame[i]=SPI.transfer(0);
+    for(uint8_t i=0;i<3+3*channels;++i)frame[i]=busTransfer(0);
     releaseChip();
     uint32_t after,afterTick;snapshot(after,afterTick);
     if(after!=seq){++overruns;return;} // conversion changed while reading: discard candidate
@@ -174,11 +251,14 @@ void loop() {
     const uint8_t flags=(USE_INTERNAL_TEST?1:2)|(overruns?8:0);
     const std::size_t size=eeglab::packet(wire,sizeof(wire),frame,channels,24,250,flags,seq,tick,overruns);
     if(size==0)fail("Packet encoding failed");
+    requireBus();
     if(USE_WIFI_UDP) {
-        if(udp.beginPacket(host,UDP_PORT)) {udp.write(wire,size);udp.endPacket();}
+        if(udp.beginPacket(host,UDP_PORT)) {
+            requireBus();udp.write(wire,size);requireBus();udp.endPacket();
+        }
         // Loss in radio/network is detected from DRDY-derived sequence numbers.
     } else {
         Serial.write(wire,size); // binary stream, not a Serial Plotter CSV
     }
-    lastGoodMs=millis();
+    requireBus();lastGoodMs=millis();
 }
