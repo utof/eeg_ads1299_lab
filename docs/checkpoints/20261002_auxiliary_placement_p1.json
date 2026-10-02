@@ -1,0 +1,288 @@
+{
+  "milestone": "P1",
+  "status": "authored_placement_unrouted_no_release",
+  "base_commit": "bc761c69558bbcf87a4c357c778828cc4da4928f",
+  "base_tree": "0c4da842a103d0708cfbcc889696bf98373ef5e8",
+  "board_path": "hardware/rev_a/auxiliary/auxiliary.kicad_pcb",
+  "board_sha256": "19dcd4fd8ffa933cba4bd1b44d976925641c9832ca17f40eed53cacd85c28262",
+  "rules_sha256": "6ebebbcca143584268afcdb9b1c95d38006082a538815981dcfe92f3ab044b52",
+  "main_AFE_board_unchanged_sha256": "60097ff4acf8408d5a172930de74bcd36aa50a379dd30a831e4bc64d3841c8a6",
+  "nominal_outline_mm": [
+    0,
+    0,
+    90,
+    75
+  ],
+  "copper_layer_count": 4,
+  "nominal_thickness_mm": 1.6,
+  "intended_layers": {
+    "F.Cu": "signals",
+    "In1.Cu": "separate HOST/TARGET ground regions",
+    "In2.Cu": "separate domain power regions",
+    "B.Cu": "lower-speed signals"
+  },
+  "factory_stackup_thicknesses_Dk_and_process_confirmed": false,
+  "tracks": 0,
+  "vias": 0,
+  "filled_copper_zones": 0,
+  "native_placement_DRC": {
+    "engine": "9.0.2",
+    "exit_code": 5,
+    "schematic_parity": 0,
+    "other_violations": 0,
+    "unconnected_items": 157
+  },
+  "geometry": {
+    "mode": "canonical",
+    "circuit_footprints": 48,
+    "mechanical_NPTH": 4,
+    "all_pads": 216,
+    "host_target_pad_bbox_gap_mm": 3.0,
+    "bypass_supply_pad_centers_mm": {
+      "C101": 1.9500064102458734,
+      "C102": 1.9500064102458734,
+      "C103": 2.1125000000000043,
+      "C104": 2.1125000000000007,
+      "C105": 2.1125000000000043,
+      "C106": 2.1125000000000007,
+      "C107": 2.1125000000000043,
+      "C108": 2.1125000000000007,
+      "C109": 1.75,
+      "C110": 1.75,
+      "C111": 1.75,
+      "C112": 1.75,
+      "C113": 2.1875,
+      "C114": 2.1874990000000025,
+      "C115": 2.0249999999999915
+    },
+    "hole_reserved_box_to_pad_gap_mm": {
+      "H1": 19.0,
+      "H2": 1.4600000000000009,
+      "H3": 19.026297590440446,
+      "H4": 1.5315351775261292
+    },
+    "mating_allocations_mm": {
+      "J101": [
+        26,
+        0,
+        78.5,
+        12
+      ],
+      "J102": [
+        26,
+        61.5,
+        83,
+        75
+      ],
+      "J103": [
+        0,
+        29,
+        14.5,
+        35
+      ],
+      "J104": [
+        27,
+        50,
+        45.5,
+        58
+      ]
+    },
+    "mount_allocations_mm": {
+      "H1": [
+        2.0,
+        2.0,
+        8.0,
+        8.0
+      ],
+      "H2": [
+        82.0,
+        2.0,
+        88.0,
+        8.0
+      ],
+      "H3": [
+        2.0,
+        67.0,
+        8.0,
+        73.0
+      ],
+      "H4": [
+        83.5,
+        67.0,
+        89.5,
+        73.0
+      ]
+    },
+    "mount_to_termination_gaps_mm": {
+      "J101/H1": 18.0,
+      "J101/H2": 3.5,
+      "J101/H3": 57.87054518492115,
+      "J101/H4": 55.226805085936306,
+      "J102/H1": 56.44687768158661,
+      "J102/H2": 53.5,
+      "J102/H3": 18.0,
+      "J102/H4": 0.5,
+      "J103/H1": 21.0,
+      "J103/H2": 70.69123000768907,
+      "J103/H3": 32.0,
+      "J103/H4": 76.05918747922567,
+      "J104/H1": 46.09772228646444,
+      "J104/H2": 55.64395744373328,
+      "J104/H3": 21.02379604162864,
+      "J104/H4": 39.05124837953327
+    },
+    "minimum_mount_to_termination_gap_mm": 0.5,
+    "physical_qualification": false
+  },
+  "barrier_mm": [
+    20.5,
+    0,
+    23.5,
+    75
+  ],
+  "barrier_layers": [
+    "F.Cu",
+    "In1.Cu",
+    "In2.Cu",
+    "B.Cu"
+  ],
+  "barrier_forbids": [
+    "tracks",
+    "vias",
+    "pads",
+    "copper_pours"
+  ],
+  "package_body_may_span": true,
+  "minimum_different_domain_clearance_mm": 3.0,
+  "certified_insulation_or_medical_rating": false,
+  "U111_only_pad_pair_clearance_mm": 0.15,
+  "other_default_clearance_mm": 0.2,
+  "unchanged_U111_native_pad_pitch_width_mm": [
+    0.5,
+    0.35
+  ],
+  "new_rule_qualification": "selected land pair only, not board-wide relaxation or supplier approval",
+  "mounts": {
+    "nominal_drill_mm": 2.7,
+    "centres_mm": [
+      [
+        5,
+        5
+      ],
+      [
+        85,
+        5
+      ],
+      [
+        5,
+        70
+      ],
+      [
+        86.5,
+        70
+      ]
+    ],
+    "reserved_half_width_mm": 3,
+    "board_only_NPTH": true,
+    "fasteners_materials_forces_qualified": false,
+    "minimum_allocation_to_termination_gap_mm": 0.5
+  },
+  "bypass_count": 15,
+  "maximum_selected_supply_pad_centre_distance_mm": 2.5,
+  "bypass_return_loop_routed_or_parasitics_qualified": false,
+  "frozen_reference_footprint_sha256": {
+    "Aux_Lands:SolderTails_2": "890f9eb3d798e7773f631585923bd054553bc159048c5f0062ee3773a24c60e8",
+    "Aux_Lands:SolderTails_20": "461f3df084dfed8957934a121218d82b446af9027a30f3e00a7b439de171230a",
+    "Aux_Lands:SolderTails_22": "fac700d66a219c973cb61f3c38a3422667821ab3b68a5b5330e54a8bf734ec9d",
+    "Aux_Lands:SolderTails_4": "654a3a743b7272f0f88c35c815c1a118fb239ca47c72c4ac4fcc4dd74db761e3",
+    "Capacitor_SMD:C_0603_1608Metric": "6817e127719273e03bb0a41f8d885aaa677ba6bbce6ee8292b2f18223e2ec419",
+    "Connector_JST:JST_XH_B6B-XH-A_1x06_P2.50mm_Vertical": "f7e0783f746a50cbda8732a576dda7f57ab2b4df1b29dbbfe49e6035d1d8a3f5",
+    "MountingHole:MountingHole_2.7mm_M2.5": "eda9be76e1e6e0feb69e270841b0bb1d87dc96ef5b9a0743f006a4fc9ba4c8e4",
+    "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm": "10d69b1de331f68e88e7c93414190dad01f05d93ae4e388711bc74c801b57798",
+    "Package_SO:TSSOP-14_4.4x5mm_P0.65mm": "dd7633e00477604dfe54dc06f452d0d754ab89d6e086a61c3e7f52f12fae6ca3",
+    "Package_SO:VSSOP-8_2.3x2mm_P0.5mm": "0e67462a7835a7da5e8e49ff627eda67e23ea3da6eb086a4144e2affa4a51733",
+    "Package_SON:WSON-6_1.5x1.5mm_P0.5mm": "65c4afcffc7e51c2c956e3de17ff150e09d31a1135c07a08eec459f64ddd75f4",
+    "Package_TO_SOT_SMD:SOT-23-6": "8fbeae4cbe35225cd21b2fe5fa412713c620e3d28acd9c73669e308bd295ff66",
+    "Resistor_SMD:R_0603_1608Metric": "26fc677c5d1ee32f5f59895b2cd29b884b4a60b08f66427c2fb9759e69c030c4"
+  },
+  "test_first_commits": {
+    "a33a495": "a33a4955f35dd020fcd70e9f1de73b8cb404a68c",
+    "4af2f09": "4af2f09f0b12936caa43acd9bc54681a03d2eed6",
+    "f0d656e": "f0d656efcadf4dae8a58bad31e1a0b0de82f8f56"
+  },
+  "observed_failure_first_cases": {
+    "missing_board": 2,
+    "snapshot_policy": 4,
+    "four_layer_target_on_initial_two_layer_draft": 1
+  },
+  "focused_native_test_count": 19,
+  "ordinary_placement_presence_test_count": 1,
+  "scope_of_fault_controls": "independent source and native CAD mutations, not physical experiments or exhaustive coverage",
+  "source_capture_run": 37013580838,
+  "source_capture_archive_sha256": "4a7223b3b566e59bf66da7b7f57bf54df1bef2e40810631f495fc1b46f07e6af",
+  "manufacturer_references": [
+    {
+      "url": "https://www.ti.com/lit/ds/symlink/iso7721.pdf",
+      "revision": "SLLSEP3G",
+      "pages": [
+        31,
+        32
+      ],
+      "notes": "four-layer low-EMI guidance, separate references and copper-free barrier"
+    },
+    {
+      "url": "https://www.ti.com/lit/ds/symlink/txu0304.pdf",
+      "revision": "SCES935A",
+      "pages": [
+        25,
+        26
+      ],
+      "notes": "close supply bypass and ringing/load review; illustrated DTR is not the selected PW land"
+    },
+    {
+      "url": "https://www.ti.com/lit/ds/symlink/tps3703.pdf",
+      "revision": "SBVS249B",
+      "pages": [
+        27
+      ],
+      "notes": "close bypass, short sense routing and digital/analog separation"
+    }
+  ],
+  "physical_hardware_tested": false,
+  "approval_changes": false,
+  "budget_quote_or_purchase": false,
+  "next_task": "Route auxiliary ground references and short bypass loops first while preserving all-layer HOST/TARGET exclusion; then power and signals, native refill/DRC and scoped return-path review.",
+  "review_correction": {
+    "finding": 4166671956,
+    "recovered_head": "1ef134104ce552cd41c013c306838b765f882df6",
+    "original_board_sha256": "7b583b9fe7acc8c40b851b2b86d013e11128fd3852f2962d060b3da3878ec427",
+    "test_first_commit": "7adbc3ad795ac680a2f39aa3f025e70f075e2f84",
+    "geometry_fix_commit": "069953e37c89b8c7e1bc858a9d291751ab1f893c",
+    "original_H4_J102_overlap_mm": [
+      1,
+      6
+    ],
+    "H4_translation_mm": [
+      1.5,
+      0
+    ],
+    "J102_termination_allocation_changed": false,
+    "only_one_authored_origin_changed": true,
+    "all_48_electrical_footprints_byte_identical": true,
+    "other_three_mounts_and_all_other_board_forms_byte_identical": true,
+    "reversed_origin_restores_complete_pre_review_board": true,
+    "native_red_cases_observed": 1,
+    "new_bad_geometry_modes": [
+      "mount-into-access",
+      "mount-touch-access",
+      "mount-near-access"
+    ],
+    "additional_benign_mount_move_tested": true,
+    "native_focused_cases_after_correction": 19,
+    "ordinary_presence_case": 1,
+    "new_geometry_guard": "all sixteen mount/termination pairs require at least 0.5mm planned gap",
+    "H4_mount_allocation_to_board_edge_mm": 0.5,
+    "H4_nominal_hole_edge_to_board_edge_mm": 2.15,
+    "physical_fit_tolerance_and_load_validation": false
+  }
+}

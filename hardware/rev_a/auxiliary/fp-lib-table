@@ -6,4 +6,5 @@
 (lib (name "Capacitor_SMD") (type "KiCad") (uri "${KICAD9_FOOTPRINT_DIR}/Capacitor_SMD.pretty") (options "") (descr ""))
 (lib (name "Connector_JST") (type "KiCad") (uri "${KICAD9_FOOTPRINT_DIR}/Connector_JST.pretty") (options "") (descr ""))
 (lib (name "Aux_Lands") (type "KiCad") (uri "${KIPRJMOD}/Aux_Lands.pretty") (options "") (descr ""))
+(lib (name "MountingHole") (type "KiCad") (uri "${KICAD9_FOOTPRINT_DIR}/MountingHole.pretty") (options "") (descr "P1 board-only NPTH, not electrical parts"))
 )
