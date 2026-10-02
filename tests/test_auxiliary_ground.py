@@ -106,13 +106,17 @@ def test_each_bypass_has_a_short_native_copper_path(
 
 
 @pytest.mark.schematic
-def test_a_reference_window_cannot_masquerade_as_a_short_bypass_loop(tmp_path: Path) -> None:
+def test_a_reference_window_cannot_masquerade_as_a_short_bypass_loop(
+    tmp_path: Path,
+    p2_canonical: tuple[Path, dict[str, object]],
+) -> None:
     """Still-connected copper can have an unwanted local return-plane void."""
     cad = tmp_path / "cad"
     shutil.copytree(CAD, cad)
     _mutate(cad, "reference-window")
     report = _fresh(cad)
     assert report["schematic_parity"] == [] and report["violations"] == []
+    assert _missing_count(report) == _missing_count(p2_canonical[1])
     proof = _probe(cad, "bypass-C110")
     assert proof.returncode != 0 and "local reference gap" in proof.stderr
 
@@ -129,6 +133,30 @@ if mode in ('reference-window','benign-window'):
     o=z.Outline();o.NewOutline()
     for x,yy in [(51.2,y-.2),(51.4,y-.2),(51.4,y+.2),(51.2,y+.2)]:o.Append(p.FromMM(x),p.FromMM(yy))
     b.Add(z)
+elif mode.startswith(('cut-','reverse-','split-')):
+    action,ref=mode.split('-');f=next(f for f in b.GetFootprints() if f.GetReference()==ref)
+    pad=next(a for a in f.Pads() if a.GetNumber()=='1');pt=pad.GetPosition()
+    tracks=[t for t in b.GetTracks() if t.Type()==p.PCB_TRACE_T and t.GetNetCode()==pad.GetNetCode()
+            and (t.GetStart()==pt or t.GetEnd()==pt)]
+    assert len(tracks)==1
+    t=tracks[0]
+    if action=='cut':b.Remove(t)
+    elif action=='reverse':
+        a,c=p.VECTOR2I(t.GetStart()),p.VECTOR2I(t.GetEnd());t.SetStart(c);t.SetEnd(a)
+    else:
+        a,c=p.VECTOR2I(t.GetStart()),p.VECTOR2I(t.GetEnd());mid=p.VECTOR2I((a.x+c.x)//2,(a.y+c.y)//2)
+        t.SetEnd(mid);tail=p.PCB_TRACK(b);tail.SetStart(mid);tail.SetEnd(c)
+        tail.SetWidth(t.GetWidth());tail.SetLayer(t.GetLayer());tail.SetNet(t.GetNet());b.Add(tail)
+elif mode.startswith('remove-plane-'):
+    net=mode.removeprefix('remove-plane-')
+    z=next(z for z in b.Zones() if not z.GetIsRuleArea() and z.GetNetname()==net);b.Remove(z)
+elif mode=='remove-return-via':
+    v=next(t for t in b.GetTracks() if t.Type()==p.PCB_VIA_T and t.GetPosition()==p.VECTOR2I(p.FromMM(48.125),p.FromMM(46)))
+    assert v.GetNetname()=='TARGET_GND';b.Remove(v)
+elif mode=='wrong-reference-layer':
+    z=next(z for z in b.Zones() if not z.GetIsRuleArea() and z.GetNetname()=='HOST_GND');z.SetLayer(p.In2_Cu)
+elif mode=='remove-mount-exclusion':
+    z=next(z for z in b.Zones() if z.GetZoneName()=='MOUNT_NO_COPPER_H4');b.Remove(z)
 else:raise AssertionError(mode)
 p.SaveBoard(path,b)
 """
@@ -146,3 +174,80 @@ p.SaveBoard(path,b)
     )
     (cad / "mutation.log").write_text(result.stdout + result.stderr)
     assert result.returncode == 0, result.stderr
+
+
+def _missing_count(report: dict[str, object]) -> int:
+    raw = report["unconnected_items"]
+    assert isinstance(raw, list)
+    rows: list[object] = raw
+    return len(rows)
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize("cap", [f"C{n}" for n in range(101, 116)])
+def test_native_cut_of_each_local_bypass_is_detected(
+    tmp_path: Path,
+    p2_canonical: tuple[Path, dict[str, object]],
+    cap: str,
+) -> None:
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    _mutate(cad, "cut-" + cap)
+    report = _fresh(cad)
+    assert report["schematic_parity"] == [] and report["violations"] == []
+    assert _missing_count(report) == _missing_count(p2_canonical[1]) + 1
+    proof = _probe(cad, "bypass-" + cap)
+    assert proof.returncode != 0 and "local bypass path" in proof.stderr
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize("domain", ["HOST_GND", "TARGET_GND"])
+def test_removing_either_reference_is_a_native_ground_failure(tmp_path: Path, domain: str) -> None:
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    _mutate(cad, "remove-plane-" + domain)
+    report = _fresh(cad)
+    assert report["schematic_parity"] == []
+    assert domain in json.dumps(report["unconnected_items"])
+    proof = _probe(cad, "grounds")
+    assert proof.returncode != 0 and "two separate ground reference zones" in proof.stderr
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize(
+    "mode,reason",
+    [
+        ("remove-return-via", "ground access"),
+        ("wrong-reference-layer", "reference layer"),
+        ("remove-mount-exclusion", "mounting copper exclusion"),
+    ],
+)
+def test_native_return_and_mount_faults_fail(tmp_path: Path, mode: str, reason: str) -> None:
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    _mutate(cad, mode)
+    report = _fresh(cad)
+    assert report["schematic_parity"] == []
+    if mode == "remove-return-via":
+        assert "TARGET_GND" in json.dumps(report["unconnected_items"])
+        assert "track_dangling" in json.dumps(report["violations"])
+    proof = _probe(cad, "grounds")
+    assert proof.returncode != 0 and reason in proof.stderr
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize("mode", ["reverse-C110", "split-C110", "benign-window"])
+def test_benign_copper_representation_or_remote_void_remains_accepted(
+    tmp_path: Path,
+    p2_canonical: tuple[Path, dict[str, object]],
+    mode: str,
+) -> None:
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    _mutate(cad, mode)
+    report = _fresh(cad)
+    assert report["schematic_parity"] == [] and report["violations"] == []
+    assert _missing_count(report) == _missing_count(p2_canonical[1])
+    for label in ("grounds", "bypass-C110"):
+        proof = _probe(cad, label)
+        assert proof.returncode == 0, proof.stdout + proof.stderr
