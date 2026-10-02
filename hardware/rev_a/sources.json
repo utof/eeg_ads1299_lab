@@ -122,6 +122,12 @@
       "url": "https://yageogroup.com/content/datasheet/asset/file/PYU-RC_GROUP_51_ROHS_L",
       "sections": "RC0603 1% standard E96 value 42.2k; exact RC0603FR-0742K2L ordering code",
       "verification": "Manufacturer ordering code and RC0603 table inspected; no lot availability or installed resistance measurement"
+    },
+    {
+      "id": "JST_XH_C4",
+      "title": "JST XH official series, six-way connector/housing/contact drawings",
+      "url": "https://www.jst-mfg.com/product/pdf/eng/eXH.pdf",
+      "verification": "Public target catalog and drawings inspected; job-specific hole, crimp and assembly qualification remains pending."
     }
   ],
   "limitations": [

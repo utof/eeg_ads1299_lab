@@ -74,7 +74,7 @@ _PIN_TYPES = frozenset(
 _EXTERNAL_ASSUMPTIONS = frozenset(
     {
         "interface pin types describe actual external endpoint roles, not always-powered sources",
-        "AFE six-way mating rail access is not implemented on the current AFE board",
+        "AFE six-way rail access requires the separate inspected 1:1 service harness; no hot mating",
         "MCU tails remain permanent; bare-board USB programming requires removal",
         "no HOST/TARGET power or ground jumper",
         "no current firmware C2 handshake or automatic analog source isolation",

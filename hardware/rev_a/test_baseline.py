@@ -41,8 +41,8 @@ class BaselineTests(unittest.TestCase):
 
     def test_costs_and_optional_exclusion(self) -> None:
         result = totals(self.bom)
-        self.assertEqual(result["fitted"], Decimal("76.34"))
-        self.assertEqual(result["planning_total"], Decimal("94.34"))
+        self.assertEqual(result["fitted"], Decimal("76.84"))
+        self.assertEqual(result["planning_total"], Decimal("94.84"))
         self.assertEqual(result["dnp_options"], Decimal("2.40"))
 
     def test_every_gate_is_fail_closed(self) -> None:
@@ -153,7 +153,8 @@ class BaselineTests(unittest.TestCase):
         self.assertEqual(row["quantity"], 2)
         self.assertEqual(row["planning_unit_usd"], "2.00")
         self.assertIn("SAMTEC_HTSW", row["source_ids"])
-        for header in self.profile["interface_headers"].values():
+        for name in ("J_DIG", "J_INPUT"):
+            header = self.profile["interface_headers"][name]
             self.assertEqual(header["mpn"], row["mpn"])
             self.assertEqual(set(header["pin_map"]), {str(i) for i in range(1, 21)})
         self.assertFalse(any(self.profile["gates"].values()))

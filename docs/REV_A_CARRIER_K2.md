@@ -329,3 +329,12 @@ https://openscad.org/documentation.html
 
 Dimensions not explicitly attributed to a manufacturer are K2 design choices,
 not approvals, published part tolerances, a material certificate or test results.
+
+## C4 service-connector amendment
+
+The C4 branch adds two underside backing blocks and a conservative J3 body/mate
+allocation. All original receiver/cartridge dimensions remain unchanged. See
+`REV_A_SERVICE_C4.md` and its geometry record: this is an explicit board/carrier
+revision, not a metadata-only identity update. Added rigid clearance/support
+tests do not qualify force, bending, material or printed tolerances. The old
+K2 checkpoint is historical; the current strict board hash lives in its test.

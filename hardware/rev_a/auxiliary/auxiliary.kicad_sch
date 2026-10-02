@@ -120,7 +120,7 @@
 (text "J101: twenty K1 conductors, ten individual return lands. J102: solder tails numbered as actual DevKit J1." (at 15.24 119.38 0) (effects (font (size 1.27 1.27)) (justify left)) (uuid "bf5c68b0-4a07-5b41-a027-cccc01ea74ad"))
 (text "Port arrows describe external endpoint roles; ERC does not establish power sequencing or physical attachment." (at 15.24 127 0) (effects (font (size 1.27 1.27)) (justify left)) (uuid "1d254d3d-7e07-5ad7-be71-220f627aee8c"))
 (text "J104: dedicated six-way rail access; pin 6 NC." (at 251.46 218.44 0) (effects (font (size 1.27 1.27)) (justify left)) (uuid "c70b3295-b754-592c-881a-015e020420c5"))
-(text "AFE mating connector/pads NOT YET ADDED." (at 251.46 223.52 0) (effects (font (size 1.27 1.27)) (justify left)) (uuid "45c6aa2f-a04a-5fae-8e52-0827ba0d6e11"))
+(text "AFE J3 present; use inspected C4 cable." (at 251.46 223.52 0) (effects (font (size 1.27 1.27)) (justify left)) (uuid "45c6aa2f-a04a-5fae-8e52-0827ba0d6e11"))
 (text "HOST_GND and TARGET_GND MUST REMAIN SEPARATE. No host 5-V connection. Both DevKit USBs excluded in acquisition." (at 15.24 246.38 0) (effects (font (size 1.27 1.27)) (justify left)) (uuid "ccf36cf4-eba6-5b04-a3ce-f6e1c76484d9"))
 (text "Program bare DevKit before attaching permanent tails. No hot-plugging or small-capacitor-pad flying wires." (at 15.24 254 0) (effects (font (size 1.27 1.27)) (justify left)) (uuid "45597cc4-7fb4-584b-b921-8d13a8db8142"))
 (symbol (lib_id "RevA:AFE_TAILS") (at 86.36 76.2 0) (unit 1) (in_bom no) (on_board yes) (dnp no) (uuid "68eb98be-66df-5205-9fdf-424fb5cd852a")

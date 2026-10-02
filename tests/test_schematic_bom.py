@@ -32,7 +32,7 @@ def test_native_bom_fixture_matches_validated_xml_and_json() -> None:
     profile, bom, _ = load_documents()
     assert validate_schematic(NETLIST, profile, bom) == []
     rows = list(csv.DictReader(io.StringIO(BOM_CSV)))
-    assert len(rows) == 69
+    assert len(rows) == 70
     assert sum(row["DNP"] == "DNP" for row in rows) == 8
     assert [row["Reference"] for row in rows if row["OffBoard"]] == ["MOD1"]
     validate_schematic_bom(BOM_CSV, NETLIST)
@@ -46,7 +46,7 @@ def test_every_csv_field_is_compared_with_the_xml(column: int) -> None:
         validate_schematic_bom(_write(rows), NETLIST)
 
 
-@pytest.mark.parametrize("row_index", range(1, 70))
+@pytest.mark.parametrize("row_index", range(1, len(list(csv.reader(io.StringIO(BOM_CSV))))))
 def test_every_component_including_dnp_and_offboard_must_be_present(row_index: int) -> None:
     rows = list(csv.reader(io.StringIO(BOM_CSV)))
     del rows[row_index]

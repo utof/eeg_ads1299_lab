@@ -193,6 +193,17 @@
         "19": "NC",
         "20": "NC"
       }
+    },
+    "J_SERVICE": {
+      "mpn": "B6B-XH-A(LF)(SN)",
+      "pin_map": {
+        "1": "DGND",
+        "2": "DVDD",
+        "3": "DVDD",
+        "4": "AVDD",
+        "5": "DGND",
+        "6": "NC"
+      }
     }
   },
   "integration": {

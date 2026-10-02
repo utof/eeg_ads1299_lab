@@ -80,6 +80,9 @@ module cable_envelope() { box([-25,-12.7,6.2],[-2.54,12.7,7.8]); }
 // Board nominal bottom -1.6; shim support/inspect board datum for actual thickness.
 module carrier() {
     union() {
+        // C4 support at screened bare underside regions; no PCB holes.
+        box([59,11.5,-7.01],[61,18,-1.6]);
+        box([76.5,11.5,-7.01],[78.5,18,-1.6]);
         difference() {
             box([-6,4,-10],[96,74,-7]);
             // Fixture fasteners ONLY, never PCB holes.
@@ -163,7 +166,11 @@ module edge_clip() {
 
 // Blanket z=0..4 component allocation, EXCEPT the K1 cartridge column and M1
 // contact strips. This is conservative but not detailed manufactured part CAD.
+// C4 conservative body/mate allocation; no physical fit guarantee.
+module service_envelope() { box([59.5,11,0],[78,19,12]); }
+
 module board_and_component_allocation() {
+    service_envelope();
     // Exclude only the 1-um skin of intentional bottom support contact; CGAL
     // otherwise retains zero-volume faces in STL intersections. Not fit tolerance.
     box([10,10,-1.599],[88,68,0]);

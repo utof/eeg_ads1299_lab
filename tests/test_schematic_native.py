@@ -211,7 +211,7 @@ def test_native_erc_and_graph_do_not_hide_review_artifact_faults(
     netlist = parse_schematic_xml(_export(cad, tmp_path))
     profile, bom, _ = load_documents()
     assert validate_schematic(netlist, profile, bom) == []
-    assert len(netlist.parts) == 69
+    assert len(netlist.parts) == 70
     if fault == "excluded-from-bom":
         content = _export_bom(cad, tmp_path)
         with pytest.raises(ValueError, match="BOM CSV component inventory is incomplete"):

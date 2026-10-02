@@ -73,7 +73,7 @@ def test_snapshot_rejects_same_name_but_wrong_pad_geometry(
 
 
 def test_canonical_footprints_remain_readable(tmp_path: Path) -> None:
-    assert len(schematic_source_snapshot(CAD, write_footprint_library(tmp_path))) == 16
+    assert len(schematic_source_snapshot(CAD, write_footprint_library(tmp_path))) == 17
 
 
 def _footprints() -> list[tuple[str, str]]:

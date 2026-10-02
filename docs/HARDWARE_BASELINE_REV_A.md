@@ -42,9 +42,17 @@ The machine-readable source of truth is [`hardware/rev_a/bom.json`](../hardware/
 | `RC0603FR-0710KL` | 5 | FIT | $0.30 |
 | `RC0603FR-0742K2L` | 7 | FIT | $0.42 |
 | `HTSW-110-07-T-D` | 2 | FIT | $4.00 |
+| `B6B-XH-A(LF)(SN)` | 1 | FIT | $0.50 |
 | `BAV199,215` | 8 | DNP | $2.40 |
 
-Fitted components: **$76.34**. Bare-PCB reserve: **$15.00**. Harness/mating reserve: **$3.00**. **Planning subtotal: $94.34**. Optional BAV199 population adds $2.40. Shipping, tax/VAT/import charges, assembly/stencil/setup, tools, bench instrumentation, battery/charger, enclosure, and any patient-safety hardware are excluded. The $3.00 historical harness reserve is not evidence that the newly identified IDC assemblies and coded carrier fit that allowance. Obtain one delivered basket/assembly quote before purchasing; $94.34 is not a delivered total or a demonstration that the $100 objective is met.
+Fitted components: **$76.84**. Bare-PCB reserve: **$15.00**. Harness/mating reserve: **$3.00**. **Planning subtotal: $94.84**. Optional BAV199 population adds $2.40. Shipping, tax/VAT/import charges, assembly/stencil/setup, tools, bench instrumentation, battery/charger, enclosure, and any patient-safety hardware are excluded. The $3.00 historical harness reserve is not evidence that the newly identified IDC assemblies and coded carrier fit that allowance. Obtain one delivered basket/assembly quote before purchasing; $94.84 is not a delivered total or a demonstration that the $100 objective is met.
+
+C4 adds a dedicated six-way J3 service connector for the auxiliary circuit:
+return, actual DVDD feed OUT, separate DVDD sense, AVDD sense, return, NC.
+The 20-position headers are unchanged. See `REV_A_SERVICE_C4.md` for the
+1:1 harness, native placement and open solder/crimp/physical-fit requirements.
+The $0.50 addition is a planning allowance only; auxiliary electronics and the
+new harness/support manufacture remain outside the old budget.
 
 ## Electrical contract
 

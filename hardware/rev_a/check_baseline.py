@@ -464,6 +464,7 @@ def validate(profile: BoardProfile, bom: BillOfMaterials, sources: SourcesDocume
             "do not buy/count the devkit module twice",
         )
 
+        _validate_service(profile, parts, require)
         _validate_clock_input(profile, parts, require)
         _validate_afe(profile, parts, require)
         _validate_network(profile, parts, require)
@@ -472,6 +473,25 @@ def validate(profile: BoardProfile, bom: BillOfMaterials, sources: SourcesDocume
     except (KeyError, TypeError, ValueError, InvalidOperation, AttributeError) as exc:
         errors.append(f"malformed or incomplete design document: {exc}")
     return errors
+
+
+def _validate_service(
+    profile: BoardProfile, parts: dict[str, BomItem], require: Callable[[bool, str], None]
+) -> None:
+    row = parts["service_header"]
+    require(row["mpn"] == "B6B-XH-A(LF)(SN)", "service connector MPN drift")
+    require(
+        row["quantity"] == 1 and row["references"] == ["J_SERVICE"] and row["population"] == "fit",
+        "service connector population drift",
+    )
+    require(
+        profile["interface_headers"]["J_SERVICE"]
+        == {
+            "mpn": "B6B-XH-A(LF)(SN)",
+            "pin_map": {"1": "DGND", "2": "DVDD", "3": "DVDD", "4": "AVDD", "5": "DGND", "6": "NC"},
+        },
+        "dedicated service feed/sense map drift",
+    )
 
 
 def _validate_clock_input(
@@ -667,7 +687,12 @@ def _validate_network(
         "J_DIG pin 19 must expose controlled CLKSEL instead of a passive DVDD sense",
     )
     require(parts["headers"]["quantity"] == 2, "header count drift")
-    for header in profile["interface_headers"].values():
+    require(
+        set(profile["interface_headers"]) == {"J_DIG", "J_INPUT", "J_SERVICE"},
+        "interface header inventory drift",
+    )
+    for name in ("J_DIG", "J_INPUT"):
+        header = profile["interface_headers"][name]
         require(header["mpn"] == parts["headers"]["mpn"], "header MPN drift")
         require(
             set(header["pin_map"]) == {str(n) for n in range(1, 21)},

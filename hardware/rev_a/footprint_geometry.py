@@ -63,6 +63,8 @@ def _expected(footprint: str) -> list[FootprintPad]:
         return _two_pads(*pairs[footprint])
     if footprint == FOOTPRINTS["afe"]:
         return _qfp()
+    if footprint == FOOTPRINTS["service_header"]:
+        return _service_pads()
     if footprint == FOOTPRINTS["headers"]:
         return [
             FootprintPad(
@@ -85,8 +87,25 @@ def _expected(footprint: str) -> list[FootprintPad]:
         coords = [(-1.1375, -0.95), (-1.1375, 0), (-1.1375, 0.95), (1.1375, 0.95), (1.1375, -0.95)]
         width = 1.325
     else:
-        raise ValueError("footprint is outside the inspected nine-package set")
+        raise ValueError("footprint is outside the inspected package set")
     return [FootprintPad(str(n), x, y, width, 0.6) for n, (x, y) in enumerate(coords, 1)]
+
+
+def _service_pads() -> list[FootprintPad]:
+    return [
+        FootprintPad(
+            str(n),
+            (n - 1) * 2.5,
+            0,
+            1.7,
+            1.95,
+            "thru_hole",
+            "roundrect" if n == 1 else "oval",
+            0.95,
+            0.147059 if n == 1 else None,
+        )
+        for n in range(1, 7)
+    ]
 
 
 def _qfp() -> list[FootprintPad]:
@@ -138,6 +157,8 @@ def _pad_fields(form: _Form, technology: str, shape: str) -> None:
     expected_fields = {"at", "size", "layers"}
     if technology == "thru_hole":
         expected_fields |= {"drill", "remove_unused_layers"}
+        if shape == "roundrect":
+            expected_fields.add("roundrect_rratio")
     elif technology == "smd" and shape == "roundrect":
         expected_fields.add("roundrect_rratio")
     elif technology != "smd" or shape != "rect":
@@ -175,7 +196,7 @@ def _pad(form: _Form) -> FootprintPad:
         (drill,) = _numbers(_one(form, "drill"), 1)
         if _one(form, "remove_unused_layers") != ["no"]:
             raise ValueError("footprint through-hole copper removal is unsupported")
-    elif shape == "roundrect":
+    if shape == "roundrect":
         (radius,) = _numbers(_one(form, "roundrect_rratio"), 1)
     return FootprintPad(number, x, y, width, height, technology, shape, drill, radius)
 
@@ -210,7 +231,9 @@ def _root(footprint: str, content: str) -> _Form:
     if root.items[0] != "footprint" or _atoms(_Form(root.items[:2])) != [footprint.split(":")[1]]:
         raise ValueError("footprint root/name differs from its selected library identity")
     if _one(root, "layer") != ["F.Cu"] or _one(root, "attr") != [
-        "through_hole" if footprint == FOOTPRINTS["headers"] else "smd"
+        "through_hole"
+        if footprint in {FOOTPRINTS["headers"], FOOTPRINTS["service_header"]}
+        else "smd"
     ]:
         raise ValueError("footprint side or mounting technology differs")
     _root_fields(root)

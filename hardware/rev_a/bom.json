@@ -415,6 +415,24 @@
       "spec": {}
     },
     {
+      "id": "service_header",
+      "mpn": "B6B-XH-A(LF)(SN)",
+      "manufacturer": "JST",
+      "description": "C4 dedicated AFE digital-rail feed and separate sense access; no hot mating",
+      "package": "Through-hole / 2.50 mm / 1x06",
+      "references": [
+        "J_SERVICE"
+      ],
+      "quantity": 1,
+      "population": "fit",
+      "planning_unit_usd": "0.50",
+      "source_ids": [
+        "JST_XH_C4"
+      ],
+      "evidence": "Same six-way XH target as auxiliary J104; factory hole/process and cable crimp inspection remain required. 0.50 USD is an incremental planning allowance, not a quote.",
+      "spec": {}
+    },
+    {
       "id": "clamps",
       "mpn": "BAV199,215",
       "manufacturer": "Nexperia",
