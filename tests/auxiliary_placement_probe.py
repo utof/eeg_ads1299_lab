@@ -20,9 +20,9 @@ elif mode=='mount-benign':move('H4',0,-.25)
 elif mode=='wrong-sense':
     next(z for z in fs['J104'].Pads() if z.GetNumber()=='3').SetNet(b.FindNet('AFE_DVDD'))
 elif mode=='outer-only-barrier':
-    next(iter(b.Zones())).SetLayerSet(p.LSET.AllCuMask(2))
+    next(z for z in b.Zones() if z.GetZoneName()=='HOST_TARGET_NO_COPPER').SetLayerSet(p.LSET.AllCuMask(2))
 elif mode=='weaken-keepout':
-    next(iter(b.Zones())).SetDoNotAllowTracks(False)
+    next(z for z in b.Zones() if z.GetZoneName()=='HOST_TARGET_NO_COPPER').SetDoNotAllowTracks(False)
 elif mode=='mirrored-buffer':fs['U102'].SetOrientationDegrees(270)
 elif mode=='benign':move('R116',.2,0)
 else:assert mode=='canonical'
@@ -34,7 +34,8 @@ def gap(a,c):return math.hypot(max(a[0]-c[2],c[0]-a[2],0),max(a[1]-c[3],c[1]-a[3
 def pad(ref,n):return next(x for x in fs[ref].Pads() if x.GetNumber()==str(n))
 contract=json.loads((cad/'contract.json').read_text())
 assert set(fs)=={r['reference'] for r in contract['parts']}|{'H1','H2','H3','H4'},'inventory'
-assert len(list(b.GetTracks()))==0,'placement is not routed'
+# P2 ground/bypass copper is independently checked by auxiliary_ground_probe.
+# Placement invariants still apply to the same electrical footprint geometry.
 assert b.GetCopperLayerCount()==4,'four-layer low-EMI planning target'
 assert b.GetDesignSettings().GetBoardThickness()==p.FromMM(1.6)
 outline=[g for g in b.GetDrawings() if g.GetLayer()==p.Edge_Cuts]
@@ -74,7 +75,7 @@ for row in contract['parts']:
             target.append(r);assert r[0]>=23.5,'target side'
 separation=min(gap(a,c) for a in host for c in target)
 assert separation>=3.0,'HOST/TARGET gap'
-zones=list(b.Zones());assert len(zones)==1
+zones=[z for z in b.Zones() if z.GetZoneName()=='HOST_TARGET_NO_COPPER'];assert len(zones)==1
 z=zones[0];assert z.GetIsRuleArea() and list(z.GetLayerSet().Seq())==list(p.LSET.AllCuMask(4).Seq()),'barrier layers'
 assert z.GetZoneName()=='HOST_TARGET_NO_COPPER'
 assert all((z.GetDoNotAllowTracks(),z.GetDoNotAllowVias(),z.GetDoNotAllowPads(),z.GetDoNotAllowCopperPour())),'keepout policy'
