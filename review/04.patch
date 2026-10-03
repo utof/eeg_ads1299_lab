@@ -1,0 +1,39 @@
+From 0a478c725d1d0f2d798558d5dd260f65e23eb74b Mon Sep 17 00:00:00 2001
+From: utof <38869938+utof@users.noreply.github.com>
+Date: Sat, 3 Oct 2026 10:16:46 +0000
+Subject: [PATCH 4/6] test(check): require a bounded CAD batch budget and
+ reject its timeout
+
+---
+ tests/test_schematic_gate.py | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/tests/test_schematic_gate.py b/tests/test_schematic_gate.py
+index a23a18c..085ae1e 100644
+--- a/tests/test_schematic_gate.py
++++ b/tests/test_schematic_gate.py
+@@ -84,6 +84,8 @@ def _fake_native_step(name: str, command: Sequence[str], out: Path, root: Path,
+         )
+         if fault == "console-route-fails":
+             raise RuntimeError("injected actual-sketch route failure")
++    if name == "schematic-tests" and fault == "native-tests-timeout":
++        raise RuntimeError("injected CAD batch timeout")
+     if name == "schematic-tests" and fault == "native-tests-fail":
+         raise RuntimeError("injected native regression failure")
+ 
+@@ -196,6 +198,7 @@ def _change_dependency(root: Path, fault: str) -> None:
+         "change-local-footprint",
+         "missing-dependency",
+         "native-tests-fail",
++        "native-tests-timeout",
+     ],
+ )
+ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
+@@ -226,6 +229,7 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
+         return "/software-double/kicad-cli"
+ 
+     def step(name: str, command: Sequence[str], out: Path, timeout: float = 300) -> None:
++        assert timeout == (450 if name == "schematic-tests" else 300)
+         _fake_native_step(name, command, out, root, fault)
+ 
+     monkeypatch.setattr("tools.check.ROOT", root)
