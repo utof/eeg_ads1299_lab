@@ -1,0 +1,67 @@
+name: Publish Saved P3 Candidate
+on:
+  push:
+    branches: [workbench/p3-publication-review]
+    paths: [transfer/READY]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+      - name: Verify original transport bytes before Git import
+        run: |
+          python - <<'PY'
+          import base64, hashlib, json, os, pathlib
+          root = pathlib.Path('transfer')
+          manifest = json.loads((root / 'manifest.json').read_text())
+          assert manifest['bundle_bytes'] == 90378
+          assert manifest['bundle_sha256'] == 'e677e4bbb68f44bafdb22bcb627df3b36c750c519b4001e65226504791414c85'
+          chunks = []
+          for i, item in enumerate(manifest['chunks']):
+              assert item['path'] == f'{i:03}.txt'
+              data = (root / item['path']).read_bytes()
+              assert len(data) == item['bytes'] and hashlib.sha256(data).hexdigest() == item['sha256'], item['path']
+              chunks.append(data.strip())
+          assert len(chunks) == 35
+          bundle = base64.b64decode(b''.join(chunks), validate=True)
+          assert len(bundle) == 90378 and hashlib.sha256(bundle).hexdigest() == manifest['bundle_sha256']
+          pathlib.Path(os.environ['RUNNER_TEMP'], 'p3.bundle').write_bytes(bundle)
+          PY
+      - name: Publish only the preserved candidate branch
+        run: |
+          set -eu
+          BASE=70e8d41bd60d597ecc284859d7e1f71370dcd190
+          PARENT=4731c4193b2006b72861c6d1acae90f3584678f8
+          HEAD=a2ebcb06f287b5862de05dc0357bb6b1dc8a61b8
+          TREE=4535dfadc429d1c5bd8959c2a31f076ba74c3bc1
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$BASE"
+          git bundle verify "$RUNNER_TEMP/p3.bundle"
+          git fetch "$RUNNER_TEMP/p3.bundle" HEAD
+          test "$(git rev-parse FETCH_HEAD)" = "$HEAD"
+          test "$(git rev-parse "$HEAD^{tree}")" = "$TREE"
+          test "$(git rev-list --count "$PARENT..$HEAD")" = 2
+          git fsck --no-dangling "$HEAD"
+          existing=$(git ls-remote origin refs/heads/feat/auxiliary-routing-p3 | cut -f1)
+          test -z "$existing" || test "$existing" = "$HEAD"
+          git push origin "$HEAD:refs/heads/feat/auxiliary-routing-p3"
+          git clone --no-local --branch feat/auxiliary-routing-p3 "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$RUNNER_TEMP/fresh"
+          cd "$RUNNER_TEMP/fresh"
+          test "$(git rev-parse HEAD)" = "$HEAD"
+          test "$(git rev-parse HEAD^{tree})" = "$TREE"
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/receipt"
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/receipt/identity.txt"
+          git bundle create "$RUNNER_TEMP/receipt/source.bundle" HEAD
+          cd "$RUNNER_TEMP/receipt"
+          sha256sum source.bundle identity.txt > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: published-p3-source
+          path: ${{ runner.temp }}/receipt/
+          retention-days: 14
+          if-no-files-found: error
