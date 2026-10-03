@@ -1,7 +1,8 @@
 """Native P3 routing and explicit reference-screen limits; not an EM solver."""
 
 SCRIPT = r"""
-import json,math,sys
+import hashlib,json,math,sys
+from pathlib import Path
 from collections import Counter,defaultdict
 import pcbnew as p
 assert p.Version()=='9.0.2'
@@ -29,6 +30,19 @@ for net in netnames:
             t.TransformShapeToPolygon(poly,p.In1_Cu,p.FromMM(.35),p.FromMM(.002),p.ERROR_OUTSIDE)
     exclusions[net]=poly
 
+# Freeze the original pending geometry, not an approved area/defect count.
+# Its checksum makes changing the allowed locations an explicit source review.
+raw=Path(sys.argv[3]).read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='bfe5db5d7b6fd444ea0b5f7beaa32ada48b403d523dd3d2d0a7389dcfa6f9735','pending edge envelope identity'
+pending=json.loads(raw)
+assert pending['status']=='PENDING_ELECTRICAL_REVIEW_NOT_A_RELEASE'
+known={}
+for region in pending['regions']:
+    key=region['net'],region['layer']
+    poly=known.setdefault(key,p.SHAPE_POLY_SET());poly.NewOutline()
+    assert not region['holes_nm'],'unsupported envelope hole'
+    for x,y in region['outline_nm']:poly.Append(x,y)
+
 def uncovered(t,width):
     a,c=t.GetStart(),t.GetEnd();d=math.hypot(c.x-a.x,c.y-a.y)
     assert d>0,'zero length segment'
@@ -38,7 +52,7 @@ def uncovered(t,width):
         q.Append(round(x),round(y))
     net=t.GetNetname();ground='HOST_GND' if net.startswith('HOST_') else 'TARGET_GND'
     q.BooleanSubtract(exclusions[net]);q.BooleanSubtract(planes[ground].GetFilledPolysList(p.In1_Cu))
-    return q.Area()/1e12
+    return q
 
 rows=defaultdict(lambda:{'front_length_mm':0.,'inner_length_mm':0.,'through_vias':0})
 edge_gaps=[]
@@ -58,9 +72,16 @@ for t in tracks:
     # A continuous central 0.10mm reference spine is a NEW geometric screen for
     # the global routes, not the stronger existing 0.20mm P2 bypass requirement.
     # Full-width uncovered edges are ALWAYS inventoried below, never called zero.
-    spine=uncovered(t,p.FromMM(.10))
+    spine=uncovered(t,p.FromMM(.10)).Area()/1e12
     assert spine<=1e-6,'P3 central reference spine gap: '+t.m_Uuid.AsString()
-    full=uncovered(t,t.GetWidth())
+    projection=uncovered(t,t.GetWidth());full=projection.Area()/1e12
+    # The original pending shapes may shrink or vanish, but must not expand or
+    # relocate. This is independent of UUIDs or splitting/reversing a trace.
+    outside=projection.CloneDropTriangulation()
+    old=known.get((net,b.GetLayerName(t.GetLayer())))
+    if old is not None:outside.BooleanSubtract(old)
+    assert outside.Area()/1e12<=1e-6,'P3 unreviewed full-width reference growth: '+t.m_Uuid.AsString()
+
     if full>1e-6:
         edge_gaps.append({'track':t.m_Uuid.AsString(),'net':net,'layer':b.GetLayerName(t.GetLayer()),
                           'uncovered_full_width_area_mm2':full})
@@ -70,6 +91,8 @@ print(json.dumps({'nets':dict(sorted(rows.items())),
            'vias':sum(t.Type()==p.PCB_VIA_T for t in tracks)},
  'reference_spine_width_mm':.10,'same_net_antipad_screen_expansion_mm':.35,
  'full_width_edge_gaps_pending_review':edge_gaps,
+ 'pending_edge_geometry_status':pending['status'],
+ 'unreviewed_edge_growth_detected':False,
  'full_width_ground_coverage_qualified':False,
  'EMC_impedance_timing_or_physical_qualification':False},indent=2))
 """

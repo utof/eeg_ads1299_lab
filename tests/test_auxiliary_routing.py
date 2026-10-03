@@ -34,6 +34,7 @@ def _proof(cad: Path) -> subprocess.CompletedProcess[str]:
             SCRIPT,
             str(cad / BOARD.name),
             "reference",
+            str(ROOT / "tests/fixtures/auxiliary_p3_pending_edges.json"),
         ],
         capture_output=True,
         text=True,
@@ -92,6 +93,8 @@ def test_global_routes_have_explicit_reference_screen_and_limits(tmp_path: Path)
     raw: object = json.loads(proof.stdout)
     assert isinstance(raw, dict)
     assert raw["reference_spine_width_mm"] == 0.10
+    assert raw["pending_edge_geometry_status"] == "PENDING_ELECTRICAL_REVIEW_NOT_A_RELEASE"
+    assert raw["unreviewed_edge_growth_detected"] is False
     assert raw["full_width_ground_coverage_qualified"] is False
     assert raw["EMC_impedance_timing_or_physical_qualification"] is False
 
