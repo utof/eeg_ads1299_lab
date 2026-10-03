@@ -1,0 +1,57 @@
+From b36a2278b290b2d57b92bea4e5e247a9fd584547 Mon Sep 17 00:00:00 2001
+From: utof <38869938+utof@users.noreply.github.com>
+Date: Sat, 3 Oct 2026 10:08:53 +0000
+Subject: [PATCH 2/6] fix(hardware): verify ground reference along the actual
+ bypass route
+
+---
+ tests/auxiliary_ground_probe.py | 19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
+
+diff --git a/tests/auxiliary_ground_probe.py b/tests/auxiliary_ground_probe.py
+index b83f619..52d5193 100644
+--- a/tests/auxiliary_ground_probe.py
++++ b/tests/auxiliary_ground_probe.py
+@@ -12,20 +12,22 @@ def xy(x):return (x.GetPosition().x,x.GetPosition().y)
+ def coord(x):return (x.x,x.y)
+ def bb(x):
+     box=x.BBox();return [box.GetX()/1e6,box.GetY()/1e6,box.GetRight()/1e6,box.GetBottom()/1e6]
+-def short_path(net,start,end):
++def route_path(net,start,end):
+     edges={}
+     for t in b.GetTracks():
+         if t.Type()!=p.PCB_TRACE_T or t.GetLayer()!=p.F_Cu or t.GetNetname()!=net:continue
+         a,c=coord(t.GetStart()),coord(t.GetEnd());d=t.GetLength()/1e6
+         edges.setdefault(a,[]).append((c,d));edges.setdefault(c,[]).append((a,d))
+-    queue=[(0.,start)];seen=set()
++    queue=[(0.,start,(start,))];seen=set()
+     while queue:
+-        cost,n=heapq.heappop(queue)
+-        if n==end:return cost
++        cost,n,points=heapq.heappop(queue)
++        if n==end:return cost,points
+         if n in seen:continue
+         seen.add(n)
+-        for c,d in edges.get(n,[]):heapq.heappush(queue,(cost+d,c))
+-    return math.inf
++        for c,d in edges.get(n,[]):heapq.heappush(queue,(cost+d,c,points+(c,)))
++    return math.inf,()
++def short_path(net,start,end):
++    return route_path(net,start,end)[0]
+ def reference(net):
+     zones=[z for z in b.Zones() if not z.GetIsRuleArea() and z.GetNetname()==net]
+     assert len(zones)==1,net+' missing unique reference'
+@@ -54,10 +56,11 @@ pairs=[('C101','U101',1),('C102','U101',8),('C103','U102',1),('C104','U102',14),
+ if mode.startswith('bypass-'):
+     ref=mode.removeprefix('bypass-');cap,ic,pin=next(row for row in pairs if row[0]==ref)
+     a,c=pad(cap,1),pad(ic,pin);assert a.GetNetname()==c.GetNetname()
+-    length=short_path(a.GetNetname(),xy(a),xy(c))
++    length,points=route_path(a.GetNetname(),xy(a),xy(c))
+     assert length<=2.5,cap+' missing or excessive local bypass path'
+     gnd=pad(cap,2).GetNetname();poly=reference(gnd)
+-    covered_strip(poly,xy(a),xy(c),cap+' supply')
++    for start,end in zip(points,points[1:]):
++        covered_strip(poly,start,end,cap+' supply')
+     # Separate return access at the corresponding physical IC ground pin.
+     gp=4 if cap=='C101' else (5 if ic in ('U101','U105','U106','U107','U108') else
+        (7 if ic in ('U102','U103','U104') else (2 if ic in ('U109','U110') else 4)))
