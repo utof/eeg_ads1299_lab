@@ -1,4 +1,4 @@
-"""P1 is editable, unrouted auxiliary placement; never a fabrication pass."""
+"""Placement invariants survive P2 partial routing; never a fabrication pass."""
 
 import json
 import os
@@ -13,11 +13,11 @@ CAD = ROOT / "hardware/rev_a/auxiliary"
 BOARD = CAD / "auxiliary.kicad_pcb"
 
 
-def test_auxiliary_placement_is_present_and_explicitly_unrouted() -> None:
+def test_auxiliary_placement_is_present_and_explicitly_incomplete() -> None:
     text = BOARD.read_text()
-    assert "P1 PLACEMENT ONLY - NOT FOR FABRICATION" in text
+    assert "P2 PARTIAL ROUTING - NOT FOR FABRICATION" in text
     assert "(footprint " in text and "(gr_rect" in text
-    assert "(segment " not in text and "(via " not in text
+    assert "(segment " in text and "(via " in text
 
 
 @pytest.mark.schematic
@@ -53,7 +53,7 @@ def test_auxiliary_placement_native_schematic_parity(tmp_path: Path) -> None:
     assert isinstance(data, dict)
     assert data["schematic_parity"] == []
     assert data["violations"] == []
-    assert data["unconnected_items"], "P1 is not routed; do not accept a suppressed empty report"
+    assert data["unconnected_items"], "P2 is incomplete; do not accept a suppressed empty report"
     assert result.returncode == 5
 
 

@@ -368,6 +368,8 @@ def _schematic_snapshot(cad: Path, footprints: Path) -> dict[str, str]:
         "tests/test_auxiliary_native.py",
         "tests/test_auxiliary_placement.py",
         "tests/auxiliary_placement_probe.py",
+        "tests/test_auxiliary_ground.py",
+        "tests/auxiliary_ground_probe.py",
         "tests/native_sketch_startup_test.cpp",
         "tests/native_c2_session_test.cpp",
         "tests/test_firmware_interlock.py",
@@ -536,6 +538,9 @@ def _schematic(out: Path) -> None:
             f"--basetemp={out / 'schematic-tests'}",
         ],
         out,
+        # Aggregate budget for the growing real-CAD suite, not a per-command limit.
+        # The growing suite exceeded 300 s on CI; individual native bounds stay fixed.
+        timeout=450,
     )
     if _schematic_snapshot(cad, footprints) != before:
         raise RuntimeError("A schematic source/dependency changed during native checks")

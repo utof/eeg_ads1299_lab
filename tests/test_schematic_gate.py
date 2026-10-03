@@ -84,8 +84,12 @@ def _fake_native_step(name: str, command: Sequence[str], out: Path, root: Path, 
         )
         if fault == "console-route-fails":
             raise RuntimeError("injected actual-sketch route failure")
-    if name == "schematic-tests" and fault == "native-tests-fail":
-        raise RuntimeError("injected native regression failure")
+    failure = {
+        "native-tests-timeout": "injected CAD batch timeout",
+        "native-tests-fail": "injected native regression failure",
+    }.get(fault)
+    if name == "schematic-tests" and failure is not None:
+        raise RuntimeError(failure)
 
 
 def _fake_output(name: str, path: Path, fault: str) -> None:
@@ -135,6 +139,8 @@ def _change_dependency(root: Path, fault: str) -> None:
         "change-board": root / "hardware/rev_a/layout/rev_a.kicad_pcb",
         "change-board-test": root / "tests/test_pcb_placement.py",
         "change-power-test": root / "tests/test_pcb_power.py",
+        "change-ground-test": root / "tests/test_auxiliary_ground.py",
+        "change-ground-oracle": root / "tests/auxiliary_ground_probe.py",
         "change-library": root / "hardware/rev_a/kicad/RevA.kicad_sym",
         "change-console": root / "firmware/esp32_ads1299_bench/bench_console.h",
         "change-interlock": root / "firmware/esp32_ads1299_bench/c2_interlock.h",
@@ -178,6 +184,8 @@ def _change_dependency(root: Path, fault: str) -> None:
         "change-board",
         "change-board-test",
         "change-power-test",
+        "change-ground-test",
+        "change-ground-oracle",
         "change-library",
         "change-console",
         "change-sketch",
@@ -192,6 +200,7 @@ def _change_dependency(root: Path, fault: str) -> None:
         "change-local-footprint",
         "missing-dependency",
         "native-tests-fail",
+        "native-tests-timeout",
     ],
 )
 def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
@@ -222,6 +231,7 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
         return "/software-double/kicad-cli"
 
     def step(name: str, command: Sequence[str], out: Path, timeout: float = 300) -> None:
+        assert timeout == (450 if name == "schematic-tests" else 300)
         _fake_native_step(name, command, out, root, fault)
 
     monkeypatch.setattr("tools.check.ROOT", root)
@@ -239,7 +249,7 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
         assert report["physical_hardware_tested"] is False
         assert report["body_connection_authorized"] is False
         assert report["schematic_released"] is False
-        assert len(read_object(report["source_sha256"], "hashes")) == 85
+        assert len(read_object(report["source_sha256"], "hashes")) == 87
         directory = out / str(report["artifact_directory"])
         harness = read_object(json.loads((directory / "harness.json").read_text()), "harness")
         assert harness["physical_wiring_approved"] is False
