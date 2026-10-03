@@ -1,3 +1,24 @@
+# Latest local continuation: P3 reference-check performance
+
+Read `REV_A_P3_REFERENCE_PERFORMANCE.md` and its checkpoint first. Local branch
+`perf/p3-reference-batch` preserves 0719 and all earlier P3 source. Neither PCB,
+any hardware/circuit/firmware/approval state, nor the pending polygon allowance
+changed. The reference checker now batches exactly identical projections by net;
+only an EMPTY native difference fast-passes. Every nonempty group takes the
+old per-trace checks. The 1200-projection oracle and eight old/new native variant
+comparisons agree; deterministic polygon work dropped 69.1%, paired median probe
+runtime 1.4502 -> 0.6345s. This is NOT a whole-suite speedup claim. The unmodified
+0719 CAD suite also passed locally in 364.18s today, so its former 450s timeout
+was not reproduced here. The 450s deadline and every old test remain unchanged.
+
+Final shared-gate/review results belong to the actual head. Source is STILL
+unpublished until normal authorized Git push; no new workflow bypass, hosted
+CI/S3 build or independent review is implied. Keep complete source history;
+next is publication/exact-head CI and actual layout review, NOT more routing or
+another source reconstruction. The earlier reference-review context follows.
+
+---
+
 # P3 local continuation: reference-edge regression review
 
 Latest local continuation is on `review/p3-reference-envelope`, based on the

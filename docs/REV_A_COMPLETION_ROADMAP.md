@@ -1,3 +1,17 @@
+# Latest continuation: P3 local runtime optimization; publication pending
+
+A bounded native fast path avoids repeated whole-plane subtraction only for
+provably empty net-group differences; all other per-trace acceptance checks are
+unchanged. The probe is about2.29x faster in paired runs and keeps the complete
+pending-gap inventory. Both PCB files remain byte-identical. The old450s timeout
+was not reproduced by today's unchanged284-case baseline (364.18s); measure the
+final actual gate rather than attributing all environmental variation to code.
+No timeout increase, skipped tests, physical qualification or source publication.
+See `REV_A_P3_REFERENCE_PERFORMANCE.md`. Next is authorized publication and
+exact-head CI/independent layout review. No extra routing or board reconstruction.
+
+---
+
 # Latest continuation: P3 local review, publication pending
 
 The fully connected P3 copper is preserved. A newly reproduced native reference
@@ -30,7 +44,8 @@ physical measurement time; do not sum these into a promised completion date.
 
 | Category | Estimated turns remaining | Done / current status | Next slice or blocker |
 |---|---:|---|---|
-| Repository continuity | 0 for current milestone; maintain | P2 merged; P3 connected source and tests local until actual publication | Verify live PR/main, publish and review each actual head |
+| **Source publication** | **1 after normal Git access** | P2 merged; complete P3 + edge fix + performance work preserved locally | **Publish existing history, then exact-head CI and review** |
+| Verification runtime | 0 for scoped optimization; monitor CI | Native kernel work reduced without dropping cases or changing deadlines | Read exact-head local/hosted gate; do not substitute separate diagnostic success |
 | Original AFE routing and scoped repairs | 0 for completed scope | All old copper preserved; J3 and11 service segments added | Preserve routing except explicitly reviewed service-access edits |
 | Remaining input/supply coupling | 1 combined decision after confirmations | Nine locations remain one six-pair assessment | Confirmed construction/E1 inputs, then combined rework or separate pilot-risk decision |
 | Stackup and bench envelope | 0 for targets; 1–2 plus outside evidence to close | Named construction and E1 numerical targets defined | Actual vendor drawing/tolerances and calibrated fixture/measurement floor |
