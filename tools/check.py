@@ -538,6 +538,9 @@ def _schematic(out: Path) -> None:
             f"--basetemp={out / 'schematic-tests'}",
         ],
         out,
+        # Aggregate budget for the growing real-CAD suite, not a per-command limit.
+        # The 235-case suite exceeded 300 s on CI; individual native bounds stay fixed.
+        timeout=450,
     )
     if _schematic_snapshot(cad, footprints) != before:
         raise RuntimeError("A schematic source/dependency changed during native checks")
