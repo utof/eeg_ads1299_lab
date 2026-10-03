@@ -289,8 +289,8 @@
     "physical_process_qualified": false
   },
   "verification_scope": {
-    "focused_CAD_cases": 40,
-    "project_ordinary_new_cases": 2,
+    "focused_CAD_cases": 42,
+    "project_ordinary_new_cases": 3,
     "final_native_results": "Read exact-head PR/check artifacts; not prior transient runs",
     "authoring_scratch_not_project_dependency": true,
     "remaining_connections": 85
