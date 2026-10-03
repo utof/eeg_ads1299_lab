@@ -181,3 +181,28 @@ def test_actual_routed_signal_over_reference_void_is_rejected(tmp_path: Path) ->
     assert all(report[k] == [] for k in ("schematic_parity", "violations", "unconnected_items"))
     proof = _proof(cad)
     assert proof.returncode != 0 and "P3 central reference spine gap" in proof.stderr
+
+
+@pytest.mark.schematic
+def test_new_full_width_edge_gap_cannot_hide_behind_an_intact_spine(tmp_path: Path) -> None:
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    _mutate(cad, "edge-growth")
+    report = _fresh(cad)
+    assert all(report[k] == [] for k in ("schematic_parity", "violations", "unconnected_items"))
+    proof = _proof(cad)
+    assert proof.returncode != 0 and "P3 unreviewed full-width reference growth" in proof.stderr
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize("edit", ["edge-remote", "reverse-residual", "split-residual"])
+def test_pending_edge_geometry_allows_remote_void_and_equivalent_copper(
+    tmp_path: Path, edit: str
+) -> None:
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    _mutate(cad, edit)
+    report = _fresh(cad)
+    assert all(report[k] == [] for k in ("schematic_parity", "violations", "unconnected_items"))
+    proof = _proof(cad)
+    assert proof.returncode == 0, proof.stdout + proof.stderr

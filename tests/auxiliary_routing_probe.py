@@ -83,13 +83,25 @@ if mode=='cut':
     tracks=[t for t in b.GetConnectivity().GetConnectedTracks(a) if t.Type()==p.PCB_TRACE_T]
     assert tracks,'no terminal escape found'
     for t in tracks:b.Remove(t)
-elif mode in ('reverse','split'):
-    t=next(t for t in b.GetTracks() if t.m_Uuid.AsString()=='36f3b6dd-9d7a-54fe-9c03-f7ebe5f77ae8')
+elif mode in ('reverse','split','reverse-residual','split-residual'):
+    ident='90ba6800-0027-5595-a212-7b1f01cfa8dd' if mode.endswith('-residual') else '36f3b6dd-9d7a-54fe-9c03-f7ebe5f77ae8'
+    t=next(t for t in b.GetTracks() if t.m_Uuid.AsString()==ident)
     a,c=p.VECTOR2I(t.GetStart()),p.VECTOR2I(t.GetEnd())
-    if mode=='reverse':t.SetStart(c);t.SetEnd(a)
+    if mode.startswith('reverse'):t.SetStart(c);t.SetEnd(a)
     else:
         mid=p.VECTOR2I((a.x+c.x)//2,(a.y+c.y)//2);t.SetEnd(mid)
         n=p.PCB_TRACK(b);n.SetStart(mid);n.SetEnd(c);n.SetNet(t.GetNet());n.SetLayer(t.GetLayer());n.SetWidth(t.GetWidth());b.Add(n)
+elif mode in ('edge-growth','edge-remote'):
+    # The 0.60mm TARGET_VIN5 segment stays fully connected and its central
+    # 0.10mm reference remains present. Only the outer reference projection grows.
+    dx=0. if mode=='edge-growth' else 2.
+    z=p.ZONE(b);z.SetIsRuleArea(True);z.SetLayer(p.In1_Cu);z.SetZoneName('P3_EDGE_REVIEW_PROBE')
+    z.SetDoNotAllowTracks(False);z.SetDoNotAllowVias(False);z.SetDoNotAllowPads(False)
+    z.SetDoNotAllowCopperPour(True);z.SetDoNotAllowFootprints(False)
+    o=z.Outline();o.NewOutline()
+    for x,y in [(79.45+dx,19.49),(79.65+dx,19.49),(79.65+dx,19.69),(79.45+dx,19.69)]:
+        o.Append(p.FromMM(x),p.FromMM(y))
+    b.Add(z)
 elif mode in ('reference-void','remote-void'):
     # One real existing long AFE_SCLK segment at (34.3,9.6)-(39.05,24.9).
     # A local ground-only window changes no signal copper and does not cross a source P2 bypass.
