@@ -1,0 +1,191 @@
+From 76f2f8eb03fdbd28261cdc3d0d15119f25ae7a90 Mon Sep 17 00:00:00 2001
+From: utof <38869938+utof@users.noreply.github.com>
+Date: Sat, 3 Oct 2026 10:20:19 +0000
+Subject: [PATCH 6/6] docs(hardware): record routed-path proof and explicit CAD
+ batch budget
+
+---
+ docs/LLM_HANDOFF.md                           | 15 ++++++
+ docs/REV_A_AUXILIARY_GROUND_P2.md             | 51 +++++++++++++++++++
+ docs/REV_A_COMPLETION_ROADMAP.md              | 10 ++++
+ .../20261002_auxiliary_ground_p2.json         | 45 ++++++++++++++++
+ tools/check.py                                |  2 +-
+ 5 files changed, 122 insertions(+), 1 deletion(-)
+
+diff --git a/docs/LLM_HANDOFF.md b/docs/LLM_HANDOFF.md
+index 97ff215..a7600f5 100644
+--- a/docs/LLM_HANDOFF.md
++++ b/docs/LLM_HANDOFF.md
+@@ -15,6 +15,21 @@ failure-first tests. The missing tail and full original tree/history were NOT
+ recovered; F1 commits have the actual C4 main as their parent. See the F1
+ record for precise scope and use this PR's actual tested head, never prior counts.
+ 
++**PR79 review continuation:** the original eight-commit P2 source is already
++published at87c0d7e; do not rebuild or retransfer its copper. The ground checker
++now follows the selected actual segment path, not just the pad-center chord.
++An actual DRC-clean bent trace over a local ground void fails the new proof;
++the same bend with filled ground passes. Local graph/path reuse is scoped to
++one immutable native process; refilled/mutated copies never share cached verdicts.
++Two extra native cases bring the P2 selection to42 and whole CAD suite to235.
++
++Only the **aggregate schematic-test batch** now has450s (previously300s).
++Individual CAD/process deadlines and all circuit/rule thresholds are unchanged.
++The original shared local/hosted timeout failures remain failures; the separately
++passing235-case selection was not the whole gate. Require completed final-head
++shared checks and renewed exact-head review, not the old87c review or a standalone
++selection, before merging. Keep this policy distinction in every report.
++
+ **Current next task: complete remaining global feeds and signals on P2.**
+ Read `REV_A_AUXILIARY_GROUND_P2.md` and
+ `checkpoints/20261002_auxiliary_ground_p2.json`; use the live
+diff --git a/docs/REV_A_AUXILIARY_GROUND_P2.md b/docs/REV_A_AUXILIARY_GROUND_P2.md
+index a0ff98b..00e2d6c 100644
+--- a/docs/REV_A_AUXILIARY_GROUND_P2.md
++++ b/docs/REV_A_AUXILIARY_GROUND_P2.md
+@@ -121,6 +121,57 @@ now reject stale proof. There is no parallel validation orchestrator. Final
+ ordinary/native/KiCad/target counts belong to the actual PR head and retained
+ logs; focused selections are subsets, not extra passes to add to the totals.
+ 
++## PR79 recovery and review correction
++
++The complete original eight-commit checkpoint ending at
++`87c0d7e93d4dd0c4be4a410732c3a84d34151693` survived in a Library source bundle
++and was published as PR79. Its source/copper was recovered rather than rebuilt.
++This continuation changes the checker and test execution policy only; the
++entire authored auxiliary PCB remains byte-identical to that published head.
++
++Codex finding **4172257896** identified a real gap: the path-length search
++followed routed segments, but ground coverage was tested along the straight
++pad-center chord. A short bent trace could cross a ground void that the chord
++missed. A failure-first native copy now puts a2.03995mm bent C110 supply trace
++over a small In1 void, while preserving0parity/0other/85airwires and a fully
++covered chord. The old proof incorrectly accepted it. A second native copy
++with the identical bend and intact ground is the benign control. These are two
++new native cases; neither alters the canonical copper.
++
++The shortest-path search now returns its actual vertices and the existing
++0.20mm corridor/1e-6mm2 residual test is applied to **each routed segment**.
++Ground-access searches share a graph and completed shortest-path results only
++within one immutable loaded-board probe process. Every mutated/refilled copy
++still starts a separate process; no previous DRC, polygon or pass result is
++cached across boards. A local sixteen-probe characterization retained identical
++JSON measurements and took3.46s before versus2.93s after reuse. This is a small
++local optimization, not a claim to eliminate native CAD runtime or a controlled
++cross-machine benchmark.
++
++### Explicit aggregate test-budget change
++
++The original233-case native CAD batch hit the300s limit both locally and in
++hosted run37108350017; those are failed gates, not passes. A separate run of
++all235cases after the bend regression passed in251.72s in this environment.
++That diagnostic run is not the shared gate, and runner/load variation makes
++repeatedly hoping to fit five minutes an unreliable policy.
++
++The existing shared orchestrator now gives **only the complete schematic-test
++batch450s** (7.5minutes), instead of300s. Individual native-command timeouts,
++all other run_step defaults, job deadlines, dependency versions, coverage
++floors and electrical/geometry criteria are unchanged. This is an intentional
++aggregate execution-budget increase, not an unchanged-timeout or fabricated
++speedup claim. Failure-first orchestration tests require this exact scoped
++budget and reject a batch timeout while removing stale success evidence.
++No tests are skipped, split off from the required gate, or converted into mocks.
++The final local/hosted gate outcomes must be read against their actual head.
++
++P2 now has42 native ground/bypass cases within235 KiCad cases. Ordinary counts,
++console/F1 subsets and integration/target evidence belong to their completed
++runs. The new timeout test is a software process double, not a hardware fault
++experiment. A full native CAD pass does not qualify electrical behavior, real
++return-current distribution, manufacturing or any physical safety gate.
++
+ ## Continue and inspect
+ 
+ Open `hardware/rev_a/auxiliary/auxiliary.kicad_pro` in pinned KiCad9.0.2. Run the
+diff --git a/docs/REV_A_COMPLETION_ROADMAP.md b/docs/REV_A_COMPLETION_ROADMAP.md
+index 1f02941..d1c72c7 100644
+--- a/docs/REV_A_COMPLETION_ROADMAP.md
++++ b/docs/REV_A_COMPLETION_ROADMAP.md
+@@ -26,6 +26,16 @@ physical measurement time; do not sum these into a promised completion date.
+ | Fabrication package and delivered budget | 1–2 after prerequisites | Not ready for fabrication or purchase | Separate release review, coherent outputs and delivered quote |
+ | Person-disconnected bench verification | 2–4 guided turns plus bench work | Physical validation has not begun | Unpowered inspection, then staged dummy-source tests after prerequisites |
+ 
++## Review and execution checkpoint
++
++PR79 preserves the original P2 copper while fixing the native ground-reference
++proof to follow bent routes. Ground-only/bypass native cases are42 within235
++KiCad cases. An immutable-process path cache removes redundant graph work;
++all modified copies still receive fresh fill/DRC/proof. The CAD batch allowance
++is deliberately450s instead of300s; individual native deadlines, test selection,
++coverage, DRC and approval rules stay unchanged. Final-head full shared CI/review
++is required, not the old timed-out run or an independently passing subset.
++
+ ## Next bounded step
+ 
+ **Complete global supply and signal routing on the authored P2 auxiliary board.**
+diff --git a/docs/checkpoints/20261002_auxiliary_ground_p2.json b/docs/checkpoints/20261002_auxiliary_ground_p2.json
+index 4e85fc5..a975216 100644
+--- a/docs/checkpoints/20261002_auxiliary_ground_p2.json
++++ b/docs/checkpoints/20261002_auxiliary_ground_p2.json
+@@ -294,5 +294,50 @@
+     "final_native_results": "Read exact-head PR/check artifacts; not prior transient runs",
+     "authoring_scratch_not_project_dependency": true,
+     "remaining_connections": 85
++  },
++  "pr79_review_correction": {
++    "finding": 4172257896,
++    "recovered_original_head": "87c0d7e93d4dd0c4be4a410732c3a84d34151693",
++    "copper_unchanged_sha256": "57e54660e1cb99f74091f4d7e43ce4a942171a477320cf630a8343d72cf86d1c",
++    "bend_red_commit": "b38121e82cb6b7ea0d0b0274ab411f770d63fd13",
++    "bend_fix_commit": "b36a2278b290b2d57b92bea4e5e247a9fd584547",
++    "probe_reuse_commit": "e95c3f7dae4bf55495c9cf36a4bfeb8a7fb68ff2",
++    "budget_red_commit": "0a478c725d1d0f2d798558d5dd260f65e23eb74b",
++    "budget_fix_commit": "fb237d7ad8fc18ffd04ec0785d75731d83ae981c",
++    "bend_pair_observed_before_fix": {
++      "failure": 1,
++      "pass": 1
++    },
++    "bend_pair_native_drc_each": [
++      0,
++      0,
++      85
++    ],
++    "bend_front_path_mm": 2.0399494936611666,
++    "reference_corridor_applied_to": "every selected actual front-track segment, not a pad-center chord",
++    "cache_lifetime": "one immutable native loaded-board process; no cross-copy/refill reuse",
++    "local_16_probe_characterization_s": {
++      "before": 3.456549961,
++      "after": 2.932356475
++    },
++    "characterization_JSON_identical": true,
++    "prior_hosted_failed_schematic_run": 37108350017,
++    "aggregate_schematic_batch_timeout_s": {
++      "before": 300,
++      "after": 450
++    },
++    "individual_native_command_timeouts_changed": false,
++    "electrical_or_geometry_criteria_changed": false,
++    "new_ordinary_timeout_control_is_software_double": true,
++    "separate_235_case_selection": {
++      "passed": 235,
++      "seconds": 251.72,
++      "source_head": "b36a2278b290b2d57b92bea4e5e247a9fd584547",
++      "not_shared_gate": true
++    },
++    "P2_native_cases": 42,
++    "total_KiCad_cases": 235,
++    "hardware_experiments": false,
++    "final_gate_and_review": "read completed exact-head PR79 evidence; not inferred here"
+   }
+ }
+diff --git a/tools/check.py b/tools/check.py
+index dcec2d4..1aaf411 100644
+--- a/tools/check.py
++++ b/tools/check.py
+@@ -539,7 +539,7 @@ def _schematic(out: Path) -> None:
+         ],
+         out,
+         # Aggregate budget for the growing real-CAD suite, not a per-command limit.
+-        # The 235-case suite exceeded 300 s on CI; individual native bounds stay fixed.
++        # The growing suite exceeded 300 s on CI; individual native bounds stay fixed.
+         timeout=450,
+     )
+     if _schematic_snapshot(cad, footprints) != before:
