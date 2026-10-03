@@ -1,3 +1,22 @@
+# P3 local continuation: reference-edge regression review
+
+Latest local continuation is on `review/p3-reference-envelope`, based on the
+complete original P3 candidate `a2ebcb06f287b5862de05dc0357bb6b1dc8a61b8`.
+Read `REV_A_P3_REFERENCE_REVIEW.md` before the retained P3 handoff below.
+The copper is unchanged. The new native comparison prevents the originally
+reported, still-unqualified edge gaps growing or moving unnoticed behind a
+passing central-strip check; 20 original polygons cover 18 affected segments.
+The saved pending-envelope fixture is included in schematic input receipts.
+
+Publication is still pending: main was read as P2 `70e8d41b` and the automated
+publication-workflow write was blocked. Do not infer a remote P3 branch, hosted
+CI/review, or a merge from local test results. Recover this complete source
+history, not another copper reconstruction. Next is authorized publication,
+exact-head hosted checks and independent electrical/layout review of the already
+connected board. All original physical/electrical limits and false gates remain.
+
+---
+
 # Continue from this repository
 
 ## Current continuation: P3 completely connected auxiliary draft

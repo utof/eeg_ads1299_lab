@@ -1,0 +1,73 @@
+{
+  "revision": "P3_REFERENCE_REVIEW_R1",
+  "date": "2026-10-03",
+  "input_head": "a2ebcb06f287b5862de05dc0357bb6b1dc8a61b8",
+  "input_tree": "4535dfadc429d1c5bd8959c2a31f076ba74c3bc1",
+  "unchanged_auxiliary_sha256": "0dc50df4037cfe1b8888e53f7a3645557ebbc87ba80589f4fa15a3da4bf066ed",
+  "test_first_commit": "3272d5ebfa74ffa537494fe2c141cb2e88d96ad8",
+  "observed_red_cases": {
+    "native_edge_growth": 1,
+    "software_snapshot_dependency": 1
+  },
+  "pending_envelope": {
+    "file": "tests/fixtures/auxiliary_p3_pending_edges.json",
+    "sha256": "bfe5db5d7b6fd444ea0b5f7beaa32ada48b403d523dd3d2d0a7389dcfa6f9735",
+    "segment_records": 18,
+    "polygon_outlines": 20,
+    "electrically_approved": false,
+    "numerical_area_tolerance_mm2_per_segment": 1e-06
+  },
+  "native_counterexample": {
+    "ground_only_keepout_mm": [
+      79.45,
+      19.49,
+      79.65,
+      19.69
+    ],
+    "layer": "In1.Cu",
+    "edge_trace": "90ba6800-0027-5595-a212-7b1f01cfa8dd",
+    "edge_net": "TARGET_VIN5",
+    "edge_width_mm": 0.6,
+    "canonical": {
+      "DRC": {
+        "schematic_parity": 0,
+        "violations": 0,
+        "unconnected_items": 0
+      },
+      "reference_exit": 0,
+      "gap_count": 18,
+      "gap_area": 0.0022883793065
+    },
+    "edge_only_void": {
+      "DRC": {
+        "schematic_parity": 0,
+        "violations": 0,
+        "unconnected_items": 0
+      },
+      "reference_exit": 0,
+      "gap_count": 18,
+      "gap_area": 0.0349032058185
+    },
+    "remote_void": {
+      "DRC": {
+        "schematic_parity": 0,
+        "violations": 0,
+        "unconnected_items": 0
+      },
+      "reference_exit": 0,
+      "gap_count": 18,
+      "gap_area": 0.0022883793065
+    },
+    "unsupported_area_multiplier": 15.252369097797555,
+    "not_physical_experiment": true
+  },
+  "focused_selection": {
+    "passed": 10,
+    "ordinary": 2,
+    "native": 8,
+    "scope": "new failure, residual split/reversal, remote control and existing source/ref proofs; subsets not new totals"
+  },
+  "firmware_hardware_or_gate_changes": false,
+  "publication": "pending; workbench workflow creation blocked; no alternate execution attempted",
+  "next_task": "normal authorized publication of complete source history, exact-head CI, separate electrical/layout review"
+}

@@ -1,3 +1,19 @@
+# Latest continuation: P3 local review, publication pending
+
+The fully connected P3 copper is preserved. A newly reproduced native reference
+check gap is fixed: additional full-width unsupported geometry may not appear
+outside the original pending polygon inventory, even when the central strip and
+ordinary DRC remain clean. The original 18 affected segments remain unqualified;
+this checker correction is not their electrical disposition. See
+`REV_A_P3_REFERENCE_REVIEW.md`. Next is normal authorized source publication,
+exact-head CI and a separate layout review. No further routing was done.
+
+The estimates below remain planning ranges; publication is an access-dependent
+blocker rather than completed progress. No manufacturing or purchasing permission
+has changed, and no target/physical run follows from the checker regression.
+
+---
+
 # Rev A person-disconnected prototype roadmap
 
 **Current checkpoint: P3 locally connected auxiliary draft; publication/review pending.**
