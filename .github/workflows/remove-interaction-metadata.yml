@@ -1,0 +1,53 @@
+name: Remove superseded interaction metadata
+on:
+  pull_request:
+    paths: ['.github/workflows/remove-interaction-metadata.yml']
+permissions: {}
+jobs:
+  remove-own-diagnostic-metadata:
+    if: github.event.pull_request.number == 34 && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      actions: write
+    steps:
+      - name: Remove only the three identified metadata artifacts and their log copies
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import urllib.error
+          import urllib.request
+
+          base = 'https://api.github.com/repos/utof/eeg_ads1299_lab/actions/'
+          targets = (
+              (36207254401, 10894031585, '12a1788f8b04740d103ecae4657f6ebdaf9ff406'),
+              (36207358396, 10894930841, '68727075dab7945971a5188152b774e9ecf832d7'),
+              (36207506184, 10894201525, 'b9f82533a59037f15344b7e6ff732e74e38ea5da'),
+          )
+          def request(path, method='GET'):
+              req = urllib.request.Request(base + path, method=method, headers={
+                  'Authorization': 'Bearer ' + os.environ['GH_TOKEN'],
+                  'Accept': 'application/vnd.github+json',
+                  'X-GitHub-Api-Version': '2022-11-28',
+              })
+              try:
+                  with urllib.request.urlopen(req, timeout=20) as response:
+                      data = response.read()
+                      return json.loads(data) if data else None
+              except urllib.error.HTTPError as exc:
+                  if method == 'DELETE' and exc.code == 404:
+                      return None
+                  raise
+          for run, artifact, sha in targets:
+              info = request(f'runs/{run}')
+              assert info['head_sha'] == sha
+              assert info['head_branch'] == 'investigate/power-enable-interaction'
+              assert info['status'] == 'completed'
+              request(f'artifacts/{artifact}', 'DELETE')
+              request(f'runs/{run}/logs', 'DELETE')
+              print(json.dumps({'removed_artifact': artifact, 'removed_log_copy': run,
+                                'expected_head': sha, 'reason': 'vendor-derived metadata; not simulation qualification'}))
+          PY

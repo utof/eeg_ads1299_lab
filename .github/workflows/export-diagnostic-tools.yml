@@ -1,0 +1,48 @@
+name: Export diagnostic executables
+on:
+  pull_request:
+    paths: ['.github/workflows/export-diagnostic-tools.yml']
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.13'
+      - name: Export already pinned tools and native simulator without vendor models
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends ngspice
+          python -m pip install uv==0.12.18
+          uv sync --locked --all-extras
+          mkdir -p reports/bootstrap/bin reports/bootstrap/native
+          cp .venv/bin/ruff .venv/bin/pyrefly .venv/bin/tach reports/bootstrap/bin/
+          cp "$(command -v uv)" reports/bootstrap/bin/
+          dpkg-query -L ngspice | while read -r path; do
+            if [ -f "$path" ] || [ -L "$path" ]; then
+              cp --parents "$path" reports/bootstrap/native/
+            fi
+          done
+          ldd /usr/bin/ngspice > reports/bootstrap/native-dependencies.txt
+          ngspice --version > reports/bootstrap/ngspice-version.txt
+          uv --version > reports/bootstrap/uv-version.txt
+          .venv/bin/ruff --version > reports/bootstrap/ruff-version.txt
+          .venv/bin/pyrefly --version > reports/bootstrap/pyrefly-version.txt
+          .venv/bin/tach --version > reports/bootstrap/tach-version.txt
+          find reports/bootstrap -type f \( -name '*.ttf' -o -name '*.otf' -o -name '*.woff*' \) -delete
+          tar -czf reports/diagnostic-tools.tar.gz -C reports/bootstrap .
+          sha256sum reports/diagnostic-tools.tar.gz > reports/diagnostic-tools.sha256
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: diagnostic-executables
+          path: |
+            reports/diagnostic-tools.tar.gz
+            reports/diagnostic-tools.sha256
+          retention-days: 3
