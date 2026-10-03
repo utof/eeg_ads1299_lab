@@ -1,0 +1,51 @@
+From e95c3f7dae4bf55495c9cf36a4bfeb8a7fb68ff2 Mon Sep 17 00:00:00 2001
+From: utof <38869938+utof@users.noreply.github.com>
+Date: Sat, 3 Oct 2026 10:16:44 +0000
+Subject: [PATCH 3/6] perf(test): reuse route searches within each immutable
+ native board probe
+
+---
+ tests/auxiliary_ground_probe.py | 21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
+
+diff --git a/tests/auxiliary_ground_probe.py b/tests/auxiliary_ground_probe.py
+index 52d5193..0791970 100644
+--- a/tests/auxiliary_ground_probe.py
++++ b/tests/auxiliary_ground_probe.py
+@@ -12,20 +12,31 @@ def xy(x):return (x.GetPosition().x,x.GetPosition().y)
+ def coord(x):return (x.x,x.y)
+ def bb(x):
+     box=x.BBox();return [box.GetX()/1e6,box.GetY()/1e6,box.GetRight()/1e6,box.GetBottom()/1e6]
+-def route_path(net,start,end):
++graphs={}
++def graph(net):
++    if net in graphs:return graphs[net]
+     edges={}
+     for t in b.GetTracks():
+         if t.Type()!=p.PCB_TRACE_T or t.GetLayer()!=p.F_Cu or t.GetNetname()!=net:continue
+         a,c=coord(t.GetStart()),coord(t.GetEnd());d=t.GetLength()/1e6
+         edges.setdefault(a,[]).append((c,d));edges.setdefault(c,[]).append((a,d))
+-    queue=[(0.,start,(start,))];seen=set()
++    graphs[net]=edges
++    return edges
++routes={}
++def route_path(net,start,end):
++    # Immutable board within this one process only; never reused across mutations.
++    key=net,start
++    if key not in routes:
++        routes[key]=shortest_from(graph(net),start)
++    return routes[key].get(end,(math.inf,()))
++def shortest_from(edges,start):
++    queue=[(0.,start,(start,))];seen={}
+     while queue:
+         cost,n,points=heapq.heappop(queue)
+-        if n==end:return cost,points
+         if n in seen:continue
+-        seen.add(n)
++        seen[n]=cost,points
+         for c,d in edges.get(n,[]):heapq.heappush(queue,(cost+d,c,points+(c,)))
+-    return math.inf,()
++    return seen
+ def short_path(net,start,end):
+     return route_path(net,start,end)[0]
+ def reference(net):
