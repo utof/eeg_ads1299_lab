@@ -1,0 +1,59 @@
+name: Publish P2 Review Corrections
+on:
+  push:
+    branches: [workbench/p2-path-review-finish]
+    paths: [.github/workflows/p2-review-publish.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+      - name: Verify original readable patch bytes
+        run: |
+          python - <<'PY'
+          import pathlib,hashlib,shutil,os
+          hashes=['43d916efd1840b8070431fa3ea5a2babfb769ed6685c80e435dbe57759962e05','731c11adbd52f20939d7498452bb7a7d9854225d58927a12e6eb084b4634deda','7b871361177a90f734c64010c21569165afbbc5fd0625e22cc051d730823da4e','3fa50d66888e67b0ac6d30b4ac35ef96c4d0fd1b9e481a9649c59949ee90b2de','2960d925450c991efab15214988b160460c509f537328ca2056708c24dd027fc','219e9c6e405958323f7ac4db9bc261ca34a630095cadfb667020fc895496f874','08a9eab71d375a017023c8727e457cbd4698eb34ff4f7a3dc33945de8a2f0154']
+          target=pathlib.Path(os.environ['RUNNER_TEMP'],'patches');target.mkdir()
+          for i,wanted in enumerate(hashes,1):
+              source=pathlib.Path('review',f'{i:02}.patch');actual=hashlib.sha256(source.read_bytes()).hexdigest()
+              assert actual==wanted,(str(source),actual,wanted)
+              shutil.copy2(source,target/source.name)
+          PY
+      - name: Apply without rewriting prior or correction commit identities
+        run: |
+          set -eu
+          BASE=87c0d7e93d4dd0c4be4a410732c3a84d34151693
+          HEAD=1c08b1769217810c7766cecd9a3ea334b7d28ec8
+          TREE=2651327c1b44d8fa1555251fdc2935b0288c9b5d
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = 3926fa02816b6812bcacd6113db180278186c258
+          test "$(git ls-remote origin refs/heads/feat/auxiliary-ground-p2 | cut -f1)" = "$BASE"
+          git checkout --detach "$BASE"
+          git -c user.name=utof -c user.email=38869938+utof@users.noreply.github.com am --committer-date-is-author-date "$RUNNER_TEMP"/patches/*.patch
+          test "$(git rev-parse HEAD)" = "$HEAD"
+          test "$(git rev-parse HEAD^{tree})" = "$TREE"
+          test "$(git rev-list --count "$BASE..HEAD")" = 7
+          git fsck --no-dangling
+          git diff --exit-code "$BASE" HEAD -- hardware firmware lab pyproject.toml uv.lock .github
+          git push origin HEAD:refs/heads/feat/auxiliary-ground-p2
+          git clone --no-local --branch feat/auxiliary-ground-p2 "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$RUNNER_TEMP/fresh"
+          cd "$RUNNER_TEMP/fresh"
+          test "$(git rev-parse HEAD)" = "$HEAD"
+          test "$(git rev-parse HEAD^{tree})" = "$TREE"
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/receipt"
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/receipt/identity.txt"
+          git bundle create "$RUNNER_TEMP/receipt/repository.bundle" HEAD
+          cp -a "$RUNNER_TEMP/patches" "$RUNNER_TEMP/receipt/"
+          cd "$RUNNER_TEMP/receipt"
+          sha256sum repository.bundle identity.txt patches/* > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: verified-p2-review-source
+          path: ${{ runner.temp }}/receipt/
+          retention-days: 14
+          if-no-files-found: error
