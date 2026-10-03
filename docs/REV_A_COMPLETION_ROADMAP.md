@@ -26,6 +26,16 @@ physical measurement time; do not sum these into a promised completion date.
 | Fabrication package and delivered budget | 1–2 after prerequisites | Not ready for fabrication or purchase | Separate release review, coherent outputs and delivered quote |
 | Person-disconnected bench verification | 2–4 guided turns plus bench work | Physical validation has not begun | Unpowered inspection, then staged dummy-source tests after prerequisites |
 
+## Review and execution checkpoint
+
+PR79 preserves the original P2 copper while fixing the native ground-reference
+proof to follow bent routes. Ground-only/bypass native cases are42 within235
+KiCad cases. An immutable-process path cache removes redundant graph work;
+all modified copies still receive fresh fill/DRC/proof. The CAD batch allowance
+is deliberately450s instead of300s; individual native deadlines, test selection,
+coverage, DRC and approval rules stay unchanged. Final-head full shared CI/review
+is required, not the old timed-out run or an independently passing subset.
+
 ## Next bounded step
 
 **Complete global supply and signal routing on the authored P2 auxiliary board.**

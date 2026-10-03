@@ -121,6 +121,57 @@ now reject stale proof. There is no parallel validation orchestrator. Final
 ordinary/native/KiCad/target counts belong to the actual PR head and retained
 logs; focused selections are subsets, not extra passes to add to the totals.
 
+## PR79 recovery and review correction
+
+The complete original eight-commit checkpoint ending at
+`87c0d7e93d4dd0c4be4a410732c3a84d34151693` survived in a Library source bundle
+and was published as PR79. Its source/copper was recovered rather than rebuilt.
+This continuation changes the checker and test execution policy only; the
+entire authored auxiliary PCB remains byte-identical to that published head.
+
+Codex finding **4172257896** identified a real gap: the path-length search
+followed routed segments, but ground coverage was tested along the straight
+pad-center chord. A short bent trace could cross a ground void that the chord
+missed. A failure-first native copy now puts a2.03995mm bent C110 supply trace
+over a small In1 void, while preserving0parity/0other/85airwires and a fully
+covered chord. The old proof incorrectly accepted it. A second native copy
+with the identical bend and intact ground is the benign control. These are two
+new native cases; neither alters the canonical copper.
+
+The shortest-path search now returns its actual vertices and the existing
+0.20mm corridor/1e-6mm2 residual test is applied to **each routed segment**.
+Ground-access searches share a graph and completed shortest-path results only
+within one immutable loaded-board probe process. Every mutated/refilled copy
+still starts a separate process; no previous DRC, polygon or pass result is
+cached across boards. A local sixteen-probe characterization retained identical
+JSON measurements and took3.46s before versus2.93s after reuse. This is a small
+local optimization, not a claim to eliminate native CAD runtime or a controlled
+cross-machine benchmark.
+
+### Explicit aggregate test-budget change
+
+The original233-case native CAD batch hit the300s limit both locally and in
+hosted run37108350017; those are failed gates, not passes. A separate run of
+all235cases after the bend regression passed in251.72s in this environment.
+That diagnostic run is not the shared gate, and runner/load variation makes
+repeatedly hoping to fit five minutes an unreliable policy.
+
+The existing shared orchestrator now gives **only the complete schematic-test
+batch450s** (7.5minutes), instead of300s. Individual native-command timeouts,
+all other run_step defaults, job deadlines, dependency versions, coverage
+floors and electrical/geometry criteria are unchanged. This is an intentional
+aggregate execution-budget increase, not an unchanged-timeout or fabricated
+speedup claim. Failure-first orchestration tests require this exact scoped
+budget and reject a batch timeout while removing stale success evidence.
+No tests are skipped, split off from the required gate, or converted into mocks.
+The final local/hosted gate outcomes must be read against their actual head.
+
+P2 now has42 native ground/bypass cases within235 KiCad cases. Ordinary counts,
+console/F1 subsets and integration/target evidence belong to their completed
+runs. The new timeout test is a software process double, not a hardware fault
+experiment. A full native CAD pass does not qualify electrical behavior, real
+return-current distribution, manufacturing or any physical safety gate.
+
 ## Continue and inspect
 
 Open `hardware/rev_a/auxiliary/auxiliary.kicad_pro` in pinned KiCad9.0.2. Run the

@@ -15,6 +15,21 @@ failure-first tests. The missing tail and full original tree/history were NOT
 recovered; F1 commits have the actual C4 main as their parent. See the F1
 record for precise scope and use this PR's actual tested head, never prior counts.
 
+**PR79 review continuation:** the original eight-commit P2 source is already
+published at87c0d7e; do not rebuild or retransfer its copper. The ground checker
+now follows the selected actual segment path, not just the pad-center chord.
+An actual DRC-clean bent trace over a local ground void fails the new proof;
+the same bend with filled ground passes. Local graph/path reuse is scoped to
+one immutable native process; refilled/mutated copies never share cached verdicts.
+Two extra native cases bring the P2 selection to42 and whole CAD suite to235.
+
+Only the **aggregate schematic-test batch** now has450s (previously300s).
+Individual CAD/process deadlines and all circuit/rule thresholds are unchanged.
+The original shared local/hosted timeout failures remain failures; the separately
+passing235-case selection was not the whole gate. Require completed final-head
+shared checks and renewed exact-head review, not the old87c review or a standalone
+selection, before merging. Keep this policy distinction in every report.
+
 **Current next task: complete remaining global feeds and signals on P2.**
 Read `REV_A_AUXILIARY_GROUND_P2.md` and
 `checkpoints/20261002_auxiliary_ground_p2.json`; use the live

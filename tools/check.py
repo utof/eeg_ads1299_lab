@@ -539,7 +539,7 @@ def _schematic(out: Path) -> None:
         ],
         out,
         # Aggregate budget for the growing real-CAD suite, not a per-command limit.
-        # The 235-case suite exceeded 300 s on CI; individual native bounds stay fixed.
+        # The growing suite exceeded 300 s on CI; individual native bounds stay fixed.
         timeout=450,
     )
     if _schematic_snapshot(cad, footprints) != before:

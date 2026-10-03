@@ -294,5 +294,50 @@
     "final_native_results": "Read exact-head PR/check artifacts; not prior transient runs",
     "authoring_scratch_not_project_dependency": true,
     "remaining_connections": 85
+  },
+  "pr79_review_correction": {
+    "finding": 4172257896,
+    "recovered_original_head": "87c0d7e93d4dd0c4be4a410732c3a84d34151693",
+    "copper_unchanged_sha256": "57e54660e1cb99f74091f4d7e43ce4a942171a477320cf630a8343d72cf86d1c",
+    "bend_red_commit": "b38121e82cb6b7ea0d0b0274ab411f770d63fd13",
+    "bend_fix_commit": "b36a2278b290b2d57b92bea4e5e247a9fd584547",
+    "probe_reuse_commit": "e95c3f7dae4bf55495c9cf36a4bfeb8a7fb68ff2",
+    "budget_red_commit": "0a478c725d1d0f2d798558d5dd260f65e23eb74b",
+    "budget_fix_commit": "fb237d7ad8fc18ffd04ec0785d75731d83ae981c",
+    "bend_pair_observed_before_fix": {
+      "failure": 1,
+      "pass": 1
+    },
+    "bend_pair_native_drc_each": [
+      0,
+      0,
+      85
+    ],
+    "bend_front_path_mm": 2.0399494936611666,
+    "reference_corridor_applied_to": "every selected actual front-track segment, not a pad-center chord",
+    "cache_lifetime": "one immutable native loaded-board process; no cross-copy/refill reuse",
+    "local_16_probe_characterization_s": {
+      "before": 3.456549961,
+      "after": 2.932356475
+    },
+    "characterization_JSON_identical": true,
+    "prior_hosted_failed_schematic_run": 37108350017,
+    "aggregate_schematic_batch_timeout_s": {
+      "before": 300,
+      "after": 450
+    },
+    "individual_native_command_timeouts_changed": false,
+    "electrical_or_geometry_criteria_changed": false,
+    "new_ordinary_timeout_control_is_software_double": true,
+    "separate_235_case_selection": {
+      "passed": 235,
+      "seconds": 251.72,
+      "source_head": "b36a2278b290b2d57b92bea4e5e247a9fd584547",
+      "not_shared_gate": true
+    },
+    "P2_native_cases": 42,
+    "total_KiCad_cases": 235,
+    "hardware_experiments": false,
+    "final_gate_and_review": "read completed exact-head PR79 evidence; not inferred here"
   }
 }
