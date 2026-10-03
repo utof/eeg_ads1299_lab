@@ -1,11 +1,10 @@
 # Rev A person-disconnected prototype roadmap
 
-**Current checkpoint: P2 ground references and local bypasses routed.**
-All59ground contacts and15local cap-to-IC paths now connect, reducing unfinished
-connections from157 to85. Two separate In1 ground regions respect the existing
-HOST/TARGET barrier. Placements, AFE/J3, F1, K2 and circuit selections are unchanged.
-Native0parity/0other/85airwires is partial routing, not a release. Read the live
-P2 PR/head and `REV_A_AUXILIARY_GROUND_P2.md` before continuing.
+**Current checkpoint: P3 locally connected auxiliary draft; publication/review pending.**
+All85 remaining connections across39nets are routed. Original P2 copper and
+placements are preserved; native fresh refill/DRC0/0/0. Global reference-spine
+checks and full-width residual inventory are not complete electrical or physical
+qualification. Read live branch/PR status and exact-head checks before continuing.
 
 ## Glanceable roadmap
 
@@ -15,40 +14,32 @@ physical measurement time; do not sum these into a promised completion date.
 
 | Category | Estimated turns remaining | Done / current status | Next slice or blocker |
 |---|---:|---|---|
-| Repository continuity | 0 for current milestone; maintain | C4/F1/P1 merged; P2 copper/proof in the current routing PR | Verify live PR/main, publish and review each actual head |
+| Repository continuity | 0 for current milestone; maintain | P2 merged; P3 connected source and tests local until actual publication | Verify live PR/main, publish and review each actual head |
 | Original AFE routing and scoped repairs | 0 for completed scope | All old copper preserved; J3 and11 service segments added | Preserve routing except explicitly reviewed service-access edits |
 | Remaining input/supply coupling | 1 combined decision after confirmations | Nine locations remain one six-pair assessment | Confirmed construction/E1 inputs, then combined rework or separate pilot-risk decision |
 | Stackup and bench envelope | 0 for targets; 1–2 plus outside evidence to close | Named construction and E1 numerical targets defined | Actual vendor drawing/tolerances and calibrated fixture/measurement floor |
 | Capacitor decision/migration | 1 coordinated review after evidence | 33 AFE capacitors accounted; exact shortlist still not substituted | #48 lifecycle/effective-C/assembly conditions; new auxiliary bypasses separately |
 | Carrier and cartridges | 0 for initial CAD; 1–2 plus physical fit/process | K2 solids plus C4 service backing and mating envelopes checked | Fit, retention, materials, cable and controller support |
-| **C1+C2 auxiliary and rail access** | **1–2 for auxiliary routing/review; physical tests separate** | **C3/C4/F1/P1 complete; P2 grounds and15local bypasses routed;85airwires remain** | **Next: global supply feeds and remaining signals; then full return-path/interface review** |
+| **C1+C2 auxiliary and rail access** | **1–2 for independent routing review/repairs; physical tests separate** | **P3 local draft connects all85 former airwires; 0 remain** | **Next: publish/verify actual head and review completed return paths, long routes, supply/sense and assembly** |
 | Real power/console faults | 1–3 plus physical checks | Circuit and steady-state budgets explicit; not qualified | Supply trajectories, actual leakage/edges, sense/feed breaks and disabled-state behavior |
 | Fabrication package and delivered budget | 1–2 after prerequisites | Not ready for fabrication or purchase | Separate release review, coherent outputs and delivered quote |
 | Person-disconnected bench verification | 2–4 guided turns plus bench work | Physical validation has not begun | Unpowered inspection, then staged dummy-source tests after prerequisites |
 
-## Review and execution checkpoint
-
-PR79 preserves the original P2 copper while fixing the native ground-reference
-proof to follow bent routes. Ground-only/bypass native cases are42 within235
-KiCad cases. An immutable-process path cache removes redundant graph work;
-all modified copies still receive fresh fill/DRC/proof. The CAD batch allowance
-is deliberately450s instead of300s; individual native deadlines, test selection,
-coverage, DRC and approval rules stay unchanged. Final-head full shared CI/review
-is required, not the old timed-out run or an independently passing subset.
-
 ## Next bounded step
 
-**Complete global supply and signal routing on the authored P2 auxiliary board.**
-Preserve separate HOST/TARGET references, C4 distinct feed/sense, local bypass
-paths and their continuously filled return corridors. P2 already joins all59
-ground terminals and15local supply branches: do not regenerate those references
-or repeat placement. Plan actual reference paths for any In2/B layer changes;
-four layers alone do not guarantee a return plane under every trace. Refill and
-check connectivity/clearance after each bounded group, then review completed
-return paths and interface faults.85airwires remain; native exit5 is intentional.
-Keep all6x6mount and wire/mate allocations, the asymmetricH4 coordinates, selected
-lands and native isolation rules. Physical tolerance/process/force and supplier
-construction are still unqualified.
+**Publish and independently review the completed P3 auxiliary layout.** All
+signal/global-feed routing is present; no importer or old authoring script is
+needed to continue. Review reference-plane/antipad transitions,18small full-width
+edge slivers, long MCU SCLK/CLKSEL and UART routes, supply-current necks, sense
+coupling and actual layer construction. The new continuous0.10mm central spine
+screen does not assert full-width ground coverage or electrical performance.
+Existing P2 full0.20mm bypass corridors and all original source forms remain
+protected. Treat any required repair as scoped, failure-first source work.
+
+The shared gate now includes39native terminal cuts and reference-void/benign
+controls; these are tests, not a manufacturing readiness percentage. Keep the
+450s batch deadline and all previous native rules, hardware and approval limits.
+Local, hosted, independent review and physical work must be reported separately.
 
 F1's handshake and C4's J3 are implemented; do not reconstruct them based on an
 old chat checkpoint. Firmware cannot retract an already delivered packet. Its
@@ -92,6 +83,6 @@ unsolicited supplier message, purchase, fabrication, powered setup or body
 connection is authorized. Every such gate remains false.
 
 Entry points: `LLM_HANDOFF.md`, `HARDWARE_BASELINE_REV_A.md`,
-`REV_A_AUXILIARY_GROUND_P2.md`, `REV_A_AUXILIARY_PLACEMENT_P1.md`, `REV_A_AUXILIARY_C3.md`, `REV_A_BUS_INTERLOCK_C2.md`,
+`REV_A_AUXILIARY_ROUTING_P3.md`, `REV_A_AUXILIARY_GROUND_P2.md`, `REV_A_AUXILIARY_PLACEMENT_P1.md`, `REV_A_AUXILIARY_C3.md`, `REV_A_BUS_INTERLOCK_C2.md`,
 `REV_A_CONTROLLER_INTERFACE_C1.md`, `REV_A_STACKUP_BENCH_REQUIREMENTS.md`,
 `REV_A_UPSTREAM_COUPLING_DISPOSITION.md`, K2/connector documents and open#45/#48.

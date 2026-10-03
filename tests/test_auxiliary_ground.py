@@ -90,7 +90,7 @@ def test_two_ground_domains_have_actual_complete_native_connections(
     assert report["schematic_parity"] == [] and report["violations"] == []
     unfinished = json.dumps(report["unconnected_items"])
     assert "HOST_GND" not in unfinished and "TARGET_GND" not in unfinished
-    assert report["unconnected_items"], "P2 is not a completed routing release"
+    assert report["unconnected_items"] == [], "P3 source must be connected; no fabrication approval"
     proof = _probe(cad, "grounds")
     assert proof.returncode == 0, proof.stdout + proof.stderr
 
@@ -129,7 +129,7 @@ if mode in ('dogleg-void','dogleg-filled'):
     # Equal endpoints/net and short length; the pad-center chord remains covered.
     cap=next(f for f in b.GetFootprints() if f.GetReference()=='C110')
     a=next(pad for pad in cap.Pads() if pad.GetNumber()=='1')
-    old=next(t for t in b.GetTracks() if t.Type()==p.PCB_TRACE_T and t.GetStart()==a.GetPosition())
+    old=next(t for t in b.GetTracks() if t.Type()==p.PCB_TRACE_T and t.GetStart()==a.GetPosition() and t.GetEnd()==p.VECTOR2I(p.FromMM(52.425),p.FromMM(46)))
     assert old.GetEnd()==p.VECTOR2I(p.FromMM(52.425),p.FromMM(46))
     b.Remove(old)
     points=[(50.675,46),(50.975,46),(51.325,45.65),(51.45,45.65),(51.8,46),(52.425,46)]
@@ -157,7 +157,7 @@ elif mode.startswith(('cut-','reverse-','split-')):
     action,ref=mode.split('-');f=next(f for f in b.GetFootprints() if f.GetReference()==ref)
     pad=next(a for a in f.Pads() if a.GetNumber()=='1');pt=pad.GetPosition()
     tracks=[t for t in b.GetTracks() if t.Type()==p.PCB_TRACE_T and t.GetNetCode()==pad.GetNetCode()
-            and (t.GetStart()==pt or t.GetEnd()==pt)]
+            and (t.GetStart()==pt or t.GetEnd()==pt) and t.GetLength()>p.FromMM(.5)]
     assert len(tracks)==1
     t=tracks[0]
     if action=='cut':b.Remove(t)

@@ -1,0 +1,577 @@
+{
+  "revision": "P3",
+  "status": "locally_connected_draft_publication_and_independent_review_pending",
+  "source_base_commit": "4731c4193b2006b72861c6d1acae90f3584678f8",
+  "live_main_at_start": "70e8d41bd60d597ecc284859d7e1f71370dcd190",
+  "base_tree": "6c81cadb2e9b0afcd92d560245e2cb621ce7619b",
+  "base_auxiliary_sha256": "57e54660e1cb99f74091f4d7e43ce4a942171a477320cf630a8343d72cf86d1c",
+  "auxiliary_sha256": "0dc50df4037cfe1b8888e53f7a3645557ebbc87ba80589f4fa15a3da4bf066ed",
+  "unchanged_AFE_sha256": "60097ff4acf8408d5a172930de74bcd36aa50a379dd30a831e4bc64d3841c8a6",
+  "unchanged_footprint_forms": 52,
+  "unchanged_P2_track_and_via_forms": 101,
+  "new_segments": 585,
+  "new_through_vias": 119,
+  "final_geometry": {
+    "footprints": 52,
+    "pads": 216,
+    "segments": 647,
+    "vias": 158
+  },
+  "completed_connections": 85,
+  "newly_completed_nets": 39,
+  "native_DRC": {
+    "schematic_parity": 0,
+    "other_findings": 0,
+    "unconnected": 0,
+    "required_exit": 0
+  },
+  "signals_on_layers": [
+    "F.Cu",
+    "In2.Cu"
+  ],
+  "ground_reference_layer": "In1.Cu",
+  "back_signal_tracks": 0,
+  "new_route_widths_mm": [
+    0.2,
+    0.3,
+    0.6
+  ],
+  "new_via_diameter_drill_mm": [
+    0.6,
+    0.3
+  ],
+  "reference_screen": {
+    "central_spine_mm": 0.1,
+    "own_through_contact_expansion_mm": 0.35,
+    "own_hole_polygon_error_mm": 0.002,
+    "uncovered_spine_area_max_mm2": 1e-06,
+    "spine_continuous_after_exclusions": true,
+    "full_width_edge_slivers": [
+      {
+        "track": "1647ba9a-5941-58aa-9511-46576423badd",
+        "net": "AFE_DVDD_SENSE",
+        "layer": "In2.Cu",
+        "uncovered_full_width_area_mm2": 7.3408e-05
+      },
+      {
+        "track": "d4fad5d3-4878-5756-9c60-d82bf095f1bf",
+        "net": "AFE_DVDD_SENSE",
+        "layer": "In2.Cu",
+        "uncovered_full_width_area_mm2": 1.1704e-05
+      },
+      {
+        "track": "fca2e7a1-1a8c-54c3-89cf-e287f9bd2c06",
+        "net": "STOP_N",
+        "layer": "In2.Cu",
+        "uncovered_full_width_area_mm2": 7.3408e-05
+      },
+      {
+        "track": "22aec4ec-764e-55f1-869b-ff95ee046af1",
+        "net": "STOP_N",
+        "layer": "In2.Cu",
+        "uncovered_full_width_area_mm2": 7.3408e-05
+      },
+      {
+        "track": "3e8a6f52-848d-5196-98a5-cfb1d73fc996",
+        "net": "RAILS_OK",
+        "layer": "In2.Cu",
+        "uncovered_full_width_area_mm2": 7.3408e-05
+      },
+      {
+        "track": "515aa3a3-cc91-50cf-a26b-799351b50ec9",
+        "net": "CLR_N",
+        "layer": "In2.Cu",
+        "uncovered_full_width_area_mm2": 4.2549177e-05
+      },
+      {
+        "track": "c77e2196-4898-540f-b22e-c39539239d95",
+        "net": "CLR_N",
+        "layer": "In2.Cu",
+        "uncovered_full_width_area_mm2": 7.3408e-05
+      },
+      {
+        "track": "b594a527-5995-57fb-bb92-321a0154e693",
+        "net": "CLR_N",
+        "layer": "In2.Cu",
+        "uncovered_full_width_area_mm2": 7.3408e-05
+      },
+      {
+        "track": "58999bab-29d6-5631-97a3-5a8d20b4744f",
+        "net": "RAILS_OK",
+        "layer": "In2.Cu",
+        "uncovered_full_width_area_mm2": 7.340825e-05
+      },
+      {
+        "track": "64bb76ae-170f-53ce-b7d6-1c69b4fcafbe",
+        "net": "MCU_CS",
+        "layer": "In2.Cu",
+        "uncovered_full_width_area_mm2": 7.3408e-05
+      },
+      {
+        "track": "85cf5ec6-a406-5982-be36-f5e4a0e0b200",
+        "net": "MCU_CS",
+        "layer": "In2.Cu",
+        "uncovered_full_width_area_mm2": 0.000675756127
+      },
+      {
+        "track": "90ba6800-0027-5595-a212-7b1f01cfa8dd",
+        "net": "TARGET_VIN5",
+        "layer": "In2.Cu",
+        "uncovered_full_width_area_mm2": 0.0001421067955
+      },
+      {
+        "track": "fa369311-4ac1-5721-801d-204d298333f0",
+        "net": "TARGET_VIN5",
+        "layer": "In2.Cu",
+        "uncovered_full_width_area_mm2": 0.0001468155
+      },
+      {
+        "track": "cd6846f4-d635-5cc6-9170-c66db73509aa",
+        "net": "ARM_REQ",
+        "layer": "In2.Cu",
+        "uncovered_full_width_area_mm2": 0.000315142957
+      },
+      {
+        "track": "cec6532f-fb9b-5229-b814-b3998b662c08",
+        "net": "MCU_MISO",
+        "layer": "F.Cu",
+        "uncovered_full_width_area_mm2": 0.000146816
+      },
+      {
+        "track": "e0b683f4-6de5-56dc-ab90-db2cd369c34b",
+        "net": "TARGET_VIN5",
+        "layer": "In2.Cu",
+        "uncovered_full_width_area_mm2": 7.340825e-05
+      },
+      {
+        "track": "e138f6ec-4877-5e9c-ac72-18c825d69ec4",
+        "net": "RAILS_OK",
+        "layer": "In2.Cu",
+        "uncovered_full_width_area_mm2": 7.3408e-05
+      },
+      {
+        "track": "f1c4fb20-a61e-5045-a0ff-e2b2d1c6545e",
+        "net": "AFE_RESET",
+        "layer": "In2.Cu",
+        "uncovered_full_width_area_mm2": 7.340825e-05
+      }
+    ],
+    "full_width_edge_sliver_sum_mm2": 0.0022883793065,
+    "full_width_ground_coverage_qualified": false,
+    "unchanged_P2_corridor_width_mm": 0.2,
+    "no_field_or_impedance_simulation": true
+  },
+  "per_net_authored_copper_inventory": {
+    "AFE_AVDD_SENSE": {
+      "front_length_mm": 4.910751447136073,
+      "inner_length_mm": 27.92853566324137,
+      "through_vias": 4
+    },
+    "AFE_CLKSEL": {
+      "front_length_mm": 20.3007572623771,
+      "inner_length_mm": 1.6340012391568974,
+      "through_vias": 1
+    },
+    "AFE_CS": {
+      "front_length_mm": 1.3125,
+      "inner_length_mm": 21.49035559663529,
+      "through_vias": 1
+    },
+    "AFE_DRDY": {
+      "front_length_mm": 1.2875,
+      "inner_length_mm": 19.72647101842438,
+      "through_vias": 1
+    },
+    "AFE_DVDD": {
+      "front_length_mm": 42.82151319059638,
+      "inner_length_mm": 29.878240592580607,
+      "through_vias": 2
+    },
+    "AFE_DVDD_SENSE": {
+      "front_length_mm": 1.65,
+      "inner_length_mm": 26.933822507537574,
+      "through_vias": 2
+    },
+    "AFE_MISO": {
+      "front_length_mm": 1.3125,
+      "inner_length_mm": 17.963098290828814,
+      "through_vias": 1
+    },
+    "AFE_MOSI": {
+      "front_length_mm": 1.3789716724174836,
+      "inner_length_mm": 21.25169710378018,
+      "through_vias": 1
+    },
+    "AFE_PWDN": {
+      "front_length_mm": 5.637765425335515,
+      "inner_length_mm": 20.272341917952133,
+      "through_vias": 1
+    },
+    "AFE_RESET": {
+      "front_length_mm": 1.3125,
+      "inner_length_mm": 25.337761862409653,
+      "through_vias": 1
+    },
+    "AFE_SCLK": {
+      "front_length_mm": 7.599625946050589,
+      "inner_length_mm": 18.90424524867104,
+      "through_vias": 3
+    },
+    "AFE_START": {
+      "front_length_mm": 1.9758461367341416,
+      "inner_length_mm": 24.52332969260722,
+      "through_vias": 1
+    },
+    "ARM_CLK": {
+      "front_length_mm": 1.6375,
+      "inner_length_mm": 9.140098713038032,
+      "through_vias": 2
+    },
+    "ARM_REQ": {
+      "front_length_mm": 1.7875,
+      "inner_length_mm": 8.471669388552082,
+      "through_vias": 2
+    },
+    "BUS_OE": {
+      "front_length_mm": 40.88613197047502,
+      "inner_length_mm": 62.99642271978751,
+      "through_vias": 7
+    },
+    "CLR_N": {
+      "front_length_mm": 2.2676162633521315,
+      "inner_length_mm": 30.369855816816262,
+      "through_vias": 2
+    },
+    "CONSOLE_RX": {
+      "front_length_mm": 37.54151321431645,
+      "inner_length_mm": 5.859463937557511,
+      "through_vias": 3
+    },
+    "CONSOLE_TX": {
+      "front_length_mm": 1.5291547594742265,
+      "inner_length_mm": 62.544476984476226,
+      "through_vias": 1
+    },
+    "CT_MON_A": {
+      "front_length_mm": 1.65,
+      "inner_length_mm": 1.9309833423600555,
+      "through_vias": 2
+    },
+    "CT_MON_D": {
+      "front_length_mm": 1.65,
+      "inner_length_mm": 1.9309833423600555,
+      "through_vias": 2
+    },
+    "CT_MON_M": {
+      "front_length_mm": 1.65,
+      "inner_length_mm": 1.9309833423600555,
+      "through_vias": 2
+    },
+    "CT_MON_V": {
+      "front_length_mm": 1.65,
+      "inner_length_mm": 1.9309833423600555,
+      "through_vias": 2
+    },
+    "HOST_3V3": {
+      "front_length_mm": 13.691375563219664,
+      "inner_length_mm": 2.8379930866998655,
+      "through_vias": 1
+    },
+    "HOST_RX": {
+      "front_length_mm": 1.5291547594742265,
+      "inner_length_mm": 5.458979683727454,
+      "through_vias": 1
+    },
+    "HOST_TX": {
+      "front_length_mm": 1.5430116263352132,
+      "inner_length_mm": 8.711096322499559,
+      "through_vias": 1
+    },
+    "MCU_3V3": {
+      "front_length_mm": 145.918429124308,
+      "inner_length_mm": 54.35742017624321,
+      "through_vias": 14
+    },
+    "MCU_CLKSEL": {
+      "front_length_mm": 79.6970381180208,
+      "inner_length_mm": 9.33815065302278,
+      "through_vias": 3
+    },
+    "MCU_CS": {
+      "front_length_mm": 32.31935413279538,
+      "inner_length_mm": 29.29606757987256,
+      "through_vias": 5
+    },
+    "MCU_DRDY": {
+      "front_length_mm": 8.368850898091697,
+      "inner_length_mm": 40.86544582088898,
+      "through_vias": 4
+    },
+    "MCU_MISO": {
+      "front_length_mm": 47.33746155680004,
+      "inner_length_mm": 19.372020107912313,
+      "through_vias": 5
+    },
+    "MCU_MOSI": {
+      "front_length_mm": 39.545716732685754,
+      "inner_length_mm": 24.026046548797627,
+      "through_vias": 7
+    },
+    "MCU_PWDN": {
+      "front_length_mm": 9.65636001800126,
+      "inner_length_mm": 62.929058134029646,
+      "through_vias": 3
+    },
+    "MCU_RESET": {
+      "front_length_mm": 13.761638877918902,
+      "inner_length_mm": 40.4151447330162,
+      "through_vias": 3
+    },
+    "MCU_SCLK": {
+      "front_length_mm": 64.79111203291174,
+      "inner_length_mm": 20.70052510054158,
+      "through_vias": 5
+    },
+    "MCU_START": {
+      "front_length_mm": 21.33797648382427,
+      "inner_length_mm": 16.87289680818844,
+      "through_vias": 3
+    },
+    "RAILS_OK": {
+      "front_length_mm": 11.389178894127948,
+      "inner_length_mm": 39.10249181972385,
+      "through_vias": 8
+    },
+    "SESSION": {
+      "front_length_mm": 13.74767372251897,
+      "inner_length_mm": 18.366634121352043,
+      "through_vias": 3
+    },
+    "STOP_N": {
+      "front_length_mm": 11.19370116438188,
+      "inner_length_mm": 45.79722891958427,
+      "through_vias": 7
+    },
+    "TARGET_VIN5": {
+      "front_length_mm": 1.65,
+      "inner_length_mm": 77.16658006984754,
+      "through_vias": 2
+    }
+  },
+  "electrical_review_remaining": [
+    "confirmed auxiliary layer spacings and impedances",
+    "via antipad transitions and edge slivers",
+    "long MCU SCLK/CLKSEL and console traces",
+    "supply-drop and copper-current budget including narrow escapes",
+    "sense-coupling and actual disabled/fault behavior"
+  ],
+  "native_cut_nets": [
+    [
+      "AFE_AVDD_SENSE",
+      "J104",
+      "4"
+    ],
+    [
+      "AFE_CLKSEL",
+      "J101",
+      "19"
+    ],
+    [
+      "AFE_CS",
+      "J101",
+      "7"
+    ],
+    [
+      "AFE_DRDY",
+      "J101",
+      "9"
+    ],
+    [
+      "AFE_DVDD",
+      "J104",
+      "2"
+    ],
+    [
+      "AFE_DVDD_SENSE",
+      "J104",
+      "3"
+    ],
+    [
+      "AFE_MISO",
+      "J101",
+      "5"
+    ],
+    [
+      "AFE_MOSI",
+      "J101",
+      "3"
+    ],
+    [
+      "AFE_PWDN",
+      "J101",
+      "15"
+    ],
+    [
+      "AFE_RESET",
+      "J101",
+      "11"
+    ],
+    [
+      "AFE_SCLK",
+      "J101",
+      "1"
+    ],
+    [
+      "AFE_START",
+      "J101",
+      "13"
+    ],
+    [
+      "ARM_CLK",
+      "U110",
+      "4"
+    ],
+    [
+      "ARM_REQ",
+      "J102",
+      "15"
+    ],
+    [
+      "BUS_OE",
+      "J102",
+      "9"
+    ],
+    [
+      "CLR_N",
+      "J102",
+      "8"
+    ],
+    [
+      "CONSOLE_RX",
+      "J102",
+      "10"
+    ],
+    [
+      "CONSOLE_TX",
+      "J102",
+      "11"
+    ],
+    [
+      "CT_MON_A",
+      "R105",
+      "2"
+    ],
+    [
+      "CT_MON_D",
+      "R103",
+      "2"
+    ],
+    [
+      "CT_MON_M",
+      "R101",
+      "2"
+    ],
+    [
+      "CT_MON_V",
+      "R107",
+      "2"
+    ],
+    [
+      "HOST_3V3",
+      "J103",
+      "1"
+    ],
+    [
+      "HOST_RX",
+      "J103",
+      "4"
+    ],
+    [
+      "HOST_TX",
+      "J103",
+      "3"
+    ],
+    [
+      "MCU_3V3",
+      "J102",
+      "2"
+    ],
+    [
+      "MCU_CLKSEL",
+      "J102",
+      "12"
+    ],
+    [
+      "MCU_CS",
+      "J102",
+      "16"
+    ],
+    [
+      "MCU_DRDY",
+      "J102",
+      "4"
+    ],
+    [
+      "MCU_MISO",
+      "J102",
+      "19"
+    ],
+    [
+      "MCU_MOSI",
+      "J102",
+      "17"
+    ],
+    [
+      "MCU_PWDN",
+      "J102",
+      "7"
+    ],
+    [
+      "MCU_RESET",
+      "J102",
+      "5"
+    ],
+    [
+      "MCU_SCLK",
+      "J102",
+      "18"
+    ],
+    [
+      "MCU_START",
+      "J102",
+      "6"
+    ],
+    [
+      "RAILS_OK",
+      "R112",
+      "1"
+    ],
+    [
+      "SESSION",
+      "J102",
+      "20"
+    ],
+    [
+      "STOP_N",
+      "J106",
+      "1"
+    ],
+    [
+      "TARGET_VIN5",
+      "J101",
+      "17"
+    ]
+  ],
+  "native_oracle_controls": [
+    "trace reversed",
+    "trace subdivided",
+    "remote ground void accepted",
+    "ground void under actual AFE_SCLK path rejected despite DRC0"
+  ],
+  "initial_failing_commit": "9d0ac9722725cd77842f30140c75649a04409176",
+  "circuit_BOM_firmware_dependencies_rules_changed": false,
+  "purchasing_fabrication_powered_or_body_permission_changed": false,
+  "physical_hardware_tested": false,
+  "authoring_helpers_are_not_dependencies": true,
+  "verification": "Read exact candidate-head reports, not a previous checkpoint or a partial run."
+}

@@ -1,4 +1,4 @@
-"""Placement invariants survive P2 partial routing; never a fabrication pass."""
+"""Placement invariants survive P3 connected routing; never a fabrication pass."""
 
 import json
 import os
@@ -13,9 +13,9 @@ CAD = ROOT / "hardware/rev_a/auxiliary"
 BOARD = CAD / "auxiliary.kicad_pcb"
 
 
-def test_auxiliary_placement_is_present_and_explicitly_incomplete() -> None:
+def test_auxiliary_placement_is_present_and_explicitly_unreleased() -> None:
     text = BOARD.read_text()
-    assert "P2 PARTIAL ROUTING - NOT FOR FABRICATION" in text
+    assert "P3 CONNECTED DRAFT - NOT FOR FABRICATION" in text
     assert "(footprint " in text and "(gr_rect" in text
     assert "(segment " in text and "(via " in text
 
@@ -53,8 +53,8 @@ def test_auxiliary_placement_native_schematic_parity(tmp_path: Path) -> None:
     assert isinstance(data, dict)
     assert data["schematic_parity"] == []
     assert data["violations"] == []
-    assert data["unconnected_items"], "P2 is incomplete; do not accept a suppressed empty report"
-    assert result.returncode == 5
+    assert data["unconnected_items"] == []
+    assert result.returncode == 0
 
 
 def _probe(cad: Path, mode: str, out: Path) -> subprocess.CompletedProcess[str]:

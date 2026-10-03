@@ -1,82 +1,53 @@
 # Continue from this repository
 
-## Current continuation: P2 auxiliary grounds/bypasses; F1 and P1 completed
+## Current continuation: P3 completely connected auxiliary draft
 
-F1 was merged in PR77 at bc761c69; its base was C4 main c8c8a12c. Read `REV_A_C2_FIRMWARE.md`: the reviewed S3 path now requires
-SESSION/ARM/READY/ARMED, uses the real feedback through startup/SPI/capture,
-and halts terminally on detected failure. Default BOARD_PROFILE_REVIEWED stays
-false; no operational permission is added. Original ESP32 wiring is unchanged.
-C2 depends on the physical latched output and valid control power; no polling
-latency or host-side automatic recording revocation is implied.
+Read live main and open PRs before acting. At this source checkpoint P3 is LOCAL
+on `feat/auxiliary-routing-p3`; source publication and exact-head CI/independent
+review must be checked, not inferred. Local base4731c419 and the live-at-start
+main70e8d41b have identical tree6c81cadb2e9b0afcd92d560245e2cb621ce7619b; the local
+base is the already-merged PR79 head, not an invented reconstruction of main.
+No new native source is derived from a parking-grid importer.
 
-The other chat branch had an incomplete encoded transfer, not a finished PR.
-Complete firmware blobs were recovered and reused with independently rebuilt
-failure-first tests. The missing tail and full original tree/history were NOT
-recovered; F1 commits have the actual C4 main as their parent. See the F1
-record for precise scope and use this PR's actual tested head, never prior counts.
+Read **REV_A_AUXILIARY_ROUTING_P3.md** and
+`checkpoints/20261003_auxiliary_routing_p3.json`. All85 former airwires across39
+nets are now connected. Actual KiCad9.0.2 fresh refill/DRC0/0/0 with exit0.
+Auxiliary source is `hardware/rev_a/auxiliary/auxiliary.kicad_pcb` beside the
+four-sheet project. It has52footprints/216pads/647segments/158vias. All52P2
+footprint forms and101P2copper forms remain byte-identical. AFE/J3, circuits,
+BOM/profile, F1, K2 and all approval/dependency/rule selections are unchanged.
 
-**PR79 review continuation:** the original eight-commit P2 source is already
-published at87c0d7e; do not rebuild or retransfer its copper. The ground checker
-now follows the selected actual segment path, not just the pad-center chord.
-An actual DRC-clean bent trace over a local ground void fails the new proof;
-the same bend with filled ground passes. Local graph/path reuse is scoped to
-one immutable native process; refilled/mutated copies never share cached verdicts.
-Two extra native cases bring the P2 selection to42 and whole CAD suite to235.
+P3 adds585segments/119vias, front+In2 signals, no back-layer signals. In1 retains
+one actually filled HOST_GND region and one TARGET_GND region. Original15short
+bypasses and full0.20mm reference corridors still pass, including the original
+cut/bend controls. Preserve them. U111's new supply escape was routed around,
+not across, the VCC pad so C115 retains its intended independent local branch.
 
-Only the **aggregate schematic-test batch** now has450s (previously300s).
-Individual CAD/process deadlines and all circuit/rule thresholds are unchanged.
-The original shared local/hosted timeout failures remain failures; the separately
-passing235-case selection was not the whole gate. Require completed final-head
-shared checks and renewed exact-head review, not the old87c review or a standalone
-selection, before merging. Keep this policy distinction in every report.
+The global reference proof is deliberately bounded: continuous central0.10mm
+spine with same-net through-contact silhouette+0.35mm exclusions, NOT full-width
+or EM qualification. It reports18full-width edge slivers (sum0.0022884mm²) rather
+than hiding them. Near-antipad tolerance/field consequences remain for review.
+The two signal layers refer geometrically to opposite faces of the same In1
+plane; unconfirmed layer spacing, stubs/edge rates and coupling remain unknown.
+Long MCU clock/control and console routes and narrow supply escapes are explicit
+review targets. Do not turn reference-spine success into a noise/insulation or
+fabrication approval. Keep HOST/TARGET and mount/cable restrictions unchanged.
 
-**Current next task: complete remaining global feeds and signals on P2.**
-Read `REV_A_AUXILIARY_GROUND_P2.md` and
-`checkpoints/20261002_auxiliary_ground_p2.json`; use the live
-`feat/auxiliary-ground-p2` PR until reviewed/merged, then main. Base is merged
-P1 main3926fa02816b6812bcacd6113db180278186c258,
-treed3020772347f15b5c13db31703ba18d7e7a2e195. The authored board is
-`hardware/rev_a/auxiliary/auxiliary.kicad_pcb`, adjacent to its native project.
-Never regenerate either authored PCB from an importer or old routing helper.
+**Next bounded step: independent completed-layout review**, then only scoped
+repairs for real findings, plus source publication and exact-head CI where still
+pending. Do not continue routine routing or reconstruct ground/placement/F1/J3.
+All39newnet cut controls must retain native parity and expose the named open;
+reference-void and harmless reversal/subdivision/remote-void controls distinguish
+connectivity from reference geometry. New proof/test/preservation inputs are
+source-hashed in tools.check. The CAD batch stays450s; per-command limits and
+coverage/rules remain unchanged. Actual final test counts are in head-bound
+reports, not assumed from this handoff.
 
-P2 retains90x75mm/four layers/nominal1.6mm and all52footprints/216pads unchanged.
-It adds62front0.20mm tracks,39ground-only0.60/0.30mm through vias and two actually
-filled In1 references: HOST_GND and TARGET_GND, one region each. All59ground
-terminals and15local cap-to-IC supply paths connect;157airwires become85.
-Native0parity/0other/85unconnected requires exit5, NOT completed-routing success.
-Global HOST_3V3/MCU_3V3/AFE_DVDD feeds, controls/UART/SPI/sense remain unfinished.
-Neither local bypass completion nor ground continuity powers the entire circuit.
-
-Preserve the3mm x20.5..23.5 all-layer HOST/TARGET exclusion and independent3mm
-clearance rule. The separate zone edge gap is3.5mm. Four added all-layer mounting
-keepouts prohibit tracks/vias/fills while allowing native NPTH PADs; P1's separate
-electrical pad/mount checks still enforce the full6x6 budgets. H4 remains86.5,70,
-not the old symmetric85,70 pattern, preserving its0.5mm planned J102-access gap.
-No placement/land or old rule changed. No stackup/process/insulation qualification
-is inferred from four layers, keepouts or gap arithmetic.
-
-P2 tests require actual short F.Cu paths, refilled ground connectivity and a
-continuous0.20mm-wide In1 reference corridor under each bypass and between its
-cap/IC ground vias. Native polygon subtraction detects voids between sample
-points. Longest F bypass2.1875mm; longest ground-via separation11.57mm: NOT a
-2mm complete bypass loop or an inductance/noise measurement. Future vias/cuts
-must preserve these references or make an explicit tested local reroute. There
-is no implied In2/B ground reference. Complete and review those layer changes
-when routing the remaining signals. Maintain C4 separate feed/sense nets.
-
-A same-net via-spacing proof moved only one U110 return via0.2mm in Y; no SMD
-or mount moved. Original AFE/circuit/BOM/profile/F1/K2/dependencies remain exact.
-New40P2 CAD cases join the existing --schematic gate, not a second orchestrator;
-its two proof files are source-hashed. Focused cases are subsets of whole gates.
-Read actual final-head local/hosted results in the PR. A transitional local gate
-run across source edits correctly rejected the changed snapshot; it is not a
-clean-final success. F1/J3/P1 are implemented: do not repeat them from stalechat.
-
-Use COPY projects for native saves/exports: KiCad may expand .pro/create .prl;
-strict source configuration stays guarded. No fixture, cable retention, forces,
-rail-fault response or body safety is qualified. Reference labels remain onFab;
-final assembly silkscreen is unfinished. Every release/purchase/powered/bodygate
-stays false; keep #45/#48 and the delivered budget requirements explicit.
+F1 uses SESSION/ARM/READY/ARMED and terminal fault handling in the real sketch;
+BOARD_PROFILE_REVIEWED remainsfalse. Its software cannot preempt blocked I/O or
+recall bytes already transmitted. Physical latched feedback, rail trajectories,
+leakage, analog source, host recording validity and actual auxiliary assembly are
+not qualified. No purchasing/fabrication/powered/body-use gate changes.
 
 **Retained C4 source context (completed in PR #76).**
 Read root `AGENTS.md`, `docs/DEVELOPMENT.md` and the hardware baseline. Fetch live

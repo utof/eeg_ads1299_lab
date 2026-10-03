@@ -126,9 +126,11 @@ else:
             overlap.BooleanIntersection(ground.GetFilledPolysList(p.In1_Cu))
             assert overlap.Area()==0,'filled ground inside fastener allocation'
     for tr in b.GetTracks():
-        assert tr.GetNetname() in {'HOST_GND','TARGET_GND','HOST_3V3','MCU_3V3','AFE_DVDD'},'P2 scope'
+        # P3 adds signal/global-power routing, checked by its separate native proof.
+        # Retain every P2 ground-access constraint and all 15 full-width local proofs.
+        if tr.GetNetname() not in bynet:continue
         if tr.Type()==p.PCB_TRACE_T:
-            assert tr.GetLayer()==p.F_Cu,'no hidden inner signal route'
+            assert tr.GetLayer()==p.F_Cu,'ground access remains front layer'
             assert tr.GetWidth()==p.FromMM(.2),'local track width'
         else:
             assert tr.Type()==p.PCB_VIA_T and tr.GetNetname() in bynet,'ground-only vias'
