@@ -1,0 +1,29 @@
+name: Recover P2 Transfer
+on:
+  push:
+    branches: [workbench/p2-recovery-context]
+    paths: [.github/workflows/p2-recover-transport.yml]
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 6837a9c2b2e39dedea3d1fd081324808b3f64a88
+          persist-credentials: false
+      - run: |
+          set -eu
+          mkdir -p "$RUNNER_TEMP/transport"
+          cp -a parts transfer "$RUNNER_TEMP/transport/"
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/transport/identity.txt"
+          cd "$RUNNER_TEMP/transport"
+          find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: recovered-p2-transport
+          path: ${{ runner.temp }}/transport/
+          retention-days: 7
+          if-no-files-found: error
