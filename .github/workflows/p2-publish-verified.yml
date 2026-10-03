@@ -1,0 +1,77 @@
+name: Publish Verified P2 Source
+on:
+  push:
+    branches: [workbench/p2-recovery-context]
+    paths: [.github/workflows/p2-publish-verified.yml]
+permissions:
+  contents: write
+jobs:
+  recover:
+    runs-on: ubuntu-24.04
+    container: debian:trixie@sha256:9cc080028c43b27d2074d63a5f9caf7166d731494965616c1a6d2827a004585c
+    timeout-minutes: 15
+    env:
+      DEBIAN_FRONTEND: noninteractive
+      QT_QPA_PLATFORM: offscreen
+      LC_ALL: C
+      LANG: C
+    steps:
+      - name: Install original pinned fill engine
+        run: |
+          apt-get update -qq
+          apt-get install -y --no-install-recommends git ca-certificates python3 kicad=9.0.2+dfsg-1
+          kicad-cli --version
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 6837a9c2b2e39dedea3d1fd081324808b3f64a88
+          path: compact/old
+          persist-credentials: false
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 3926fa02816b6812bcacd6113db180278186c258
+          path: repo
+          fetch-depth: 0
+      - name: Verify readable transport and restore original objects
+        run: |
+          set -eu
+          echo '31a28c24d7c15dfcc8693a3631ac72b1280e6470cb5d13e5b63c5dd3ae2f11be  compact/restore_objects.py' | sha256sum -c -
+          test "$(git hash-object compact/readable/blob-b83f619.txt)" = b83f619e0432733627c08bf38d54982731c3f548
+          test "$(git hash-object compact/readable/blob-ccd57af.txt)" = ccd57af336b01c46f6871c13953244750715a325
+          test "$(git hash-object compact/readable/recipe00.jsonl)" = b8161ce908e6e87f856d9eda5eb2073d0778de3b
+          test "$(git hash-object compact/readable/recipe01.jsonl)" = bbb879ecec3f4a5a545cbac5062e876c5a56d709
+          test "$(git hash-object compact/readable/recipe02.jsonl)" = 63391c9f595931bdd20521ea94c65579e4cca309
+          test "$(git hash-object compact/readable/recipe03.jsonl)" = 4f52ef1e26e9ff2f8c5f4a0dfbb6a9947706b35b
+          python3 compact/restore_objects.py repo compact
+      - name: Publish without force or product dependency changes
+        run: |
+          set -eu
+          cd repo
+          HEAD=87c0d7e93d4dd0c4be4a410732c3a84d34151693
+          BASE=3926fa02816b6812bcacd6113db180278186c258
+          TREE=c9d71ca4a31b3bca65b9c5a64cbb7f20eb9860c1
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$BASE"
+          current=$(git ls-remote origin refs/heads/feat/auxiliary-ground-p2 | cut -f1)
+          test -z "$current" || test "$current" = "$HEAD"
+          git diff --exit-code "$BASE" "$HEAD" -- .github firmware pyproject.toml uv.lock hardware/rev_a/layout
+          git push origin "$HEAD:refs/heads/feat/auxiliary-ground-p2"
+          git clone --no-local --branch feat/auxiliary-ground-p2 "https://github.com/$GITHUB_REPOSITORY.git" "$RUNNER_TEMP/fresh-p2"
+          cd "$RUNNER_TEMP/fresh-p2"
+          test "$(git rev-parse HEAD)" = "$HEAD"
+          test "$(git rev-parse HEAD^{tree})" = "$TREE"
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/p2-proof"
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/p2-proof/identity.txt"
+          git log --format='%H %s' "$BASE..HEAD" > "$RUNNER_TEMP/p2-proof/history.txt"
+          git bundle create "$RUNNER_TEMP/p2-proof/source.bundle" HEAD
+          sha256sum hardware/rev_a/auxiliary/auxiliary.kicad_pcb > "$RUNNER_TEMP/p2-proof/board-sha256.txt"
+          cd "$RUNNER_TEMP/p2-proof"
+          sha256sum source.bundle identity.txt history.txt board-sha256.txt > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: verified-p2-source
+          path: ${{ runner.temp }}/p2-proof/
+          retention-days: 14
+          if-no-files-found: error
