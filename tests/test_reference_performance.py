@@ -40,9 +40,25 @@ for t in traces:
             'layer':board.GetLayerName(t.GetLayer()),'uncovered_full_width_area_mm2':full})
 report=json.loads(output.getvalue())
 assert report['full_width_edge_gaps_pending_review']==expected,'per-trace oracle mismatch'
+# Native primitive characterization: overlapping full-width/spine outlines and
+# duplicated rectangles must not cancel a small central hole (even-odd trap).
+def rectangle(x0,y0,x1,y1):
+    s=p.SHAPE_POLY_SET();s.NewOutline()
+    for x,y in [(x0,y0),(x0,y1),(x1,y1),(x1,y0)]:s.Append(p.FromMM(x),p.FromMM(y))
+    return s
+reference=rectangle(0,0,4,4);hole=rectangle(1.98,1.98,2.02,2.02)
+reference.BooleanSubtract(hole)
+for copies in (1,2,3):
+    full=rectangle(1,1.9,3,2.1);spine=rectangle(1,1.95,3,2.05)
+    group=p.SHAPE_POLY_SET()
+    for _ in range(copies):
+        group.AddOutline(full.Outline(0));group.AddOutline(spine.Outline(0))
+    group.BooleanSubtract(reference)
+    assert group.OutlineCount()==1 and group.Area()==hole.Area(),'overlap erased a real void'
+
 print(json.dumps({'boolean_subtraction_operand_vertices':sum(work),
  'whole_plane_naive_operand_vertices':naive,'same_per_trace_gap_inventory':True,
- 'checked_trace_projections':2*len(traces),'board_saved':False}))
+ 'checked_trace_projections':2*len(traces),'nested_outline_controls':3,'board_saved':False}))
 """
 
 

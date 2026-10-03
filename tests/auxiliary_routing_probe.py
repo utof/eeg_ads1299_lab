@@ -43,16 +43,40 @@ for region in pending['regions']:
     assert not region['holes_nm'],'unsupported envelope hole'
     for x,y in region['outline_nm']:poly.Append(x,y)
 
-def uncovered(t,width):
+def strip_projection(t,width):
     a,c=t.GetStart(),t.GetEnd();d=math.hypot(c.x-a.x,c.y-a.y)
     assert d>0,'zero length segment'
     nx,ny=-(c.y-a.y)*width/2/d,(c.x-a.x)*width/2/d
     q=p.SHAPE_POLY_SET();q.NewOutline()
     for x,y in [(a.x+nx,a.y+ny),(c.x+nx,c.y+ny),(c.x-nx,c.y-ny),(a.x-nx,a.y-ny)]:
         q.Append(round(x),round(y))
+    return q
+
+def uncovered(t,width):
+    q=strip_projection(t,width)
     net=t.GetNetname();ground='HOST_GND' if net.startswith('HOST_') else 'TARGET_GND'
     q.BooleanSubtract(exclusions[net]);q.BooleanSubtract(planes[ground].GetFilledPolysList(p.In1_Cu))
     return q
+
+# Read-only, process-local fast path. Test BOTH exact rectangles for every
+# segment, grouped only within its electrical net/reference domain. If the
+# group's difference is EMPTY, each member is covered; otherwise retain ALL
+# original per-segment checks and their unchanged 1e-6mm2 thresholds below.
+# Do not use a group area tolerance: tiny separate defects must not be averaged
+# away. No simplified contours, spatial sampling, clipped planes or stale fills.
+batches={}
+for t in tracks:
+    if t.Type()!=p.PCB_TRACE_T or t.GetNetname() in planes:continue
+    group=batches.setdefault(t.GetNetname(),p.SHAPE_POLY_SET())
+    for width in (p.FromMM(.10),t.GetWidth()):
+        rectangle=strip_projection(t,width)  # Keep the SWIG-owned parent alive while copying its outline.
+        group.AddOutline(rectangle.Outline(0))
+fully_referenced=set()
+for net,group in batches.items():
+    ground='HOST_GND' if net.startswith('HOST_') else 'TARGET_GND'
+    group.BooleanSubtract(exclusions[net])
+    group.BooleanSubtract(planes[ground].GetFilledPolysList(p.In1_Cu))
+    if group.OutlineCount()==0:fully_referenced.add(net)
 
 rows=defaultdict(lambda:{'front_length_mm':0.,'inner_length_mm':0.,'through_vias':0})
 edge_gaps=[]
@@ -69,6 +93,7 @@ for t in tracks:
     assert t.GetWidth() in (p.FromMM(.2),p.FromMM(.3),p.FromMM(.6)),'track width'
     if net in planes:continue
     rows[net]['front_length_mm' if t.GetLayer()==p.F_Cu else 'inner_length_mm']+=t.GetLength()/1e6
+    if net in fully_referenced:continue
     # A continuous central 0.10mm reference spine is a NEW geometric screen for
     # the global routes, not the stronger existing 0.20mm P2 bypass requirement.
     # Full-width uncovered edges are ALWAYS inventoried below, never called zero.
