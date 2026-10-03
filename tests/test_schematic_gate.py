@@ -84,10 +84,12 @@ def _fake_native_step(name: str, command: Sequence[str], out: Path, root: Path, 
         )
         if fault == "console-route-fails":
             raise RuntimeError("injected actual-sketch route failure")
-    if name == "schematic-tests" and fault == "native-tests-timeout":
-        raise RuntimeError("injected CAD batch timeout")
-    if name == "schematic-tests" and fault == "native-tests-fail":
-        raise RuntimeError("injected native regression failure")
+    failure = {
+        "native-tests-timeout": "injected CAD batch timeout",
+        "native-tests-fail": "injected native regression failure",
+    }.get(fault)
+    if name == "schematic-tests" and failure is not None:
+        raise RuntimeError(failure)
 
 
 def _fake_output(name: str, path: Path, fault: str) -> None:
