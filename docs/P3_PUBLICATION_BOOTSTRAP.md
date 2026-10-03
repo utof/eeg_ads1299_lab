@@ -1,0 +1,11 @@
+# P3 preserved-history publication staging
+
+The user has explicitly requested publication of the completed P3 source without manual terminal work. This temporary branch starts at main `70e8d41bd60d597ecc284859d7e1f71370dcd190`; it does NOT yet contain P3 routing. Do not merge this bootstrap-only state.
+
+The preserved eight-commit candidate is `d78b6a78dc1287538249e2297ae6b6869eaca741`, tree `751d8c8f1058f6d5663e215ce908e34bb5e6f46a`, based on already-merged P2 head `4731c4193b2006b72861c6d1acae90f3584678f8`. The P2 head and current main have the same source tree. The candidate contains the complete auxiliary routing, pending-reference-envelope checker correction and measured reference-check performance improvement. Current hardware/release/body gates stay false.
+
+A Git bundle of just those eight commits was generated from the independently verified full history. It has 109277 bytes and SHA256 `9c6b4dd74ab4b0d7a0463ba7dcdf819ab623cd97edf1875b7859601bef53f2ea`. The source artifact is data for normal Git import, not a setup script. A task comment supplies the file-scoped retrieval link. Its code and scripts must not be executed simply to import history. No workflow-file modifications, permission changes, credential extraction, bypasses, forced updates or changes to main are requested.
+
+After verifying the bundle, inspect its commit list, changed-file scope and exact tree. A normal feature-branch merge can preserve all original commits. Remove this temporary document as part of that merge so the resulting source tree equals the candidate tree. Independently fetch/read the resulting remote head. Existing normal pull-request CI can then validate that exact published head. If the authorized environment has no normal publication facility, report the specific missing capability rather than creating an alternate execution workflow.
+
+The next engineering task is independent review of the connected auxiliary layout, especially the 18 pending reference-edge records, long supply/control paths, feed/sense routing, return transitions and actual stackup assumptions. Source tests and CAD checks are not physical qualification. Do not merge without actual required checks/review, and do not authorize fabrication, purchasing, powered connections or body use.
