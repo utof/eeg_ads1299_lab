@@ -1,85 +1,41 @@
-# Latest continuation: P3 local runtime optimization; publication pending
-
-A bounded native fast path avoids repeated whole-plane subtraction only for
-provably empty net-group differences; all other per-trace acceptance checks are
-unchanged. The probe is about2.29x faster in paired runs and keeps the complete
-pending-gap inventory. Both PCB files remain byte-identical. The old450s timeout
-was not reproduced by today's unchanged284-case baseline (364.18s); measure the
-final actual gate rather than attributing all environmental variation to code.
-No timeout increase, skipped tests, physical qualification or source publication.
-See `REV_A_P3_REFERENCE_PERFORMANCE.md`. Next is authorized publication and
-exact-head CI/independent layout review. No extra routing or board reconstruction.
-
----
-
-# Latest continuation: P3 local review, publication pending
-
-The fully connected P3 copper is preserved. A newly reproduced native reference
-check gap is fixed: additional full-width unsupported geometry may not appear
-outside the original pending polygon inventory, even when the central strip and
-ordinary DRC remain clean. The original 18 affected segments remain unqualified;
-this checker correction is not their electrical disposition. See
-`REV_A_P3_REFERENCE_REVIEW.md`. Next is normal authorized source publication,
-exact-head CI and a separate layout review. No further routing was done.
-
-The estimates below remain planning ranges; publication is an access-dependent
-blocker rather than completed progress. No manufacturing or purchasing permission
-has changed, and no target/physical run follows from the checker regression.
-
----
-
 # Rev A person-disconnected prototype roadmap
 
-**Current checkpoint: P3 locally connected auxiliary draft; publication/review pending.**
-All85 remaining connections across39nets are routed. Original P2 copper and
-placements are preserved; native fresh refill/DRC0/0/0. Global reference-spine
-checks and full-width residual inventory are not complete electrical or physical
-qualification. Read live branch/PR status and exact-head checks before continuing.
+**P3 is published in PR81 at9d22a6c, not merged into main.** This checkout adds
+R1 clock/handoff corrections; their publication/CI/review must be verified against
+the actual remote head. Do not repeat original P3 publication, P2routing or F1.
+Read `REV_A_P3_CLOCK_REVIEW.md` for the measured one-net change and its limitations.
 
 ## Glanceable roadmap
 
-Remaining substantial chat turns are estimates, not elapsed time or a safety
-score. Categories overlap. Exclude supplier response, fabrication/shipping and
-physical measurement time; do not sum these into a promised completion date.
+Remaining substantial chat turns are estimates, not a safety score. Categories
+overlap. Exclude supplier response, fabrication/shipping and physical measurement.
 
-| Category | Estimated turns remaining | Done / current status | Next slice or blocker |
+| Category | Estimated turns remaining | Done/status | Next slice or blocker |
 |---|---:|---|---|
-| **Source publication** | **1 after normal Git access** | P2 merged; complete P3 + edge fix + performance work preserved locally | **Publish existing history, then exact-head CI and review** |
-| Verification runtime | 0 for scoped optimization; monitor CI | Native kernel work reduced without dropping cases or changing deadlines | Read exact-head local/hosted gate; do not substitute separate diagnostic success |
-| Original AFE routing and scoped repairs | 0 for completed scope | All old copper preserved; J3 and11 service segments added | Preserve routing except explicitly reviewed service-access edits |
-| Remaining input/supply coupling | 1 combined decision after confirmations | Nine locations remain one six-pair assessment | Confirmed construction/E1 inputs, then combined rework or separate pilot-risk decision |
-| Stackup and bench envelope | 0 for targets; 1–2 plus outside evidence to close | Named construction and E1 numerical targets defined | Actual vendor drawing/tolerances and calibrated fixture/measurement floor |
-| Capacitor decision/migration | 1 coordinated review after evidence | 33 AFE capacitors accounted; exact shortlist still not substituted | #48 lifecycle/effective-C/assembly conditions; new auxiliary bypasses separately |
-| Carrier and cartridges | 0 for initial CAD; 1–2 plus physical fit/process | K2 solids plus C4 service backing and mating envelopes checked | Fit, retention, materials, cable and controller support |
-| **C1+C2 auxiliary and rail access** | **1–2 for independent routing review/repairs; physical tests separate** | **P3 local draft connects all85 former airwires; 0 remain** | **Next: publish/verify actual head and review completed return paths, long routes, supply/sense and assembly** |
-| Real power/console faults | 1–3 plus physical checks | Circuit and steady-state budgets explicit; not qualified | Supply trajectories, actual leakage/edges, sense/feed breaks and disabled-state behavior |
-| Fabrication package and delivered budget | 1–2 after prerequisites | Not ready for fabrication or purchase | Separate release review, coherent outputs and delivered quote |
-| Person-disconnected bench verification | 2–4 guided turns plus bench work | Physical validation has not begun | Unpowered inspection, then staged dummy-source tests after prerequisites |
+| P3 publication | 0 for originalP3;1 for correction review | Actual routed source is onPR81; R1 source must be published separately | Exact corrected-head CI and renewed review, then merge if accepted |
+| Verification runtime | 0 for scoped optimization; monitorCI | Exact native grouping fast path retained | No dropped cases or raised deadlines |
+| Main AFE and F1firmware | 0 for completed scope | AFE/J3/guarded startup unchanged | Physical-performance restrictions remain |
+| Auxiliary layout review | 1–2 | R1 clock71.88mm/4vias, MISOtrace gap>=0.60mm; no other copper moved | Independent acceptance, then supply feed/return budget and remaining full-channel assumptions |
+| Input/supply coupling | 1 combined decision after confirmations | Nine locations remain one six-pair item | Confirmed construction/E1inputs and combined repair or separate pilot-risk decision |
+| Stackup and bench envelope | 1–2 plus outside evidence | Named construction and numerical targets | Vendor drawing/tolerances; calibrated measurement floor |
+| Capacitor migration | 1 coordinated review after evidence | Exact shortlist,33AFEcapacitor roles accounted | Lifecycle/effective-C/assembly; auxiliary bypasses separate |
+| Carrier and assembly | 1–2 plus physical checks | CAD and mounting/access unchanged | Actual fit, materials, forces and cable restraint |
+| Power/console faults | 1–3 plus physical checks | Circuit limits/F1response documented | Actual rails, leakage, broken feedback and recording validity |
+| Release and delivered budget | 1–2 after prerequisites | Not fabrication-ready | Separate release review, coherent outputs and full quote |
+| Person-disconnected bench | 2–4 guided turns plus benchwork | Physical validation not begun | Unpowered inspection then staged dummy tests after prerequisites |
 
 ## Next bounded step
 
-**Publish and independently review the completed P3 auxiliary layout.** All
-signal/global-feed routing is present; no importer or old authoring script is
-needed to continue. Review reference-plane/antipad transitions,18small full-width
-edge slivers, long MCU SCLK/CLKSEL and UART routes, supply-current necks, sense
-coupling and actual layer construction. The new continuous0.10mm central spine
-screen does not assert full-width ground coverage or electrical performance.
-Existing P2 full0.20mm bypass corridors and all original source forms remain
-protected. Treat any required repair as scoped, failure-first source work.
+Publish the R1 correction to PR81 and verify its actual head. The old9d22 CI pass
+does not test this correction; the original review findings remain pending until
+accepted on corrected source. Then bound AFE_DVDD feed/return voltage drop using
+actual current, copper, vias, connectors and return paths. Retain long-channel,
+reference-antipad and full-width pending-region review; no generic termination
+or automatic physical sign-off follows from a shorter clock.
 
-The shared gate now includes39native terminal cuts and reference-void/benign
-controls; these are tests, not a manufacturing readiness percentage. Keep the
-450s batch deadline and all previous native rules, hardware and approval limits.
-Local, hosted, independent review and physical work must be reported separately.
-
-F1's handshake and C4's J3 are implemented; do not reconstruct them based on an
-old chat checkpoint. Firmware cannot retract an already delivered packet. Its
-real-hardware timing and host recording invalidation are separate work. All
-external-acquisition, release, purchasing and body-use gates remain false.
-The 42.2k pull migration is explicitly conditional: disabled-low budget has only
-24mV remaining under its stated assumptions. Unspecified intermediate-rail IOZ,
-installed resistance/leakage and abrupt-fault timing remain open. No test passing
-on nominal values converts those conditions into guaranteed hardware behavior.
+The original pending20polygons/18segment records are NOT expanded or approved.
+All15P2bypasses,39terminalcuts, separation/mounting rules and450sCADbudget remain.
+All external-acquisition, purchase/fabrication/powered/body-use gates stayfalse.
 
 ## Three finish lines, not one checkbox
 
