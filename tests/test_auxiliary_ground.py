@@ -125,7 +125,27 @@ def _mutate(cad: Path, mode: str) -> None:
     script = r"""
 import sys,pcbnew as p
 path,mode=sys.argv[1:];b=p.LoadBoard(path)
-if mode in ('reference-window','benign-window'):
+if mode in ('dogleg-void','dogleg-filled'):
+    # Equal endpoints/net and short length; the pad-center chord remains covered.
+    cap=next(f for f in b.GetFootprints() if f.GetReference()=='C110')
+    a=next(pad for pad in cap.Pads() if pad.GetNumber()=='1')
+    old=next(t for t in b.GetTracks() if t.Type()==p.PCB_TRACE_T and t.GetStart()==a.GetPosition())
+    assert old.GetEnd()==p.VECTOR2I(p.FromMM(52.425),p.FromMM(46))
+    b.Remove(old)
+    points=[(50.675,46),(50.975,46),(51.325,45.65),(51.45,45.65),(51.8,46),(52.425,46)]
+    for start,end in zip(points,points[1:]):
+        t=p.PCB_TRACK(b);t.SetNet(a.GetNet());t.SetLayer(p.F_Cu);t.SetWidth(p.FromMM(.2))
+        t.SetStart(p.VECTOR2I(*[p.FromMM(v) for v in start]))
+        t.SetEnd(p.VECTOR2I(*[p.FromMM(v) for v in end]));b.Add(t)
+    if mode=='dogleg-void':
+        z=p.ZONE(b);z.SetIsRuleArea(True);z.SetLayer(p.In1_Cu)
+        z.SetDoNotAllowTracks(False);z.SetDoNotAllowVias(False);z.SetDoNotAllowPads(False)
+        z.SetDoNotAllowCopperPour(True);z.SetDoNotAllowFootprints(False)
+        o=z.Outline();o.NewOutline()
+        for x,y in [(51.33,45.60),(51.42,45.60),(51.42,45.70),(51.33,45.70)]:
+            o.Append(p.FromMM(x),p.FromMM(y))
+        b.Add(z)
+elif mode in ('reference-window','benign-window'):
     z=p.ZONE(b);z.SetIsRuleArea(True);z.SetLayer(p.In1_Cu);z.SetZoneName('P2_fault_window')
     z.SetDoNotAllowTracks(False);z.SetDoNotAllowVias(False);z.SetDoNotAllowPads(False)
     z.SetDoNotAllowCopperPour(True);z.SetDoNotAllowFootprints(False)
@@ -251,3 +271,22 @@ def test_benign_copper_representation_or_remote_void_remains_accepted(
     for label in ("grounds", "bypass-C110"):
         proof = _probe(cad, label)
         assert proof.returncode == 0, proof.stdout + proof.stderr
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize("mode", ["dogleg-void", "dogleg-filled"])
+def test_reference_guard_follows_bent_copper_not_the_pad_center_chord(
+    tmp_path: Path, p2_canonical: tuple[Path, dict[str, object]], mode: str
+) -> None:
+    cad = tmp_path / "cad"
+    shutil.copytree(CAD, cad)
+    _mutate(cad, mode)
+    report = _fresh(cad)
+    assert report["schematic_parity"] == [] and report["violations"] == []
+    assert _missing_count(report) == _missing_count(p2_canonical[1])
+    proof = _probe(cad, "bypass-C110")
+    if mode == "dogleg-void":
+        assert proof.returncode != 0 and "local reference gap" in proof.stderr
+    else:
+        assert proof.returncode == 0, proof.stdout + proof.stderr
+        assert 1.75 < json.loads(proof.stdout)["front_path_mm"] < 2.5
