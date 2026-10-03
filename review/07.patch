@@ -1,0 +1,31 @@
+From 1c08b1769217810c7766cecd9a3ea334b7d28ec8 Mon Sep 17 00:00:00 2001
+From: utof <38869938+utof@users.noreply.github.com>
+Date: Sat, 3 Oct 2026 10:23:28 +0000
+Subject: [PATCH] refactor(test): keep native failure injection within
+ complexity bounds
+
+---
+ tests/test_schematic_gate.py | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/tests/test_schematic_gate.py b/tests/test_schematic_gate.py
+index 085ae1e..ea41cb1 100644
+--- a/tests/test_schematic_gate.py
++++ b/tests/test_schematic_gate.py
+@@ -84,10 +84,12 @@ def _fake_native_step(name: str, command: Sequence[str], out: Path, root: Path,
+         )
+         if fault == "console-route-fails":
+             raise RuntimeError("injected actual-sketch route failure")
+-    if name == "schematic-tests" and fault == "native-tests-timeout":
+-        raise RuntimeError("injected CAD batch timeout")
+-    if name == "schematic-tests" and fault == "native-tests-fail":
+-        raise RuntimeError("injected native regression failure")
++    failure = {
++        "native-tests-timeout": "injected CAD batch timeout",
++        "native-tests-fail": "injected native regression failure",
++    }.get(fault)
++    if name == "schematic-tests" and failure is not None:
++        raise RuntimeError(failure)
+ 
+ 
+ def _fake_output(name: str, path: Path, fault: str) -> None:
