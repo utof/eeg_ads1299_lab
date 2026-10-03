@@ -84,6 +84,8 @@ def _fake_native_step(name: str, command: Sequence[str], out: Path, root: Path, 
         )
         if fault == "console-route-fails":
             raise RuntimeError("injected actual-sketch route failure")
+    if name == "schematic-tests" and fault == "native-tests-timeout":
+        raise RuntimeError("injected CAD batch timeout")
     if name == "schematic-tests" and fault == "native-tests-fail":
         raise RuntimeError("injected native regression failure")
 
@@ -196,6 +198,7 @@ def _change_dependency(root: Path, fault: str) -> None:
         "change-local-footprint",
         "missing-dependency",
         "native-tests-fail",
+        "native-tests-timeout",
     ],
 )
 def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
@@ -226,6 +229,7 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
         return "/software-double/kicad-cli"
 
     def step(name: str, command: Sequence[str], out: Path, timeout: float = 300) -> None:
+        assert timeout == (450 if name == "schematic-tests" else 300)
         _fake_native_step(name, command, out, root, fault)
 
     monkeypatch.setattr("tools.check.ROOT", root)
