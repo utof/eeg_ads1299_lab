@@ -1,0 +1,53 @@
+{
+  "scope": "R1 local clock-route and handoff review correction; not physical electrical qualification",
+  "published_base_head": "9d22a6c21eee1bd8983ba61fb4c459870182e734",
+  "published_base_tree": "751d8c8f1058f6d5663e215ce908e34bb5e6f46a",
+  "pr": 81,
+  "review_comments": [
+    4174991282,
+    4174991286
+  ],
+  "local_test_first_commit": "33a070a88aa680d1b511989948afe435ccf89bd9",
+  "observed_initial_native_failures": 3,
+  "observed_source_snapshot_failures": 2,
+  "board_sha256": "d4eb4781cc3529c5371d6ce0e1976d48028391047c5824ca4f474992e6fb3ec8",
+  "before": {
+    "all_clock_trace_length_mm": 85.49163713345331,
+    "clock_vias": 5,
+    "minimum_same_layer_trace_edge_gap_to_MISO_mm": 0.230172
+  },
+  "after": {
+    "all_clock_trace_length_mm": 71.87510072727922,
+    "clock_vias": 4,
+    "minimum_same_layer_trace_edge_gap_to_MISO_mm": 0.638848,
+    "physical_signal_integrity_qualified": false,
+    "shorter_percent": 15.927331447540938
+  },
+  "new_counts": {
+    "footprints": 52,
+    "pads": 216,
+    "segments": 643,
+    "vias": 157
+  },
+  "unchanged_nonclock_copper_and_all_footprints_count": 831,
+  "nonclock_copper_and_all_footprints_sha256": "57ca521078e6b14dfa4f1415989fddd1fb8e1ebd0ef054e0c0759a88804168c4",
+  "pending_edge_allowance_unchanged": true,
+  "reference_checker_unchanged": true,
+  "project_timeouts_unchanged": true,
+  "geometry_targets": {
+    "all_clock_trace_length_mm_max": 75,
+    "clock_via_count_max": 4,
+    "minimum_same_layer_clock_MISO_trace_edge_gap_mm": 0.6
+  },
+  "native_corrected_copy_drc": [
+    0,
+    0,
+    0
+  ],
+  "existing_bypass_and_ground_checks_passed": true,
+  "source_or_endpoints_not_moved": true,
+  "component_firmware_BOM_dependencies_rules_and_gates_changed": false,
+  "physical_qualified": false,
+  "publication_of_correction": "not_claimed; read live PR81 head",
+  "whole_gate": "consult exact-head reports, not this pre-run checkpoint"
+}

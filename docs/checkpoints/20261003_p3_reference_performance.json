@@ -1,0 +1,143 @@
+{
+  "revision": "P3_REFERENCE_PERFORMANCE_R1",
+  "date": "2026-10-03",
+  "source_base": "0719ba7e19eb4654aa4e43a862a8ffae0b32be9d",
+  "test_first_commit": "80c112aa4aae218ba7a06129f65f95f9b0675965",
+  "implementation_commit": "0fe282fce406e4d255eab7c6599f0c395131122c",
+  "observed_red_cases": {
+    "native_work_budget": 1,
+    "ordinary_snapshot": 1
+  },
+  "baseline_ordinary": {
+    "tests": 1232,
+    "subtests": 14,
+    "seconds": 106.92
+  },
+  "same_environment_baseline_CAD": {
+    "tests": 284,
+    "seconds": 364.18,
+    "timeout_not_reproduced": true,
+    "not_controlled_whole_suite_benchmark": true
+  },
+  "native_reference_work": {
+    "before_rhs_vertices": 10618414,
+    "after_rhs_vertices": 3280208,
+    "naive_reference_rhs_vertices": 10264320,
+    "trace_projections": 1200,
+    "same_gap_inventory": true,
+    "nested_outline_controls": 3,
+    "work_proxy_not_instructions": true
+  },
+  "paired_process_benchmark": {
+    "benchmark_seconds": {
+      "before": [
+        1.4375837499999307,
+        1.3575484290000759,
+        1.5301937649999218,
+        1.4632756739999877,
+        1.450228036999988
+      ],
+      "after": [
+        0.6630401200000051,
+        0.6404367330000014,
+        0.6184753649999948,
+        0.6344905180000069,
+        0.6006518670000105
+      ]
+    },
+    "median_seconds": {
+      "before": 1.450228036999988,
+      "after": 0.6344905180000069
+    },
+    "cold_process_each_sample": true,
+    "same_saved_board_all_benchmark_runs": true
+  },
+  "native_variant_equivalence": {
+    "reverse": {
+      "same_acceptance_and_failure_class": true,
+      "native_DRC": [
+        0,
+        0,
+        0
+      ],
+      "accepted": true
+    },
+    "split": {
+      "same_acceptance_and_failure_class": true,
+      "native_DRC": [
+        0,
+        0,
+        0
+      ],
+      "accepted": true
+    },
+    "remote-void": {
+      "same_acceptance_and_failure_class": true,
+      "native_DRC": [
+        0,
+        0,
+        0
+      ],
+      "accepted": true
+    },
+    "reference-void": {
+      "same_acceptance_and_failure_class": true,
+      "native_DRC": [
+        0,
+        0,
+        0
+      ],
+      "accepted": false
+    },
+    "edge-growth": {
+      "same_acceptance_and_failure_class": true,
+      "native_DRC": [
+        0,
+        0,
+        0
+      ],
+      "accepted": false
+    },
+    "edge-remote": {
+      "same_acceptance_and_failure_class": true,
+      "native_DRC": [
+        0,
+        0,
+        0
+      ],
+      "accepted": true
+    },
+    "reverse-residual": {
+      "same_acceptance_and_failure_class": true,
+      "native_DRC": [
+        0,
+        0,
+        0
+      ],
+      "accepted": true
+    },
+    "split-residual": {
+      "same_acceptance_and_failure_class": true,
+      "native_DRC": [
+        0,
+        0,
+        0
+      ],
+      "accepted": true
+    }
+  },
+  "immutable_board_sha256": {
+    "hardware/rev_a/auxiliary/auxiliary.kicad_pcb": "0dc50df4037cfe1b8888e53f7a3645557ebbc87ba80589f4fa15a3da4bf066ed",
+    "hardware/rev_a/layout/rev_a.kicad_pcb": "60097ff4acf8408d5a172930de74bcd36aa50a379dd30a831e4bc64d3841c8a6"
+  },
+  "pending_envelope_sha256": "bfe5db5d7b6fd444ea0b5f7beaa32ada48b403d523dd3d2d0a7389dcfa6f9735",
+  "acceptance": "empty batch only fast-passes; every nonempty group uses unchanged per-trace proof",
+  "schematic_batch_seconds": 450,
+  "native_command_seconds": 45,
+  "thresholds_or_exclusions_changed": false,
+  "cached_across_mutations": false,
+  "publication": "pending normal authorized Git push; do not infer branch or CI",
+  "hosted_or_independent_review_claimed": false,
+  "hardware_or_firmware_or_dependency_changes": false,
+  "approval_changes": false
+}

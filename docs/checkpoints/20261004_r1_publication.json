@@ -1,0 +1,31 @@
+{
+  "milestone": "R1 original source imported and reconciled for PR81",
+  "date": "2026-10-04",
+  "published_p3_base": "9d22a6c21eee1bd8983ba61fb4c459870182e734",
+  "documentation_parent": "f7cb415ef5e7a4eb4ef6807bd861d92c0676bf99",
+  "original_r1_head": "107d72c419149c7501ab4b3847b50c34e186e5da",
+  "original_r1_tree": "a278956c4f9e57d108a01a455c2cea7dcb81eb18",
+  "original_r1_commits": [
+    "33a070a88aa680d1b511989948afe435ccf89bd9",
+    "184e12c8996353a1b51d25f314c08b2918ca9abe",
+    "107d72c419149c7501ab4b3847b50c34e186e5da"
+  ],
+  "import_run": 37204919737,
+  "receipt_artifact": 11304162792,
+  "receipt_zip_sha256": "1e624114e7e341f604a812a1ddd2785afe21163a8002eef17467a5d67ef01bc7",
+  "bundle_bytes": 23575,
+  "bundle_sha256": "bacb2f1b82ff04e4a3526e403ae83b43f3ab8663a576ec2ac24b6cde0601a0f3",
+  "import_remote_branch": "recovery/pr81-r1-imported",
+  "fresh_remote_clone_verified": true,
+  "outside_docs_identical_to_original_r1": true,
+  "workbench_workflow_in_engineering_tree": false,
+  "prior_local_evidence_only": {
+    "ordinary": 1236,
+    "subtests": 14,
+    "KiCad": 291,
+    "console_subset": 49
+  },
+  "integrated_head_CI_review": "Read live PR81 exact-head runs and original review-thread dispositions. Import success is not CI.",
+  "physical_hardware_tested": false,
+  "approval_changes": false
+}
