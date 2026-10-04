@@ -26,7 +26,7 @@ in `lab.rev_a_supply` is untouched. This is not a plane/EM/mesh extraction,
 measured current or qualification. The modeled local ADC load is lumped at C33.
 
 The 5mA-per-buffer example gives3.557mV farthest feed drop, not1.344mV from
-incorrect per-path loading. Under the stated0.5A-MCU example only95.002mV is
+incorrect per-path loading. Under the stated0.5A-MCU example only94.867mV is
 left for all omitted feed/return and errors before E1's4.75V AVDD limit. Treating
 that as a shared-loop allowance gives an optimistic0.180ohm ceiling, NOT an
 approved specification. Multiple grounds and a separately sensed source must

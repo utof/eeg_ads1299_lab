@@ -146,10 +146,10 @@ allocations, not datasheet maxima or measured operation.
 
 | Assumed MCU5V current | Aux drop toward AFE | Aux drop toward MCU | Loss at VIN monitor input | Remaining AVDD allowance* |
 |---|---:|---:|---:|---:|
-| 0.100A | 1.531mV | 12.122mV | 7.802mV | 97.002mV |
-| 0.500A | 3.531mV | 60.053mV | 38.455mV | 95.002mV |
+| 0.100A | 1.531mV | 12.122mV | 7.802mV | 96.867mV |
+| 0.500A | 3.531mV | 60.053mV | 38.455mV | 94.867mV |
 
-*After nominal100mV across R11 and a1.467mV lumped estimate for the AFE5V trace;
+*After nominal100mV across R11 and a1.602mV lumped estimate for the AFE5V trace;
 before source-lead drop, K1 contacts/wire, return distribution, ground offset,
 R11 tolerance and all omitted errors. Loading the complete selected AFE input
 trace with all AFE current overestimates its branch-only current **within the
@@ -159,8 +159,8 @@ behavior. These constant-current examples must not be conflated with the
 conductance loads/transient model in `lab.rev_a_supply`, which is unchanged.
 
 At0.500A MCU load,0.20ohm of hypothetical common source-plus-return resistance
-would lose105.428mV, already exceeding95.002mV. The corresponding optimistic
-AVDD example is4.739574V before the other omitted losses: below E1's4.75V.
+would lose105.428mV, already exceeding94.867mV. The corresponding optimistic
+AVDD example is4.739439V before the other omitted losses: below E1's4.75V.
 This is a conditional counterexample, not an observed hardware failure. Reducing
 only the short DVDD feed cannot recover that common-path loss. Specify and
 measure the total source/return budget before deciding which copper or cable to
@@ -259,6 +259,7 @@ for imcu in (0.100, 0.500):
             + r_analog["other_squares"] / (1000 * a["B_mm"])
         )
         + r_analog["vias"] * via
+        + r_analog["PTH"] * a["PTH_extra_ohm"]
     )
     # Lump all AFE current on full path overestimates branch loading under tree hypothesis;
     # separate source harness/controller return losses are handled below, not hidden as0.
@@ -303,6 +304,19 @@ recorded commit/tree and original Git board bytes before emitting any inventory.
 A rejected source does not produce replacement JSON. The baseline identities
 remain the same because no board bytes changed. These are code/provenance checks,
 not new physical measurements or approval of the assumptions.
+
+A further review found that the selected AFE input-path calculation omitted its
+one recorded PTH transition despite declaring a 5 milliohm allowance for every
+such transition. A term-isolation regression sets trace/via resistivity to zero
+ONLY in a disposable accounting input, leaving that 5 milliohm term. The old
+calculation returned zero loss instead of 0.027086A * 0.005ohm = 0.13543mV.
+The corrected expression includes the recorded PTH count; all reported headrooms
+now include the additional 0.13543mV. The high-MCU example is94.866653mV, with
+an optimistic shared-loop ceiling of about0.179965ohm, not the superseded
+95.002083mV/0.180222ohm. The earlier original run/quoted intermediate values are
+historical evidence, not an alternative accepted result. The initial new test
+used a JSON-validation helper incorrectly; that harness error was corrected and
+the actual omitted-term failure observed before the equation was fixed.
 
 ## Disposition and next bounded step
 

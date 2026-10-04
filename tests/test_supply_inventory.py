@@ -76,7 +76,7 @@ def test_documented_accounting_block_runs_and_reproduces_examples(tmp_path: Path
     # Independently retained, rounded reported values; not re-generated expectations.
     assert loss["U104.14"] == pytest.approx(0.003557471138, abs=1e-10, rel=0)
     assert high_vin["headroom_V_for_ALL_other_feed_return_and_errors"] == pytest.approx(
-        0.0950020831, abs=1e-10, rel=0
+        0.0948666531, abs=1e-10, rel=0
     )
 
 

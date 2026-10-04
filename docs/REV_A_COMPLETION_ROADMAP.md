@@ -20,7 +20,7 @@ physical measurements. Categories overlap; these are not safety percentages.
 | Person-disconnected bench | 2–4 guided turns plus bench work | Physical validation not begun | Unpowered inspection then approved dummy-source procedure |
 
 S1's illustrative5mA per buffer gives3.56mV at the farthest feed path. Under its
-0.5A MCU example the remaining AVDD allowance is95.0mV before unbounded source,
+0.5A MCU example the remaining AVDD allowance is94.9mV before unbounded source,
 return and connection losses;0.180ohm is an optimistic whole-shared-loop ceiling,
 not a newly accepted design limit. Current, material and ground assumptions must
 be bounded before changing hardware. Source sense is not delivered voltage.
