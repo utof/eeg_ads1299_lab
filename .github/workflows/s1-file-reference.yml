@@ -1,0 +1,61 @@
+name: Publish S1 File Reference
+on:
+  push:
+    branches: [workbench/supply-return-finish]
+    paths: [.github/workflows/s1-file-reference.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+      - name: Download only the intended public-source bundle and verify its identity
+        env:
+          SOURCE_URL: 'https://sdmntprpolandcentral.oaiusercontent.com/files/00000000-6e18-820a-b90c-e341152f0610/raw?se=2026-10-04T17%3A36%3A33Z&sp=r&sv=2026-02-06&sr=b&scid=cb045c7d-eaeb-5c41-9833-a0c435ebc21f&skoid=9b41a688-1b44-4731-856e-b0efcf3660ed&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-10-04T04%3A45%3A00Z&ske=2026-10-05T04%3A45%3A00Z&sks=b&skv=2026-02-06&sig=Iz1bxFrxQ9Ow4BqwgOMiP9Xib8U2sWjnSwMlLlaW/Ig%3D'
+        run: |
+          set -eu
+          curl --fail --silent --show-error --location --max-time 60 "$SOURCE_URL" -o "$RUNNER_TEMP/s1.bundle"
+          python - <<'PY'
+          import hashlib,os,pathlib
+          data=pathlib.Path(os.environ['RUNNER_TEMP'],'s1.bundle').read_bytes()
+          assert len(data)==24618
+          assert hashlib.sha256(data).hexdigest()=='6e02d6c7f2369e69798da8295c9b0e493b877369c8785e2a8e02bac055c1e4a5'
+          PY
+      - name: Publish scoped original history without executing candidate code
+        run: |
+          set -eu
+          BASE=f6932ead58c1d02af145de405312a7f885dbb010
+          HEAD=faf01e1344eabf96d7aac6f02cdf14b918c7fc1a
+          TREE=3c0e1f2cba72bf07c7f2ec1c6627049d38c8bee3
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$BASE"
+          git bundle verify "$RUNNER_TEMP/s1.bundle"
+          git fetch "$RUNNER_TEMP/s1.bundle" HEAD
+          test "$(git rev-parse FETCH_HEAD)" = "$HEAD"
+          test "$(git rev-parse "$HEAD^{tree}")" = "$TREE"
+          test "$(git rev-list --count "$BASE..$HEAD")" = 5
+          test "$(git diff --name-only "$BASE" "$HEAD" | wc -l)" = 15
+          git diff --exit-code "$BASE" "$HEAD" -- .github hardware firmware lab pyproject.toml uv.lock
+          git fsck --no-dangling "$HEAD"
+          existing=$(git ls-remote origin refs/heads/review/supply-return-s1 | cut -f1)
+          test -z "$existing" || test "$existing" = "$HEAD"
+          git push origin "$HEAD:refs/heads/review/supply-return-s1"
+          git clone --no-local --branch review/supply-return-s1 "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$RUNNER_TEMP/fresh"
+          cd "$RUNNER_TEMP/fresh"
+          test "$(git rev-parse HEAD)" = "$HEAD"
+          test "$(git rev-parse HEAD^{tree})" = "$TREE"
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/receipt"
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/receipt/identity.txt"
+          git bundle create "$RUNNER_TEMP/receipt/source.bundle" HEAD
+          cd "$RUNNER_TEMP/receipt"
+          sha256sum source.bundle identity.txt > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: published-s1-source
+          path: ${{ runner.temp }}/receipt/
+          retention-days: 14
+          if-no-files-found: error
