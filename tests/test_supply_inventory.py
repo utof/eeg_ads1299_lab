@@ -28,3 +28,83 @@ def test_supply_inventory_matches_current_native_geometry(tmp_path: Path) -> Non
     assert actual == expected, (
         "native paths/assumptions changed; redo S1 review, not just its hashes"
     )
+
+
+def test_documented_accounting_block_runs_and_reproduces_examples(tmp_path: Path) -> None:
+    """Execute the published instructions, not a separately maintained helper copy."""
+    import re
+    import sys
+
+    document = (ROOT / "docs/REV_A_SUPPLY_RETURN_S1.md").read_text()
+    blocks = re.findall(r"```python\n(.*?)\n```", document, re.DOTALL)
+    assert len(blocks) == 1
+    script = blocks[0] + '\nprint("S1_RESULT=" + json.dumps(res, sort_keys=True))\n'
+    result = subprocess.run(
+        [sys.executable, "-c", script],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    (tmp_path / "documented-accounting.log").write_text(result.stdout + result.stderr)
+    assert result.returncode == 0, result.stdout + result.stderr
+    records = [
+        line.removeprefix("S1_RESULT=")
+        for line in result.stdout.splitlines()
+        if line.startswith("S1_RESULT=")
+    ]
+    assert len(records) == 1
+    data: object = json.loads(records[0])
+    assert isinstance(data, dict) and data["no_qualification_result"] is True
+    dvdd = data["hypothetical_DVDD_load_cases"]
+    vin = data["hypothetical_5V_load_cases"]
+    assert isinstance(dvdd, list) and isinstance(vin, list)
+    assert len(dvdd) == len(vin) == 2
+    high_dvdd: object = dvdd[1]
+    high_vin: object = vin[1]
+    assert isinstance(high_dvdd, dict) and isinstance(high_vin, dict)
+    loss: object = high_dvdd["feed_losses_V"]
+    assert isinstance(loss, dict)
+    # Independently retained, rounded reported values; not re-generated expectations.
+    assert loss["U104.14"] == pytest.approx(0.003557471138, abs=1e-10, rel=0)
+    assert high_vin["headroom_V_for_ALL_other_feed_return_and_errors"] == pytest.approx(
+        0.0950020831, abs=1e-10, rel=0
+    )
+
+
+@pytest.mark.schematic
+@pytest.mark.parametrize("board", ["layout", "auxiliary"])
+def test_changed_board_cannot_regenerate_old_source_identity(tmp_path: Path, board: str) -> None:
+    """Real Git/native copies: even a geometry-neutral edit invalidates exact provenance."""
+    from tests.supply_inventory_probe import SCRIPT
+
+    clone = tmp_path / "repo"
+    subprocess.run(
+        ["git", "clone", "--shared", "--no-checkout", str(ROOT), str(clone)],
+        capture_output=True,
+        text=True,
+        timeout=15,
+        check=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(clone), "checkout", "--detach", "HEAD"],
+        capture_output=True,
+        text=True,
+        timeout=15,
+        check=True,
+    )
+    name = "rev_a.kicad_pcb" if board == "layout" else "auxiliary.kicad_pcb"
+    target = clone / "hardware/rev_a" / board / name
+    target.write_bytes(target.read_bytes() + b"\n")
+    result = subprocess.run(
+        [os.environ.get("KICAD_PYTHON", "/usr/bin/python3"), "-c", SCRIPT, str(clone)],
+        capture_output=True,
+        text=True,
+        timeout=45,
+        check=False,
+    )
+    (tmp_path / "changed-board-provenance.log").write_text(result.stdout + result.stderr)
+    assert result.returncode != 0, "modified board was falsely attributed to the old source"
+    assert "source identity" in result.stderr, result.stderr
+    assert not result.stdout.strip(), "failed provenance must not produce a replacement inventory"
