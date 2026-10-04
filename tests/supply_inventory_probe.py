@@ -1,7 +1,7 @@
 """S1 read-only native centerline study; executable only in pinned KiCad subprocess."""
 
 SCRIPT = r"""
-import pcbnew as k, json, math, heapq, hashlib, sys
+import pcbnew as k, json, math, heapq, hashlib, sys, subprocess
 from pathlib import Path
 from collections import defaultdict
 assert k.Version() == "9.0.2"
@@ -66,6 +66,30 @@ def inventory(board, active, requests):
      return {'net':net,'from':start,'to':end,'centerline_mm_excludes_vertical_via_length':d,'via_transitions':sum(k=='via' for k,*_ in h),'segments_traversed':len({x[1]for x in h if x[0]=='segment'}),'front_mm':sum(x[2]for x in h if x[0]=='segment'and x[3][2]==k.F_Cu),'In2_mm':sum(x[2]for x in h if x[0]=='segment'and x[3][2]==k.In2_Cu),'minimum_track_width_mm':min(widths),'front_resistance_squares':sum(x[2]/(byid[x[1]].GetWidth()/1e6) for x in h if x[0]=='segment'and x[3][2]==k.F_Cu),'inner_resistance_squares':sum(x[2]/(byid[x[1]].GetWidth()/1e6) for x in h if x[0]=='segment'and x[3][2]==k.In2_Cu),'sections':[{'kind':kind,'id':ident,'length_mm':dist,'from':list(a),'to':list(z),'width_mm':byid[ident].GetWidth()/1e6 if kind=='segment' else None} for kind,ident,dist,a,z in h], 'trace_UUIDs':sorted({x[1]for x in h if x[0]=='segment'})}
     return [route(a,b) for a,b in requests]
 ROOT=Path(sys.argv[1])
+SOURCE_COMMIT='f6932ead58c1d02af145de405312a7f885dbb010'
+SOURCE_TREE='a1bb3a16687c65f736de9c2634bb5ec2e4b990ac'
+BOARD_PATHS=['hardware/rev_a/layout/rev_a.kicad_pcb',
+             'hardware/rev_a/auxiliary/auxiliary.kicad_pcb']
+def git_object(spec):
+    result=subprocess.run(['git','-C',str(ROOT),'show',spec],
+                          capture_output=True,timeout=10,check=False)
+    if result.returncode:
+        raise RuntimeError('S1 source identity unavailable: '+result.stderr.decode(errors='replace'))
+    return result.stdout
+# These identities describe the GEOMETRY BASELINE, not the current study/probe revision.
+# Confirm the Git commit's own tree and original blob bytes before invoking pcbnew.
+# Re-generating JSON on edited boards must not re-label them as the old commit.
+# Read the tree ID from the commit object rather than regenerating either expectation.
+commit_result=subprocess.run(['git','-C',str(ROOT),'cat-file','commit',SOURCE_COMMIT],
+                             capture_output=True,timeout=10,check=False)
+if commit_result.returncode or not commit_result.stdout.startswith(('tree '+SOURCE_TREE+'\n').encode()):
+    raise RuntimeError('S1 source identity commit/tree mismatch or missing history')
+BOARD_HASHES={}
+for path in BOARD_PATHS:
+    data=(ROOT/path).read_bytes()
+    if data != git_object(SOURCE_COMMIT+':'+path):
+        raise RuntimeError('S1 source identity differs from the recorded geometry baseline: '+path)
+    BOARD_HASHES[path]=hashlib.sha256(data).hexdigest()
 aux=inventory(ROOT/"hardware/rev_a/auxiliary/auxiliary.kicad_pcb", (k.F_Cu,k.In2_Cu), [('J104.2','U102.14'),('J104.2','U103.14'),('J104.2','U104.14'),('J104.2','R116.1'),('J105.1','J101.17'),('J105.1','J102.21'),('J104.3','U106.1'),('J104.4','U107.1'),('J105.1','U108.1'),('J105.1','R108.1')])
 afe=inventory(ROOT/"hardware/rev_a/layout/rev_a.kicad_pcb", (k.F_Cu,k.B_Cu), [('U2.5','J3.2'),('U2.5','C33.1'),('C33.1','J3.2'),('J1.17','R11.1'),('J1.17','U2.1'),('J3.3','C33.1'),('J3.4','C31.1')])
 def named_sections(row,board):
@@ -104,6 +128,9 @@ rows=[]
 for board,ps in [('AUX',aux),('AFE',afe)]:
  for p in ps:
   rows.append({'board':board,'from':p['from'],'to':p['to'],'mm':round(p['centerline_mm_excludes_vertical_via_length'],9),'vias':p['via_transitions'],'PTH':sum(s['kind']=='PTH'for s in p['sections']),'F_squares':round(sum(s['length_mm']/s['width_mm']for s in p['sections']if s['kind']=='segment'and s['from'][2]==0),9),'other_squares':round(sum(s['length_mm']/s['width_mm']for s in p['sections']if s['kind']=='segment'and s['from'][2]!=0),9),'other_layer':'In2.Cu'if board=='AUX'else'B.Cu'})
-model={'schema':1,'scope':'selected centerline-tree DC sensitivity; NOT parasitic extraction or qualification','source_commit':'f6932ead58c1d02af145de405312a7f885dbb010','source_tree':'a1bb3a16687c65f736de9c2634bb5ec2e4b990ac','boards':{p:hashlib.sha256((ROOT/p).read_bytes()).hexdigest()for p in ['hardware/rev_a/layout/rev_a.kicad_pcb','hardware/rev_a/auxiliary/auxiliary.kicad_pcb']},'geometry':rows,'dvdd':dvdd,'vin5_aux':vin,'assumed':{'rho20_ohm_mm2_per_m':.0175,'alpha_per_C':.00393,'temperature_C':30.,'F_mm':.035,'In2_mm':.018,'B_mm':.035,'wire_area_mm2':.205,'via_length_mm':1.6,'via_bore_mm':.3,'via_plating_mm':.020,'contact_pair_ohm':.020,'PTH_extra_ohm':.005},'scope_limits':['ADC/local DVDD load lumped at C33, not die extraction','centerline arborescence excludes parallel copper/pad spreading','ground network NOT represented by ideal zero-ohm reference','mode currents, crimp, material and return impedances unqualified','steady sensitivity, no inrush, ringing, regulator thermal or fault deadline'],'qualified':False}
+model={'schema':1,'scope':'selected centerline-tree DC sensitivity; NOT parasitic extraction or qualification','source_commit':SOURCE_COMMIT,'source_tree':SOURCE_TREE,'boards':BOARD_HASHES,'geometry':rows,'dvdd':dvdd,'vin5_aux':vin,'assumed':{'rho20_ohm_mm2_per_m':.0175,'alpha_per_C':.00393,'temperature_C':30.,'F_mm':.035,'In2_mm':.018,'B_mm':.035,'wire_area_mm2':.205,'via_length_mm':1.6,'via_bore_mm':.3,'via_plating_mm':.020,'contact_pair_ohm':.020,'PTH_extra_ohm':.005},'scope_limits':['ADC/local DVDD load lumped at C33, not die extraction','centerline arborescence excludes parallel copper/pad spreading','ground network NOT represented by ideal zero-ohm reference','mode currents, crimp, material and return impedances unqualified','steady sensitivity, no inrush, ringing, regulator thermal or fault deadline'],'qualified':False}
+for path,digest in BOARD_HASHES.items():
+    if hashlib.sha256((ROOT/path).read_bytes()).hexdigest()!=digest:
+        raise RuntimeError('S1 source identity changed during capture: '+path)
 print(json.dumps(model,indent=2))
 """

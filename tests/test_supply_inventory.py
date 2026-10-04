@@ -36,7 +36,7 @@ def test_documented_accounting_block_runs_and_reproduces_examples(tmp_path: Path
     import sys
 
     document = (ROOT / "docs/REV_A_SUPPLY_RETURN_S1.md").read_text()
-    blocks = re.findall(r"```python\n(.*?)\n```", document, re.DOTALL)
+    blocks: list[str] = re.findall(r"```python\n(.*?)\n```", document, re.DOTALL)
     assert len(blocks) == 1
     script = blocks[0] + '\nprint("S1_RESULT=" + json.dumps(res, sort_keys=True))\n'
     result = subprocess.run(
@@ -57,8 +57,8 @@ def test_documented_accounting_block_runs_and_reproduces_examples(tmp_path: Path
     assert len(records) == 1
     data: object = json.loads(records[0])
     assert isinstance(data, dict) and data["no_qualification_result"] is True
-    dvdd = data["hypothetical_DVDD_load_cases"]
-    vin = data["hypothetical_5V_load_cases"]
+    dvdd: object = data["hypothetical_DVDD_load_cases"]
+    vin: object = data["hypothetical_5V_load_cases"]
     assert isinstance(dvdd, list) and isinstance(vin, list)
     assert len(dvdd) == len(vin) == 2
     high_dvdd: object = dvdd[1]

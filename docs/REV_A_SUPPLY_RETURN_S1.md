@@ -185,6 +185,14 @@ uv run --locked --all-extras python -m pytest tests/test_dc_budget.py tests/test
 
 The second file requires native KiCad9.0.2 Python (`KICAD_PYTHON`, default
 `/usr/bin/python3`). This snapshot test is not a fresh DRC or physical test.
+The probe also requires repository Git history containing the pinned PR81
+baseline. It reads that commit's actual tree and both original board blobs and
+compares the current board bytes before and after capture. The JSON's
+`source_commit`/`source_tree` identify that geometry baseline, NOT the current
+study implementation or a new test run. A future intentional board change
+requires a new, independently verified baseline and study review; regenerating
+the JSON alone cannot attribute new geometry to this old source. A source ZIP
+without the required Git history cannot supply this provenance and must fail.
 The following accounting block uses only the recorded explicit assumptions:
 
 ```python
@@ -243,7 +251,7 @@ for imcu in (0.100, 0.500):
     loads = {"J101.17": iafe, "J102.21": imcu, "U108.1": 0.000001, "R108.1": 0.0000525}
     d = tree_drops(vinRs, vinpaths, loads)
     # All AFE input current through K1 5V cable/AFE route; R11 only analog10mA.
-        r_analog = next(r for r in m["geometry"] if r["board"] == "AFE" and r["to"] == "R11.1")
+    r_analog = next(r for r in m["geometry"] if r["board"] == "AFE" and r["to"] == "R11.1")
     worst5trace = (
         rho
         * (
@@ -282,6 +290,19 @@ res = {
 }
 print(json.dumps(res, indent=2))
 ```
+
+### Review corrections before acceptance
+
+PR82 review found two real defects: the printed accounting block had an extra
+indent, and regenerating the native inventory could keep old source identities
+while measuring an edited board. Three new cases failed before correction: the
+actual fenced Python block, and geometry-neutral byte edits to each of the two
+boards in independent Git clones. The block now runs under an ordinary regression
+and reproduces the reported numerical examples; the native probe verifies the
+recorded commit/tree and original Git board bytes before emitting any inventory.
+A rejected source does not produce replacement JSON. The baseline identities
+remain the same because no board bytes changed. These are code/provenance checks,
+not new physical measurements or approval of the assumptions.
 
 ## Disposition and next bounded step
 
