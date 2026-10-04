@@ -1,0 +1,65 @@
+name: Publish Verified S2
+on:
+  push:
+    branches: [workbench/s2-verified-publication]
+    paths: [.github/workflows/publish-s2.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 7325d659aeedf2628cf2a4430854e90ef1277785
+          fetch-depth: 0
+      - name: Verify fixed source bytes and scope before normal feature publication
+        env:
+          SOURCE_URL: 'https://sdmntprnortheu.oaiusercontent.com/files/00000000-899c-81f4-82c3-f2ab69808023/raw?se=2026-10-04T21%3A06%3A22Z&sp=r&sv=2026-02-06&sr=b&scid=969a48e4-4c5f-53f3-ba33-1b158d531094&skoid=9b41a688-1b44-4731-856e-b0efcf3660ed&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-10-04T03%3A14%3A06Z&ske=2026-10-05T03%3A14%3A06Z&sks=b&skv=2026-02-06&sig=KMOLVMAp0XX9rvFoKO9ImJzsg4V/ifP%2BRaprnqr6lOE%3D'
+        run: |
+          set -eu
+          BASE=7325d659aeedf2628cf2a4430854e90ef1277785
+          HEAD=319f685439fa5ed7c34eeabf44537d48fbddcd90
+          TREE=b17c00d67a95594ddfeda4d6973d78173dd5f4b5
+          test "$(git rev-parse HEAD)" = "$BASE"
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$BASE"
+          curl --fail --location --max-time 45 "$SOURCE_URL" -o "$RUNNER_TEMP/source.bundle"
+          export SOURCE_BUNDLE="$RUNNER_TEMP/source.bundle"
+          python - <<'PY'
+          import hashlib,os,pathlib
+          data=pathlib.Path(os.environ['SOURCE_BUNDLE']).read_bytes()
+          assert len(data)==20449
+          assert hashlib.sha256(data).hexdigest()=='e97df5ba57a6b1c2106f63665de7707459e10fd53923f21192f2f9c1e4400b92'
+          PY
+          git bundle verify "$SOURCE_BUNDLE"
+          git fetch "$SOURCE_BUNDLE" HEAD
+          test "$(git rev-parse FETCH_HEAD)" = "$HEAD"
+          test "$(git rev-parse "$HEAD^{tree}")" = "$TREE"
+          test "$(git rev-list --count "$BASE..$HEAD")" = 3
+          python - <<'PY'
+          import subprocess
+          files=subprocess.check_output(['git','diff','--name-only','7325d659aeedf2628cf2a4430854e90ef1277785','319f685439fa5ed7c34eeabf44537d48fbddcd90'],text=True).splitlines()
+          expected={'AGENTS.md','docs/LLM_HANDOFF.md','docs/REPOSITORY_PUBLICATION.md','docs/REV_A_COMPLETION_ROADMAP.md','docs/REV_A_CURRENT_RETURN_S2.md','docs/REV_A_SUPPLY_RETURN_S1.md','docs/studies/s2_current_return.json','tests/test_agent_entrypoints.py','tests/test_current_return_s2.py','tests/test_schematic_gate.py','tools/check.py','tools/dc_budget.py'}
+          assert set(files)==expected and len(files)==len(expected),files
+          PY
+          git fsck --no-dangling "$HEAD"
+          existing=$(git ls-remote origin refs/heads/review/current-return-s2 | cut -f1)
+          test -z "$existing" || test "$existing" = "$HEAD"
+          git push origin "$HEAD:refs/heads/review/current-return-s2"
+          git clone --no-local --branch review/current-return-s2 "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$RUNNER_TEMP/fresh"
+          cd "$RUNNER_TEMP/fresh"
+          test "$(git rev-parse HEAD)" = "$HEAD"
+          test "$(git rev-parse HEAD^{tree})" = "$TREE"
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/receipt"
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/receipt/identity.txt"
+          git bundle create "$RUNNER_TEMP/receipt/source.bundle" HEAD
+          cd "$RUNNER_TEMP/receipt"
+          sha256sum source.bundle identity.txt > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: published-s2-source
+          path: ${{ runner.temp }}/receipt/
+          retention-days: 14
+          if-no-files-found: error
