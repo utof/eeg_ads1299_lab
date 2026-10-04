@@ -2,6 +2,31 @@
 
 Read `docs/DEVELOPMENT.md`, `docs/LLM_HANDOFF.md`, and the Rev A hardware baseline before changing code.
 
+## GitHub: read this before trying to publish
+
+**Mandatory for every fresh agent:** read `docs/REPOSITORY_PUBLICATION.md` before
+GitHub publication, recovery, or telling the user that manual setup is required.
+Read live main, open PRs and original review threads; chat memory is not current
+repository state. In a connector session, discover the relevant GitHub actions
+with `api_tool.list_resources` and obey their actual schemas. A missing action,
+a network failure and an explicit permission denial are different conditions.
+
+`@codex review` is review, NOT a commit/push operation. The missing environment
+message from a non-review Codex task does not mean GitHub writes or reviews are
+unavailable. PR77 and PR81 used source publication separately from Codex review;
+the runbook records the successful, hash-verified methods. Never repeat the old
+import loop, reroute preserved copper, or upload the same recovery data again.
+
+Prefer ordinary authenticated Git or available blob/tree/commit/non-force-ref
+actions; verify the remote full tree and disclose recreated commit metadata.
+A scoped publisher is a separate authorized capability, never an automatic
+fallback after a denied action. Do not change permissions, expose credentials,
+force branches, modify main directly or invent tool names. If genuinely blocked,
+record the exact failed capability and preserve source on a discoverable branch
+when writes permit; otherwise retain verified recovery evidence and state that
+publication is incomplete.
+Do not call a staging note or encoded archive the active engineering source.
+
 ## Repository-first continuation
 
 The repository is the handoff, not the previous chat. Start from the live main/open

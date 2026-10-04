@@ -1,0 +1,523 @@
+{
+  "schema": 1,
+  "scope": "selected centerline-tree DC sensitivity; NOT parasitic extraction or qualification",
+  "source_commit": "f6932ead58c1d02af145de405312a7f885dbb010",
+  "source_tree": "a1bb3a16687c65f736de9c2634bb5ec2e4b990ac",
+  "boards": {
+    "hardware/rev_a/layout/rev_a.kicad_pcb": "60097ff4acf8408d5a172930de74bcd36aa50a379dd30a831e4bc64d3841c8a6",
+    "hardware/rev_a/auxiliary/auxiliary.kicad_pcb": "d4eb4781cc3529c5371d6ce0e1976d48028391047c5824ca4f474992e6fb3ec8"
+  },
+  "geometry": [
+    {
+      "board": "AUX",
+      "from": "J104.2",
+      "to": "U102.14",
+      "mm": 33.265740593,
+      "vias": 1,
+      "PTH": 1,
+      "F_squares": 14.854166667,
+      "other_squares": 99.594135309,
+      "other_layer": "In2.Cu"
+    },
+    {
+      "board": "AUX",
+      "from": "J104.2",
+      "to": "U103.14",
+      "mm": 50.499753783,
+      "vias": 1,
+      "PTH": 1,
+      "F_squares": 72.300877302,
+      "other_squares": 99.594135309,
+      "other_layer": "In2.Cu"
+    },
+    {
+      "board": "AUX",
+      "from": "J104.2",
+      "to": "U104.14",
+      "mm": 67.499753783,
+      "vias": 1,
+      "PTH": 1,
+      "F_squares": 128.967543969,
+      "other_squares": 99.594135309,
+      "other_layer": "In2.Cu"
+    },
+    {
+      "board": "AUX",
+      "from": "J104.2",
+      "to": "R116.1",
+      "mm": 8.461743329,
+      "vias": 1,
+      "PTH": 1,
+      "F_squares": 4.625,
+      "other_squares": 25.122477762,
+      "other_layer": "In2.Cu"
+    },
+    {
+      "board": "AUX",
+      "from": "J105.1",
+      "to": "J101.17",
+      "mm": 16.636758404,
+      "vias": 0,
+      "PTH": 2,
+      "F_squares": 0,
+      "other_squares": 27.761264007,
+      "other_layer": "In2.Cu"
+    },
+    {
+      "board": "AUX",
+      "from": "J105.1",
+      "to": "J102.21",
+      "mm": 60.529821666,
+      "vias": 0,
+      "PTH": 2,
+      "F_squares": 0,
+      "other_squares": 108.695063873,
+      "other_layer": "In2.Cu"
+    },
+    {
+      "board": "AUX",
+      "from": "J104.3",
+      "to": "U106.1",
+      "mm": 25.315214178,
+      "vias": 1,
+      "PTH": 1,
+      "F_squares": 3.625,
+      "other_squares": 122.951070892,
+      "other_layer": "In2.Cu"
+    },
+    {
+      "board": "AUX",
+      "from": "J104.4",
+      "to": "U107.1",
+      "mm": 31.91428711,
+      "vias": 3,
+      "PTH": 1,
+      "F_squares": 19.928757236,
+      "other_squares": 139.642678316,
+      "other_layer": "In2.Cu"
+    },
+    {
+      "board": "AUX",
+      "from": "J105.1",
+      "to": "U108.1",
+      "mm": 38.57332489,
+      "vias": 1,
+      "PTH": 1,
+      "F_squares": 3.625,
+      "other_squares": 70.892569248,
+      "other_layer": "In2.Cu"
+    },
+    {
+      "board": "AUX",
+      "from": "J105.1",
+      "to": "R108.1",
+      "mm": 36.429716561,
+      "vias": 1,
+      "PTH": 1,
+      "F_squares": 4.625,
+      "other_squares": 59.174527602,
+      "other_layer": "In2.Cu"
+    },
+    {
+      "board": "AFE",
+      "from": "U2.5",
+      "to": "J3.2",
+      "mm": 14.087552301,
+      "vias": 0,
+      "PTH": 0,
+      "F_squares": 40.235981819,
+      "other_squares": 0,
+      "other_layer": "B.Cu"
+    },
+    {
+      "board": "AFE",
+      "from": "U2.5",
+      "to": "C33.1",
+      "mm": 6.595521279,
+      "vias": 0,
+      "PTH": 0,
+      "F_squares": 21.505904264,
+      "other_squares": 0,
+      "other_layer": "B.Cu"
+    },
+    {
+      "board": "AFE",
+      "from": "C33.1",
+      "to": "J3.2",
+      "mm": 8.642031022,
+      "vias": 0,
+      "PTH": 0,
+      "F_squares": 21.605077554,
+      "other_squares": 0,
+      "other_layer": "B.Cu"
+    },
+    {
+      "board": "AFE",
+      "from": "J1.17",
+      "to": "R11.1",
+      "mm": 46.024929625,
+      "vias": 1,
+      "PTH": 1,
+      "F_squares": 46.954189207,
+      "other_squares": 54.486507884,
+      "other_layer": "B.Cu"
+    },
+    {
+      "board": "AFE",
+      "from": "J1.17",
+      "to": "U2.1",
+      "mm": 40.513797817,
+      "vias": 1,
+      "PTH": 1,
+      "F_squares": 36.464312918,
+      "other_squares": 54.486507884,
+      "other_layer": "B.Cu"
+    },
+    {
+      "board": "AFE",
+      "from": "J3.3",
+      "to": "C33.1",
+      "mm": 9.677564928,
+      "vias": 0,
+      "PTH": 0,
+      "F_squares": 48.387824638,
+      "other_squares": 0,
+      "other_layer": "B.Cu"
+    },
+    {
+      "board": "AFE",
+      "from": "J3.4",
+      "to": "C31.1",
+      "mm": 19.926955262,
+      "vias": 0,
+      "PTH": 0,
+      "F_squares": 99.634776311,
+      "other_squares": 0,
+      "other_layer": "B.Cu"
+    }
+  ],
+  "dvdd": {
+    "groups": {
+      "E0": {
+        "downstream": [
+          "U102.14",
+          "U103.14",
+          "U104.14",
+          "R116.1",
+          "local_at_C33"
+        ],
+        "F_squares": 20.068404264493434,
+        "In2_squares": 0.0,
+        "B_squares": 0.0,
+        "vias": 0,
+        "PTH": 0,
+        "wire_m": 0.0,
+        "contact_pairs": 0,
+        "extra_ohm": 0.0,
+        "section_count": 6
+      },
+      "E1": {
+        "downstream": [
+          "U102.14",
+          "U103.14",
+          "U104.14",
+          "R116.1"
+        ],
+        "F_squares": 20.167577554195745,
+        "In2_squares": 25.122477761735382,
+        "B_squares": 0.0,
+        "vias": 0,
+        "PTH": 1,
+        "wire_m": 0.155,
+        "contact_pairs": 2,
+        "extra_ohm": 0.02,
+        "section_count": 6
+      },
+      "E2": {
+        "downstream": [
+          "U102.14",
+          "U103.14",
+          "U104.14"
+        ],
+        "F_squares": 4.166666666666667,
+        "In2_squares": 74.47165754686664,
+        "B_squares": 0.0,
+        "vias": 1,
+        "PTH": 0,
+        "wire_m": 0.0,
+        "contact_pairs": 0,
+        "extra_ohm": 0.0,
+        "section_count": 3
+      },
+      "E3": {
+        "downstream": [
+          "U102.14"
+        ],
+        "F_squares": 10.687499999999998,
+        "In2_squares": 0.0,
+        "B_squares": 0.0,
+        "vias": 0,
+        "PTH": 0,
+        "wire_m": 0.0,
+        "contact_pairs": 0,
+        "extra_ohm": 0.0,
+        "section_count": 2
+      },
+      "E4": {
+        "downstream": [
+          "U103.14",
+          "U104.14"
+        ],
+        "F_squares": 57.446710635321246,
+        "In2_squares": 0.0,
+        "B_squares": 0.0,
+        "vias": 0,
+        "PTH": 0,
+        "wire_m": 0.0,
+        "contact_pairs": 0,
+        "extra_ohm": 0.0,
+        "section_count": 2
+      },
+      "E5": {
+        "downstream": [
+          "U103.14"
+        ],
+        "F_squares": 10.687499999999998,
+        "In2_squares": 0.0,
+        "B_squares": 0.0,
+        "vias": 0,
+        "PTH": 0,
+        "wire_m": 0.0,
+        "contact_pairs": 0,
+        "extra_ohm": 0.0,
+        "section_count": 2
+      },
+      "E6": {
+        "downstream": [
+          "U104.14"
+        ],
+        "F_squares": 67.35416666666667,
+        "In2_squares": 0.0,
+        "B_squares": 0.0,
+        "vias": 0,
+        "PTH": 0,
+        "wire_m": 0.0,
+        "contact_pairs": 0,
+        "extra_ohm": 0.0,
+        "section_count": 3
+      },
+      "E7": {
+        "downstream": [
+          "R116.1"
+        ],
+        "F_squares": 4.625,
+        "In2_squares": 0.0,
+        "B_squares": 0.0,
+        "vias": 1,
+        "PTH": 0,
+        "wire_m": 0.0,
+        "contact_pairs": 0,
+        "extra_ohm": 0.0,
+        "section_count": 3
+      },
+      "E8": {
+        "downstream": [
+          "local_at_C33"
+        ],
+        "F_squares": 1.4374999999999998,
+        "In2_squares": 0.0,
+        "B_squares": 0.0,
+        "vias": 0,
+        "PTH": 0,
+        "wire_m": 0.0,
+        "contact_pairs": 0,
+        "extra_ohm": 0.0,
+        "section_count": 1
+      }
+    },
+    "paths": {
+      "U102.14": [
+        "E0",
+        "E1",
+        "E2",
+        "E3"
+      ],
+      "U103.14": [
+        "E0",
+        "E1",
+        "E2",
+        "E4",
+        "E5"
+      ],
+      "U104.14": [
+        "E0",
+        "E1",
+        "E2",
+        "E4",
+        "E6"
+      ],
+      "R116.1": [
+        "E0",
+        "E1",
+        "E7"
+      ],
+      "local_at_C33": [
+        "E0",
+        "E8"
+      ]
+    }
+  },
+  "vin5_aux": {
+    "groups": {
+      "E0": {
+        "downstream": [
+          "J101.17",
+          "J102.21",
+          "U108.1",
+          "R108.1"
+        ],
+        "F_squares": 0.0,
+        "In2_squares": 0.0,
+        "B_squares": 0.0,
+        "vias": 0,
+        "PTH": 1,
+        "wire_m": 0.0,
+        "contact_pairs": 0,
+        "extra_ohm": 0.0,
+        "section_count": 1
+      },
+      "E1": {
+        "downstream": [
+          "J101.17"
+        ],
+        "F_squares": 0.0,
+        "In2_squares": 27.761264006570492,
+        "B_squares": 0.0,
+        "vias": 0,
+        "PTH": 1,
+        "wire_m": 0.0,
+        "contact_pairs": 0,
+        "extra_ohm": 0.0,
+        "section_count": 5
+      },
+      "E2": {
+        "downstream": [
+          "J102.21",
+          "U108.1",
+          "R108.1"
+        ],
+        "F_squares": 0.0,
+        "In2_squares": 59.174527602328574,
+        "B_squares": 0.0,
+        "vias": 0,
+        "PTH": 0,
+        "wire_m": 0.0,
+        "contact_pairs": 0,
+        "extra_ohm": 0.0,
+        "section_count": 2
+      },
+      "E3": {
+        "downstream": [
+          "J102.21",
+          "U108.1"
+        ],
+        "F_squares": 0.0,
+        "In2_squares": 11.718041645257964,
+        "B_squares": 0.0,
+        "vias": 0,
+        "PTH": 0,
+        "wire_m": 0.0,
+        "contact_pairs": 0,
+        "extra_ohm": 0.0,
+        "section_count": 1
+      },
+      "E4": {
+        "downstream": [
+          "J102.21"
+        ],
+        "F_squares": 0.0,
+        "In2_squares": 37.802494625760886,
+        "B_squares": 0.0,
+        "vias": 0,
+        "PTH": 1,
+        "wire_m": 0.0,
+        "contact_pairs": 0,
+        "extra_ohm": 0.0,
+        "section_count": 5
+      },
+      "E5": {
+        "downstream": [
+          "U108.1"
+        ],
+        "F_squares": 3.6249999999999996,
+        "In2_squares": 0.0,
+        "B_squares": 0.0,
+        "vias": 1,
+        "PTH": 0,
+        "wire_m": 0.0,
+        "contact_pairs": 0,
+        "extra_ohm": 0.0,
+        "section_count": 3
+      },
+      "E6": {
+        "downstream": [
+          "R108.1"
+        ],
+        "F_squares": 4.625,
+        "In2_squares": 0.0,
+        "B_squares": 0.0,
+        "vias": 1,
+        "PTH": 0,
+        "wire_m": 0.0,
+        "contact_pairs": 0,
+        "extra_ohm": 0.0,
+        "section_count": 3
+      }
+    },
+    "paths": {
+      "J101.17": [
+        "E0",
+        "E1"
+      ],
+      "J102.21": [
+        "E0",
+        "E2",
+        "E3",
+        "E4"
+      ],
+      "U108.1": [
+        "E0",
+        "E2",
+        "E3",
+        "E5"
+      ],
+      "R108.1": [
+        "E0",
+        "E2",
+        "E6"
+      ]
+    }
+  },
+  "assumed": {
+    "rho20_ohm_mm2_per_m": 0.0175,
+    "alpha_per_C": 0.00393,
+    "temperature_C": 30.0,
+    "F_mm": 0.035,
+    "In2_mm": 0.018,
+    "B_mm": 0.035,
+    "wire_area_mm2": 0.205,
+    "via_length_mm": 1.6,
+    "via_bore_mm": 0.3,
+    "via_plating_mm": 0.02,
+    "contact_pair_ohm": 0.02,
+    "PTH_extra_ohm": 0.005
+  },
+  "scope_limits": [
+    "ADC/local DVDD load lumped at C33, not die extraction",
+    "centerline arborescence excludes parallel copper/pad spreading",
+    "ground network NOT represented by ideal zero-ohm reference",
+    "mode currents, crimp, material and return impedances unqualified",
+    "steady sensitivity, no inrush, ringing, regulator thermal or fault deadline"
+  ],
+  "qualified": false
+}

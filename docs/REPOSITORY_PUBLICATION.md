@@ -4,6 +4,37 @@ This note records observed methods, not a grant of permissions or a script to
 execute automatically. First read live main/PR heads and the current handoff.
 Do not reconstruct already-published source because a chat turn failed.
 
+## Fresh-agent decision path (start here)
+
+1. Read `AGENTS.md`, current `LLM_HANDOFF.md`, live main and open PRs. Inspect
+   surviving branches/immutable source receipts before reconstructing anything.
+2. Discover actual GitHub schemas, not names remembered from another turn.
+   Connector sessions use `api_tool.list_resources(paths=["GitHub"], query=...)`:
+   useful keywords are `fetch`, `create`, `update_ref`, `review_thread`, `merge`.
+   Call the returned namespaced action. Do not guess unsupported arguments.
+3. For ordinary text changes, `create_file`/`update_file` use actual content;
+   `update_file` requires the current blob SHA. For a multi-file snapshot use
+   `create_blob` -> `create_tree(base_tree_sha=...)` -> `create_commit` ->
+   non-force `update_ref`. Compare returned blob/tree hashes to local Git.
+   Commit metadata may change IDs even if every intermediate tree is identical.
+4. Existing local Git history can instead be imported/pushed by an available
+   normal authenticated Git publisher. Inspect the recorded PR77/PR81 publisher
+   examples below before telling the user to set up a Codex editing environment.
+   Do not hand-transcribe a large PCB or repeatedly copy large base64 streams.
+5. Distinguish unavailable tooling/network from an explicit denial. Stop a
+   denied operation, never bypass it through another API/service or extra
+   permissions. An isolated publisher needs its own legitimate authorization;
+   historical success is not permission to execute a workflow automatically.
+6. Verify the actual remote feature head AND complete tree. Then request
+   `@codex review` on that head and inspect ordinary CI, every original review
+   thread and fresh findings. Merge through the guarded PR action only after
+   acceptance, preserving history; read back main/tree. A transport job, review
+   summary, old green run or successful local suite alone is not this sequence.
+
+Root `AGENTS.md`, the README's opening table and `DEVELOPMENT.md` point here.
+Do not depend on conversation memory. Record success/failure with exact action,
+branch, SHA/tree and scope; retire stale handoff instructions after merging.
+
 ## Three different capabilities
 
 1. **Review:** `@codex review` worked in PR79 and PR81. Review completion does not

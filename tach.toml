@@ -73,7 +73,7 @@ depends_on = ["lab.acquisition", "lab.analog", "lab.inspect_capture", "lab.pipel
 
 [[modules]]
 path = "tests"
-depends_on = ["lab.rev_a_supply", "lab.rev_a_power", "lab.rev_a_bias_overload", "lab.rev_a_bias", "lab.rev_a", "hardware.rev_a", "lab.acquisition", "lab.adc", "lab.analog", "lab.data_types", "lab.dsp", "lab.inspect_capture", "lab.pipeline", "lab.protocol", "lab.signals", "lab.validation", "tools.check", "tools.commit_messages", "run_lab"]
+depends_on = ["tools.dc_budget", "lab.rev_a_supply", "lab.rev_a_power", "lab.rev_a_bias_overload", "lab.rev_a_bias", "lab.rev_a", "hardware.rev_a", "lab.acquisition", "lab.adc", "lab.analog", "lab.data_types", "lab.dsp", "lab.inspect_capture", "lab.pipeline", "lab.protocol", "lab.signals", "lab.validation", "tools.check", "tools.commit_messages", "run_lab"]
 
 [[interfaces]]
 from = ["lab.data_types"]
@@ -190,3 +190,11 @@ depends_on = ["hardware.rev_a", "lab.analog", "lab.data_types", "lab.validation"
 [[interfaces]]
 from = ["lab.rev_a_supply"]
 expose = ["SupplyCase", "SupplyTiming", "steady_state", "rail_response", "source_voltage_window", "supply_netlist", "run_supply_study", "main"]
+
+[[modules]]
+path = "tools.dc_budget"
+depends_on = []
+
+[[interfaces]]
+from = ["tools.dc_budget"]
+expose = ["tree_drops", "remote_voltages"]
