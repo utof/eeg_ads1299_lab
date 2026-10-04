@@ -28,6 +28,10 @@ def _fake_project(root: Path) -> Path:
     (root / "tools").mkdir()
     shutil.copyfile(ROOT / "tools/check.py", root / "tools/check.py")
     shutil.copyfile(ROOT / "pyproject.toml", root / "pyproject.toml")
+    (root / "docs/studies").mkdir(parents=True)
+    shutil.copyfile(
+        ROOT / "docs/studies/s1_supply_paths.json", root / "docs/studies/s1_supply_paths.json"
+    )
     footprints = write_footprint_library(root / "footprints")
     contract = parse_auxiliary_contract(
         (root / "hardware/rev_a/auxiliary/contract.json").read_text()
@@ -144,6 +148,9 @@ def _change_dependency(root: Path, fault: str) -> None:
         "change-p3-envelope": root / "tests/fixtures/auxiliary_p3_pending_edges.json",
         "change-reference-performance": root / "tests/test_reference_performance.py",
         "change-clock-review": root / "tests/test_auxiliary_clock.py",
+        "change-supply-data": root / "docs/studies/s1_supply_paths.json",
+        "change-supply-probe": root / "tests/supply_inventory_probe.py",
+        "change-supply-test": root / "tests/test_supply_inventory.py",
         "change-clock-reference": root / "tests/fixtures/auxiliary_clock_before_review.json",
         "change-library": root / "hardware/rev_a/kicad/RevA.kicad_sym",
         "change-console": root / "firmware/esp32_ads1299_bench/bench_console.h",
@@ -193,6 +200,9 @@ def _change_dependency(root: Path, fault: str) -> None:
         "change-p3-envelope",
         "change-reference-performance",
         "change-clock-review",
+        "change-supply-data",
+        "change-supply-probe",
+        "change-supply-test",
         "change-clock-reference",
         "change-library",
         "change-console",
