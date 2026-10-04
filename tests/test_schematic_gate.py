@@ -143,6 +143,8 @@ def _change_dependency(root: Path, fault: str) -> None:
         "change-ground-oracle": root / "tests/auxiliary_ground_probe.py",
         "change-p3-envelope": root / "tests/fixtures/auxiliary_p3_pending_edges.json",
         "change-reference-performance": root / "tests/test_reference_performance.py",
+        "change-clock-review": root / "tests/test_auxiliary_clock.py",
+        "change-clock-reference": root / "tests/fixtures/auxiliary_clock_before_review.json",
         "change-library": root / "hardware/rev_a/kicad/RevA.kicad_sym",
         "change-console": root / "firmware/esp32_ads1299_bench/bench_console.h",
         "change-interlock": root / "firmware/esp32_ads1299_bench/c2_interlock.h",
@@ -190,6 +192,8 @@ def _change_dependency(root: Path, fault: str) -> None:
         "change-ground-oracle",
         "change-p3-envelope",
         "change-reference-performance",
+        "change-clock-review",
+        "change-clock-reference",
         "change-library",
         "change-console",
         "change-sketch",
@@ -253,7 +257,7 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
         assert report["physical_hardware_tested"] is False
         assert report["body_connection_authorized"] is False
         assert report["schematic_released"] is False
-        assert len(read_object(report["source_sha256"], "hashes")) == 92
+        assert len(read_object(report["source_sha256"], "hashes")) == 94
         directory = out / str(report["artifact_directory"])
         harness = read_object(json.loads((directory / "harness.json").read_text()), "harness")
         assert harness["physical_wiring_approved"] is False

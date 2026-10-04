@@ -1,112 +1,112 @@
-# Continue from PR81: published P3 and preserved clock correction
+# Continue from PR81: the R1 clock correction is imported
 
-**P3 is published. Do not repeat its publication or rebuild either PCB.**
-Read live main, PR81 and this handoff before acting. At the 2026-10-04 checkpoint:
-
-| State | Exact source |
-|---|---|
-| Main, still P2 | `70e8d41bd60d597ecc284859d7e1f71370dcd190` |
-| Published P3 engineering base in PR81 | `9d22a6c21eee1bd8983ba61fb4c459870182e734` |
-| Published P3 tree | `751d8c8f1058f6d5663e215ce908e34bb5e6f46a` |
-| Preserved R1 correction, not yet active in PR81 | `107d72c419149c7501ab4b3847b50c34e186e5da` |
-| Corrected R1 tree | `a278956c4f9e57d108a01a455c2cea7dcb81eb18` |
-| Durable recovery branch | `workbench/pr81-clock-source` |
-| Immutable recovery commit | `ce2d891713a76bcaed300af8fb310d489e3c3479` |
-
-This documentation update does not apply R1 copper. Read back the live PR head:
-a new documentation commit does not mean the board or its tests were updated.
-Do not count P3's prior green workflows or a documentation-only run as R1 CI.
-The original Codex findings are4174991282 (clock/MISO) and4174991286 (stale handoff).
-A later clean review summary does not automatically resolve earlier findings.
-
-## Next bounded task: import the existing R1 source, then verify it
-
-The complete three-commit incremental bundle is stored as data at
-`recovery/pr81-clock/` on the immutable recovery commit above. It contains the
-actual corrected PCB, tests, docs and history, not just a screenshot or patch
-narrative. Its manifest lists14 files with byte counts, Git blob IDs and SHA256s.
-After checking every file, strip ASCII whitespace from each chunk, concatenate
-in manifest order and strict-base64-decode. Expected bundle:23575 bytes,
-SHA256 `bacb2f1b82ff04e4a3526e403ae83b43f3ab8663a576ec2ac24b6cde0601a0f3`.
-
-Verify the Git bundle against prerequisite9d22, import it without executing its
-scripts, and require head107d/treea278 and exactly these three commits:
+**Do not repeat recovery, publication staging, or clock routing.** The original
+R1 correction has been imported into GitHub with its actual commit IDs intact:
 `33a070a88aa680d1b511989948afe435ccf89bd9`,
-`184e12c8996353a1b51d25f314c08b2918ca9abe`,
-`107d72c419149c7501ab4b3847b50c34e186e5da`.
-Use a normal non-force update only when ancestry permits. This publication-status
-commit is a sibling of R1; reconcile documentation explicitly and retain both
-histories rather than force-pushing it away. The recovery-data branch is not an
-engineering branch to merge into main. Do not import its transport files into
-the final product tree or add an execution workflow to unpack them.
+`184e12c8996353a1b51d25f314c08b2918ca9abe`, and
+`107d72c419149c7501ab4b3847b50c34e186e5da` (tree
+`a278956c4f9e57d108a01a455c2cea7dcb81eb18`). Their parent is the already-published
+P3 head `9d22a6c21eee1bd8983ba61fb4c459870182e734`.
 
-The normal Codex import task5978860999 did not run: bot5978862704 requires a
-Codex repository environment. No environment/permissions/credentials/workflow
-was changed. GitHub small-object writes work, but that is distinct from normal
-local-bundle import. Do not repeat capability probes, reupload the same bundle,
-reroute the clock or use an alternative execution service. Use an available
-normal Git publisher, or report the specific remaining setup prerequisite.
+This checkout integrates that engineering source with the documentation-only
+`f7cb415ef5e7a4eb4ef6807bd861d92c0676bf99` history. Both histories are retained;
+no force update, source reconstruction or test relaxation was needed. Source
+outside docs is exactly R1. Read live main, PR81, its head/tree, check results
+and review threads before deciding whether it is already merged. A successful
+import is not CI or acceptance. Original findings are4174991282 (clock/MISO)
+and4174991286 (stale handoff); inspect actual dispositions, not only the latest
+review-summary badge. Main was70e8d41b at integration start.
 
-After the corrected source is active: run exact-head ordinary/native/schematic
-and target checks, obtain renewed review and disposition of both findings, then
-merge only if accepted. Next electrical work is the AFE_DVDD feed/return budget
-and remaining complete-channel/reference assumptions, not routine routing.
+## Working publication method and what not to repeat
 
-## What is active, and what R1 changes
+Read `REPOSITORY_PUBLICATION.md`. PR77 used a normal GitHub Actions history
+publisher separately from Codex review. The same bounded mechanism worked here:
+run37204919737 verified the stored23575-byte R1 bundle and all14 source-data
+files, imported exactly3commits, published only `recovery/pr81-r1-imported`, and
+independently cloned that remote branch to check head/tree. It did not execute
+project scripts, change main or run tests under its write permission. Its
+single-purpose workbench workflow is NOT in this engineering tree.
 
-Active P3 auxiliary source is `hardware/rev_a/auxiliary/auxiliary.kicad_pcb`, next
-to its four-sheet project:52 footprints,216 pads,647 segments,158 vias, connected.
-Its clock is still85.491637mm/5vias in this documentation-only checkout.
-R1 changes only MCU_SCLK and the resulting zone fill:71.875101mm/4vias, minimum
-same-layer clock/MISO trace-edge gap0.638848mm instead of0.230172mm. It preserves
-all831 other copper/footprint forms and all52 footprints. R1 has643segments/157vias.
-These are native geometry observations, not signal-integrity qualification.
-Read R1's `docs/REV_A_P3_CLOCK_REVIEW.md` after recovering its checkout.
+GitHub's object API then integrates existing trees and both parents and advances
+the existing PR branch without force. Codex is asked for review after real source
+publication. A Codex editing-task environment is not a prerequisite for review
+or for an independently authorized publisher. If a particular write is denied,
+stop that operation: do not change permissions or route it through another API.
+Do not retry the now-obsolete cloud importer or upload the stored bundle again.
 
-The prior clean R1 local gate was1236ordinary+14subtests,291KiCad,49console subset,
-with the CAD batch342.66s inside the unchanged450s budget. These are retained
-prior results, not execution by this documentation/publication continuation.
-No R1 hostedCI, complete native suite, S3build, renewed review or physical test
-is claimed here. Historical evidence must stay bound to its actual source.
+## Current engineering source
 
-## Invariants and outstanding physical requirements
+Native auxiliary project: `hardware/rev_a/auxiliary/auxiliary.kicad_pro` and its
+PCB. R1 changes only MCU_SCLK and resulting ground fill:71.875101mm planar length
+instead of85.491637mm,4vias instead of5, minimum same-layer clock/MISO trace-edge
+gap0.638848mm instead of0.230172mm. Inventory:52footprints/216pads/643segments/
+157vias. All831 nonclock copper/footprint forms are unchanged from P3. These are
+bounded routing improvements, not impedance, noise, ringing or timing proof.
+The75mm/4via/0.60mm regression targets are not manufacturer SI limits. Actual
+edges, packages, cables, return transitions and layer construction remain open.
 
-Read root `AGENTS.md`, `docs/DEVELOPMENT.md`, the hardware baseline and the P1/P2/P3,
-C1-C4, F1 and reference-review/performance documents. The full older handoff is
-preserved at `archive/20261003_pre_publication_handoff.md` for its detailed
-requirements, NOT current publication, next-task or test-count statements.
-This file and live source take precedence over that archived status narrative.
+Main AFE stays `hardware/rev_a/layout/rev_a.kicad_pcb`, SHA256
+`60097ff4acf8408d5a172930de74bcd36aa50a379dd30a831e4bc64d3841c8a6`.
+Its69footprints/251pads/593segments/122vias, J3, prior AVDD1/output/CH1N repairs,
+circuit/BOM/profile, F1 firmware, C4 cable, K2 carrier, dependencies and rules are
+unchanged. Never run the parking-grid importer or old authoring scripts over
+either board. Read AGENTS.md, DEVELOPMENT.md and the hardware baseline first.
 
-Never use the parking-grid importer or old authoring helpers to regenerate the
-AFE board at `hardware/rev_a/layout/rev_a.kicad_pcb` or the auxiliary board.
-AFE hash stays `60097ff4acf8408d5a172930de74bcd36aa50a379dd30a831e4bc64d3841c8a6`.
-AFE/J3, circuit/BOM/profile, firmware, service cable, carrier, dependencies and
-all hardware/approval flags are unchanged by R1 and this publication work.
+Keep all15P2bypass corridors,39P3terminal cuts, domain separation and mounting/
+cable guards. The continuous central0.10mm global reference strip has declared
+same-net through-contact exclusions; it is not full-width ground or an EM model.
+The original20pending outlines/18records remain unapproved and may not expand
+or move to accommodate a reroute. The reference fast path skips work only for an
+EMPTY exact native group difference. The450s CAD batch budget, individual tool
+deadlines and71%branch floor remain unchanged. Use current JUnit counts.
 
-Preserve the15P2bypass corridors,39new-net cuts, HOST/TARGET isolation and
-mounting/cable rules. The central0.10mm reference strip has declared same-net
-through-contact exclusions; it is not full-width ground or an EM model. The
-20 pending outlines for18 records remain electrically unapproved and must not
-be enlarged to pass a reroute. Own-via/PTH return transitions, layer construction,
-long channels, supply necks and sense coupling still require review.
+## Next bounded task
 
-F1 parks outputs and requires actual READY/freshARM before clock/VCAP/reset;
-BOARD_PROFILE_REVIEWED remainsfalse. Faults invalidate sessions, and software
-cannot preempt blocked I/O or recall emitted bytes. C4 uses separate feed/sense
-conductors joining on the AFE, not the auxiliary. Detached cable testing, no hot
-mating, excluded DevKitUSB with accessories, and actual restraint remain required.
-The42.2k pull calculations are conditional (only24mV disabled-low budget margin).
-Partial-rail leakage, TPS3703 timing conditions, SENSE injection, analog-source
-exposure, physical latch behavior and rapid/partial power faults remain open.
+First finish exact-head hosted checks and renewed review of this actual R1 tree;
+merge only after the original findings have explicit dispositions. After that,
+review the AFE_DVDD feed AND return voltage-drop budget with bounded load,
+copper, via, cable/contact and shared-trunk data, plus remaining channel/return
+assumptions. Do not sum shared paths as independent wires or invent a generic
+termination resistor. No further routine clock, J3, ground or F1 reconstruction.
 
-Keep #45/#48, vendor stackup, E1 calibrated dummy-fixture limits, capacitor
-lifecycle/effective-C/assembly and mechanical fit/retention evidence open.
-The94.84USD AFE subtotal is not a complete delivered auxiliary/cable/carrier
-quote or proof of the100USD target. No supplier outreach, purchase, fabrication,
-powered-connection or body-use authorization has been granted.
+Retained original R1 local evidence is1236ordinary+14subtests,291KiCad and49console
+subset. Those counts are not a new hosted run. Bind all new results to their
+actual SHA/tree; distinguish full native integration, target compilation, source
+checks and physical experiments. Logs go under ignored reports; small durable
+receipts and necessary source inputs belong in Git. Use locked uv and the same
+`tools.check` entry point as CI. Missing native tools must fail, not be waived.
 
-Use locked uv and the same `tools.check` orchestrator as CI. Missing native tools
-are failures; retain complete failure logs. Do not lower rules, coverage floors
-or timeouts. Report TLDR and the category/remaining-turns/status/next-step roadmap;
-distinguish source custody, active code, local/hosted tests, review and physical
-qualification. Future agents can recover the whole correction from GitHub alone.
+## Physical and release boundaries
+
+C4 J3/J104 pins1/5 are return,2 is AFE DVDD feed OUT,3 separate DVDD sense,
+4 AVDD sense after R11,6 NC. Feed/sense join at AFE, not auxiliary. Verify the
+five-wire cable detached before intentionally common AFE nets hide swaps. Exact
+wire/crimp, mounting and restraint remain unqualified; no hot mating. K2 support,
+body/mate and cable checks are finite geometry, not force/tolerance validation.
+Auxiliary H4 is intentionally offset, not a rectangular hole pattern.
+
+F1 SESSION/ARM/READY/ARMED is implemented; BOARD_PROFILE_REVIEWED remains false.
+Park outputs, require actual READY and fresh ARM, then clock/VCAP/reset. Faults
+invalidate the entire session; software cannot preempt blocked I/O or retract
+sent bytes. Real latched feedback and host recording invalidation need validation.
+Both DevKit USB connections stay excluded with accessories; permanent tails must
+be removed for bare-board programming. C1 HOST/TARGET supplies and grounds stay
+separate. Digital buffering does not protect analog electrode inputs.
+
+C3's42.2k pulls have a conditional24mV disabled-low margin, not measured leakage
+qualification. Partial rails, SENSE injection, initial latch state, feed/ground
+breaks and AVDD/DVDD asymmetry remain open. TPS3703's30us delay is conditional on
+5%overdrive; no arbitrary-ramp or pre-E1 guaranteed shutdown has been established.
+
+Keep #45/#48, JLC04161H-7628 manufacturer confirmation, E1 calibrated dummy-source
+and measurement requirements, six-pair coupling disposition, capacitor lifecycle/
+effective-C/assembly, physical fit and delivered budget open. The94.84USD AFE
+allowance excludes the complete auxiliary/cable/carrier/tools/delivery and does
+not establish the100USD objective. All purchasing, fabrication, powered-connection,
+external-acquisition and body-use flags remain unchanged/false.
+
+`REV_A_P3_CLOCK_REVIEW.md` records the original R1 rationale and experiments;
+its historical publication-next-step is superseded by this handoff. Older
+publication narratives in docs/archive are history, not current instructions.
+Report a TLDR and category/remaining-turns/status/next-step roadmap. Never equate
+source custody, a green badge or a merge with physical qualification.

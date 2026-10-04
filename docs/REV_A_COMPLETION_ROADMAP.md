@@ -1,59 +1,60 @@
-# Rev A roadmap: published P3, R1 import still pending
+# Rev A roadmap: R1 source imported, exact-head review next
 
-P3 is published in PR81, originally at9d22a6c. This documentation-only update
-does not replace its clock copper. The completed R1 correction and three-commit
-history are now recoverable entirely from this GitHub repository: immutable
-commit `ce2d891713a76bcaed300af8fb310d489e3c3479`, branch
-`workbench/pr81-clock-source`, directory `recovery/pr81-clock/`.
-The manifest recovers exact107d72c/treea278956. See `LLM_HANDOFF.md`.
-
-The normal Codex publication task did not run because its repository environment
-is absent. Do not mistake the durable archive for the active engineering tree,
-repeat the upload, regenerate copper or merge the transport branch. The two
-original review findings require explicit disposition; the stale handoff is
-corrected here, while the clock correction remains pending actual import.
+The completed R1 clock correction is now imported into GitHub with its original
+three commits through107d72c/treea278956. This checkout reconciles it with the
+f7cb documentation history. It is the corrected engineering source, not an
+encoded recovery package. Read live PR81/main and exact-head checks/review before
+assuming merge or acceptance. No additional source recovery or clock reroute.
 
 ## Glanceable roadmap
 
-Remaining substantial chat turns are estimates, not safety percentages. They
-exclude supplier responses, fabrication/shipping and physical measurements;
-categories overlap and must not be summed into a promised release date.
+Remaining substantial chat turns are ranges, not safety scores or a countdown.
+Exclude supplier responses, manufacturing/shipping and physical measurements;
+categories overlap.
 
 | Category | Estimated turns remaining | Done/status | Next slice or blocker |
 |---|---:|---|---|
-| Repository-only recovery | 0 for this checkpoint | Full R1 source/history stored on a named GitHub branch; live handoff corrected | No chat attachment or expiring link needed |
-| R1 active publication/review | 1 after normal publisher is available | Correction preserved but not applied to the active PR board | Import/reconcile the three commits, exact-head CI and renewed review |
-| Clock correction | 0 for local implementation | R1 reduces85.49→71.88mm,5→4vias; separation increased; prior local gate passed | Do not claim applied until actual tree is verified |
-| Other auxiliary layout review | 1–2 | Full P3 routing and existing reference protections retained | Feed/return voltage-drop budget and full-channel/reference assumptions |
-| Main AFE and F1 firmware | 0 for completed scope | Existing AFE/J3/guarded startup preserved | Physical-performance limits remain |
-| Stackup, capacitors and analog coupling | 2–4 plus external evidence | Requirements and candidate choices documented | Vendor construction, capacitor evidence and combined six-pair decision |
-| Mechanical assembly | 1–2 plus physical checks | CAD and mounting/access allocations preserved | Actual fit, materials, restraint and retention |
-| Real power/console faults | 1–3 plus physical checks | Circuit limits and F1 response documented | Rails, leakage, broken feedback, analog exposure and recording validity |
-| Release and delivered budget | 1–2 after prerequisites | Not fabrication-ready | Separate release review and complete delivered quote |
-| Person-disconnected bench | 2–4 guided turns plus bench work | Physical validation not begun | Unpowered inspection then approved staged dummy-source testing |
+| R1 source publication | 0 | Original correction imported and reconciled with current history | Read actual PR head; no more recovery transfers |
+| PR81 CI/review | 1 including any concrete findings | Corrected source is available for exact-head checks | Resolve original clock/handoff findings, then merge if accepted |
+| Auxiliary layout | 1–2 | Connected routing and shorter/separated clock | Feed/return voltage-drop budget and remaining full-channel/reference review |
+| Main AFE and F1 firmware | 0 for completed scope | AFE/J3 and guarded firmware unchanged | Physical-performance limitations remain |
+| Input/supply coupling | 1 after confirmations | Nine locations remain one six-pair item | Confirmed construction/E1 inputs; combined repair or separate pilot-risk decision |
+| Stackup and bench requirements | 1–2 plus external evidence | Construction target and numerical limits documented | Vendor construction/tolerances and calibrated measurement floor |
+| Capacitor migration | 1 coordinated review after evidence | Exact shortlist and33AFE roles accounted | Lifecycle/effective-C/assembly; auxiliary bypasses separate |
+| Mechanical assembly | 1–2 plus physical checks | Existing CAD and mounting/access allocations preserved | Actual fit, materials, forces, retention and cable restraint |
+| Power/console faults | 1–3 plus physical checks | Circuit limits and F1 behavior documented | Rail collapse, leakage, broken feedback and recording validity |
+| Release and delivered budget | 1–2 after prerequisites | Not fabrication-ready | Coherent outputs, complete quote and separate release review |
+| Person-disconnected bench | 2–4 guided turns plus bench work | Physical validation has not begun | Unpowered inspection then approved staged dummy-source tests |
 
-## What must not be conflated
+## Next bounded engineering step
 
-The old published P3 Quality/Schematic/Firmware workflows passed on9d22. Prior
-R1 local ordinary/schematic evidence belongs to107d. Neither proves that R1 has
-been published, independently accepted or tested by hosted CI. A documentation
-run also cannot validate a different PCB. Keep291KiCad/1236ordinary+14subtests
-as prior R1 evidence until another actual run establishes a new result.
+Complete actual corrected-head CI/review first. Then bound AFE_DVDD supply and
+return drop using real shared-trunk geometry and declared current, copper, vias,
+connector/cable and return assumptions. Keep complete-channel edges, own-contact
+reference exclusions, sense coupling and18pending reference records explicit.
+No automatic physical sign-off, generic termination or new meanders follows from
+a shorter clock or clean DRC. All15local bypass checks,39netcut controls, pending
+spatial envelope and450s CAD batch deadline remain unchanged.
 
-R1 keeps all other copper, source rules,18pending reference records/20outlines,
-15local bypass checks and the450s CAD deadline unchanged. Native DRC0 and
-improved geometry do not qualify edge rate, impedance, noise, rapid power faults
-or arbitrary return-path behavior. No generic termination value or meander is
-selected. Independent review must inspect the corrected full channel.
+## Publication lesson
 
-An editable schematic/routed prototype is not a released manufacturing package.
-A pilot release additionally needs closed or explicitly disposed stackup,
-component, connection, mechanical, fixture and budget requirements. Physical
-performance needs real assembly and calibrated measurements; body use remains
-a separate scope. The94.84USD AFE allowance omits the auxiliary/cable/carrier and
-delivery costs. All purchasing, fabrication, powered and body-use gates stayfalse.
+The earlier successful path was ordinary GitHub history publication plus a
+separate Codex review. It worked again in run37204919737 after exact bundle,
+three-commit, file-scope and fresh-clone checks. The one-shot workbench importer
+is not a product dependency or part of this PR's workflow diff. A missing Codex
+editing-task environment does not disable review or authorize another execution
+bypass. See REPOSITORY_PUBLICATION.md; do not repeat failed capability assumptions.
 
-Historical pre-publication narrative is preserved in
-`archive/20261003_pre_publication_roadmap.md`; do not follow its stale publication
-instructions or treat its old counts as current. This roadmap, the current
-handoff and verified live branch state take precedence.
+## Release boundaries
+
+Editable/routed source, an approved pilot design, and physically validated
+person-disconnected hardware are different milestones. Vendor stack, component,
+mating, mechanical, fixture and budget evidence must be closed or explicitly
+disposed before release. Measurements require real assembly; body connection is
+a separate later scope. The94.84USD AFE subtotal does not include the entire
+auxiliary, harness, holder, tools or delivery. No unsolicited supplier message,
+purchase, fabrication, powered setup, external acquisition or body use is granted.
+
+Use current handoff and live source over archived publication narratives. Prior
+local107d results are not hosted results for this integrated checkout; every
+new claim needs its actual source identity and run outcome.
