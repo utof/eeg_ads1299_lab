@@ -2,6 +2,11 @@
 
 The Rev A hardware choice is not reopened by this work. All firmware guards and hardware gates stay fail-closed. Python tests, native C++ helper tests, and SPICE runs are different kinds of evidence; none authorizes connecting a person.
 
+Before repository writes or recovery, read [the publication runbook](REPOSITORY_PUBLICATION.md)
+and root `AGENTS.md`. Publishing source, asking Codex for review, running CI and
+merging are separate operations; do not infer one from another or repeat a denied
+operation through a different route.
+
 ## Setup
 
 Work from the repository root. Python 3.11 is the minimum supported version; the normal development interpreter is 3.13. CI checks both. Install uv 0.12.18 using its [official standalone installation instructions](https://docs.astral.sh/uv/getting-started/installation/), then synchronize the locked project, development tools, and optional serial dependency:

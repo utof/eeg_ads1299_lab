@@ -9,6 +9,7 @@ It is **not a finished EEG recorder, a validated PCB, or permission to attach a 
 | File | What it does for you |
 |---|---|
 | [START_HERE.html](START_HERE.html) | Offline visual walkthrough, provisional digital pin map, interactive gain/offset calculator. Open with the rest of the repository available. |
+| [Agent instructions](AGENTS.md) / [GitHub publication runbook](docs/REPOSITORY_PUBLICATION.md) | Fresh assistant starts here; working publication methods, review boundaries and recovery checks. |
 | [Development guide](docs/DEVELOPMENT.md) | Locked installation, one quality command, test-first changes, strict typing, and enforced public interfaces. |
 | [DX validation record](docs/DX_VALIDATION.md) | A dated CI run with software tests, actual ngspice execution, native helper tests, and limitations. |
 | [Historical results report](docs/RESULTS.md) | Original measured outputs and evidence; retained rather than overwritten by routine CI. |

@@ -1,38 +1,36 @@
-# Continue from PR81: the R1 clock correction is imported
+# Continue from merged PR81: supply/return review S1
 
-**Do not repeat recovery, publication staging, or clock routing.** The original
-R1 correction has been imported into GitHub with its actual commit IDs intact:
-`33a070a88aa680d1b511989948afe435ccf89bd9`,
-`184e12c8996353a1b51d25f314c08b2918ca9abe`, and
-`107d72c419149c7501ab4b3847b50c34e186e5da` (tree
-`a278956c4f9e57d108a01a455c2cea7dcb81eb18`). Their parent is the already-published
-P3 head `9d22a6c21eee1bd8983ba61fb4c459870182e734`.
+**Read `REPOSITORY_PUBLICATION.md` before any GitHub publication or recovery.**
+Root `AGENTS.md`, README and DEVELOPMENT point there too. Source publishing,
+Codex review, hosted checks and merge are different operations. Do not ask a
+Codex editing task to publish and then infer its missing environment blocks
+review or the connector. Follow actual schemas and stop explicit denials.
 
-This checkout integrates that engineering source with the documentation-only
-`f7cb415ef5e7a4eb4ef6807bd861d92c0676bf99` history. Both histories are retained;
-no force update, source reconstruction or test relaxation was needed. Source
-outside docs is exactly R1. Read live main, PR81, its head/tree, check results
-and review threads before deciding whether it is already merged. A successful
-import is not CI or acceptance. Original findings are4174991282 (clock/MISO)
-and4174991286 (stale handoff); inspect actual dispositions, not only the latest
-review-summary badge. Main was70e8d41b at integration start.
+PR81 is MERGED: base main `f6932ead58c1d02af145de405312a7f885dbb010`, tree
+`a1bb3a16687c65f736de9c2634bb5ec2e4b990ac`, includes the original R1 correction
+and both documentation histories. Its two original review findings were resolved
+and the actual corrected tree passed hosted checks. Never reconstruct P3/R1,
+J3, F1 or prior source because an old chat reports a publication blocker.
 
-## Working publication method and what not to repeat
+This continuation is `review/supply-return-s1` until its live PR is merged.
+Read live main/open PRs and the actual head, not this baseline as a permanent
+current-main claim. S1 changes analysis/checks/docs only; both PCBs, circuit,
+BOM/profile, firmware, cable, carrier, dependencies and release flags stay intact.
+Read `REV_A_SUPPLY_RETURN_S1.md` and `studies/s1_supply_paths.json`.
 
-Read `REPOSITORY_PUBLICATION.md`. PR77 used a normal GitHub Actions history
-publisher separately from Codex review. The same bounded mechanism worked here:
-run37204919737 verified the stored23575-byte R1 bundle and all14 source-data
-files, imported exactly3commits, published only `recovery/pr81-r1-imported`, and
-independently cloned that remote branch to check head/tree. It did not execute
-project scripts, change main or run tests under its write permission. Its
-single-purpose workbench workflow is NOT in this engineering tree.
+S1 uses a source-bound read-only native centerline-tree inventory and a small
+validated constant-current KCL/KVL calculator. Shared edges carry summed
+loads; signed ground offsets affect the sensed source and actual receiver rail
+differently from forward feed loss. The existing conductance/transient model
+in `lab.rev_a_supply` is untouched. This is not a plane/EM/mesh extraction,
+measured current or qualification. The modeled local ADC load is lumped at C33.
 
-GitHub's object API then integrates existing trees and both parents and advances
-the existing PR branch without force. Codex is asked for review after real source
-publication. A Codex editing-task environment is not a prerequisite for review
-or for an independently authorized publisher. If a particular write is denied,
-stop that operation: do not change permissions or route it through another API.
-Do not retry the now-obsolete cloud importer or upload the stored bundle again.
+The 5mA-per-buffer example gives3.557mV farthest feed drop, not1.344mV from
+incorrect per-path loading. Under the stated0.5A-MCU example only95.002mV is
+left for all omitted feed/return and errors before E1's4.75V AVDD limit. Treating
+that as a shared-loop allowance gives an optimistic0.180ohm ceiling, NOT an
+approved specification. Multiple grounds and a separately sensed source must
+not be replaced by zero impedance or assumed equal wire currents.
 
 ## Current engineering source
 
@@ -62,19 +60,21 @@ deadlines and71%branch floor remain unchanged. Use current JUnit counts.
 
 ## Next bounded task
 
-First finish exact-head hosted checks and renewed review of this actual R1 tree;
-merge only after the original findings have explicit dispositions. After that,
-review the AFE_DVDD feed AND return voltage-drop budget with bounded load,
-copper, via, cable/contact and shared-trunk data, plus remaining channel/return
-assumptions. Do not sum shared paths as independent wires or invent a generic
-termination resistor. No further routine clock, J3, ground or F1 reconstruction.
+Close the S1 mode-specific current envelope and allocate the actual source,
+K1/C4, crimp/contact, plane/return and regulator losses. The native inventory is
+not a current-distribution solver. Use actual F1 clock/data duty and output loads;
+do not use no-load microamp buffer ICC as an active-load maximum. Specify how
+four-wire resistance and simultaneous source/sink voltage measurements would
+validate those bounds on the future person-disconnected fixture, without power
+permission now. No speculative wider traces, generic termination or meanders.
 
-Retained original R1 local evidence is1236ordinary+14subtests,291KiCad and49console
-subset. Those counts are not a new hosted run. Bind all new results to their
-actual SHA/tree; distinguish full native integration, target compilation, source
-checks and physical experiments. Logs go under ignored reports; small durable
-receipts and necessary source inputs belong in Git. Use locked uv and the same
-`tools.check` entry point as CI. Missing native tools must fail, not be waived.
+After source publication, inspect exact-head CI/review and merge only after
+acceptance. S1's native study is an additional snapshot check, not new global DRC
+or a physical fault test; retain the actual tested counts from JUnit. Use locked
+uv and `tools.check` locally/CI, keep all native deadlines and the450s CAD batch
+budget unchanged, and do not overwrite historical results. Small durable source
+inputs belong in Git; ignored reports hold logs. Source hashes, source/tree
+identity, local/hosted/native/physical evidence must stay distinct.
 
 ## Physical and release boundaries
 
