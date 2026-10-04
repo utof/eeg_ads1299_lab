@@ -30,7 +30,7 @@ def test_supply_inventory_matches_current_native_geometry(tmp_path: Path) -> Non
     )
 
 
-def test_documented_accounting_block_runs_and_reproduces_examples(tmp_path: Path) -> None:
+def _run_documented_accounting(cwd: Path, log_dir: Path) -> dict[str, object]:
     """Execute the published instructions, not a separately maintained helper copy."""
     import re
     import sys
@@ -41,13 +41,13 @@ def test_documented_accounting_block_runs_and_reproduces_examples(tmp_path: Path
     script = blocks[0] + '\nprint("S1_RESULT=" + json.dumps(res, sort_keys=True))\n'
     result = subprocess.run(
         [sys.executable, "-c", script],
-        cwd=ROOT,
+        cwd=cwd,
         capture_output=True,
         text=True,
         timeout=30,
         check=False,
     )
-    (tmp_path / "documented-accounting.log").write_text(result.stdout + result.stderr)
+    (log_dir / "documented-accounting.log").write_text(result.stdout + result.stderr)
     assert result.returncode == 0, result.stdout + result.stderr
     records = [
         line.removeprefix("S1_RESULT=")
@@ -57,6 +57,13 @@ def test_documented_accounting_block_runs_and_reproduces_examples(tmp_path: Path
     assert len(records) == 1
     data: object = json.loads(records[0])
     assert isinstance(data, dict) and data["no_qualification_result"] is True
+    assert all(isinstance(key, str) for key in data)
+    validated: dict[str, object] = data
+    return validated
+
+
+def test_documented_accounting_block_runs_and_reproduces_examples(tmp_path: Path) -> None:
+    data = _run_documented_accounting(ROOT, tmp_path)
     dvdd: object = data["hypothetical_DVDD_load_cases"]
     vin: object = data["hypothetical_5V_load_cases"]
     assert isinstance(dvdd, list) and isinstance(vin, list)
@@ -108,3 +115,28 @@ def test_changed_board_cannot_regenerate_old_source_identity(tmp_path: Path, boa
     assert result.returncode != 0, "modified board was falsely attributed to the old source"
     assert "source identity" in result.stderr, result.stderr
     assert not result.stdout.strip(), "failed provenance must not produce a replacement inventory"
+
+
+def test_accounting_keeps_the_afe_pth_term_when_trace_resistance_is_zero(tmp_path: Path) -> None:
+    """Independent term-isolation control, not a zero-resistivity hardware scenario."""
+    from lab.validation import read_object
+
+    model = read_object(ROOT / "docs/studies/s1_supply_paths.json")
+    assumed = model["assumed"]
+    assert isinstance(assumed, dict)
+    assumed["rho20_ohm_mm2_per_m"] = 0.0
+    assumed["PTH_extra_ohm"] = 0.005
+    destination = tmp_path / "docs/studies/s1_supply_paths.json"
+    destination.parent.mkdir(parents=True)
+    destination.write_text(json.dumps(model))
+    result = _run_documented_accounting(tmp_path, tmp_path)
+    cases = result["hypothetical_5V_load_cases"]
+    assert isinstance(cases, list) and len(cases) == 2
+    for raw in cases:
+        case: object = raw
+        assert isinstance(case, dict)
+        # One selected AFE PTH at 5 milliohm, carrying the declared 27.086mA.
+        # Trace/via terms are zero by construction; they cannot hide this term.
+        assert case["AFE_input_trace_lumped_loss_V"] == pytest.approx(
+            0.027086 * 0.005, rel=0, abs=1e-15
+        )
