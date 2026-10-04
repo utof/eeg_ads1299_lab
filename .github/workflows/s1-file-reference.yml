@@ -13,37 +13,43 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           fetch-depth: 0
-      - name: Download only the intended public-source bundle and verify its identity
+      - name: Fetch only reviewed public-source history and verify bytes
         env:
-          SOURCE_URL: 'https://sdmntprpolandcentral.oaiusercontent.com/files/00000000-6e18-820a-b90c-e341152f0610/raw?se=2026-10-04T17%3A36%3A33Z&sp=r&sv=2026-02-06&sr=b&scid=cb045c7d-eaeb-5c41-9833-a0c435ebc21f&skoid=9b41a688-1b44-4731-856e-b0efcf3660ed&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-10-04T04%3A45%3A00Z&ske=2026-10-05T04%3A45%3A00Z&sks=b&skv=2026-02-06&sig=Iz1bxFrxQ9Ow4BqwgOMiP9Xib8U2sWjnSwMlLlaW/Ig%3D'
+          SOURCE_URL: 'https://sdmntprnortheu.oaiusercontent.com/files/00000000-3938-81f4-b5fc-67d7f64b1f61/raw?se=2026-10-04T17%3A52%3A37Z&sp=r&sv=2026-02-06&sr=b&scid=17cfe1e1-2fb8-5f30-819a-cf1fe83539ed&skoid=9b41a688-1b44-4731-856e-b0efcf3660ed&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-10-03T19%3A09%3A18Z&ske=2026-10-04T19%3A09%3A18Z&sks=b&skv=2026-02-06&sig=poV24hENtMX9iKRbIvd110Lecq3ABUj6rjxbtkFeU9A%3D'
         run: |
           set -eu
           curl --fail --silent --show-error --location --max-time 60 "$SOURCE_URL" -o "$RUNNER_TEMP/s1.bundle"
           python - <<'PY'
           import hashlib,os,pathlib
           data=pathlib.Path(os.environ['RUNNER_TEMP'],'s1.bundle').read_bytes()
-          assert len(data)==24618
-          assert hashlib.sha256(data).hexdigest()=='6e02d6c7f2369e69798da8295c9b0e493b877369c8785e2a8e02bac055c1e4a5'
+          assert len(data)==4352
+          assert hashlib.sha256(data).hexdigest()=='d3783fe654cd5b054204a8b209b8a5e357f7b084e0c59361b4507aa37fc8408f'
           PY
-      - name: Publish scoped original history without executing candidate code
+      - name: Preserve exact commits on a separate candidate branch
         run: |
           set -eu
-          BASE=f6932ead58c1d02af145de405312a7f885dbb010
-          HEAD=faf01e1344eabf96d7aac6f02cdf14b918c7fc1a
-          TREE=3c0e1f2cba72bf07c7f2ec1c6627049d38c8bee3
-          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$BASE"
+          MAIN=f6932ead58c1d02af145de405312a7f885dbb010
+          BASE=faf01e1344eabf96d7aac6f02cdf14b918c7fc1a
+          HEAD=bb1fdd5f9ffeb31c04474a82dddfe078a4042fd8
+          TREE=1607bbc4d04a6e619b7e946c50e0402088093e54
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$MAIN"
+          test "$(git ls-remote origin refs/heads/review/supply-return-s1 | cut -f1)" = "$BASE"
           git bundle verify "$RUNNER_TEMP/s1.bundle"
           git fetch "$RUNNER_TEMP/s1.bundle" HEAD
           test "$(git rev-parse FETCH_HEAD)" = "$HEAD"
           test "$(git rev-parse "$HEAD^{tree}")" = "$TREE"
-          test "$(git rev-list --count "$BASE..$HEAD")" = 5
-          test "$(git diff --name-only "$BASE" "$HEAD" | wc -l)" = 15
-          git diff --exit-code "$BASE" "$HEAD" -- .github hardware firmware lab pyproject.toml uv.lock
+          test "$(git rev-list --count "$BASE..$HEAD")" = 2
+          python - "$BASE" "$HEAD" <<'PY'
+          import subprocess,sys
+          actual=set(subprocess.check_output(['git','diff','--name-only',*sys.argv[1:]],text=True).splitlines())
+          assert actual=={'docs/REV_A_SUPPLY_RETURN_S1.md','tests/supply_inventory_probe.py','tests/test_supply_inventory.py'}
+          PY
+          git diff --exit-code "$MAIN" "$HEAD" -- .github hardware firmware lab pyproject.toml uv.lock
           git fsck --no-dangling "$HEAD"
-          existing=$(git ls-remote origin refs/heads/review/supply-return-s1 | cut -f1)
+          existing=$(git ls-remote origin refs/heads/recovery/s1-review-bb1fdd5 | cut -f1)
           test -z "$existing" || test "$existing" = "$HEAD"
-          git push origin "$HEAD:refs/heads/review/supply-return-s1"
-          git clone --no-local --branch review/supply-return-s1 "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$RUNNER_TEMP/fresh"
+          git push origin "$HEAD:refs/heads/recovery/s1-review-bb1fdd5"
+          git clone --no-local --branch recovery/s1-review-bb1fdd5 "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$RUNNER_TEMP/fresh"
           cd "$RUNNER_TEMP/fresh"
           test "$(git rev-parse HEAD)" = "$HEAD"
           test "$(git rev-parse HEAD^{tree})" = "$TREE"
@@ -55,7 +61,7 @@ jobs:
           sha256sum source.bundle identity.txt > SHA256SUMS
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: published-s1-source
+          name: published-s1-review-source
           path: ${{ runner.temp }}/receipt/
           retention-days: 14
           if-no-files-found: error
