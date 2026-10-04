@@ -32,6 +32,12 @@ def _fake_project(root: Path) -> Path:
     shutil.copyfile(
         ROOT / "docs/studies/s1_supply_paths.json", root / "docs/studies/s1_supply_paths.json"
     )
+    for name in (
+        "tools/dc_budget.py",
+        "docs/REV_A_CURRENT_RETURN_S2.md",
+        "docs/studies/s2_current_return.json",
+    ):
+        shutil.copyfile(ROOT / name, root / name)
     footprints = write_footprint_library(root / "footprints")
     contract = parse_auxiliary_contract(
         (root / "hardware/rev_a/auxiliary/contract.json").read_text()
@@ -151,6 +157,10 @@ def _change_dependency(root: Path, fault: str) -> None:
         "change-supply-data": root / "docs/studies/s1_supply_paths.json",
         "change-supply-probe": root / "tests/supply_inventory_probe.py",
         "change-supply-test": root / "tests/test_supply_inventory.py",
+        "change-current-calculator": root / "tools/dc_budget.py",
+        "change-current-document": root / "docs/REV_A_CURRENT_RETURN_S2.md",
+        "change-current-data": root / "docs/studies/s2_current_return.json",
+        "change-current-test": root / "tests/test_current_return_s2.py",
         "change-clock-reference": root / "tests/fixtures/auxiliary_clock_before_review.json",
         "change-library": root / "hardware/rev_a/kicad/RevA.kicad_sym",
         "change-console": root / "firmware/esp32_ads1299_bench/bench_console.h",
@@ -203,6 +213,10 @@ def _change_dependency(root: Path, fault: str) -> None:
         "change-supply-data",
         "change-supply-probe",
         "change-supply-test",
+        "change-current-calculator",
+        "change-current-document",
+        "change-current-data",
+        "change-current-test",
         "change-clock-reference",
         "change-library",
         "change-console",
@@ -267,7 +281,7 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
         assert report["physical_hardware_tested"] is False
         assert report["body_connection_authorized"] is False
         assert report["schematic_released"] is False
-        assert len(read_object(report["source_sha256"], "hashes")) == 97
+        assert len(read_object(report["source_sha256"], "hashes")) == 101
         directory = out / str(report["artifact_directory"])
         harness = read_object(json.loads((directory / "harness.json").read_text()), "harness")
         assert harness["physical_wiring_approved"] is False

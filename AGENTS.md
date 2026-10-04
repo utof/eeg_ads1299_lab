@@ -26,6 +26,10 @@ record the exact failed capability and preserve source on a discoverable branch
 when writes permit; otherwise retain verified recovery evidence and state that
 publication is incomplete.
 Do not call a staging note or encoded archive the active engineering source.
+For a failed/interrupted chat, follow
+[the recovery check](docs/REPOSITORY_PUBLICATION.md#resuming-an-interrupted-turn):
+inspect recently merged PRs too. A failed reply can follow a successful merge;
+never redo the finished task just because its final chat message is missing.
 
 ## Repository-first continuation
 

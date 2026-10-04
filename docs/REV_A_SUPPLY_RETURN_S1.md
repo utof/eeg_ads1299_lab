@@ -38,6 +38,13 @@ net ground export is its LOCAL analog/digital consumption plus regulator ground
 current: the remote-buffer current enters the AFE on 5 V and leaves on DVDD.
 Spatial plane drops and other wiring complicate that useful KCL observation.
 
+**S2 refinement:** the cancellation above applies to loads returning locally
+on the auxiliary. Forward output current can re-enter the AFE on signal wires
+and reach its pulldowns/ground. Include that incoming DC port current in the AFE
+ground export; do not subtract it away with the outgoing DVDD feed. See
+`REV_A_CURRENT_RETURN_S2.md` for explicit boundary accounting. The S1 scenario
+numbers remain historical hypotheses, not retroactively qualified currents.
+
 Define `dG = G_AFE - G_AUX`, with the AFE reference at the source/regulator ground:
 
 ```
