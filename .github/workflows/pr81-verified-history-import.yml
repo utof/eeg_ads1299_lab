@@ -1,0 +1,86 @@
+name: Import Verified PR81 History
+on:
+  push:
+    branches: [workbench/pr81-verified-history-import]
+    paths: [.github/workflows/pr81-verified-history-import.yml]
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ce2d891713a76bcaed300af8fb310d489e3c3479
+          fetch-depth: 0
+      - name: Validate saved source data without executing it
+        run: |
+          set -eu
+          test "$(git rev-parse HEAD)" = ce2d891713a76bcaed300af8fb310d489e3c3479
+          python - <<'PY'
+          import base64, hashlib, json, os, pathlib, re
+          root = pathlib.Path('recovery/pr81-clock')
+          m = json.loads((root / 'manifest.json').read_text())
+          assert m['base_commit'] == '9d22a6c21eee1bd8983ba61fb4c459870182e734'
+          assert m['head_commit'] == '107d72c419149c7501ab4b3847b50c34e186e5da'
+          assert m['tree'] == 'a278956c4f9e57d108a01a455c2cea7dcb81eb18'
+          assert m['commit_count'] == 3 and len(m['chunks']) == 14
+          chunks = []
+          for item in m['chunks']:
+              assert re.fullmatch(r'[0-9]{2,3}\.b64', item['path'])
+              data = (root / item['path']).read_bytes()
+              assert len(data) == item['bytes'], item['path']
+              assert hashlib.sha256(data).hexdigest() == item['sha256'], item['path']
+              git_blob = b'blob ' + str(len(data)).encode() + b'\0' + data
+              assert hashlib.sha1(git_blob).hexdigest() == item['blob'], item['path']
+              chunks.append(re.sub(rb'[\t\n\r\f\v ]', b'', data))
+          bundle = base64.b64decode(b''.join(chunks), validate=True)
+          assert len(bundle) == 23575
+          assert hashlib.sha256(bundle).hexdigest() == 'bacb2f1b82ff04e4a3526e403ae83b43f3ab8663a576ec2ac24b6cde0601a0f3'
+          pathlib.Path(os.environ['RUNNER_TEMP'], 'r1.bundle').write_bytes(bundle)
+          print('Verified 14 source-data files and exact 23575-byte bundle.')
+          PY
+      - name: Import and publish only the original correction branch
+        run: |
+          set -eu
+          BASE=9d22a6c21eee1bd8983ba61fb4c459870182e734
+          HEAD=107d72c419149c7501ab4b3847b50c34e186e5da
+          TREE=a278956c4f9e57d108a01a455c2cea7dcb81eb18
+          test "$(git ls-remote origin refs/heads/review/p3-reference-performance | cut -f1)" = f7cb415ef5e7a4eb4ef6807bd861d92c0676bf99
+          git bundle verify "$RUNNER_TEMP/r1.bundle"
+          git fetch "$RUNNER_TEMP/r1.bundle" HEAD
+          test "$(git rev-parse FETCH_HEAD)" = "$HEAD"
+          test "$(git rev-parse "$HEAD^{tree}")" = "$TREE"
+          test "$(git rev-list --count "$BASE..$HEAD")" = 3
+          git fsck --no-dangling "$HEAD"
+          git diff --name-only "$BASE" "$HEAD" > "$RUNNER_TEMP/changed.txt"
+          python - <<'PY'
+          import os, pathlib
+          actual = set(pathlib.Path(os.environ['RUNNER_TEMP'], 'changed.txt').read_text().splitlines())
+          expected = {'docs/LLM_HANDOFF.md', 'docs/REV_A_COMPLETION_ROADMAP.md', 'docs/REV_A_P3_CLOCK_REVIEW.md', 'docs/checkpoints/20261004_p3_clock_review.json', 'hardware/rev_a/auxiliary/auxiliary.kicad_pcb', 'tests/fixtures/auxiliary_clock_before_review.json', 'tests/test_auxiliary_clock.py', 'tests/test_schematic_gate.py', 'tools/check.py'}
+          assert actual == expected, actual
+          PY
+          DEST=refs/heads/recovery/pr81-r1-imported
+          existing=$(git ls-remote origin "$DEST" | cut -f1)
+          test -z "$existing" || test "$existing" = "$HEAD"
+          git push origin "$HEAD:$DEST"
+          test "$(git ls-remote origin "$DEST" | cut -f1)" = "$HEAD"
+          git clone --no-local --branch recovery/pr81-r1-imported "https://github.com/$GITHUB_REPOSITORY.git" "$RUNNER_TEMP/fresh"
+          cd "$RUNNER_TEMP/fresh"
+          test "$(git rev-parse HEAD)" = "$HEAD"
+          test "$(git rev-parse HEAD^{tree})" = "$TREE"
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/receipt"
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/receipt/identity.txt"
+          git log --format='%H %P %T %s' "$BASE..$HEAD" > "$RUNNER_TEMP/receipt/commits.txt"
+          git bundle create "$RUNNER_TEMP/receipt/source.bundle" HEAD
+          cp "$RUNNER_TEMP/changed.txt" "$RUNNER_TEMP/receipt/changed.txt"
+          cd "$RUNNER_TEMP/receipt"
+          sha256sum source.bundle identity.txt commits.txt changed.txt > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pr81-original-r1-import-receipt
+          path: ${{ runner.temp }}/receipt/
+          retention-days: 14
+          if-no-files-found: error
