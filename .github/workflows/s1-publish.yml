@@ -1,0 +1,64 @@
+name: Publish Supply Review S1
+on:
+  push:
+    branches: [workbench/supply-return-finish]
+    paths: [transfer/READY]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+      - name: Verify source data before Git import
+        run: |
+          python - <<'PY'
+          import base64, hashlib, os, pathlib
+          hashes = ['1a2f7f1098dd702219918bdd0ef6b2ef6276bbe1399d23649e247e84ec5ed592','5ae2045e06438233b8473970bd50a52e2ce0bd500fc0982c8760451da92027c3','d238001a79ba672fb8be50e071a4eab79ba34764bc7846d866aa8a7143007d83','028d9d71878a2247d9adf209d762f0342665d51ab42e276e71588dd792eedc7f','cf9aec7d5a18f60401a76dbf9ecdb457a4b1c8e222bd16cc2ac5c358233c5ec1','f2645c926b3cb88cabaca11b1a19dc6ae76d7b54b1618d52c32bf2de07703b74','e8bb1c5ef4e0df311d37ce8819b293944b37571720b08f5d57a1384cdb42310a','3a0c207ff98ea7a43d0f9a9bb983c6fd4cf5862c7b74e9ed135238850528ef6d','5f8734cf2275523ff832c36950b73230112a73df2410f7d4c3ecba5a538e3559']
+          chunks=[]
+          for i,h in enumerate(hashes):
+              data=pathlib.Path('transfer',f'{i:02}.b64').read_bytes()
+              assert len(data)==(4001 if i<8 else 825), i
+              assert hashlib.sha256(data).hexdigest()==h, i
+              chunks.append(data.strip())
+          data=base64.b64decode(b''.join(chunks),validate=True)
+          assert len(data)==24618 and hashlib.sha256(data).hexdigest()=='6e02d6c7f2369e69798da8295c9b0e493b877369c8785e2a8e02bac055c1e4a5'
+          pathlib.Path(os.environ['RUNNER_TEMP'],'s1.bundle').write_bytes(data)
+          PY
+      - name: Verify ancestry and publish the scoped feature branch
+        run: |
+          set -eu
+          BASE=f6932ead58c1d02af145de405312a7f885dbb010
+          HEAD=faf01e1344eabf96d7aac6f02cdf14b918c7fc1a
+          TREE=3c0e1f2cba72bf07c7f2ec1c6627049d38c8bee3
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$BASE"
+          git bundle verify "$RUNNER_TEMP/s1.bundle"
+          git fetch "$RUNNER_TEMP/s1.bundle" HEAD
+          test "$(git rev-parse FETCH_HEAD)" = "$HEAD"
+          test "$(git rev-parse "$HEAD^{tree}")" = "$TREE"
+          test "$(git rev-list --count "$BASE..$HEAD")" = 5
+          test "$(git diff --name-only "$BASE" "$HEAD" | wc -l)" = 15
+          git diff --exit-code "$BASE" "$HEAD" -- .github hardware firmware lab pyproject.toml uv.lock
+          git fsck --no-dangling "$HEAD"
+          existing=$(git ls-remote origin refs/heads/review/supply-return-s1 | cut -f1)
+          test -z "$existing" || test "$existing" = "$HEAD"
+          git push origin "$HEAD:refs/heads/review/supply-return-s1"
+          git clone --no-local --branch review/supply-return-s1 "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$RUNNER_TEMP/fresh"
+          cd "$RUNNER_TEMP/fresh"
+          test "$(git rev-parse HEAD)" = "$HEAD"
+          test "$(git rev-parse HEAD^{tree})" = "$TREE"
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/receipt"
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/receipt/identity.txt"
+          git bundle create "$RUNNER_TEMP/receipt/source.bundle" HEAD
+          cd "$RUNNER_TEMP/receipt"
+          sha256sum source.bundle identity.txt > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: published-s1-source
+          path: ${{ runner.temp }}/receipt/
+          retention-days: 14
+          if-no-files-found: error
