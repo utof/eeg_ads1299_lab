@@ -62,3 +62,14 @@ def test_zero_resistance_is_valid_but_overflow_is_not() -> None:
         remote_voltages(3.3, math.nan, 0.0, 0.0)
     with pytest.raises(ValueError):
         remote_voltages(3.3, 0.0, -1.0, 0.0)
+
+
+def test_malformed_path_and_unused_edge_are_rejected() -> None:
+    from typing import cast
+
+    with pytest.raises(ValueError):
+        tree_drops({"e": 1.0}, {"a": cast(tuple[str, ...], "e")}, {"a": 1.0})
+    with pytest.raises(ValueError):
+        tree_drops({"": 1.0}, {"a": ("",)}, {"a": 1.0})
+    with pytest.raises(ValueError):
+        tree_drops({"e": 1.0, "unused": 0.0}, {"a": ("e",)}, {"a": 1.0})

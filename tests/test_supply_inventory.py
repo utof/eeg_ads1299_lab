@@ -16,10 +16,15 @@ def test_supply_inventory_matches_current_native_geometry(tmp_path: Path) -> Non
 
     result = subprocess.run(
         [os.environ.get("KICAD_PYTHON", "/usr/bin/python3"), "-c", SCRIPT, str(ROOT)],
-        capture_output=True, text=True, timeout=45, check=False,
+        capture_output=True,
+        text=True,
+        timeout=45,
+        check=False,
     )
     (tmp_path / "supply-inventory.log").write_text(result.stdout + result.stderr)
     assert result.returncode == 0, result.stdout + result.stderr
     actual: object = json.loads(result.stdout)
     expected: object = json.loads((ROOT / "docs/studies/s1_supply_paths.json").read_text())
-    assert actual == expected, "native paths/assumptions changed; redo S1 review, not just its hashes"
+    assert actual == expected, (
+        "native paths/assumptions changed; redo S1 review, not just its hashes"
+    )
