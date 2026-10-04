@@ -121,7 +121,9 @@ def test_accounting_keeps_the_afe_pth_term_when_trace_resistance_is_zero(tmp_pat
     """Independent term-isolation control, not a zero-resistivity hardware scenario."""
     from lab.validation import read_object
 
-    model = read_object(ROOT / "docs/studies/s1_supply_paths.json")
+    model = read_object(
+        json.loads((ROOT / "docs/studies/s1_supply_paths.json").read_text()), "S1 study"
+    )
     assumed = model["assumed"]
     assert isinstance(assumed, dict)
     assumed["rho20_ohm_mm2_per_m"] = 0.0
