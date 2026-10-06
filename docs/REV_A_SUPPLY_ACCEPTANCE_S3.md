@@ -71,7 +71,8 @@ Both nonnegative means ONLY that the supplied interval is contained in that
 window. A negative margin means containment is not demonstrated; it need not
 prove a particular physical unit fails. An unknown term makes the voltage and
 margins unknown and lists the missing ID. Invalid/nonfinite/reversed bounds fail,
-even when some other term is unknown. Correlation is not assumed away: summing
+even when some other term is unknown. Provenance and scope checks raise explicit
+exceptions and remain active under `python -O` and `PYTHONOPTIMIZE=1`. Correlation is not assumed away: summing
 independent endpoints can be conservative; shared-path double-counting is still
 a modelling error, not "extra safety". Measurement uncertainties must be included
 once in the input intervals. No root-sum-square reduction without a justified
@@ -159,20 +160,27 @@ import sys
 from pathlib import Path
 from tools.dc_budget import voltage_bounds
 
+
+def require(condition, message):
+    if not condition:
+        raise ValueError("S3 worksheet: " + message)
+
+
 path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("docs/studies/s3_acceptance.json")
 m = json.loads(path.read_text())
-assert m["schema"] == "S3-conditional-windows-v1"
-assert m["scope"] == "conditional_signed_DC_intervals_not_a_release"
-assert m["physical_qualification"] is False
-assert m["evidence_status"] == "unreviewed_hypotheses_only"
-assert m["measurement_records"] == []  # this template contains no physical results
-assert m["source_commit"] == "319f685439fa5ed7c34eeabf44537d48fbddcd90"
-assert m["source_tree"] == "b17c00d67a95594ddfeda4d6973d78173dd5f4b5"
-assert (
+require(m["schema"] == "S3-conditional-windows-v1", "wrong schema")
+require(m["scope"] == "conditional_signed_DC_intervals_not_a_release", "wrong scope")
+require(m["physical_qualification"] is False, "no physical approval path")
+require(m["evidence_status"] == "unreviewed_hypotheses_only", "unreviewed hypotheses only")
+require(m["measurement_records"] == [], "template contains no physical results")
+require(m["source_commit"] == "319f685439fa5ed7c34eeabf44537d48fbddcd90", "wrong source commit")
+require(m["source_tree"] == "b17c00d67a95594ddfeda4d6973d78173dd5f4b5", "wrong source tree")
+require(
     subprocess.check_output(
         ["git", "rev-parse", m["source_commit"] + "^{tree}"], text=True, timeout=5
     ).strip()
-    == m["source_tree"]
+    == m["source_tree"],
+    "Git source tree differs",
 )
 inputs = {
     "hardware/rev_a/board_profile.json",
@@ -185,13 +193,19 @@ inputs = {
     "docs/studies/s2_current_return.json",
     "docs/REV_A_AUXILIARY_C3.md",
 }
-assert set(m["input_sha256"]) == inputs
+require(set(m["input_sha256"]) == inputs, "input file inventory differs")
 for name, digest in m["input_sha256"].items():
     current = Path(name).read_bytes()
     original = subprocess.check_output(["git", "show", m["source_commit"] + ":" + name], timeout=5)
-    assert current == original and hashlib.sha256(current).hexdigest() == digest, name
+    require(
+        current == original and hashlib.sha256(current).hexdigest() == digest,
+        "input bytes: " + name,
+    )
 p = json.loads(Path("hardware/rev_a/board_profile.json").read_text())
-assert not any(p["gates"].values()) and not p["afe"]["external_dummy_mode_enabled"]
+require(
+    not any(p["gates"].values()) and not p["afe"]["external_dummy_mode_enabled"],
+    "review gates changed",
+)
 a = p["power"]
 v, tol = a["external_source_nominal_v"], a["external_source_tolerance_fraction"]
 source_target = (v * (1 - tol), v * (1 + tol))
@@ -226,14 +240,17 @@ for ref in ("U102", "U103", "U104"):
         {"regulator": 1, "dvdd_feed_" + ref: -1, "g_" + ref: 1},
         digital_analysis,
     )
-assert set(m["bounds_V"]) == {term for _, terms, _ in specs.values() for term in terms}
+require(
+    set(m["bounds_V"]) == {term for _, terms, _ in specs.values() for term in terms},
+    "voltage term inventory differs",
+)
 
 
 def window(base, terms, required):
     signed = {}
     for name, sign in terms.items():
         raw = m["bounds_V"][name]
-        assert raw is None or (isinstance(raw, list) and len(raw) == 2)
+        require(raw is None or (isinstance(raw, list) and len(raw) == 2), "interval shape: " + name)
         pair = None if raw is None else tuple(raw)
         voltage_bounds(pair, {})  # validate original ordering/type, before applying sign
         signed[name] = pair if pair is None or sign == 1 else (-pair[1], -pair[0])
