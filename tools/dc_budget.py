@@ -1,6 +1,7 @@
-"""Steady resistive accounting only; supplied paths and loads are explicit hypotheses.
+"""Steady accounting with explicit path, current and ideal-output hypotheses.
 
-No plane extraction, regulators, switching-current model or physical pass criterion.
+No plane extraction, regulator/transient model or physical pass criterion.
+Mean external charging is separate from internal switching and peak current.
 Do not use the tree method for meshes, active sources or signed per-load currents.
 """
 
@@ -89,3 +90,60 @@ def remote_voltages(
     _number(delivered, signed=True)
     _number(sensed, signed=True)
     return delivered, sensed
+
+
+def switched_load(
+    rail_v: float,
+    resistance_ohm: float,
+    high_fraction: float,
+    capacitance_f: float,
+    rising_hz: float,
+) -> tuple[float, float]:
+    """Return (pull, capacitive charging) mean amperes for an ideal rail/zero output.
+
+    Frequency counts LOW-to-HIGH transitions, not both edges. Resistance and
+    capacitance are external loads only. This excludes internal switching power,
+    leakage, ground offset, finite output levels and peak/short-circuit current.
+    Inputs are hypotheses, not component or physical qualification limits.
+    """
+    for value in (rail_v, resistance_ohm, high_fraction, capacitance_f, rising_hz):
+        _number(value)
+    if resistance_ohm == 0 or high_fraction > 1:
+        raise ValueError("positive resistance and a duty fraction in [0, 1] are required")
+    pull = rail_v / resistance_ohm * high_fraction
+    charging = capacitance_f * rail_v * rising_hz
+    for result in (pull, charging):
+        _number(result)
+    return pull, charging
+
+
+def parallel_returns(
+    resistances: Mapping[str, float], export_a: float
+) -> tuple[float, dict[str, float]]:
+    """Return (G_source - G_remote, signed branch currents) for two lumped nodes.
+
+    All paths connect exactly the same two equipotential nodes. This is not a
+    distributed ground-plane or shared-source solver. Positive export flows
+    from source ground to remote ground; a signed export reverses every path.
+    Zero-ohm/unknown paths are not silently accepted as ideal measured wires.
+    """
+    _number(export_a, signed=True)
+    if not resistances:
+        raise ValueError("at least one explicit return path is required")
+    conductance: dict[str, float] = {}
+    for name, resistance in resistances.items():
+        _number(resistance)
+        if not isinstance(name, str) or not name or resistance == 0:
+            raise ValueError("return paths need nonempty IDs and positive resistances")
+        conductance[name] = 1 / resistance
+        _number(conductance[name])
+    total = sum(conductance.values())
+    _number(total)
+    if total == 0:
+        raise ValueError("return conductance underflow")
+    shift = export_a / total
+    _number(shift, signed=True)
+    currents = {name: shift * value for name, value in conductance.items()}
+    for current in currents.values():
+        _number(current, signed=True)
+    return shift, currents

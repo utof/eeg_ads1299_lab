@@ -35,6 +35,30 @@ Root `AGENTS.md`, the README's opening table and `DEVELOPMENT.md` point here.
 Do not depend on conversation memory. Record success/failure with exact action,
 branch, SHA/tree and scope; retire stale handoff instructions after merging.
 
+## Resuming an interrupted turn
+
+A missing final answer does not prove the work failed. Read live main, open PRs
+AND recently closed/merged PRs, then compare their HEAD/tree and current handoff.
+Check any surviving local worktree before editing it. Preserve unrelated edits.
+PR82 is a concrete example: the failed chat had already merged both S1 and the
+publication instructions. The next agent verified that merge and proceeded to
+S2 instead of recreating either deliverable.
+
+Do not repeat completed work, a source upload or a blocked capability probe.
+A transport archive is not active code; a completed task is not a clean review;
+a green old HEAD is not verification of a new tree. Carry forward only claims
+whose source and run actually match. Update the live handoff, not historical
+verification receipts, when the next bounded task changes. The entrypoint checks
+in `tests/test_agent_entrypoints.py` keep this guide discoverable; they test links
+and instructions, not whether a future agent will reason correctly.
+
+For a small Python/documentation change, use the available Git object actions
+with actual UTF-8 bytes and compare each returned blob/intermediate tree against
+local Git. Prefer that over moving a binary history archive solely for a few
+text files. The original fail-first order and source trees can be retained even
+when the API assigns new commit metadata; disclose the old/new SHA mapping.
+Do not infer a local-file upload exists from similarly named search results.
+
 ## Three different capabilities
 
 1. **Review:** `@codex review` worked in PR79 and PR81. Review completion does not

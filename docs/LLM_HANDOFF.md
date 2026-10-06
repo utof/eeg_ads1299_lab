@@ -1,36 +1,46 @@
-# Continue from merged PR81: supply/return review S1
+# Continue from merged S1: S2 mode loads and return accounting
 
 **Read `REPOSITORY_PUBLICATION.md` before any GitHub publication or recovery.**
-Root `AGENTS.md`, README and DEVELOPMENT point there too. Source publishing,
-Codex review, hosted checks and merge are different operations. Do not ask a
-Codex editing task to publish and then infer its missing environment blocks
-review or the connector. Follow actual schemas and stop explicit denials.
+Root `AGENTS.md`, README and DEVELOPMENT point there too. For interrupted replies,
+check recently merged PRs as well as open ones: PR82 had already completed despite
+its missing chat report. Do not repeat source publication or a failed Codex edit
+request. Publishing, Codex review, CI and merging are different operations; use
+actual available schemas and stop explicit denials.
 
-PR81 is MERGED: base main `f6932ead58c1d02af145de405312a7f885dbb010`, tree
-`a1bb3a16687c65f736de9c2634bb5ec2e4b990ac`, includes the original R1 correction
-and both documentation histories. Its two original review findings were resolved
-and the actual corrected tree passed hosted checks. Never reconstruct P3/R1,
-J3, F1 or prior source because an old chat reports a publication blocker.
+S1 and the mandatory publication runbook are MERGED in PR82 at base main
+`7325d659aeedf2628cf2a4430854e90ef1277785`, tree
+`85b324a5445ca653afd16990311a04ccd9622ae5`. Its tested head was6a8fb444.
+PR81's connected P3/R1, C4 service access and F1 firmware are also already merged.
+This continuation is `review/current-return-s2` until its live PR is merged;
+read actual refs/runs, not this base as a permanent main claim. No PCB, circuit,
+BOM/profile, firmware, cable, carrier, dependency or release flag changes.
 
-This continuation is `review/supply-return-s1` until its live PR is merged.
-Read live main/open PRs and the actual head, not this baseline as a permanent
-current-main claim. S1 changes analysis/checks/docs only; both PCBs, circuit,
-BOM/profile, firmware, cable, carrier, dependencies and release flags stay intact.
-Read `REV_A_SUPPLY_RETURN_S1.md` and `studies/s1_supply_paths.json`.
+Read `REV_A_CURRENT_RETURN_S2.md` and `studies/s2_current_return.json`. The exact
+executable block checks source/tree and eight original input byte hashes. It
+models the selected four-channel15-byte frame:120clock cycles at250SPS gives
+30000rises/s in1MHz bursts,3% activity. With ideal0/3.6V outputs,42.2k-1% pulls
+and explicitly ASSUMED100pF external loads, it computes343.39uA mean forward-pull
+and10.89uA external-charging contributions. These are NOT complete supply-current
+ceilings; all operating/peak/internal-dynamic/capacitance maxima stay unknown.
+MISO/DRDY output pull loads are on the MCU-side supply, not AFE DVDD.
 
-S1 uses a source-bound read-only native centerline-tree inventory and a small
-validated constant-current KCL/KVL calculator. Shared edges carry summed
-loads; signed ground offsets affect the sensed source and actual receiver rail
-differently from forward feed loss. The existing conductance/transient model
-in `lab.rev_a_supply` is untouched. This is not a plane/EM/mesh extraction,
-measured current or qualification. The modeled local ADC load is lumped at C33.
+A necessary KCL refinement: a forward buffer's static output current returns
+via the AFE input pulldown, unlike a load consumed/returned locally on the auxiliary.
+AFE net ground export is incoming5V minus outgoingDVDD plus incoming signal DC.
+Only the auxiliary-local part cancels. In the two-equipotential-node example,
+parallel returns share by CONDUCTANCE, not wire count. Ten ASSUMED0.1ohm K1 wires
+plus two hypothesized0.073752ohm C4 wires carry21.33% of net return via C4, not2/12.
+The0.0975mV example ground shift is not a distributed plane/fault guarantee.
 
-The 5mA-per-buffer example gives3.557mV farthest feed drop, not1.344mV from
-incorrect per-path loading. Under the stated0.5A-MCU example only94.867mV is
-left for all omitted feed/return and errors before E1's4.75V AVDD limit. Treating
-that as a shared-loop allowance gives an optimistic0.180ohm ceiling, NOT an
-approved specification. Multiple grounds and a separately sensed source must
-not be replaced by zero impedance or assumed equal wire currents.
+TXU ICC is no-load/static; Cpd and ADS supply-current entries are typical. The
+ADS1299-4 maximum-power test conditions differ from selected gain24/internalclock.
+JST's contact figure has specific test conditions; crimps and shared returns are
+not qualified by a gauge or catalog current rating. Preserve all unknowns and
+mode/transient distinctions; no sense reading or calculator output grants power.
+
+S1's5mA/buffer assumption and3.557mV farthest feed-loss example remain sensitivity
+results, not replaced by the S2 partial load sum. The94.867mV common-path allowance
+and0.180ohm optimistic ceiling still allocate unbounded errors, not accepted specs.
 
 ## Current engineering source
 
@@ -60,21 +70,24 @@ deadlines and71%branch floor remain unchanged. Use current JUnit counts.
 
 ## Next bounded task
 
-Close the S1 mode-specific current envelope and allocate the actual source,
-K1/C4, crimp/contact, plane/return and regulator losses. The native inventory is
-not a current-distribution solver. Use actual F1 clock/data duty and output loads;
-do not use no-load microamp buffer ICC as an active-load maximum. Specify how
-four-wire resistance and simultaneous source/sink voltage measurements would
-validate those bounds on the future person-disconnected fixture, without power
-permission now. No speculative wider traces, generic termination or meanders.
+Build one source/cable/return acceptance worksheet using S1's existing AVDD/DVDD
+limits and S2's mode/boundary accounting. Allocate known and unknown voltage-loss
+terms explicitly, including shared source/plane return, K1/C4 contacts, source
+accuracy, R11 tolerance and regulator behavior. Specify de-energized four-wire
+cable checks and future simultaneous source/sink current/voltage observations
+needed to replace the hypotheses; do not energize an assembly now. Obtain a
+vendor bound or separately reviewed empirical envelope for unknown operating/
+peak currents before using that worksheet for a release decision. Do not claim
+an input current ceiling from no-load ICC, typical Cpd or an assumed 100pF load.
+No speculative copper widening, generic termination or new component selection.
 
-After source publication, inspect exact-head CI/review and merge only after
-acceptance. S1's native study is an additional snapshot check, not new global DRC
-or a physical fault test; retain the actual tested counts from JUnit. Use locked
-uv and `tools.check` locally/CI, keep all native deadlines and the450s CAD batch
-budget unchanged, and do not overwrite historical results. Small durable source
-inputs belong in Git; ignored reports hold logs. Source hashes, source/tree
-identity, local/hosted/native/physical evidence must stay distinct.
+After publication inspect exact-head CI and every original review finding; merge
+only after acceptance. S2's numerical/doc checks are ordinary software checks,
+not added native CAD cases. The schematic gate binds its calculator, exact
+executed documentation, model and tests into the input snapshot. Preserve the
+450s CAD and individual native deadlines,71% branch floor and prior evidence.
+All-file hooks and the same locked `tools.check` entry point apply locally/CI.
+Distinguish source hashes, local/hosted execution, review and physical validation.
 
 ## Physical and release boundaries
 

@@ -1,0 +1,141 @@
+{
+  "schema": "S2-current-return-v1",
+  "source_commit": "7325d659aeedf2628cf2a4430854e90ef1277785",
+  "source_tree": "85b324a5445ca653afd16990311a04ccd9622ae5",
+  "input_sha256": {
+    "firmware/esp32_ads1299_bench/esp32_ads1299_bench.ino": "3932ad9b5c47e7fdf49cd66570d18682fb7c62b2af1a633641f0b7573b76417c",
+    "firmware/esp32_ads1299_bench/board_config_rev_a_s3.h": "b5dd71640643a8f4e42a34154dc99e79714baa165658530b1256b82139f53f5e",
+    "firmware/esp32_ads1299_bench/rev_a_startup.h": "f3ca49a5080612da45bd26cc38bf817e4815cb170707a2d13a198d2c3a4da9b9",
+    "hardware/rev_a/board_profile.json": "5e2baa1b1928f3e922626bbd2312abc73fef3864ec5164dd89d74c3a860f9a8c",
+    "hardware/rev_a/bom.json": "514970772d5d3239b49b0ace9309fa83289497f88f18458b2cb802e684d1e4c9",
+    "hardware/rev_a/auxiliary/contract.json": "7d36ddabda0ab5ced7042850a3776b303c4a48a7666694c2a8b1cb6f623ebb75",
+    "hardware/rev_a/service_c4.json": "ad445ed9b7db6fbedcdfd9a7c4c06438d799f2d79385d27d22e51a5888945dab",
+    "docs/studies/s1_supply_paths.json": "74acae2ff356fd8b9f48ece15a417c74a46683e8e6a496bafa5cc66b5ebd473c"
+  },
+  "scope": "Ideal-output mean-load and two-node DC hypotheses; not total current or physical qualification",
+  "firmware": {
+    "channels": 4,
+    "status_bytes": 3,
+    "bytes_per_channel": 3,
+    "sps_nominal": 250,
+    "spi_hz_nominal": 1000000,
+    "sclk_active_high_fraction_assumed": 0.5,
+    "read_mosi_byte": 0,
+    "physical_START_is_low": true,
+    "default_review_gate": false
+  },
+  "ideal_output": {
+    "high_v": 3.6,
+    "low_v": 0.0,
+    "pull_nominal_ohm": 42200.0,
+    "pull_tolerance_fraction": 0.01,
+    "capacitance_per_output_F_assumed": 1e-10
+  },
+  "forward_outputs": {
+    "SCLK": {
+      "buffer": "U102",
+      "pad": "13",
+      "afe_pull": "R_SCLK_DN"
+    },
+    "MOSI": {
+      "buffer": "U102",
+      "pad": "12",
+      "afe_pull": "R_DIN_DN"
+    },
+    "CS": {
+      "buffer": "U102",
+      "pad": "11",
+      "afe_pull": "R_CS_DN"
+    },
+    "RESET": {
+      "buffer": "U103",
+      "pad": "13",
+      "afe_pull": "R_RESET_DN"
+    },
+    "START": {
+      "buffer": "U103",
+      "pad": "12",
+      "afe_pull": "R_START_DN"
+    },
+    "PWDN": {
+      "buffer": "U103",
+      "pad": "11",
+      "afe_pull": "R_PWDN_DN"
+    },
+    "CLKSEL": {
+      "buffer": "U104",
+      "pad": "13",
+      "afe_pull": "R_CLKSEL_DN"
+    }
+  },
+  "reverse_outputs": {
+    "MISO": {
+      "buffer": "U102",
+      "pad": "5",
+      "pull": "R114"
+    },
+    "DRDY": {
+      "buffer": "U103",
+      "pad": "5",
+      "pull": "R115"
+    }
+  },
+  "return_example": {
+    "local_AFE_ground_load_A_assumed": 0.01205,
+    "remote_internal_and_bleed_A_assumed": 0.003,
+    "K1_return_ohm_each_assumed": 0.1,
+    "K1_return_count": 10,
+    "C4_return_count": 2,
+    "C4_wire_m": 0.155,
+    "C4_contact_ohm_each_after_catalog_tests": 0.02,
+    "C4_contact_pairs_per_wire": 2,
+    "C4_end_effect_ohm_total_assumed": 0.02
+  },
+  "uncertainty": {
+    "total_operating_current_max_A": null,
+    "startup_peak_current_max_A": null,
+    "load_capacitance_max_F": null,
+    "driver_internal_dynamic_max_A": null,
+    "K1_contact_wire_max_ohm": null,
+    "distributed_ground_error_max_V": null,
+    "source_lead_loop_max_ohm": null,
+    "actual_crimp_end_effect_max_ohm": null
+  },
+  "qualification": false,
+  "sources": [
+    {
+      "document": "TI TXU0304 SCES935A",
+      "url": "https://www.ti.com/lit/ds/symlink/txu0304.pdf",
+      "pages": [
+        8,
+        16
+      ],
+      "sha256": "f6f6178296b8d497d3706ea7766633b62f799cfe830659a2dcfd09c79bfa71dc"
+    },
+    {
+      "document": "TI ADS1299-x SBAS499C",
+      "url": "https://www.ti.com/lit/ds/symlink/ads1299.pdf",
+      "pages": [
+        10,
+        11
+      ],
+      "sha256": "9ef667389897f02dae8d94e8c3daecbe8cbd2ab45f4d62e1db1c474544180075"
+    },
+    {
+      "document": "TI TPS3703 SBVS249B",
+      "url": "https://www.ti.com/lit/ds/symlink/tps3703.pdf",
+      "pages": [
+        6
+      ],
+      "sha256": "cc65714774e50c97dca9a1bf094489b17350cc70fa16068880e108e320f8a6ea"
+    },
+    {
+      "document": "JST XH catalog",
+      "url": "https://www.jst-mfg.com/product/pdf/eng/eXH.pdf",
+      "pages": [
+        1
+      ]
+    }
+  ],
+  "source_capture_run": 37232431015
+}
