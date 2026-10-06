@@ -1,4 +1,4 @@
-# Continue from S3: S4 serial source evidence and actual setup blocker
+# Continue from merged S4: practical bench-first pilot
 
 **Read `REPOSITORY_PUBLICATION.md` before any GitHub publication or recovery.**
 Root `AGENTS.md`, README and DEVELOPMENT point there too. For interrupted replies,
@@ -7,10 +7,19 @@ its missing chat report. Do not repeat source publication or a failed Codex edit
 request. Publishing, Codex review, CI and merging are different operations; use
 actual available schemas and stop explicit denials.
 
-S3 and its optimized-Python validation fix are merged in PR84: mainde47a756,
-reviewed/tested heada88c5377, tree740889dc8b2318af1490ec29d8f2810a7f31ed21.
-S1/S2, P3/R1, C4 and F1 are already merged. S4 is on `review/steady-source-s4`
-until its live PR is merged; inspect actual refs and any original findings.
+S4 is merged in PR85: main `3324fc8ce9ad80603d69ccd37f8b4f3cb13169f4`,
+reviewed head `6a39fd0b48`, tree `6d29fa91331027092b9e5f390169411e3edc8629`.
+S1–S3, P3/R1, C4 and F1 are also merged; read live refs before continuing.
+
+**User update: no source is chosen; reasonable assumptions are authorized.**
+Read [the practical pilot decision](REV_A_BENCH_FIRST.md). Use regulated 5 V with
+adjustable current limiting as the first bench source class; no raw battery,
+custom charger or new supply model. The 1 A sensitivity case is not a current
+maximum or first-power setting. S3's physical input template stays unchanged.
+Do not ask again for an existing supply before doing independent build work.
+Pilot capacitor inventory/triage is in that decision. Next check reuse of the
+already-selected auxiliary C0603C104K5RACTU for seven AFE 100 nF sites, not S5 arithmetic. Prioritize real engineering decisions; architecture changes
+must solve an observed problem. This plan does not waive any release/power gate.
 
 **S4 is a named serial evidence supplement, not another worksheet.** Read
 `REV_A_STEADY_SOURCE_S4.md` and `studies/s4_serial_evidence.json`. The selected
@@ -112,18 +121,22 @@ deadlines and71%branch floor remain unchanged. Use current JUnit counts.
 
 ## Next bounded task
 
-The next dependency is the user's actual regulated bench-source model (or an
-explicit statement it is not chosen), then its lead set and applicable source
-accuracy/load-regulation conditions. Ask for that identity instead of repeating
-a generic current study. The nominal5V/1A target is not an actual supply. Use the
-EXISTING S3 worksheet: do not create a new acceptance framework, pick hardware
-without a decision, replace unknown currents with capacity ratings, or energize
-anything. Even source identity alone cannot bound all current/contact/return
-terms; retain the separate missing operating/peak and measurement evidence.
-S4 has already checked the TPS7A20, module-current and DevKit schematic rows;
-do not repeat that search or turn conditional regulator data into an assembled
-rail guarantee. Obtain condition-matched limits or a separately reviewed empirical
-envelope for total MCU/exported currents. No supplier messages have been sent.
+Complete the first compatibility decision in `REV_A_BENCH_FIRST.md`: can the
+already-selected auxiliary C0603C104K5RACTU serve the seven AFE 100 nF sites?
+The current 33 AFE/15 auxiliary capacitor inventory and disposition are there.
+Check exact manufacturer/assembly and node-specific applicability, not only the
+package/value label. Reuse prior evidence and refresh only necessary facts.
+Do not change the BOM without coordinated review or claim the candidate is
+already qualified. Keep the other two ceramic roles, stackup, connector process
+and quote scope in the same #45/#48 pilot disposition. No supplier messages are
+authorized. Actual source/instrument identity is required before approving
+power, not before this independent work. No new generic solver/schema is needed.
+
+The user explicitly permits provisional assumptions but not invented evidence.
+Retain S3/S4's unknown measured/current/peak/return quantities. Classify each
+uncertainty by the stage it blocks; existing #45/#48 decisions are not waived.
+Our first physical milestone is an approved person-disconnected internal-test
+pilot, not human EEG or exhaustive final noise/EMC characterization.
 
 The measurement plan begins with disconnected PASSIVE harnesses and explicit
 four-wire sense/contact boundaries. An ohmmeter injects test current: "unpowered"

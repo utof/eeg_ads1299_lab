@@ -1,48 +1,36 @@
-# Rev A completion roadmap — S4 named serial evidence
+# Rev A roadmap — practical pilot before more generic modelling
 
-S3 merged as PR84 atde47a756. S4 now defines one named serial/internal-test setup,
-records applicable component conditions and exercises the existing worksheet
-with a conditional regulator interval. All physical template terms remainnull;
-all8outputs stay indeterminate even in the partial scenario. Source model and
-complete current/return bounds remain missing, not inferred from a1A target or
-0.5A module supply-capability requirement. No hardware/permission changes.
-The distributed false-gate/onboard-console stop is explicitly separate from the
-hypothetical reviewed/header-UART acquisition branch; neither was operated.
-Read REPOSITORY_PUBLICATION.md before writes/recovery; its entrypoint tests remain.
+S4 merged in PR85 at `3324fc8c`. The user now confirms no power source is chosen
+and authorizes reasonable planning assumptions. Read `REV_A_BENCH_FIRST.md` and
+root `AGENTS.md`: engineering progress and justified architecture, not growing a
+study/test count, are the objective. `REPOSITORY_PUBLICATION.md` remains mandatory.
 
-Remaining substantial chat turns exclude supplier/assembly/shipping time and
-physical measurements. Categories overlap; these are not safety percentages.
+Working source class: regulated 5.00 V, adjustable current limiting, at least 1 A
+capacity. The documented 1 A / 0.050 ohm / 10 mA analog case is a hypothetical
+sensitivity check, not proof of consumption, a source specification already met,
+or an initial current-limit setting. No raw battery/custom charger is selected.
+All original S3 physical terms remain unknown. Stop asking for a source identity
+before doing independent manufacturing preparation; require it before power.
+
+Remaining substantial turns below exclude quotes, shipping and physical work.
+They overlap and are not a promised release date or safety percentage.
 
 | Category | Turns remaining | Done/status | Next slice or blocker |
 |---|---:|---|---|
-| GitHub continuity | 0 for runbook discovery | AGENTS, README, DEVELOPMENT and handoff require the publication runbook | Inspect live refs/actions, publish actual engineering tree, separate CI/review |
-| Supply/return accounting | 0 for S1–S4 method/evidence review | Existing worksheet plus conditional regulator3.2505–3.3495V; all real bounds remain unknown | No further generic framework or duplicate worksheet |
-| Actual source/current evidence | 1–2 after setup identity, plus external evidence | Named serial mode; current-capacity/typical-data traps documented | Next: user source model, lead identity and applicable specs; then matched current/ground evidence |
-| Connected boards and F1 | 0 for completed source scope | R1 clock, P3 routing, J3 and guarded firmware retained | Physical validation remains |
-| Other signal/reference review | 1–2 | Existing reference guards and recorded pending areas retained | Actual complete channels, layer transitions and loading |
-| Stackup/capacitors/analog coupling | 2–4 plus external evidence | Candidate choices and requirements documented | Vendor information, effective capacitance and combined coupling decision |
-| Mechanical/power-fault work | 2–4 plus physical checks | CAD and conditional circuit limits exist | Actual fit, restraint, leakage, rails and recording validity |
-| Release and delivered budget | 1–2 after prerequisites | Not fabrication-ready | Complete quote and separate release review |
-| Person-disconnected bench | 2–4 guided turns plus bench work | Physical validation not begun | Unpowered inspection then approved dummy-source procedure |
+| Architecture and agent continuity | 0 for this review | Small modular repo retained; practical direction in AGENTS/handoff | Refactor only to address a demonstrated obstruction |
+| Supply method and provisional choice | 0 for planning | Reuse S1–S4; 5 V bench source class chosen | Actual source/leads/instruments and staged settings before power |
+| Pilot BOM/assembly disposition | 1–2 plus vendor evidence | 33 AFE / 15 auxiliary capacitors inventoried and triaged | NEXT: check existing auxiliary 100 nF part for the seven AFE sites; retain/replace/needs-answer decision, then remaining ceramic/stackup/process conditions |
+| Remaining signal/reference decisions | 1–2 | Connected boards and scoped clock repair retained | Explicitly disposition pilot-relevant risks; no arbitrary meanders or relaxed guards |
+| Quote and manufacturing release | 1–2 after required decisions | Not fabrication-ready | Complete delivered quote, exact parts/process and separate approval |
+| Unpowered inspection and fixture | 1–2 plus hardware | CAD/contracts exist, actual fit unverified | Assembly inspection, keyed cables/retention and passive startup fixture |
+| Controlled internal-test commissioning | 1–2 planning turns plus approved bench work | F1 and capture path exist; never operated | Source/ground/limit/abort review, then measured rail/current/startup and internal-test capture |
+| Later characterization | Measurement-dependent | Not started | External dummy inputs, noise/coupling, full signal/rail-fault envelope; body use is a separate scope |
 
-S1's illustrative5mA per buffer gives3.56mV at the farthest feed path. Under its
-0.5A MCU example the remaining AVDD allowance is94.9mV before unbounded source,
-return and connection losses;0.180ohm is an optimistic whole-shared-loop ceiling,
-not a newly accepted design limit. Current, material and ground assumptions must
-be bounded before changing hardware. Source sense is not delivered voltage.
-
-Next ask which regulated bench supply is actually available (or whether none is
-chosen), then map its stated regulation/accuracy domain into the EXISTING S3
-worksheet. The selected target voltage/current capacity is not a purchased or
-measured source. S4 already reviewed the applicable regulator/module/DevKit rows;
-do not re-run that evidence search as a substitute for the missing setup.
-Keep total-current, contact, return and peak bounds unresolved until supported.
-Do not reselect parts, widen copper or authorize measurements just to fill cells.
-
-The retained helpers and S4 source/process checks are software evidence, not physical
-experiments. Actual current/ramp envelopes, wire/crimp/contact resistance and
-distributed return errors still require evidence before a release decision.
-No supplier outreach or energization is authorized. The94.84USD AFE allowance
-is not a delivered system quote. All purchasing, fabrication, powered-connection
-and body-use flags stay false. Read actual PR head, CI and review before merging;
-a missing chat reply is not a reason to recover completed work again.
+No calculator output, quote or roadmap edit closes an existing release condition.
+Separate before-fabrication requirements, before-power requirements and empirical
+characterization; do not demand impossible exhaustive measurements before a quote,
+or power unreviewed hardware to bypass a known hazard. Preserve source/history and
+necessary fault tests. The $94.84 AFE allowance is not a delivered system quote.
+No ordering, supplier outreach, fabrication, powered connection, external-input or
+body-use permission changes here. The next slice is a build decision, not another
+hypothetical source-current study.

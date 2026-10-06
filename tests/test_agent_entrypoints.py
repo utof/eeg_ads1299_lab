@@ -21,3 +21,12 @@ def test_interrupted_turn_recovery_has_a_root_link_and_live_state_instructions()
     section = runbook.split("## Resuming an interrupted turn", 1)[1].split("\n## ", 1)[0]
     assert "merged PRs" in section and "live" in section and "HEAD" in section
     assert "Do not repeat" in section
+
+
+def test_bench_first_decision_is_discoverable_from_agent_entrypoints() -> None:
+    """Keep the user's practical-engineering direction visible across fresh chats."""
+    decision = ROOT / "docs/REV_A_BENCH_FIRST.md"
+    assert decision.is_file()
+    for filename in ("AGENTS.md", "docs/LLM_HANDOFF.md"):
+        opening = "\n".join((ROOT / filename).read_text().splitlines()[:35])
+        assert "REV_A_BENCH_FIRST.md" in opening, filename
