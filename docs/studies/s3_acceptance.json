@@ -1,0 +1,43 @@
+{
+  "schema": "S3-conditional-windows-v1",
+  "scope": "conditional_signed_DC_intervals_not_a_release",
+  "source_commit": "319f685439fa5ed7c34eeabf44537d48fbddcd90",
+  "source_tree": "b17c00d67a95594ddfeda4d6973d78173dd5f4b5",
+  "input_sha256": {
+    "hardware/rev_a/board_profile.json": "5e2baa1b1928f3e922626bbd2312abc73fef3864ec5164dd89d74c3a860f9a8c",
+    "hardware/rev_a/bom.json": "514970772d5d3239b49b0ace9309fa83289497f88f18458b2cb802e684d1e4c9",
+    "hardware/rev_a/auxiliary/contract.json": "7d36ddabda0ab5ced7042850a3776b303c4a48a7666694c2a8b1cb6f623ebb75",
+    "hardware/rev_a/service_c4.json": "ad445ed9b7db6fbedcdfd9a7c4c06438d799f2d79385d27d22e51a5888945dab",
+    "hardware/rev_a/layout/rev_a.kicad_pcb": "60097ff4acf8408d5a172930de74bcd36aa50a379dd30a831e4bc64d3841c8a6",
+    "hardware/rev_a/auxiliary/auxiliary.kicad_pcb": "d4eb4781cc3529c5371d6ce0e1976d48028391047c5824ca4f474992e6fb3ec8",
+    "docs/studies/s1_supply_paths.json": "74acae2ff356fd8b9f48ece15a417c74a46683e8e6a496bafa5cc66b5ebd473c",
+    "docs/studies/s2_current_return.json": "b745f1ff2643334ebf5d2b9cc6e8c836327593823f616d73604a49be859c45bb",
+    "docs/REV_A_AUXILIARY_C3.md": "5d79d3b78772df714807b7811d7b457d41d4c1bc29452bceb5529b979a79359f"
+  },
+  "bounds_V": {
+    "source_error": null,
+    "common_pair": null,
+    "afe_5v_feed": null,
+    "r11": null,
+    "avdd_distribution": null,
+    "g_analog": null,
+    "regulator": null,
+    "dvdd_local_feed": null,
+    "g_digital": null,
+    "mcu_3v3": null,
+    "dvdd_sense": null,
+    "g_dvdd_sense": null,
+    "avdd_sample": null,
+    "avdd_sense": null,
+    "g_avdd_sense": null,
+    "dvdd_feed_U102": null,
+    "g_U102": null,
+    "dvdd_feed_U103": null,
+    "g_U103": null,
+    "dvdd_feed_U104": null,
+    "g_U104": null
+  },
+  "physical_qualification": false,
+  "evidence_status": "unreviewed_hypotheses_only",
+  "measurement_records": []
+}

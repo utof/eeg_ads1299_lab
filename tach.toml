@@ -197,4 +197,4 @@ depends_on = []
 
 [[interfaces]]
 from = ["tools.dc_budget"]
-expose = ["tree_drops", "remote_voltages"]
+expose = ["tree_drops", "remote_voltages", "voltage_bounds"]

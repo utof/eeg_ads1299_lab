@@ -147,3 +147,43 @@ def parallel_returns(
     for current in currents.values():
         _number(current, signed=True)
     return shift, currents
+
+
+def _interval(value: tuple[float, float] | None) -> None:
+    if value is None:
+        return
+    if not isinstance(value, tuple) or len(value) != 2:
+        raise ValueError("interval must be a lower/upper tuple or unknown")
+    for endpoint in value:
+        _number(endpoint, signed=True)
+    if value[0] > value[1]:
+        raise ValueError("interval endpoints must be ordered")
+
+
+def voltage_bounds(
+    source_v: tuple[float, float] | None,
+    signed_terms_v: Mapping[str, tuple[float, float] | None],
+) -> tuple[float, float] | None:
+    """Conservative endpoint sums, or unknown if ANY required term is unknown.
+
+    Every term is ADDED: represent a positive loss [a,b] as [-b,-a]. Ground
+    reference shifts retain their algebraic sign. No independence assumption,
+    statistical cancellation, implicit zero, circuit solving or approval occurs.
+    Correlated quantities may make the interval wider than physically reachable.
+    The caller must partition paths to avoid double-counting shared losses.
+    """
+    _interval(source_v)
+    for name, interval in signed_terms_v.items():
+        if not isinstance(name, str) or not name:
+            raise ValueError("voltage terms need nonempty IDs")
+        _interval(interval)
+    if source_v is None or any(v is None for v in signed_terms_v.values()):
+        return None
+    low, high = source_v
+    for value in signed_terms_v.values():
+        if value is not None:
+            low += value[0]
+            high += value[1]
+    _number(low, signed=True)
+    _number(high, signed=True)
+    return low, high
