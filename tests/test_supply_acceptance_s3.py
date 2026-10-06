@@ -3,6 +3,7 @@
 import itertools
 import json
 import math
+import os
 import re
 import subprocess
 import sys
@@ -51,13 +52,20 @@ def test_overflow_and_empty_term_name_are_not_evidence() -> None:
         dc_budget.voltage_bounds((3.0, 3.0), {"": (0.0, 0.0)})
 
 
-def _run(model: Path, log: Path) -> dict[str, object]:
+def _run(model: Path, log: Path, optimization: str = "normal") -> dict[str, object]:
     assert DOC.is_file(), "missing source-bound S3 acceptance worksheet"
     blocks = re.findall(r"```python\n(.*?)\n```", DOC.read_text(), re.DOTALL)
     assert len(blocks) == 1
+    environment = dict(os.environ)
+    if optimization == "env":
+        environment["PYTHONOPTIMIZE"] = "1"
+    arguments = [sys.executable]
+    if optimization == "flag":
+        arguments.append("-O")
     run = subprocess.run(
-        [sys.executable, "-c", blocks[0], str(model)],
+        [*arguments, "-c", blocks[0], str(model)],
         cwd=ROOT,
+        env=environment,
         capture_output=True,
         text=True,
         timeout=20,
@@ -197,3 +205,36 @@ def test_worksheet_anchors_and_limits_match_frozen_native_contracts() -> None:
     assert parts["U106"].pins["1"].net == "AFE_DVDD_SENSE"
     assert parts["U107"].pins["1"].net == "AFE_AVDD_SENSE"
     assert parts["J105"].pins["2"].net == "TARGET_GND"
+
+
+@pytest.mark.parametrize("optimization", ["flag", "env"])
+def test_optimized_valid_worksheet_keeps_all_unknowns(tmp_path: Path, optimization: str) -> None:
+    result = _run(MODEL, tmp_path / "optimized.log", optimization)
+    assert result["physical_qualification"] is False
+    for raw in read_object(result["windows"], "windows").values():
+        assert read_object(raw, "window")["voltage_V"] is None
+
+
+@pytest.mark.parametrize("optimization", ["flag", "env"])
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("schema", "unapproved"),
+        ("scope", "physical_release"),
+        ("physical_qualification", True),
+        ("evidence_status", "measurements_accepted"),
+        ("source_commit", "HEAD"),
+        ("source_tree", "0" * 40),
+        ("input_sha256", {}),
+        ("measurement_records", [{"claimed": "physical"}]),
+    ],
+)
+def test_optimized_worksheet_rejects_fabricated_provenance(
+    tmp_path: Path, optimization: str, field: str, value: object
+) -> None:
+    data = read_object(json.loads(MODEL.read_text()), "model")
+    data[field] = value
+    path = tmp_path / "fabricated.json"
+    path.write_text(json.dumps(data))
+    with pytest.raises(AssertionError):
+        _run(path, tmp_path / "fabricated.log", optimization)
