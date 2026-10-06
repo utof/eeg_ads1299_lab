@@ -38,6 +38,8 @@ def _fake_project(root: Path) -> Path:
         "docs/studies/s2_current_return.json",
         "docs/REV_A_SUPPLY_ACCEPTANCE_S3.md",
         "docs/studies/s3_acceptance.json",
+        "docs/REV_A_STEADY_SOURCE_S4.md",
+        "docs/studies/s4_serial_evidence.json",
     ):
         shutil.copyfile(ROOT / name, root / name)
     footprints = write_footprint_library(root / "footprints")
@@ -166,6 +168,9 @@ def _change_dependency(root: Path, fault: str) -> None:
         "change-s3-document": root / "docs/REV_A_SUPPLY_ACCEPTANCE_S3.md",
         "change-s3-data": root / "docs/studies/s3_acceptance.json",
         "change-s3-test": root / "tests/test_supply_acceptance_s3.py",
+        "change-s4-document": root / "docs/REV_A_STEADY_SOURCE_S4.md",
+        "change-s4-record": root / "docs/studies/s4_serial_evidence.json",
+        "change-s4-test": root / "tests/test_steady_source_s4.py",
         "change-clock-reference": root / "tests/fixtures/auxiliary_clock_before_review.json",
         "change-library": root / "hardware/rev_a/kicad/RevA.kicad_sym",
         "change-console": root / "firmware/esp32_ads1299_bench/bench_console.h",
@@ -225,6 +230,9 @@ def _change_dependency(root: Path, fault: str) -> None:
         "change-s3-document",
         "change-s3-data",
         "change-s3-test",
+        "change-s4-document",
+        "change-s4-record",
+        "change-s4-test",
         "change-clock-reference",
         "change-library",
         "change-console",
