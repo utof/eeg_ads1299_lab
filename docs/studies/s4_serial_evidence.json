@@ -11,7 +11,9 @@
     "hardware/rev_a/bom.json": "514970772d5d3239b49b0ace9309fa83289497f88f18458b2cb802e684d1e4c9",
     "hardware/rev_a/auxiliary/contract.json": "7d36ddabda0ab5ced7042850a3776b303c4a48a7666694c2a8b1cb6f623ebb75",
     "docs/studies/s3_acceptance.json": "f71398b850e4cd4f5f998d5f3e58ef9b4939f210f98017631f249c308acea120",
-    "docs/REV_A_SUPPLY_ACCEPTANCE_S3.md": "a9a49d28027f8b3a79734daca9ca9bc2fbcff1225f7e237dc750a8b761f80e39"
+    "docs/REV_A_SUPPLY_ACCEPTANCE_S3.md": "a9a49d28027f8b3a79734daca9ca9bc2fbcff1225f7e237dc750a8b761f80e39",
+    "firmware/esp32_ads1299_bench/board_config_rev_a_s3.h": "b5dd71640643a8f4e42a34154dc99e79714baa165658530b1256b82139f53f5e",
+    "firmware/esp32_ads1299_bench/bench_console.h": "0fb67ee46488d1aae7e1b48d5c98031b784660ea6146a39409462d715575f47b"
   },
   "setup": {
     "channels": 4,
@@ -20,12 +22,24 @@
     "spi_hz": 1000000,
     "USE_INTERNAL_TEST": true,
     "USE_WIFI_UDP": false,
-    "BOARD_PROFILE_REVIEWED": false,
     "fqbn": "esp32:esp32:esp32s3:FlashSize=8M,PSRAM=opi,CDCOnBoot=default",
     "cpu_clock_measured_hz": null,
-    "phase": "after separately authorized startup and settling; never activated by this study",
     "devkit_drawing_version": "v1.1 20221130",
-    "actual_assembly_revision_confirmed": false
+    "actual_assembly_revision_confirmed": false,
+    "distributed_build": {
+      "BOARD_PROFILE_REVIEWED": false,
+      "console_call": "Serial.begin(460800)",
+      "acquisition_reachable": false
+    },
+    "hypothetical_acquisition": {
+      "BOARD_PROFILE_REVIEWED_required": true,
+      "authorized_here": false,
+      "console_call": "Serial.begin(CONSOLE_BAUD, SERIAL_8N1, CONSOLE_RX, CONSOLE_TX)",
+      "console_rx_GPIO": 17,
+      "console_tx_GPIO": 18,
+      "console_baud": 460800,
+      "phase": "after separately authorized startup and settling; never activated by this study"
+    }
   },
   "adc_regulator": {
     "mpn": "TPS7A2033PDBVR",

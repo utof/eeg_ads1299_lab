@@ -9,22 +9,35 @@ component-evidence result and an identified setup blocker, not completed power
 qualification. No board, circuit, firmware, cable, part or permission changed.
 
 Use [the existing S3 worksheet](REV_A_SUPPLY_ACCEPTANCE_S3.md), not a new solver.
-The evidence record is `studies/s4_serial_evidence.json`. Seven input hashes bind
+The evidence record is `studies/s4_serial_evidence.json`. Nine input hashes bind
 it to the actual firmware/build selection, component records and unchanged S3
 worksheet. The source snapshot also includes this note, record and their tests.
 The mandatory [GitHub runbook](REPOSITORY_PUBLICATION.md) remains in force.
 
 ## One named setup, not every possible operating mode
 
-`rev_a_f1_serial_internal_250` means the selected four-channel ADS1299-4, gain24,
-internal test mux, internal reference and clock, nominal250SPS, mode1/1MHz SPI,
-F1 handshake and serial output through the C1 header-UART path. The selected
-build has8MB flash and OPI PSRAM. `USE_WIFI_UDP=false` means the sketch does not
-enter its Wi-Fi initialization branch. It does NOT establish a measured radio,
-CPU, memory or peripheral power state or make their current zero. No CPU-clock
-measurement exists. The distributed `BOARD_PROFILE_REVIEWED=false` build still
-halts before acquisition: this is a conditional future steady state, not a
-recording that has been performed or an instruction to enable it.
+`rev_a_f1_serial_internal_250` names the HYPOTHETICAL acquisition branch: selected
+four-channel ADS1299-4, gain24, internal test mux/reference/clock, nominal250SPS,
+mode1/1MHz SPI, F1 handshake and C1 header UART. The source/build selection uses
+8MB flash and OPI PSRAM, USE_INTERNAL_TEST=true and USE_WIFI_UDP=false. The two
+profile-gate states are separate records, not one simultaneously reachable setup:
+
+| State | Review gate and console | Acquisition |
+|---|---|---|
+| Distributed build | BOARD_PROFILE_REVIEWED=false; onboard `Serial.begin(460800)` | Stops before controls/acquisition; C1 header pins NOT configured |
+| Hypothetical acquisition | Would require a separately reviewed true gate; `Serial.begin(CONSOLE_BAUD, SERIAL_8N1, CONSOLE_RX, CONSOLE_TX)` uses RX17/TX18 at460800 | Only after authorized startup/settling; NOT authorized or enabled here |
+
+The recorded `BOARD_PROFILE_REVIEWED_required=true` is a COUNTERFACTUAL condition,
+not an actual firmware flag change or an approval. The real distributed flag
+remainsfalse and `authorized_here=false`. A current measurement of that halted
+onboard-console build must not be filed as evidence for the named acquisition
+state. `board_config_rev_a_s3.h` and `bench_console.h` are fingerprinted alongside
+the sketch/config/toolchain, because they define the profile and actual UART path.
+
+USE_WIFI_UDP=false means the sketch does not enter its Wi-Fi initialization branch.
+It does NOT establish a measured radio, CPU, memory or peripheral power state or
+make their current zero. No CPU-clock measurement or acquisition exists. Do not
+change the firmware gate just to collect evidence for this conditional study.
 
 The controller is externally powered at its5V header; neither DevKit USB is
 connected under the existing C1/F1 constraints. The ADC digital regulator is

@@ -5,7 +5,9 @@ records applicable component conditions and exercises the existing worksheet
 with a conditional regulator interval. All physical template terms remainnull;
 all8outputs stay indeterminate even in the partial scenario. Source model and
 complete current/return bounds remain missing, not inferred from a1A target or
-0.5A module supply-capability requirement. No engineering/permission changes.
+0.5A module supply-capability requirement. No hardware/permission changes.
+The distributed false-gate/onboard-console stop is explicitly separate from the
+hypothetical reviewed/header-UART acquisition branch; neither was operated.
 Read REPOSITORY_PUBLICATION.md before writes/recovery; its entrypoint tests remain.
 
 Remaining substantial chat turns exclude supplier/assembly/shipping time and

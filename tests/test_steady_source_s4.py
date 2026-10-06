@@ -27,7 +27,8 @@ def test_named_case_is_existing_internal_serial_mode_not_permission() -> None:
     assert setup["channels"] == 4 and setup["sps_nominal"] == 250
     assert setup["gain"] == 24 and setup["spi_hz"] == 1000000
     assert setup["USE_INTERNAL_TEST"] is True and setup["USE_WIFI_UDP"] is False
-    assert setup["BOARD_PROFILE_REVIEWED"] is False
+    distributed = read_object(setup["distributed_build"], "distributed")
+    assert distributed["BOARD_PROFILE_REVIEWED"] is False
     config = (ROOT / "firmware/esp32_ads1299_bench/board_config.h").read_text()
     for text in ("USE_INTERNAL_TEST=true", "USE_WIFI_UDP=false", "BOARD_PROFILE_REVIEWED = false"):
         assert text in config
@@ -43,6 +44,8 @@ def test_evidence_is_bound_to_current_sources_and_existing_worksheet() -> None:
         "firmware/esp32_ads1299_bench/board_config.h",
         "firmware/esp32_ads1299_bench/esp32_ads1299_bench.ino",
         "firmware/toolchain.json",
+        "firmware/esp32_ads1299_bench/board_config_rev_a_s3.h",
+        "firmware/esp32_ads1299_bench/bench_console.h",
         "hardware/rev_a/bom.json",
         "hardware/rev_a/auxiliary/contract.json",
         "docs/studies/s3_acceptance.json",

@@ -14,9 +14,13 @@ until its live PR is merged; inspect actual refs and any original findings.
 
 **S4 is a named serial evidence supplement, not another worksheet.** Read
 `REV_A_STEADY_SOURCE_S4.md` and `studies/s4_serial_evidence.json`. The selected
-future mode is internal-test,4channels,gain24,250SPS,1MHzSPI and header UART;
-USE_WIFI_UDP=false, while BOARD_PROFILE_REVIEWED remainsfalse. No acquisition
-was run. No CPU/radio/memory power state or real source model was measured.
+future mode is internal-test,4channels,gain24,250SPS,1MHzSPI and C1 header UART.
+That hypothetical branch requires a separately reviewed true profile gate; it is
+NOT the current distributed false-gate build, which uses onboard UART and stops
+before acquisition. The two states are explicitly separate in the record and
+hypothetical authorized_here=false. No actual gate changed or acquisition ran.
+The profile/console headers are included in the nine-file input fingerprint.
+No CPU/radio/memory power state or real source model was measured.
 TI's conditional TPS7A2033 DBV accuracy yields3.2505–3.3495V only with its
 specified input/load/temperature and other conditions: importantly VIN>=3.6V
 and IOUT>=1mA. The145mV dropout row is NOT the accuracy headroom requirement.
@@ -26,7 +30,7 @@ Espressif's0.5A is minimum SUPPLY CAPABILITY, not a current maximum; modem-sleep
 columns aretypical. The v1.1 drawing uses SGM2212, with CP2102N/LED/RGB loads still
 connected without USB. Real board revision and total MCU/exported current bounds
 remain unknown. Do not sum unrelated typical rows as an operating ceiling.
-Seven input hashes and three schematic snapshot entries bind the evidence.
+Nine input hashes and three schematic snapshot entries bind the evidence.
 
 **S3 creates one conditional supply worksheet**, `REV_A_SUPPLY_ACCEPTANCE_S3.md`
 and `studies/s3_acceptance.json`. All21 physical voltage terms startnull; all8
