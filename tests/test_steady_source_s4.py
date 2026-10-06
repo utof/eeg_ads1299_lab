@@ -127,3 +127,55 @@ def test_conditional_regulator_scenario_reuses_s3_and_still_cannot_pass(
     assert remote["missing_terms"] == ["dvdd_feed_U104", "g_U104"]
     actual = read_object(json.loads(MODEL.read_text()), "unchanged original")
     assert all(v is None for v in read_object(actual["bounds_V"], "original terms").values())
+
+
+def test_distributed_stop_and_hypothetical_header_acquisition_are_distinct() -> None:
+    setup = read_object(_record()["setup"], "setup")
+    assert "BOARD_PROFILE_REVIEWED" not in setup, "gate must belong to an explicit state"
+    assert setup.get("distributed_build") == {
+        "BOARD_PROFILE_REVIEWED": False,
+        "console_call": "Serial.begin(460800)",
+        "acquisition_reachable": False,
+    }
+    hypothetical = read_object(setup.get("hypothetical_acquisition"), "hypothetical")
+    assert hypothetical["BOARD_PROFILE_REVIEWED_required"] is True
+    assert hypothetical["authorized_here"] is False
+    assert hypothetical["console_call"] == (
+        "Serial.begin(CONSOLE_BAUD, SERIAL_8N1, CONSOLE_RX, CONSOLE_TX)"
+    )
+    assert hypothetical["console_rx_GPIO"] == 17 and hypothetical["console_tx_GPIO"] == 18
+    assert hypothetical["console_baud"] == 460800
+
+
+@pytest.mark.parametrize("header", ["board_config_rev_a_s3.h", "bench_console.h"])
+def test_changed_transitive_header_invalidates_the_evidence(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, header: str
+) -> None:
+    """Check the same evidence oracle on detached source copies, not the canonical tree."""
+    import shutil
+
+    import tests.test_steady_source_s4 as subject
+
+    model = _record()
+    paths = set(read_object(model["input_sha256"], "hashes")) | {
+        "firmware/esp32_ads1299_bench/board_config_rev_a_s3.h",
+        "firmware/esp32_ads1299_bench/bench_console.h",
+        str(RECORD.relative_to(ROOT)),
+        str(DOCUMENT.relative_to(ROOT)),
+    }
+    for path in paths:
+        target = tmp_path / path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ROOT / path, target)
+    copied_record, copied_document = (
+        tmp_path / RECORD.relative_to(ROOT),
+        tmp_path / DOCUMENT.relative_to(ROOT),
+    )
+    monkeypatch.setattr(subject, "ROOT", tmp_path)
+    monkeypatch.setattr(subject, "RECORD", copied_record)
+    monkeypatch.setattr(subject, "DOCUMENT", copied_document)
+    test_evidence_is_bound_to_current_sources_and_existing_worksheet()
+    changed = tmp_path / "firmware/esp32_ads1299_bench" / header
+    changed.write_bytes(changed.read_bytes() + b"\n// detached provenance fault\n")
+    with pytest.raises(AssertionError, match=header.replace(".", r"\.")):
+        test_evidence_is_bound_to_current_sources_and_existing_worksheet()
