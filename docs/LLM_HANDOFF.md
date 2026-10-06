@@ -1,4 +1,4 @@
-# Continue from merged S2: S3 supply acceptance worksheet
+# Continue from S3: S4 serial source evidence and actual setup blocker
 
 **Read `REPOSITORY_PUBLICATION.md` before any GitHub publication or recovery.**
 Root `AGENTS.md`, README and DEVELOPMENT point there too. For interrupted replies,
@@ -7,11 +7,30 @@ its missing chat report. Do not repeat source publication or a failed Codex edit
 request. Publishing, Codex review, CI and merging are different operations; use
 actual available schemas and stop explicit denials.
 
-S2 and the mandatory publication guide are merged in PR83: main188d954a,
-reviewed/tested head319f6854, treeb17c00d67a95594ddfeda4d6973d78173dd5f4b5.
-S1, P3/R1, C4 and F1 are also already merged. This continuation is
-`review/supply-acceptance-s3` until its live PR is merged; check actual refs.
-Do not repeat prior publication, current accounting or copper reconstruction.
+S3 and its optimized-Python validation fix are merged in PR84: mainde47a756,
+reviewed/tested heada88c5377, tree740889dc8b2318af1490ec29d8f2810a7f31ed21.
+S1/S2, P3/R1, C4 and F1 are already merged. S4 is on `review/steady-source-s4`
+until its live PR is merged; inspect actual refs and any original findings.
+
+**S4 is a named serial evidence supplement, not another worksheet.** Read
+`REV_A_STEADY_SOURCE_S4.md` and `studies/s4_serial_evidence.json`. The selected
+future mode is internal-test,4channels,gain24,250SPS,1MHzSPI and C1 header UART.
+That hypothetical branch requires a separately reviewed true profile gate; it is
+NOT the current distributed false-gate build, which uses onboard UART and stops
+before acquisition. The two states are explicitly separate in the record and
+hypothetical authorized_here=false. No actual gate changed or acquisition ran.
+The profile/console headers are included in the nine-file input fingerprint.
+No CPU/radio/memory power state or real source model was measured.
+TI's conditional TPS7A2033 DBV accuracy yields3.2505–3.3495V only with its
+specified input/load/temperature and other conditions: importantly VIN>=3.6V
+and IOUT>=1mA. The145mV dropout row is NOT the accuracy headroom requirement.
+The default S3 record remains allnull. Temporary scenarios fill only regulator
+and reuse the original worksheet; all8outputs stay indeterminate and unqualified.
+Espressif's0.5A is minimum SUPPLY CAPABILITY, not a current maximum; modem-sleep
+columns aretypical. The v1.1 drawing uses SGM2212, with CP2102N/LED/RGB loads still
+connected without USB. Real board revision and total MCU/exported current bounds
+remain unknown. Do not sum unrelated typical rows as an operating ceiling.
+Nine input hashes and three schematic snapshot entries bind the evidence.
 
 **S3 creates one conditional supply worksheet**, `REV_A_SUPPLY_ACCEPTANCE_S3.md`
 and `studies/s3_acceptance.json`. All21 physical voltage terms startnull; all8
@@ -93,13 +112,18 @@ deadlines and71%branch floor remain unchanged. Use current JUnit counts.
 
 ## Next bounded task
 
-Resolve source/current evidence for ONE named steady-acquisition setup. Use S3's
-worksheet to identify exact vendor/measurement questions for totalMCU/current,
-exportedDVDDloads, source regulation/common-pair loss and ground offsets. Do not
-build another worksheet or reselect parts. Obtain specified conditions or a
-separately reviewed empirical envelope before allocating remaining margins;
-keep peak/startup/fault limits open when evidence cannot bound them. Supplier
-questions can be prepared, but none has been sent and no assembly is energized.
+The next dependency is the user's actual regulated bench-source model (or an
+explicit statement it is not chosen), then its lead set and applicable source
+accuracy/load-regulation conditions. Ask for that identity instead of repeating
+a generic current study. The nominal5V/1A target is not an actual supply. Use the
+EXISTING S3 worksheet: do not create a new acceptance framework, pick hardware
+without a decision, replace unknown currents with capacity ratings, or energize
+anything. Even source identity alone cannot bound all current/contact/return
+terms; retain the separate missing operating/peak and measurement evidence.
+S4 has already checked the TPS7A20, module-current and DevKit schematic rows;
+do not repeat that search or turn conditional regulator data into an assembled
+rail guarantee. Obtain condition-matched limits or a separately reviewed empirical
+envelope for total MCU/exported currents. No supplier messages have been sent.
 
 The measurement plan begins with disconnected PASSIVE harnesses and explicit
 four-wire sense/contact boundaries. An ohmmeter injects test current: "unpowered"
