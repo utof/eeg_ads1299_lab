@@ -1,6 +1,6 @@
-# Rev A roadmap — practical pilot before more generic modelling
+# Rev A roadmap — 100 nF candidate chosen for the pilot quote
 
-S4 merged in PR85 at `3324fc8c`. The user now confirms no power source is chosen
+Bench-first PR86 merged at `91857999`; S4 merged in PR85 at `3324fc8c`. The user now confirms no power source is chosen
 and authorizes reasonable planning assumptions. Read `REV_A_BENCH_FIRST.md` and
 root `AGENTS.md`: engineering progress and justified architecture, not growing a
 study/test count, are the objective. `REPOSITORY_PUBLICATION.md` remains mandatory.
@@ -19,7 +19,8 @@ They overlap and are not a promised release date or safety percentage.
 |---|---:|---|---|
 | Architecture and agent continuity | 0 for this review | Small modular repo retained; practical direction in AGENTS/handoff | Refactor only to address a demonstrated obstruction |
 | Supply method and provisional choice | 0 for planning | Reuse S1–S4; 5 V bench source class chosen | Actual source/leads/instruments and staged settings before power |
-| Pilot BOM/assembly disposition | 1–2 plus vendor evidence | 33 AFE / 15 auxiliary capacitors inventoried and triaged | NEXT: check existing auxiliary 100 nF part for the seven AFE sites; retain/replace/needs-answer decision, then remaining ceramic/stackup/process conditions |
+| 100 nF reuse decision | 0 for candidate choice | Prefer existing C0603C104K5RACTU for 7 AFE + 15 auxiliary quote sites; active BOM unchanged | Land/process acceptance, exact supply and effective-C or explicit pilot disposition before populated fabrication |
+| Pilot BOM/assembly disposition | 1–2 plus vendor evidence | 100 nF choice and exact land differences recorded; C0G/T491 retained | NEXT: finish the 15 x 1 uF / 4 x 10 uF candidates together, then coordinated BOM/CAD/assembly disposition |
 | Remaining signal/reference decisions | 1–2 | Connected boards and scoped clock repair retained | Explicitly disposition pilot-relevant risks; no arbitrary meanders or relaxed guards |
 | Quote and manufacturing release | 1–2 after required decisions | Not fabrication-ready | Complete delivered quote, exact parts/process and separate approval |
 | Unpowered inspection and fixture | 1–2 plus hardware | CAD/contracts exist, actual fit unverified | Assembly inspection, keyed cables/retention and passive startup fixture |
@@ -34,3 +35,10 @@ necessary fault tests. The $94.84 AFE allowance is not a delivered system quote.
 No ordering, supplier outreach, fabrication, powered connection, external-input or
 body-use permission changes here. The next slice is a build decision, not another
 hypothetical source-current study.
+
+The [100 nF decision](REV_A_100NF_REUSE_DECISION.md) closes candidate selection,
+not physical qualification. Its 0.95 mm maximum body height is a conservative
+family allowance; mounted height includes solder. The current 0603 lands are
+not the exact KEMET density-B pattern. Obtain explicit process disposition for
+all 22 proposed sites; do not change global stock footprints or widen guards.
+No new code/framework or test-count growth was needed for this paper decision.

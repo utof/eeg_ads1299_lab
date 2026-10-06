@@ -1,4 +1,4 @@
-# Continue from merged S4: practical bench-first pilot
+# Continue from the 100 nF pilot candidate decision
 
 **Read `REPOSITORY_PUBLICATION.md` before any GitHub publication or recovery.**
 Root `AGENTS.md`, README and DEVELOPMENT point there too. For interrupted replies,
@@ -7,7 +7,9 @@ its missing chat report. Do not repeat source publication or a failed Codex edit
 request. Publishing, Codex review, CI and merging are different operations; use
 actual available schemas and stop explicit denials.
 
-S4 is merged in PR85: main `3324fc8ce9ad80603d69ccd37f8b4f3cb13169f4`,
+The bench-first direction is merged in PR86 at `91857999`; the 100 nF review
+starts from that exact source tree. Check the live PR/main state before assuming
+this latest decision is merged. S4 is merged in PR85: main `3324fc8ce9ad80603d69ccd37f8b4f3cb13169f4`,
 reviewed head `6a39fd0b48`, tree `6d29fa91331027092b9e5f390169411e3edc8629`.
 S1–S3, P3/R1, C4 and F1 are also merged; read live refs before continuing.
 
@@ -17,9 +19,20 @@ adjustable current limiting as the first bench source class; no raw battery,
 custom charger or new supply model. The 1 A sensitivity case is not a current
 maximum or first-power setting. S3's physical input template stays unchanged.
 Do not ask again for an existing supply before doing independent build work.
-Pilot capacitor inventory/triage is in that decision. Next check reuse of the
-already-selected auxiliary C0603C104K5RACTU for seven AFE 100 nF sites, not S5 arithmetic. Prioritize real engineering decisions; architecture changes
-must solve an observed problem. This plan does not waive any release/power gate.
+Read [the completed 100 nF candidate decision](REV_A_100NF_REUSE_DECISION.md).
+Prefer existing auxiliary C0603C104K5RACTU for a combined 22-piece pilot quotation
+(7 proposed AFE C23-C29 plus 15 retained auxiliary C101-C115). Nominal electrical
+values match; the active AFE BOM still specifies Murata, so this is NOT an applied
+substitution or qualified drop-in. Current lands are smaller than KEMET density B:
+0.90 x 0.95 mm at +/-0.775 mm, versus 0.95 x 1.00 at +/-0.800; gap is 0.65 in both.
+Use the conservative family CJ maximum body 1.75 x 0.95 x 0.95 mm, plus solder
+standoff for mounted height. DFM/land acceptance, exact supply/lot and effective-C
+or explicit pilot-risk disposition remain pre-fabrication requirements. The same
+assembly question applies to the 15 existing auxiliary parts. No copper changed.
+Next finish the existing 1 uF / 10 uF candidate decisions together, then one
+coordinated pilot BOM/CAD/assembly disposition. Do not repeat this 100 nF search
+or add another generic supply study. Prioritize real engineering decisions;
+architecture changes must solve an observed problem. #45/#48 remain open.
 
 **S4 is a named serial evidence supplement, not another worksheet.** Read
 `REV_A_STEADY_SOURCE_S4.md` and `studies/s4_serial_evidence.json`. The selected
@@ -121,16 +134,18 @@ deadlines and71%branch floor remain unchanged. Use current JUnit counts.
 
 ## Next bounded task
 
-Complete the first compatibility decision in `REV_A_BENCH_FIRST.md`: can the
-already-selected auxiliary C0603C104K5RACTU serve the seven AFE 100 nF sites?
-The current 33 AFE/15 auxiliary capacitor inventory and disposition are there.
-Check exact manufacturer/assembly and node-specific applicability, not only the
-package/value label. Reuse prior evidence and refresh only necessary facts.
-Do not change the BOM without coordinated review or claim the candidate is
-already qualified. Keep the other two ceramic roles, stackup, connector process
-and quote scope in the same #45/#48 pilot disposition. No supplier messages are
-authorized. Actual source/instrument identity is required before approving
-power, not before this independent work. No new generic solver/schema is needed.
+Complete the remaining 1 uF / 10 uF candidate disposition together using the
+existing shortlist in `REV_A_CAPACITOR_E1_DECISION.md`: 15 one-microfarad sites
+include internal VCAP nodes; the four 10 uF sites need effective-C and the
+candidate's 1.35 mm maximum body-height impact checked. Retain C0G/T491 choices.
+The 100 nF candidate is already chosen for quotation in
+`REV_A_100NF_REUSE_DECISION.md`; do not repeat that search. Consolidate exact
+parts, land/process deviations and stage-specific missing evidence into one
+pilot BOM/CAD/assembly change or explicit rejection. No string-only BOM swaps.
+A quote may be prepared before all physical evidence exists, but populated
+fabrication requires closure or explicit disposition of #45/#48. No supplier
+messages, purchase or power are authorized. Actual source/instrument identity
+is required before power, not before this independent build preparation.
 
 The user explicitly permits provisional assumptions but not invented evidence.
 Retain S3/S4's unknown measured/current/peak/return quantities. Classify each
