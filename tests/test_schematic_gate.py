@@ -36,6 +36,8 @@ def _fake_project(root: Path) -> Path:
         "tools/dc_budget.py",
         "docs/REV_A_CURRENT_RETURN_S2.md",
         "docs/studies/s2_current_return.json",
+        "docs/REV_A_SUPPLY_ACCEPTANCE_S3.md",
+        "docs/studies/s3_acceptance.json",
     ):
         shutil.copyfile(ROOT / name, root / name)
     footprints = write_footprint_library(root / "footprints")
@@ -161,6 +163,9 @@ def _change_dependency(root: Path, fault: str) -> None:
         "change-current-document": root / "docs/REV_A_CURRENT_RETURN_S2.md",
         "change-current-data": root / "docs/studies/s2_current_return.json",
         "change-current-test": root / "tests/test_current_return_s2.py",
+        "change-s3-document": root / "docs/REV_A_SUPPLY_ACCEPTANCE_S3.md",
+        "change-s3-data": root / "docs/studies/s3_acceptance.json",
+        "change-s3-test": root / "tests/test_supply_acceptance_s3.py",
         "change-clock-reference": root / "tests/fixtures/auxiliary_clock_before_review.json",
         "change-library": root / "hardware/rev_a/kicad/RevA.kicad_sym",
         "change-console": root / "firmware/esp32_ads1299_bench/bench_console.h",
@@ -217,6 +222,9 @@ def _change_dependency(root: Path, fault: str) -> None:
         "change-current-document",
         "change-current-data",
         "change-current-test",
+        "change-s3-document",
+        "change-s3-data",
+        "change-s3-test",
         "change-clock-reference",
         "change-library",
         "change-console",
@@ -281,7 +289,7 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
         assert report["physical_hardware_tested"] is False
         assert report["body_connection_authorized"] is False
         assert report["schematic_released"] is False
-        assert len(read_object(report["source_sha256"], "hashes")) == 101
+        assert len(read_object(report["source_sha256"], "hashes")) == 104
         directory = out / str(report["artifact_directory"])
         harness = read_object(json.loads((directory / "harness.json").read_text()), "harness")
         assert harness["physical_wiring_approved"] is False

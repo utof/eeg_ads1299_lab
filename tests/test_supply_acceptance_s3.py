@@ -113,6 +113,7 @@ def test_filled_hypotheses_check_ground_sign_and_do_not_qualify(tmp_path: Path) 
             "g_dvdd_sense": [-0.004, 0.006],
         }
     )
+    data["bounds_V"] = terms
     path = tmp_path / "hypotheses.json"
     path.write_text(json.dumps(data))
     result = _run(path, tmp_path / "filled.log")
@@ -134,6 +135,7 @@ def test_upper_limit_is_checked_too(tmp_path: Path) -> None:
     for key in terms:
         terms[key] = [0.0, 0.0]
     terms["source_error"] = [0.3, 0.3]
+    data["bounds_V"] = terms
     path = tmp_path / "high.json"
     path.write_text(json.dumps(data))
     row = read_object(
@@ -151,13 +153,47 @@ def test_bad_worksheet_is_rejected(tmp_path: Path, change: str) -> None:
     elif change == "hash":
         hashes = read_object(data["input_sha256"], "hashes")
         hashes["hardware/rev_a/board_profile.json"] = "0" * 64
+        data["input_sha256"] = hashes
     else:
         terms = read_object(data["bounds_V"], "terms")
         if change == "missing":
             del terms["g_analog"]
         else:
             terms["unmodeled_return"] = [0, 0]
+        data["bounds_V"] = terms
     path = tmp_path / "invalid.json"
     path.write_text(json.dumps(data))
     with pytest.raises(AssertionError):
         _run(path, tmp_path / "invalid.log")
+
+
+def test_worksheet_anchors_and_limits_match_frozen_native_contracts() -> None:
+    import gzip
+    import xml.etree.ElementTree as ET
+
+    from hardware.rev_a import load_documents, parse_auxiliary_contract
+
+    profile, bom, _ = load_documents()
+    assert (profile["power"]["avdd_operating_min_v"], profile["power"]["avdd_operating_max_v"]) == (
+        4.75,
+        5.25,
+    )
+    r11 = next(row for row in bom["line_items"] if row["id"] == "analog_feed")
+    assert r11["spec"]["resistance_ohm"] == 10 and r11["spec"]["tolerance_fraction"] == 0.01
+    xml = ET.fromstring(
+        gzip.decompress((ROOT / "tests/fixtures/rev_a_netlist.xml.gz").read_bytes())
+    )
+    nets = xml.find("nets")
+    assert nets is not None
+    nodes = {n.attrib["name"]: {(x.attrib["ref"], x.attrib["pin"]) for x in n} for n in nets}
+    assert {("U2", "5"), ("U1", "48"), ("U1", "50")} <= nodes["DVDD"]
+    assert {("R11", "2"), ("J3", "4"), ("U1", "54")} <= nodes["AVDD"]
+    assert {("U2", "2"), ("U1", "33"), ("U1", "53")} <= nodes["GND"]
+    aux = parse_auxiliary_contract((ROOT / "hardware/rev_a/auxiliary/contract.json").read_text())
+    parts = {part.reference: part for part in aux.parts.values()}
+    for ref in ("U102", "U103", "U104"):
+        assert parts[ref].pins["14"].net == "AFE_DVDD"
+        assert parts[ref].pins["7"].net == "TARGET_GND"
+    assert parts["U106"].pins["1"].net == "AFE_DVDD_SENSE"
+    assert parts["U107"].pins["1"].net == "AFE_AVDD_SENSE"
+    assert parts["J105"].pins["2"].net == "TARGET_GND"

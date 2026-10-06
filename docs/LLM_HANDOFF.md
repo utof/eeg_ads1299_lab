@@ -1,4 +1,4 @@
-# Continue from merged S1: S2 mode loads and return accounting
+# Continue from merged S2: S3 supply acceptance worksheet
 
 **Read `REPOSITORY_PUBLICATION.md` before any GitHub publication or recovery.**
 Root `AGENTS.md`, README and DEVELOPMENT point there too. For interrupted replies,
@@ -7,13 +7,36 @@ its missing chat report. Do not repeat source publication or a failed Codex edit
 request. Publishing, Codex review, CI and merging are different operations; use
 actual available schemas and stop explicit denials.
 
-S1 and the mandatory publication runbook are MERGED in PR82 at base main
-`7325d659aeedf2628cf2a4430854e90ef1277785`, tree
-`85b324a5445ca653afd16990311a04ccd9622ae5`. Its tested head was6a8fb444.
-PR81's connected P3/R1, C4 service access and F1 firmware are also already merged.
-This continuation is `review/current-return-s2` until its live PR is merged;
-read actual refs/runs, not this base as a permanent main claim. No PCB, circuit,
-BOM/profile, firmware, cable, carrier, dependency or release flag changes.
+S2 and the mandatory publication guide are merged in PR83: main188d954a,
+reviewed/tested head319f6854, treeb17c00d67a95594ddfeda4d6973d78173dd5f4b5.
+S1, P3/R1, C4 and F1 are also already merged. This continuation is
+`review/supply-acceptance-s3` until its live PR is merged; check actual refs.
+Do not repeat prior publication, current accounting or copper reconstruction.
+
+**S3 creates one conditional supply worksheet**, `REV_A_SUPPLY_ACCEPTANCE_S3.md`
+and `studies/s3_acceptance.json`. All21 physical voltage terms startnull; all8
+output rows are indeterminate. The executable block checks9original input files
+against319f's Git bytes/hashes, including both boards. The small interval helper
+adds signed endpoint bounds, validates all inputs even when one is unknown, and
+never replaces missing information withzero. No hardware/firmware/circuit/BOM,
+cable, dependencies, rules or approval changes. GitHub guide entrypoint tests
+remain active; source publication and Codex review are different operations.
+
+Read S3 before assigning budgets: source_error and common_pair are different;
+common_pair includes the source lead RETURN once, while g_analog measures the
+remaining ADC-ground-to-J105.2 offset. Exported DVDD uses the opposite ground
+conversion sign. Shared feed losses belong to each sink but are not summed as
+separate trunk currents. Local_ADC_DVDD and each buffer rail have separate rows;
+monitor reads are diagnostics, not downstream acceptance. C3's3.0–3.6V envelope
+is an ANALYSIS window, not a full electrical/ground-offset acceptance criterion.
+A filled hypothetical worksheet always retains physical_qualification=false.
+Measurements/evidence need their own reviewed provenance; no physical data exists.
+
+S3's99mV remainder assumes10mA through R11 at its initial+1% value and charges no
+other loss. A hypothetical110mV common-pair loss yields4.739V. These are not
+measured results or accepted cable specifications. They do not replace S1's
+94.867mV example, which includes other illustrative feed losses. Do not silently
+promote mean S2 current, a catalog no-load limit or a targetsource to a bound.
 
 Read `REV_A_CURRENT_RETURN_S2.md` and `studies/s2_current_return.json`. The exact
 executable block checks source/tree and eight original input byte hashes. It
@@ -70,24 +93,27 @@ deadlines and71%branch floor remain unchanged. Use current JUnit counts.
 
 ## Next bounded task
 
-Build one source/cable/return acceptance worksheet using S1's existing AVDD/DVDD
-limits and S2's mode/boundary accounting. Allocate known and unknown voltage-loss
-terms explicitly, including shared source/plane return, K1/C4 contacts, source
-accuracy, R11 tolerance and regulator behavior. Specify de-energized four-wire
-cable checks and future simultaneous source/sink current/voltage observations
-needed to replace the hypotheses; do not energize an assembly now. Obtain a
-vendor bound or separately reviewed empirical envelope for unknown operating/
-peak currents before using that worksheet for a release decision. Do not claim
-an input current ceiling from no-load ICC, typical Cpd or an assumed 100pF load.
-No speculative copper widening, generic termination or new component selection.
+Resolve source/current evidence for ONE named steady-acquisition setup. Use S3's
+worksheet to identify exact vendor/measurement questions for totalMCU/current,
+exportedDVDDloads, source regulation/common-pair loss and ground offsets. Do not
+build another worksheet or reselect parts. Obtain specified conditions or a
+separately reviewed empirical envelope before allocating remaining margins;
+keep peak/startup/fault limits open when evidence cannot bound them. Supplier
+questions can be prepared, but none has been sent and no assembly is energized.
 
-After publication inspect exact-head CI and every original review finding; merge
-only after acceptance. S2's numerical/doc checks are ordinary software checks,
-not added native CAD cases. The schematic gate binds its calculator, exact
-executed documentation, model and tests into the input snapshot. Preserve the
-450s CAD and individual native deadlines,71% branch floor and prior evidence.
-All-file hooks and the same locked `tools.check` entry point apply locally/CI.
-Distinguish source hashes, local/hosted execution, review and physical validation.
+The measurement plan begins with disconnected PASSIVE harnesses and explicit
+four-wire sense/contact boundaries. An ohmmeter injects test current: "unpowered"
+does not authorize rail probing on assembled ICs. Current/compliance, fixture,
+accuracy, temperature and mating conditions remain to be selected/reviewed.
+Future powered measurements require separate approval and simultaneous source,
+local/remote supply, ground and branch-current observations; do not bridge C1's
+HOST/TARGET boundary with instruments. No powered protocol is released by S3.
+
+Run the same locked tools.check entry point and all-file hooks. The S3 code,
+executable document/model/tests are source-snapshotted in the schematic gate;
+its calculations are ordinary source/data tests, not new native CAD cases.
+Retain the450s CAD deadline,71%branch floor, and historical receipts. Read actual
+exact-head CI/review before merge; positive arithmetic does not approve hardware.
 
 ## Physical and release boundaries
 
