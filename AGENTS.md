@@ -2,6 +2,20 @@
 
 Read `docs/DEVELOPMENT.md`, `docs/LLM_HANDOFF.md`, and the Rev A hardware baseline before changing code.
 
+## Practical engineering first — standing user preference
+
+Read [the bench-first decision](docs/REV_A_BENCH_FIRST.md) before choosing a slice.
+The user prioritizes a safe real prototype, not accumulating studies or tests.
+Use clearly labelled, reversible planning assumptions when details are missing;
+do not invent measured limits or block independent work on an unanswered model.
+Each slice must close a build decision, fix a demonstrated defect, or prepare a
+specific physical check. Reuse existing calculators, contracts and the one gate.
+Refactor when a concrete ownership/duplication problem obstructs that task, not
+for speculative elegance. No new framework or parallel worksheet without need.
+Separate before-fabrication, before-power and later-characterization questions.
+Keep safety gates and necessary regressions; fewer checks is not the objective.
+A planning assumption never authorizes purchasing, energization or body use.
+
 ## GitHub: read this before trying to publish
 
 **Mandatory for every fresh agent:** read `docs/REPOSITORY_PUBLICATION.md` before
