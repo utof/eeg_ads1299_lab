@@ -119,8 +119,11 @@ def test_conditional_regulator_scenario_reuses_s3_and_still_cannot_pass(
     for key, raw in rows.items():
         row = read_object(raw, key)
         assert row["voltage_V"] is None and row["margins_V"] is None
-        assert row["missing_terms"] and "regulator" not in row["missing_terms"]
+        missing = row["missing_terms"]
+        assert isinstance(missing, list)
+        missing_terms: list[object] = missing
+        assert missing_terms and "regulator" not in missing_terms
     remote = read_object(rows["DVDD_U104"], "remote")
-    assert set(remote["missing_terms"]) == {"dvdd_feed_U104", "g_U104"}
+    assert remote["missing_terms"] == ["dvdd_feed_U104", "g_U104"]
     actual = read_object(json.loads(MODEL.read_text()), "unchanged original")
     assert all(v is None for v in read_object(actual["bounds_V"], "original terms").values())

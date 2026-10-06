@@ -1,0 +1,144 @@
+{
+  "schema": "S4-serial-evidence-v1",
+  "setup_id": "rev_a_f1_serial_internal_250",
+  "scope": "component conditions and hypothetical steady serial setup; not measured operation",
+  "physical_qualification": false,
+  "measurement_records": [],
+  "input_sha256": {
+    "firmware/esp32_ads1299_bench/board_config.h": "30b46ea5aa773ba2aca8089a293afa69e93a692d63e4fa4189d18cb93db0c6d5",
+    "firmware/esp32_ads1299_bench/esp32_ads1299_bench.ino": "3932ad9b5c47e7fdf49cd66570d18682fb7c62b2af1a633641f0b7573b76417c",
+    "firmware/toolchain.json": "b2b75e30ea9fbd7de610abf62e0c3237961096944b02f58b5686d36965edd286",
+    "hardware/rev_a/bom.json": "514970772d5d3239b49b0ace9309fa83289497f88f18458b2cb802e684d1e4c9",
+    "hardware/rev_a/auxiliary/contract.json": "7d36ddabda0ab5ced7042850a3776b303c4a48a7666694c2a8b1cb6f623ebb75",
+    "docs/studies/s3_acceptance.json": "f71398b850e4cd4f5f998d5f3e58ef9b4939f210f98017631f249c308acea120",
+    "docs/REV_A_SUPPLY_ACCEPTANCE_S3.md": "a9a49d28027f8b3a79734daca9ca9bc2fbcff1225f7e237dc750a8b761f80e39"
+  },
+  "setup": {
+    "channels": 4,
+    "sps_nominal": 250,
+    "gain": 24,
+    "spi_hz": 1000000,
+    "USE_INTERNAL_TEST": true,
+    "USE_WIFI_UDP": false,
+    "BOARD_PROFILE_REVIEWED": false,
+    "fqbn": "esp32:esp32:esp32s3:FlashSize=8M,PSRAM=opi,CDCOnBoot=default",
+    "cpu_clock_measured_hz": null,
+    "phase": "after separately authorized startup and settling; never activated by this study",
+    "devkit_drawing_version": "v1.1 20221130",
+    "actual_assembly_revision_confirmed": false
+  },
+  "adc_regulator": {
+    "mpn": "TPS7A2033PDBVR",
+    "nominal_V": 3.3,
+    "tolerance_fraction": 0.015,
+    "conditional_pin_window_V": [
+      3.2505,
+      3.3495
+    ],
+    "accuracy_VIN_range_V": [
+      3.6,
+      6.0
+    ],
+    "accuracy_IOUT_range_A": [
+      0.001,
+      0.3
+    ],
+    "TJ_range_C": [
+      -40,
+      125
+    ],
+    "table_default_VEN_V": 1.0,
+    "table_default_CIN_COUT_uF": 1.0,
+    "dropout_DBV_max_V": 0.145,
+    "dropout_test_IOUT_A": 0.3,
+    "dropout_test_output_fraction": 0.95,
+    "assembled_pin_window_V": null,
+    "unverified_conditions": {
+      "actual_input_range_V": null,
+      "actual_total_output_range_A": null,
+      "junction_temperature_C": null,
+      "effective_capacitance_ESR_and_stability": null,
+      "enable_and_normal_regulation": null
+    }
+  },
+  "controller": {
+    "module_supply_capability_min_A": 0.5,
+    "capacity_is_load_maximum": false,
+    "table_6_6_columns": [
+      "typical",
+      "typical"
+    ],
+    "module_in_package_PSRAM_may_increase_current": true,
+    "devkit_regulator_schematic": "SGM2212-3.3XKC3G/TR",
+    "powered_overheads_not_eliminated_by_USB_removal": [
+      "CP2102N VDD via VCC_3V3",
+      "power LED",
+      "RGB device supply",
+      "regulator ground current",
+      "exported auxiliary MCU3V3 loads"
+    ],
+    "module_current_is_complete_devkit_current": false
+  },
+  "translator": {
+    "mpn": "TXU0304PWR",
+    "combined_static_ICC_max_A": 6e-06,
+    "ICC_condition": "both supplies valid; static rail-level inputs; IO=0; -40..125C",
+    "loaded_dynamic_max_A": null,
+    "external_mean_load_is_total_max": false
+  },
+  "required_unavailable_bounds": {
+    "source_model": null,
+    "source_regulation_V": null,
+    "common_pair_ohm": null,
+    "MCU_branch_operating_A": null,
+    "DVDD_export_operating_A": null,
+    "source_total_operating_A": null,
+    "ground_offsets_V": null,
+    "startup_peak_A": null,
+    "measurement_instrument_identity": null
+  },
+  "sources": [
+    {
+      "id": "TI_REG",
+      "document": "TPS7A20 SBVS338H, July2024",
+      "url": "https://www.ti.com/lit/ds/symlink/tps7a20.pdf",
+      "pages": [
+        5,
+        6
+      ],
+      "accessed": "2026-10-07",
+      "page_images_inspected": true
+    },
+    {
+      "id": "ESP_MODULE",
+      "document": "ESP32-S3-WROOM-1/1U v1.8, tables6-2 and6-6",
+      "url": "https://www.espressif.com/sites/default/files/documentation/esp32-s3-wroom-1_wroom-1u_datasheet_en.pdf",
+      "pages": [
+        27,
+        29
+      ],
+      "accessed": "2026-10-07",
+      "page_images_inspected": true
+    },
+    {
+      "id": "ESP_DEVKIT",
+      "document": "ESP32-S3-DevKitC-1 schematic v1.1 20221130",
+      "url": "https://dl.espressif.com/dl/schematics/SCH_ESP32-S3-DevKitC-1_V1.1_20221130.pdf",
+      "pages": [
+        2
+      ],
+      "accessed": "2026-10-07",
+      "page_images_inspected": true
+    },
+    {
+      "id": "TI_TXU",
+      "document": "TXU0304 SCES935A, November2021",
+      "url": "https://www.ti.com/lit/ds/symlink/txu0304.pdf",
+      "pages": [
+        8
+      ],
+      "accessed": "2026-10-07",
+      "page_images_inspected": true
+    }
+  ]
+}
