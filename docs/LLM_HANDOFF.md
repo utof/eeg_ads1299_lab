@@ -1,4 +1,4 @@
-# Continue from B1: passive startup fixture, prices deferred
+# Continue from B2: probe/observation plan, prices deferred
 
 **Read `REPOSITORY_PUBLICATION.md` before any GitHub publication or recovery.**
 Also read [the standing practical direction](REV_A_BENCH_FIRST.md).
@@ -14,7 +14,8 @@ Q1 is merged in PR89 at `4927b4c6cd312e40ee6a304e7083245e16d5440a`, tree
 `192ba338a966d773c35cf58137fa67b6a2c1459c`. PR90 is a closed duplicate; do not
 revive `quote_draft/`. Keep `REV_A_PILOT_QUOTE_PACKET.md` and `quote/` as the
 only RFQ. Earlier capacitor, S1-S4, P3/R1, C1-C4/F1/K2 decisions are already merged.
-Read live main/PR state before claiming this B1 continuation merged.
+B1 is merged in PR91 at `f06f0bf8002386bcf24133215841e57caa72c163`.
+B2 starts from that tree; inspect its live PR before claiming it merged.
 
 **User update:** assume Moscow, Russia for delivery planning. Postcode/recipient
 remain unknown; no sending permission or delivery-feasibility claim. Price research
@@ -38,12 +39,25 @@ are workmanship assumptions, not voltage/leakage or medical-safety limits.
 No rail-ohms rule or assembled-IC ohmmeter procedure is introduced. Physical
 records remain blank; all existing firmware/hardware approval flags stay false.
 
-**Next non-price step:** specify the before-power source/probe connection and
-observation plan at existing rails, VCAP1 and local returns, with instrument-ground
-separation, staged HOLD/abort criteria and actual-equipment prerequisites. Reuse
-S3/F1 and the new B1 inspection sheet. Do not build another supply calculator or
-quote packet. Actual instrument evidence is required before the stage using it,
-not before independent paper/fixture work; no powered procedure is released yet.
+**B2 observation plan:** read `REV_A_OBSERVATION_B2.md`. It maps existing
+source-entry, local AVDD/AVDD1/DVDD, VCAP1, buffer bypass, MCU and feedback
+contacts, explicitly distinguishing remote-sense diagnostics from load-pin
+acceptance. Differential negative inputs are not interchangeable ground clips;
+check all instrument earth/USB/common paths without defeating protective earth.
+The two firmware boundaries stay distinct: R precedes F1 arm/wake/clock, then
+150 ms and the measured VCAP1 >1.1 V acknowledgment at V. Do not require VCAP1
+already high while PWDN is parked, or count the stopped false-gate build as
+acquisition. No actual instrument, limit, input-low waveform or power approval
+has been established. Neither source nor the S3 worksheet was changed.
+
+**Next non-price decision:** resolve mechanically supported mandatory probe
+access at C6.1/C6.2 and local rail contacts in the actual K2 arrangement. Use
+existing geometry and concrete probe dimensions, not a universal test fixture
+or another calculator. If contact access is unsafe, retain HOLD and make the
+smallest reviewed fixture/CAD decision; do not bypass the VCAP observation.
+Then complete the existing H1 equipment/current/ramp/abort/discharge record
+before seeking separate first-power permission. No pricing campaign, repeated
+RFQ or stock search. Refer to B1/B2 rather than duplicating their checklists.
 
 Q1 remains a frozen quote snapshot with 104 fitted board parts, 8 DNP sites,
 5 copper-only landing groups, 4 mechanical hole groups, all 48 capacitors and
@@ -122,7 +136,7 @@ Use the locked environment and the single `tools.check` orchestrator; retain
 450s CAD batch/individual deadlines and71% branch floor. If local dependency
 installation fails, retain the error and report that instead of using an
 unlocked substitute as a project-gate pass. Bind new claims to actual hosted
-heads and original review dispositions; no prior green result proves B1.
+heads and original review dispositions; no prior green result proves a new B2 revision.
 
 Read root AGENTS for TLDR + category/remaining-turns/status/next-step reports.
 Separate quotation readiness, manufacturing release, before-power checks and
