@@ -1,4 +1,4 @@
-# Continue from Q1: one unsent two-board quotation packet
+# Continue from B1: passive startup fixture, prices deferred
 
 **Read `REPOSITORY_PUBLICATION.md` before any GitHub publication or recovery.**
 Also read [the standing practical direction](REV_A_BENCH_FIRST.md).
@@ -10,32 +10,47 @@ action schemas and stop explicit denials. Never regenerate authored copper.
 
 ## Current practical task and publication state
 
-PR88 merged the complete capacitor quotation schedule at
-`399677407a159ad10c766b4575b65aabc8bd3057`, tree
-`a3306419b36226e6b233a42ca6a08a59664e872f`. PR85's S4, PR86's bench-first direction,
-PR87's 100 nF choice and earlier S1-S3/P3/R1/C1-C4/F1/K2 work are already merged.
-Q1 starts from that tree; inspect live PR status before calling Q1 merged.
+Q1 is merged in PR89 at `4927b4c6cd312e40ee6a304e7083245e16d5440a`, tree
+`192ba338a966d773c35cf58137fa67b6a2c1459c`. PR90 is a closed duplicate; do not
+revive `quote_draft/`. Keep `REV_A_PILOT_QUOTE_PACKET.md` and `quote/` as the
+only RFQ. Earlier capacitor, S1-S4, P3/R1, C1-C4/F1/K2 decisions are already merged.
+Read live main/PR state before claiming this B1 continuation merged.
 
-**Read `REV_A_PILOT_QUOTE_PACKET.md` and `quote/`.** The full unsent RFQ now covers
-both actual boards, 104 fitted board parts, 8 DNP sites, 5 copper-only landing
-groups and 4 mechanical hole groups. The separate support/cost schedule includes
-external modules, two K1 cables, one C4 cable, tails, carrier/supports, startup
-fixture, assembly/setup/overage and delivered costs. It is NOT only a capacitor
-BOM. One and five sets are reversible quote alternatives, not orders or MOQs.
+**User update:** assume Moscow, Russia for delivery planning. Postcode/recipient
+remain unknown; no sending permission or delivery-feasibility claim. Price research
+is deprioritized. Do not ask the same country question, repeat stock/price searches
+or block independent engineering while outreach remains unapproved.
 
-`active_mpn` describes unchanged engineering source; `quote_mpn` contains the
-26 proposed AFE ceramic replacements. Never assemble from their deliberate
-mismatch. Q1 is a frozen quote snapshot, not a second live design contract.
-Native CAD and libraries are in Git; the conversation ZIP is convenience only.
-No release Gerbers, drill/stencil or pick-and-place outputs have been issued.
+**B1 closes the passive analog-startup topology decision.** Read
+`REV_A_PASSIVE_STARTUP_B1.md`: existing J2-coded K1 cable, enclosed common node
+for contacts 1-8 and 10; BIAS9 and NC11-20 each insulated and isolated. No new PCB,
+active driver, battery, firmware or main BOM change. This is a design/inspection
+plan, not permission for physical construction, mating or power. J1 is forbidden:
+aligned contact order grounds driven signals; reversed order can short its 5 V
+feed (J1.17, not J1.1) to return.
+Actual keying, retention, joints and instrument limits still need review.
 
-**Next decision:** obtain permission for a named recipient, destination and
-1/5-set quote scope, then send only after explicit authorization. Record responses
-against the packet's finite Q01-Q10 questions and keep exclusions/costs visible.
-Do not repeat capacitor selection, create another worksheet, or re-upload source
-because a final answer failed. While permission is pending, an independent
-before-power inspection/passive-fixture plan is useful; vendor outreach is not
-implicit in "next". No buying, fabricating, energizing or external/body inputs.
+The pre-join contact-to-tail map is essential: once commoned, permutations within
+1-8/10 become invisible to the final partition check. B1 cannot validate external
+channel order. Post-join checks include the actual socket return contact 10,
+BIAS/spare isolation and supported handling; provisional 1 ohm/1 Mohm screens
+are workmanship assumptions, not voltage/leakage or medical-safety limits.
+No rail-ohms rule or assembled-IC ohmmeter procedure is introduced. Physical
+records remain blank; all existing firmware/hardware approval flags stay false.
+
+**Next non-price step:** specify the before-power source/probe connection and
+observation plan at existing rails, VCAP1 and local returns, with instrument-ground
+separation, staged HOLD/abort criteria and actual-equipment prerequisites. Reuse
+S3/F1 and the new B1 inspection sheet. Do not build another supply calculator or
+quote packet. Actual instrument evidence is required before the stage using it,
+not before independent paper/fixture work; no powered procedure is released yet.
+
+Q1 remains a frozen quote snapshot with 104 fitted board parts, 8 DNP sites,
+5 copper-only landing groups, 4 mechanical hole groups, all 48 capacitors and
+26 explicitly unapplied AFE substitutions. Its source/cost hashes and blank
+prices remain untouched. Vendor contact still needs explicit recipient/scope
+approval; the Moscow update supersedes its original unknown-country statement
+only, not postcode, availability, duties, price or production status.
 
 After applicable supplier answers or an explicit limited-pilot risk disposition,
 make ONE coordinated BOM/CAD/contracts/fixtures/regression update. Re-run exact-head
@@ -107,7 +122,7 @@ Use the locked environment and the single `tools.check` orchestrator; retain
 450s CAD batch/individual deadlines and71% branch floor. If local dependency
 installation fails, retain the error and report that instead of using an
 unlocked substitute as a project-gate pass. Bind new claims to actual hosted
-heads and original review dispositions; no prior green result proves Q1.
+heads and original review dispositions; no prior green result proves B1.
 
 Read root AGENTS for TLDR + category/remaining-turns/status/next-step reports.
 Separate quotation readiness, manufacturing release, before-power checks and
