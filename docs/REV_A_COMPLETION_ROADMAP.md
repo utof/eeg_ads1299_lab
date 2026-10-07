@@ -1,53 +1,41 @@
-# Rev A roadmap — capacitor quotation schedule consolidated
+# Rev A roadmap - Q1 quotation packet, not a manufacturing release
 
-100 nF decision PR87 merged at `890f76b1`; bench-first PR86 and S4 are merged. The user now confirms no power source is chosen
-and authorizes reasonable planning assumptions. Read `REV_A_BENCH_FIRST.md` and
-root `AGENTS.md`: engineering progress and justified architecture, not growing a
-study/test count, are the objective. `REPOSITORY_PUBLICATION.md` remains mandatory.
+PR88 consolidated all 48 capacitor quotation locations at main39967740. The
+next slice Q1 packages the complete two-board inventory and support/cost scope.
+Read live PR/main before assuming it is merged. Root AGENTS and
+`REPOSITORY_PUBLICATION.md` remain mandatory; `REV_A_BENCH_FIRST.md` records the
+user's preference for practical progress and reversible labelled assumptions.
 
-Working source class: regulated 5.00 V, adjustable current limiting, at least 1 A
-capacity. The documented 1 A / 0.050 ohm / 10 mA analog case is a hypothetical
-sensitivity check, not proof of consumption, a source specification already met,
-or an initial current-limit setting. No raw battery/custom charger is selected.
-All original S3 physical terms remain unknown. Stop asking for a source identity
-before doing independent manufacturing preparation; require it before power.
-
-Remaining substantial turns below exclude quotes, shipping and physical work.
-They overlap and are not a promised release date or safety percentage.
-
-| Category | Turns remaining | Done/status | Next slice or blocker |
+| Category | Remaining substantial turns | Done/status | Next slice or blocker |
 |---|---:|---|---|
-| Architecture and agent continuity | 0 for this review | Small modular repo retained; practical direction in AGENTS/handoff | Refactor only to address a demonstrated obstruction |
-| Supply method and provisional choice | 0 for planning | Reuse S1–S4; 5 V bench source class chosen | Actual source/leads/instruments and staged settings before power |
-| 100 nF reuse decision | 0 for candidate choice | Prefer existing C0603C104K5RACTU for 7 AFE + 15 auxiliary quote sites; active BOM unchanged | Land/process acceptance, exact supply and effective-C or explicit pilot disposition before populated fabrication |
-| Remaining capacitor selection | 0 for quotation choices | Existing 15 x 1 uF / 4 x 10 uF targets retained; full 48-capacitor schedule consolidated; no active migration | Internal-node/effective-C and assembly conditions explicitly retained |
-| Complete pilot quote/DFM packet | 1 plus supplier response | Exact capacitor schedule, land dimensions and carrier allocation comparison prepared | NEXT: complete unsent two-board packet, full proposed BOM, stackup/interfaces and delivered costs |
-| Coordinated engineering migration | 1–2 after applicable disposition | Active BOM and CAD unchanged | Reconcile responses or explicit pilot risk review, then update BOM/CAD/contracts and required regressions together |
-| Remaining signal/reference decisions | 1–2 | Connected boards and scoped clock repair retained | Explicitly disposition pilot-relevant risks; no arbitrary meanders or relaxed guards |
-| Quote and manufacturing release | 1–2 after required decisions | Not fabrication-ready | Complete delivered quote, exact parts/process and separate approval |
-| Unpowered inspection and fixture | 1–2 plus hardware | CAD/contracts exist, actual fit unverified | Assembly inspection, keyed cables/retention and passive startup fixture |
-| Controlled internal-test commissioning | 1–2 planning turns plus approved bench work | F1 and capture path exist; never operated | Source/ground/limit/abort review, then measured rail/current/startup and internal-test capture |
-| Later characterization | Measurement-dependent | Not started | External dummy inputs, noise/coupling, full signal/rail-fault envelope; body use is a separate scope |
+| Source and agent continuity | 0 for this milestone | Existing GitHub guide; Q1 packet/CSV and current handoff in source | Check live heads and merged PRs; do not repeat failed-reply work |
+| Component quotation selection | 0 | All48 capacitor sites covered;26proposed AFE replacements, not applied | Only revisit a choice after concrete rejection |
+| Complete two-board RFQ | 0 for preparation after Q1 acceptance | 104fitted board parts,8DNP,5landing groups; external modules/harness/fixture/services and delivered costs separate | User approves recipient/destination and1/5-set quotation scope; no sending yet |
+| Vendor/engineering disposition | 1-2 plus responses | Finite Q01-Q10 list identifies who decides and which stage is blocked | Enter evidence/exclusions; do not substitute a price for acceptance |
+| Coordinated engineering migration | 1-2 after applicable dispositions | Active PCB/BOM/firmware unchanged | Apply accepted parts/land changes consistently and verify/review |
+| Manufacturing release | 1 after prerequisites | Not released; no production exports in Q1 | Complete delivered quote and separate fabrication/order approval |
+| Inspection and first internal-test capture | 1-2 planning turns plus approved bench work | Existing F1 and capture path; not operated | Unpowered inspection/passive-fixture plan; actual source/ground/limits then separately approved power |
+| Later characterization | Measurement-dependent | Not started | External dummy signals, noise, coupling and fault envelope; body use separate |
 
-No calculator output, quote or roadmap edit closes an existing release condition.
-Separate before-fabrication requirements, before-power requirements and empirical
-characterization; do not demand impossible exhaustive measurements before a quote,
-or power unreviewed hardware to bypass a known hazard. Preserve source/history and
-necessary fault tests. The $94.84 AFE allowance is not a delivered system quote.
-No ordering, supplier outreach, fabrication, powered connection, external-input or
-body-use permission changes here. The next slice is the finite unsent quotation packet, not another
-hypothetical source-current or capacitor-selection study.
+Estimates exclude quote turnaround, manufacturing/shipping and measurements;
+stages overlap and are not a countdown to safety approval. The working source
+class remains regulated5V with adjustable current limit;1A capacity is not a
+startup setting or consumption bound. Missing equipment does not prevent a
+conditional RFQ. Q1's1/5-set quantities and finish/colour price basis are
+provisional, not purchases or engineering-field changes.
 
-The [100 nF decision](REV_A_100NF_REUSE_DECISION.md) closes candidate selection,
-not physical qualification. Its 0.95 mm maximum body height is a conservative
-family allowance; mounted height includes solder. The current 0603 lands are
-not the exact KEMET density-B pattern. Obtain explicit process disposition for
-all 22 proposed sites; do not change global stock footprints or widen guards.
-No new code/framework or test-count growth was needed for this paper decision.
+The active/native and proposed quote MPNs are deliberately separate. No vendor
+may assemble directly from their mismatch. Required capacitor effective-C/internal
+node/land decisions, job-specific stackup and hole/process review remain open.
+Preserve all current reference guards, C4 pin/cavity mapping, coded K2 seating,
+auxiliary offsetH4 and separate HOST/TARGET domains. No generic framework,
+arbitrary reroute or duplicate accounting worksheet is needed for quote work.
 
-The [consolidated disposition](REV_A_PILOT_CAPACITOR_DISPOSITION.md) retains
-GRM188R61C105KA12D and GRM21BR61C106KE15L for quotation, including separate
-C8-C10 internal-node review (VCAP3 is boosted), local LDO effective-capacitance
-conditions and all four bulk sites. The 1.35 mm body fits K2's existing 4 mm
-allocation; this is not measured clearance or final assembly acceptance. Do not
-redesign the carrier or pick a new capacitor family without a concrete rejection.
+Next real action is permission to send the prepared packet to a named recipient
+with a destination and quantity basis, then disposition actual answers. While
+that decision is pending, prepare only an independent before-power inspection/
+fixture plan; do not treat another "next" as outreach, purchase or power approval.
+The historical94.84USD AFE allowance is not a complete delivered price. Keep
+unknown amounts blank, with explicit included/N/A explanations for any zero.
+All purchasing, fabrication, powered-connection, external-input and body-use
+gates remain unchanged; source merges do not close #45/#48.
