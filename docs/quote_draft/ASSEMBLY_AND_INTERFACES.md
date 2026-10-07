@@ -15,8 +15,11 @@ for inspection; explicitly proposed capacitor identities are pricing alternative
 Use KiCad 9.0.2 for the retained project. AFE's authored PCB is in `layout/`, not
 beside the schematic project; open that file explicitly. Do not run the parking-
 grid importer, update the PCB from the schematic or regenerate footprints to
-create a new candidate. All electronic component lands are on F.Cu. Both boards
-also contain inner-layer routes: In2 is NOT a continuous ground/power plane.
+create a new candidate. Components are front-mounted and SMD lands are on F.Cu.
+The HTSW/XH headers and AUX wire-tail pads are plated through-hole pads defined
+on `*.Cu` / `*.Mask`; retain their inner-layer and solder-side lands and clearances.
+Front mounting does not mean front-only copper or a front-only soldering process.
+Both boards contain inner-layer routes: In2 is NOT a continuous ground/power plane.
 AFE's In1 has one GND region. AUX's In1 has separate HOST_GND/TARGET_GND regions.
 Keep the AUX x=20.5..23.5 mm all-layer no-copper strip and 3 mm domain-separation
 rule intact. This is not certified mains/medical insulation. Inspect edge/annulus
