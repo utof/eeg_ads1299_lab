@@ -108,13 +108,14 @@ explicit decisions; moving an item in this table never silently waives one.
 
 ## 5. Pilot BOM triage and dated follow-through
 
-**2026-10-07 follow-through:** the [100 nF review](REV_A_100NF_REUSE_DECISION.md)
-now prefers reuse of C0603C104K5RACTU for the combined pilot quotation, with exact
-land deviations and a conservative height allowance disclosed. No active BOM
-substitution or physical qualification occurred. The next independent decision
-is the remaining 1 uF / 10 uF pair, then one coordinated ceramic migration.
-The original prioritization below records how this task was selected; it is not
-an instruction to redo the completed 100 nF candidate review.
+**2026-10-07 follow-through:** [the consolidated capacitor disposition](REV_A_PILOT_CAPACITOR_DISPOSITION.md)
+now retains the existing 1 uF/10 uF targets and PR87's shared 100 nF quote identity.
+It maps all 48 fitted capacitors, separates internal VCAP and local LDO conditions,
+and checks the 1.35 mm bulk body against K2's existing component allocation.
+No active BOM substitution or physical qualification occurred. The next task is
+one complete unsent two-board quote/DFM packet, not another capacitor search.
+The original triage below is historical prioritization, not an instruction to
+repeat completed candidate decisions.
 
 The current BOM and auxiliary contract were counted at the baseline above.
 This is source inventory, not a fresh lifecycle/stock audit. The recorded concerns
@@ -134,8 +135,9 @@ and existing shortlist are in `REV_A_CAPACITOR_E1_DECISION.md` and #48.
 for quotation at the seven AFE sites as well, subject to the recorded land,
 height, exact-supply and node-specific effective-C conditions. The active BOM
 and boards are unchanged. This does not grant assembly or electrical approval.
-Next complete the 1 uF/10 uF pair and carry all three roles into one coordinated
-pilot disposition, rather than starting another accounting framework.
+The pair decision is now in `REV_A_PILOT_CAPACITOR_DISPOSITION.md`. Carry its
+consolidated schedule into the complete quotation packet, then one coordinated
+engineering migration after the stated conditions are disposed.
 Include total delivered-cost gaps; the historical $94.84 AFE allowance excludes
 the complete auxiliary, cables, carrier, tools, tax, shipping and assembly.
 

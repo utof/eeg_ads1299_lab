@@ -1,4 +1,4 @@
-# Continue from the 100 nF pilot candidate decision
+# Continue from the consolidated pilot capacitor disposition
 
 **Read `REPOSITORY_PUBLICATION.md` before any GitHub publication or recovery.**
 Root `AGENTS.md`, README and DEVELOPMENT point there too. For interrupted replies,
@@ -7,9 +7,9 @@ its missing chat report. Do not repeat source publication or a failed Codex edit
 request. Publishing, Codex review, CI and merging are different operations; use
 actual available schemas and stop explicit denials.
 
-The bench-first direction is merged in PR86 at `91857999`; the 100 nF review
-starts from that exact source tree. Check the live PR/main state before assuming
-this latest decision is merged. S4 is merged in PR85: main `3324fc8ce9ad80603d69ccd37f8b4f3cb13169f4`,
+The 100 nF quotation decision is merged in PR87 at `890f76b1`; bench-first
+PR86 is also merged. The consolidated 1 uF/10 uF follow-through starts from that
+source. Check live PR/main before assuming this latest decision is merged. S4 is merged in PR85: main `3324fc8ce9ad80603d69ccd37f8b4f3cb13169f4`,
 reviewed head `6a39fd0b48`, tree `6d29fa91331027092b9e5f390169411e3edc8629`.
 S1–S3, P3/R1, C4 and F1 are also merged; read live refs before continuing.
 
@@ -29,10 +29,18 @@ Use the conservative family CJ maximum body 1.75 x 0.95 x 0.95 mm, plus solder
 standoff for mounted height. DFM/land acceptance, exact supply/lot and effective-C
 or explicit pilot-risk disposition remain pre-fabrication requirements. The same
 assembly question applies to the 15 existing auxiliary parts. No copper changed.
-Next finish the existing 1 uF / 10 uF candidate decisions together, then one
-coordinated pilot BOM/CAD/assembly disposition. Do not repeat this 100 nF search
-or add another generic supply study. Prioritize real engineering decisions;
-architecture changes must solve an observed problem. #45/#48 remain open.
+Read `REV_A_PILOT_CAPACITOR_DISPOSITION.md`: the existing 1 uF target
+GRM188R61C105KA12D (15 sites) and 10 uF target GRM21BR61C106KE15L (4 sites)
+are retained for quotation, completing one schedule for all 48 fitted capacitors.
+No active BOM/CAD migration happened. VCAP3 is a boosted node (about 6.9 V expected
+at 5 V AVDD), not a 5 V-capped rail; internal C8-C10 need separate voltage/impedance
+risk disposition. Typical 10 uF bias retention is substantially below nominal;
+no guaranteed minimum is inferred. All 19 maximum-body rectangles fit the current
+K2 XY allocation and 4 mm component-height allocation in a read-only coordinate
+check. The bulk's 1.35 mm maximum body does not justify a new carrier, but actual
+mounted/process/cable tolerances remain unqualified. Do not relabel that allocation
+as measured clearance. Next prepare one complete unsent two-board quote/DFM packet,
+not another capacitor study or generic power framework. #45/#48 remain open.
 
 **S4 is a named serial evidence supplement, not another worksheet.** Read
 `REV_A_STEADY_SOURCE_S4.md` and `studies/s4_serial_evidence.json`. The selected
@@ -134,18 +142,21 @@ deadlines and71%branch floor remain unchanged. Use current JUnit counts.
 
 ## Next bounded task
 
-Complete the remaining 1 uF / 10 uF candidate disposition together using the
-existing shortlist in `REV_A_CAPACITOR_E1_DECISION.md`: 15 one-microfarad sites
-include internal VCAP nodes; the four 10 uF sites need effective-C and the
-candidate's 1.35 mm maximum body-height impact checked. Retain C0G/T491 choices.
-The 100 nF candidate is already chosen for quotation in
-`REV_A_100NF_REUSE_DECISION.md`; do not repeat that search. Consolidate exact
-parts, land/process deviations and stage-specific missing evidence into one
-pilot BOM/CAD/assembly change or explicit rejection. No string-only BOM swaps.
-A quote may be prepared before all physical evidence exists, but populated
-fabrication requires closure or explicit disposition of #45/#48. No supplier
-messages, purchase or power are authorized. Actual source/instrument identity
-is required before power, not before this independent build preparation.
+Prepare the single UNSENT complete two-board pilot quotation/DFM packet using
+`REV_A_PILOT_CAPACITOR_DISPOSITION.md`, the actual boards and existing stackup,
+connector/cable/carrier decisions. The capacitor quote identities are now fixed
+pending concrete rejection: 15 x GRM188R61C105KA12D, 4 x GRM21BR61C106KE15L,
+22 x C0603C104K5RACTU across both boards; retain C0G/T491 choices. The full cap
+schedule has 48 fitted instances, not a whole-assembly BOM or order quantity.
+Clearly separate active BOM from proposed replacements, list exact remaining
+land/process/internal-node/effective-C decisions, and include assembly/setup,
+spares, cables/carrier, tax/shipping and delivered-cost items. No supplier contact
+is authorized. Ask permission to send a finite packet rather than rediscover the
+same manufacturers. No global-footprint changes or BOM-string-only substitutions.
+After applicable responses or explicit limited-pilot risk disposition, apply one
+coordinated BOM/CAD/contracts/fixture/regression change; no current fabrication
+gate is waived by selecting quote identities. Actual source/instrument identity
+is needed before power, not before independent quotation preparation.
 
 The user explicitly permits provisional assumptions but not invented evidence.
 Retain S3/S4's unknown measured/current/peak/return quantities. Classify each
