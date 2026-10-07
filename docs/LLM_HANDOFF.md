@@ -1,214 +1,114 @@
-# Continue from the consolidated pilot capacitor disposition
+# Continue from the complete UNSENT pilot quotation packet
 
 **Read `REPOSITORY_PUBLICATION.md` before any GitHub publication or recovery.**
-Root `AGENTS.md`, README and DEVELOPMENT point there too. For interrupted replies,
-check recently merged PRs as well as open ones: PR82 had already completed despite
-its missing chat report. Do not repeat source publication or a failed Codex edit
-request. Publishing, Codex review, CI and merging are different operations; use
-actual available schemas and stop explicit denials.
+Read root `AGENTS.md` and `REV_A_BENCH_FIRST.md`: the user wants a safe working
+prototype, not more generic studies, duplicate calculators or unnecessary layers.
+For a failed reply, inspect live main, open AND recently merged PRs before work.
+Publication, source review, hosted tests and merge are separate operations.
 
-The 100 nF quotation decision is merged in PR87 at `890f76b1`; bench-first
-PR86 is also merged. The consolidated 1 uF/10 uF follow-through starts from that
-source. Check live PR/main before assuming this latest decision is merged. S4 is merged in PR85: main `3324fc8ce9ad80603d69ccd37f8b4f3cb13169f4`,
-reviewed head `6a39fd0b48`, tree `6d29fa91331027092b9e5f390169411e3edc8629`.
-S1–S3, P3/R1, C4 and F1 are also merged; read live refs before continuing.
+## Current checkpoint
 
-**User update: no source is chosen; reasonable assumptions are authorized.**
-Read [the practical pilot decision](REV_A_BENCH_FIRST.md). Use regulated 5 V with
-adjustable current limiting as the first bench source class; no raw battery,
-custom charger or new supply model. The 1 A sensitivity case is not a current
-maximum or first-power setting. S3's physical input template stays unchanged.
-Do not ask again for an existing supply before doing independent build work.
-Read [the completed 100 nF candidate decision](REV_A_100NF_REUSE_DECISION.md).
-Prefer existing auxiliary C0603C104K5RACTU for a combined 22-piece pilot quotation
-(7 proposed AFE C23-C29 plus 15 retained auxiliary C101-C115). Nominal electrical
-values match; the active AFE BOM still specifies Murata, so this is NOT an applied
-substitution or qualified drop-in. Current lands are smaller than KEMET density B:
-0.90 x 0.95 mm at +/-0.775 mm, versus 0.95 x 1.00 at +/-0.800; gap is 0.65 in both.
-Use the conservative family CJ maximum body 1.75 x 0.95 x 0.95 mm, plus solder
-standoff for mounted height. DFM/land acceptance, exact supply/lot and effective-C
-or explicit pilot-risk disposition remain pre-fabrication requirements. The same
-assembly question applies to the 15 existing auxiliary parts. No copper changed.
-Read `REV_A_PILOT_CAPACITOR_DISPOSITION.md`: the existing 1 uF target
-GRM188R61C105KA12D (15 sites) and 10 uF target GRM21BR61C106KE15L (4 sites)
-are retained for quotation, completing one schedule for all 48 fitted capacitors.
-No active BOM/CAD migration happened. VCAP3 is a boosted node (about 6.9 V expected
-at 5 V AVDD), not a 5 V-capped rail; internal C8-C10 need separate voltage/impedance
-risk disposition. Typical 10 uF bias retention is substantially below nominal;
-no guaranteed minimum is inferred. All 19 maximum-body rectangles fit the current
-K2 XY allocation and 4 mm component-height allocation in a read-only coordinate
-check. The bulk's 1.35 mm maximum body does not justify a new carrier, but actual
-mounted/process/cable tolerances remain unqualified. Do not relabel that allocation
-as measured clearance. Next prepare one complete unsent two-board quote/DFM packet,
-not another capacitor study or generic power framework. #45/#48 remain open.
+Capacitor decisions are merged in PR88 at `399677407a159ad10c766b4575b65aabc8bd3057`,
+tree `a3306419b36226e6b233a42ca6a08a59664e872f`. PR87/86/85 and S1-S3, P3/R1,
+C4 and F1 are already merged. Do not redo them. The quotation continuation is
+`review/two-board-quote`; read its live PR state, not this text, to establish merge.
 
-**S4 is a named serial evidence supplement, not another worksheet.** Read
-`REV_A_STEADY_SOURCE_S4.md` and `studies/s4_serial_evidence.json`. The selected
-future mode is internal-test,4channels,gain24,250SPS,1MHzSPI and C1 header UART.
-That hypothetical branch requires a separately reviewed true profile gate; it is
-NOT the current distributed false-gate build, which uses onboard UART and stops
-before acquisition. The two states are explicitly separate in the record and
-hypothetical authorized_here=false. No actual gate changed or acquisition ran.
-The profile/console headers are included in the nine-file input fingerprint.
-No CPU/radio/memory power state or real source model was measured.
-TI's conditional TPS7A2033 DBV accuracy yields3.2505–3.3495V only with its
-specified input/load/temperature and other conditions: importantly VIN>=3.6V
-and IOUT>=1mA. The145mV dropout row is NOT the accuracy headroom requirement.
-The default S3 record remains allnull. Temporary scenarios fill only regulator
-and reuse the original worksheet; all8outputs stay indeterminate and unqualified.
-Espressif's0.5A is minimum SUPPLY CAPABILITY, not a current maximum; modem-sleep
-columns aretypical. The v1.1 drawing uses SGM2212, with CP2102N/LED/RGB loads still
-connected without USB. Real board revision and total MCU/exported current bounds
-remain unknown. Do not sum unrelated typical rows as an operating ceiling.
-Nine input hashes and three schematic snapshot entries bind the evidence.
+Read **`quote_draft/REQUEST.md`** and **`quote_draft/ASSEMBLY_AND_INTERFACES.md`**.
+The packet includes a 34-row current-versus-proposed BOM CSV, blank itemized
+cost-response CSV and frozen-source manifest. The native source is already in
+Git; no chat ZIP, workbook, old importer or expiring artifact is needed to continue.
+The workbook/archive delivered in chat are convenient views, not extra project
+requirements or manufacturing data. No production code or new framework added.
 
-**S3 creates one conditional supply worksheet**, `REV_A_SUPPLY_ACCEPTANCE_S3.md`
-and `studies/s3_acceptance.json`. All21 physical voltage terms startnull; all8
-output rows are indeterminate. The executable block checks9original input files
-against319f's Git bytes/hashes, including both boards. The small interval helper
-adds signed endpoint bounds, validates all inputs even when one is unknown, and
-never replaces missing information withzero. No hardware/firmware/circuit/BOM,
-cable, dependencies, rules or approval changes. GitHub guide entrypoint tests
-remain active; source publication and Codex review are different operations.
+One provisional quote set means one AFE board plus one AUX board, with separately
+costed external modules/cables/mechanics. Ask for one set and an optional five-set
+price comparison, not an order. AFE has 61 fitted purchased parts and 8 DNP sites;
+AUX has 43 fitted purchased parts, 5 non-purchased solder-landing groups and 4
+non-purchased mounting holes. External MOD1 is counted once. The 48 capacitors
+are only a subset of the whole assembly. Spares/MOQs/attrition are not fitted qty.
 
-Read S3 before assigning budgets: source_error and common_pair are different;
-common_pair includes the source lead RETURN once, while g_analog measures the
-remaining ADC-ground-to-J105.2 offset. Exported DVDD uses the opposite ground
-conversion sign. Shared feed losses belong to each sink but are not summed as
-separate trunk currents. Local_ADC_DVDD and each buffer rail have separate rows;
-monitor reads are diagnostics, not downstream acceptance. C3's3.0–3.6V envelope
-is an ANALYSIS window, not a full electrical/ground-offset acceptance criterion.
-A filled hypothetical worksheet always retains physical_qualification=false.
-Measurements/evidence need their own reviewed provenance; no physical data exists.
+## Next bounded step — get actual quotation/DFM responses
 
-S3's99mV remainder assumes10mA through R11 at its initial+1% value and charges no
-other loss. A hypothetical110mV common-pair loss yields4.739V. These are not
-measured results or accepted cable specifications. They do not replace S1's
-94.867mV example, which includes other illustrative feed losses. Do not silently
-promote mean S2 current, a catalog no-load limit or a targetsource to a bound.
+The packet is **UNSENT**. No supplier/destination is selected or contact authorized.
+Ask the user to authorize quotation-only contact and select a recipient; obtain
+delivery country/postcode and confirm lot quantities before a delivered-price
+request. Do not silently send messages, place orders or upload production files.
+Do not create another packet, choose new capacitor families, reroute preserved
+copper or repeat the source-model question as a substitute for that decision.
 
-Read `REV_A_CURRENT_RETURN_S2.md` and `studies/s2_current_return.json`. The exact
-executable block checks source/tree and eight original input byte hashes. It
-models the selected four-channel15-byte frame:120clock cycles at250SPS gives
-30000rises/s in1MHz bursts,3% activity. With ideal0/3.6V outputs,42.2k-1% pulls
-and explicitly ASSUMED100pF external loads, it computes343.39uA mean forward-pull
-and10.89uA external-charging contributions. These are NOT complete supply-current
-ceilings; all operating/peak/internal-dynamic/capacitance maxima stay unknown.
-MISO/DRDY output pull loads are on the MCU-side supply, not AFE DVDD.
+After authorization, request responses to Q1-Q9 and explicit inclusions/exclusions.
+Keep supplier DFM/process responses separate from designer electrical-risk
+acceptance. A missing item, borrowed instrument or supplier exclusion is not free
+unless its actual cost/provision is established. Retain both one-time and recurring
+costs, excess inventory, tax/shipping and shared equipment. Historical $94.84 is
+not a complete delivered-system price or proof of the $100 objective.
 
-A necessary KCL refinement: a forward buffer's static output current returns
-via the AFE input pulldown, unlike a load consumed/returned locally on the auxiliary.
-AFE net ground export is incoming5V minus outgoingDVDD plus incoming signal DC.
-Only the auxiliary-local part cancels. In the two-equipotential-node example,
-parallel returns share by CONDUCTANCE, not wire count. Ten ASSUMED0.1ohm K1 wires
-plus two hypothesized0.073752ohm C4 wires carry21.33% of net return via C4, not2/12.
-The0.0975mV example ground shift is not a distributed plane/fault guarantee.
+Reconcile applicable responses or explicit bounded pilot-risk decisions. Then
+make ONE coordinated BOM/CAD/contracts/fixtures/test update for accepted changes.
+No isolated MPN-string substitutions. Only generate fabrication outputs from the
+reviewed released revision; there are none in this quotation-only packet. Keep
+#45/#48 open until their actual conditions have been explicitly disposed.
 
-TXU ICC is no-load/static; Cpd and ADS supply-current entries are typical. The
-ADS1299-4 maximum-power test conditions differ from selected gain24/internalclock.
-JST's contact figure has specific test conditions; crimps and shared returns are
-not qualified by a gauge or catalog current rating. Preserve all unknowns and
-mode/transient distinctions; no sense reading or calculator output grants power.
+## Keep the existing engineering decisions
 
-S1's5mA/buffer assumption and3.557mV farthest feed-loss example remain sensitivity
-results, not replaced by the S2 partial load sum. The94.867mV common-path allowance
-and0.180ohm optimistic ceiling still allocate unbounded errors, not accepted specs.
+The proposed AFE replacements remain unapplied: 15 x GRM188R61C105KA12D,
+4 x GRM21BR61C106KE15L and 7 x C0603C104K5RACTU. AUX retains 15 of the latter;
+C0G/T491 remain. Read `REV_A_PILOT_CAPACITOR_DISPOSITION.md` and
+`REV_A_100NF_REUSE_DECISION.md` for internal VCAP nodes, LDO-local effective-C/ESR,
+reference companions, real land deviations and conservative body-height limits.
+VCAP3 is boosted; a generic 5 V assumption is not its transient bound. Typical
+curves and K2's 4 mm component allocation are not physical minimum-C or clearance
+qualification. Apply the KEMET land/process question to all 22 quote sites.
 
-## Current engineering source
+Current authored source: `hardware/rev_a/layout/rev_a.kicad_pcb` (AFE, not an
+importer output), and `hardware/rev_a/auxiliary/auxiliary.kicad_pcb`. AFE SHA256
+`60097ff4acf8408d5a172930de74bcd36aa50a379dd30a831e4bc64d3841c8a6` is unchanged.
+AUX R1 has 643 segments/157 vias and the scoped clock repair; AFE has 593/122.
+Do not rebuild either board from a netlist. Preserve 15 P2 bypass protections,
+39 P3 terminal-cut checks, 18 pending reference records/20 outlines, domain and
+mounting/access guards. Reference checks are not an electromagnetic model.
 
-Native auxiliary project: `hardware/rev_a/auxiliary/auxiliary.kicad_pro` and its
-PCB. R1 changes only MCU_SCLK and resulting ground fill:71.875101mm planar length
-instead of85.491637mm,4vias instead of5, minimum same-layer clock/MISO trace-edge
-gap0.638848mm instead of0.230172mm. Inventory:52footprints/216pads/643segments/
-157vias. All831 nonclock copper/footprint forms are unchanged from P3. These are
-bounded routing improvements, not impedance, noise, ringing or timing proof.
-The75mm/4via/0.60mm regression targets are not manufacturer SI limits. Actual
-edges, packages, cables, return transitions and layer construction remain open.
+Read `REV_A_STACKUP_BENCH_REQUIREMENTS.md`: the AFE named construction remains
+a target needing supplier confirmation; it is not an approved AUX construction.
+In2 is routed copper, not a continuous plane. Keep own-contact return transitions,
+long channels and analog six-pair coupling in their existing review scope.
 
-Main AFE stays `hardware/rev_a/layout/rev_a.kicad_pcb`, SHA256
-`60097ff4acf8408d5a172930de74bcd36aa50a379dd30a831e4bc64d3841c8a6`.
-Its69footprints/251pads/593segments/122vias, J3, prior AVDD1/output/CH1N repairs,
-circuit/BOM/profile, F1 firmware, C4 cable, K2 carrier, dependencies and rules are
-unchanged. Never run the parking-grid importer or old authoring scripts over
-either board. Read AGENTS.md, DEVELOPMENT.md and the hardware baseline first.
+Read K1/C1/C4/K2 documents and current contracts for actual interfaces. K1 has
+all 20 contacts and captive port-specific keys; C4 has separate feed/sense wires
+joining only at the AFE, with cavity6 empty. J106 is STOP_N to TARGET_GND, not a
+new safety-rated emergency stop. Keep independent support and no hot mating.
+Older documents' pending placement/handshake statements are historical; current
+source and handoff control. Do not connect DevKit USB with accessories attached
+or bridge HOST/TARGET through shields, instruments or fixtures.
 
-Keep all15P2bypass corridors,39P3terminal cuts, domain separation and mounting/
-cable guards. The continuous central0.10mm global reference strip has declared
-same-net through-contact exclusions; it is not full-width ground or an EM model.
-The original20pending outlines/18records remain unapproved and may not expand
-or move to accommodate a reroute. The reference fast path skips work only for an
-EMPTY exact native group difference. The450s CAD batch budget, individual tool
-deadlines and71%branch floor remain unchanged. Use current JUnit counts.
+## Before power and later characterization
 
-## Next bounded task
+No actual supply was selected. The user permits reversible planning assumptions:
+regulated 5.00 V bench supply with output enable/current limiting, >=1 A CAPACITY.
+This is not consumption, a guaranteed source specification or initial current
+limit. No raw battery, custom charger or new supply framework. S3's physical
+input record stays unknown; S4's conditional regulator data remain conditional.
+Actual equipment/grounding, staged current limits and abort criteria are required
+before a powered procedure, not before independent quote preparation.
 
-Prepare the single UNSENT complete two-board pilot quotation/DFM packet using
-`REV_A_PILOT_CAPACITOR_DISPOSITION.md`, the actual boards and existing stackup,
-connector/cable/carrier decisions. The capacitor quote identities are now fixed
-pending concrete rejection: 15 x GRM188R61C105KA12D, 4 x GRM21BR61C106KE15L,
-22 x C0603C104K5RACTU across both boards; retain C0G/T491 choices. The full cap
-schedule has 48 fitted instances, not a whole-assembly BOM or order quantity.
-Clearly separate active BOM from proposed replacements, list exact remaining
-land/process/internal-node/effective-C decisions, and include assembly/setup,
-spares, cables/carrier, tax/shipping and delivered-cost items. No supplier contact
-is authorized. Ask permission to send a finite packet rather than rediscover the
-same manufacturers. No global-footprint changes or BOM-string-only substitutions.
-After applicable responses or explicit limited-pilot risk disposition, apply one
-coordinated BOM/CAD/contracts/fixture/regression change; no current fabrication
-gate is waived by selecting quote identities. Actual source/instrument identity
-is needed before power, not before independent quotation preparation.
+The first milestone is person-disconnected internal-test capture after approved
+inspection/startup, not human EEG or exhaustive final noise/EMC qualification.
+The analog startup fixture remains separate from the J2 cable. Detached passive
+harness testing needs reviewed meter current/compliance; unpowered IC probing is
+not automatically safe. Functional testing/energization requires separate approval.
+F1 and the real distributed BOARD_PROFILE_REVIEWED=false gate stay unchanged.
+Software cannot preempt blocked I/O, guarantee all rail-fault timing or recall
+sent bytes; complete affected captures must be invalidated. Partial rails,
+leakage, sense injection, clamps, ground breaks and real mechanical retention
+still need their applicable checks. No body/purchase/fabrication/power gate changes.
 
-The user explicitly permits provisional assumptions but not invented evidence.
-Retain S3/S4's unknown measured/current/peak/return quantities. Classify each
-uncertainty by the stage it blocks; existing #45/#48 decisions are not waived.
-Our first physical milestone is an approved person-disconnected internal-test
-pilot, not human EEG or exhaustive final noise/EMC characterization.
+## Verification and reports
 
-The measurement plan begins with disconnected PASSIVE harnesses and explicit
-four-wire sense/contact boundaries. An ohmmeter injects test current: "unpowered"
-does not authorize rail probing on assembled ICs. Current/compliance, fixture,
-accuracy, temperature and mating conditions remain to be selected/reviewed.
-Future powered measurements require separate approval and simultaneous source,
-local/remote supply, ground and branch-current observations; do not bridge C1's
-HOST/TARGET boundary with instruments. No powered protocol is released by S3.
-
-Run the same locked tools.check entry point and all-file hooks. The S3 code,
-executable document/model/tests are source-snapshotted in the schematic gate;
-its calculations are ordinary source/data tests, not new native CAD cases.
-Retain the450s CAD deadline,71%branch floor, and historical receipts. Read actual
-exact-head CI/review before merge; positive arithmetic does not approve hardware.
-
-## Physical and release boundaries
-
-C4 J3/J104 pins1/5 are return,2 is AFE DVDD feed OUT,3 separate DVDD sense,
-4 AVDD sense after R11,6 NC. Feed/sense join at AFE, not auxiliary. Verify the
-five-wire cable detached before intentionally common AFE nets hide swaps. Exact
-wire/crimp, mounting and restraint remain unqualified; no hot mating. K2 support,
-body/mate and cable checks are finite geometry, not force/tolerance validation.
-Auxiliary H4 is intentionally offset, not a rectangular hole pattern.
-
-F1 SESSION/ARM/READY/ARMED is implemented; BOARD_PROFILE_REVIEWED remains false.
-Park outputs, require actual READY and fresh ARM, then clock/VCAP/reset. Faults
-invalidate the entire session; software cannot preempt blocked I/O or retract
-sent bytes. Real latched feedback and host recording invalidation need validation.
-Both DevKit USB connections stay excluded with accessories; permanent tails must
-be removed for bare-board programming. C1 HOST/TARGET supplies and grounds stay
-separate. Digital buffering does not protect analog electrode inputs.
-
-C3's42.2k pulls have a conditional24mV disabled-low margin, not measured leakage
-qualification. Partial rails, SENSE injection, initial latch state, feed/ground
-breaks and AVDD/DVDD asymmetry remain open. TPS3703's30us delay is conditional on
-5%overdrive; no arbitrary-ramp or pre-E1 guaranteed shutdown has been established.
-
-Keep #45/#48, JLC04161H-7628 manufacturer confirmation, E1 calibrated dummy-source
-and measurement requirements, six-pair coupling disposition, capacitor lifecycle/
-effective-C/assembly, physical fit and delivered budget open. The94.84USD AFE
-allowance excludes the complete auxiliary/cable/carrier/tools/delivery and does
-not establish the100USD objective. All purchasing, fabrication, powered-connection,
-external-acquisition and body-use flags remain unchanged/false.
-
-`REV_A_P3_CLOCK_REVIEW.md` records the original R1 rationale and experiments;
-its historical publication-next-step is superseded by this handoff. Older
-publication narratives in docs/archive are history, not current instructions.
-Report a TLDR and category/remaining-turns/status/next-step roadmap. Never equate
-source custody, a green badge or a merge with physical qualification.
+Use locked uv and the existing `tools.check` orchestrator, all-file hooks and
+actual-head CI/review. Keep the 450 s CAD deadline and 71% branch floor; missing
+native tools are not a pass. No new project tests are needed solely to freeze
+RFQ prose or spreadsheet formatting. Check derived schedules against source;
+keep authoring/packaging checks distinct from project tests and physical evidence.
+Report TLDR plus category/remaining-turns/status/next-step roadmap. Quote
+preparation, supplier contact, a green badge and physical qualification are
+four different milestones; never label one as the next.

@@ -1,0 +1,35 @@
+Board,PCB_references,Sites_per_set,Purchase_fit_qty_per_set,Population,Description,Current_MPN,Proposed_quote_MPN,Existing_footprint,Disposition,Source_path_at_39967740
+AFE,U1,1,1,FIT,Four-channel AFE,ADS1299-4PAGR,ADS1299-4PAGR,Package_QFP:TQFP-64_10x10mm_P0.5mm,RETAIN_CURRENT,hardware/rev_a/bom.json
+EXTERNAL,MOD1,1,1,EXTERNAL_MODULE,External controller development board; includes module and its 3.3 V regulator,ESP32-S3-DevKitC-1-N8R8,ESP32-S3-DevKitC-1-N8R8,OFF_BOARD_MODULE,RETAIN_CURRENT,hardware/rev_a/bom.json
+AFE,U2,1,1,FIT,3.3 V regulator for AFE DVDD only,TPS7A2033PDBVR,TPS7A2033PDBVR,Package_TO_SOT_SMD:SOT-23-5,RETAIN_CURRENT,hardware/rev_a/bom.json
+AFE,R1 R2 R3 R4 R5 R6 R7 R8,8,8,FIT,Two series resistors per differential channel,RC0603FR-074K99L,RC0603FR-074K99L,Resistor_SMD:R_0603_1608Metric,RETAIN_CURRENT,hardware/rev_a/bom.json
+AFE,C1 C2 C3 C4,4,4,FIT,One differential capacitor per channel,GRM1885C1H472JA01D,GRM1885C1H472JA01D,Capacitor_SMD:C_0603_1608Metric,RETAIN_CURRENT,hardware/rev_a/bom.json
+AFE,R9 R10,2,2,FIT,BIAS feedback and separate dummy-load output resistor,RC0603FR-071ML,RC0603FR-071ML,Resistor_SMD:R_0603_1608Metric,RETAIN_CURRENT,hardware/rev_a/bom.json
+AFE,C5,1,1,FIT,BIAS feedback capacitor,GRM1885C1H152JA01D,GRM1885C1H152JA01D,Capacitor_SMD:C_0603_1608Metric,RETAIN_CURRENT,hardware/rev_a/bom.json
+AFE,C6,1,1,FIT,VCAP1: polarized non-ferroelectric capacitor,T491D107K016AT,T491D107K016AT,RevA_Passives:T491D_7343_DensityB,RETAIN_CURRENT,hardware/rev_a/bom.json
+AFE,C7,1,1,FIT,VREFP to VREFN: 22 uF gives margin above 10 uF minimum,T491B226K016AT,T491B226K016AT,RevA_Passives:T491B_3528_DensityB,RETAIN_CURRENT,hardware/rev_a/bom.json
+AFE,C8 C9 C10 C11 C12 C13 C14 C15 C16 C17 C18 C19 C20 C21 C22,15,15,FIT,"VCAP2/3/4, local supply pins and paired LDO capacitors",GRM188R61E105KA12D,GRM188R61C105KA12D,Capacitor_SMD:C_0603_1608Metric,PROPOSED_REPLACEMENT_NOT_APPLIED,hardware/rev_a/bom.json
+AFE,C23 C24 C25 C26 C27 C28 C29,7,7,FIT,Local high-frequency bypass,GRM188R71H104KA93D,C0603C104K5RACTU,Capacitor_SMD:C_0603_1608Metric,PROPOSED_REPLACEMENT_NOT_APPLIED,hardware/rev_a/bom.json
+AFE,C30 C31 C32 C33,4,4,FIT,"Input, AVDD, AVDD1 and DVDD bulk capacitors",GRM219R61A106KE44D,GRM21BR61C106KE15L,Capacitor_SMD:C_0805_2012Metric,PROPOSED_REPLACEMENT_NOT_APPLIED,hardware/rev_a/bom.json
+AFE,R11,1,1,FIT,"Analog rail RC feed, not a voltage regulator",RC0603FR-0710RL,RC0603FR-0710RL,Resistor_SMD:R_0603_1608Metric,RETAIN_CURRENT,hardware/rev_a/bom.json
+AFE,R14 R20 R21 R22 R23,5,5,FIT,Reserved CLK and GPIO1-4 termination; unchanged 10-kohm parts,RC0603FR-0710KL,RC0603FR-0710KL,Resistor_SMD:R_0603_1608Metric,RETAIN_CURRENT,hardware/rev_a/bom.json
+AFE,R12 R13 R15 R16 R17 R18 R19,7,7,FIT,"C3 light-load, low-default digital controls; conditional DC budget",RC0603FR-0742K2L,RC0603FR-0742K2L,Resistor_SMD:R_0603_1608Metric,RETAIN_CURRENT,hardware/rev_a/bom.json
+AFE,J1 J2,2,2,FIT,Two high-temperature LCP 2x10 bench headers; carrier keying required,HTSW-110-07-T-D,HTSW-110-07-T-D,Connector_PinHeader_2.54mm:PinHeader_2x10_P2.54mm_Vertical,RETAIN_CURRENT,hardware/rev_a/bom.json
+AFE,J3,1,1,FIT,C4 dedicated AFE digital-rail feed and separate sense access; no hot mating,B6B-XH-A(LF)(SN),B6B-XH-A(LF)(SN),Connector_JST:JST_XH_B6B-XH-A_1x06_P2.50mm_Vertical,RETAIN_CURRENT,hardware/rev_a/bom.json
+AFE,D1 D2 D3 D4 D5 D6 D7 D8,8,0,DNP,Optional low-leakage steering diode experiment; DO NOT FIT initially,"BAV199,215","BAV199,215",Package_TO_SOT_SMD:SOT-23,RETAIN_CURRENT,hardware/rev_a/bom.json
+AUX,J101,1,0,LANDINGS_ONLY,K1_NUMBERED_SOLDER_TAILS,PCB_LANDINGS_ONLY,PCB_LANDINGS_ONLY,Aux_Lands:SolderTails_20,RETAIN_CURRENT,hardware/rev_a/auxiliary/contract.json
+AUX,J102,1,0,LANDINGS_ONLY,DEVKIT_J1_NUMBERED_TAILS,PCB_LANDINGS_ONLY,PCB_LANDINGS_ONLY,Aux_Lands:SolderTails_22,RETAIN_CURRENT,hardware/rev_a/auxiliary/contract.json
+AUX,J103,1,0,LANDINGS_ONLY,ADAFRUIT_5335_TAILS,PCB_LANDINGS_ONLY,PCB_LANDINGS_ONLY,Aux_Lands:SolderTails_4,RETAIN_CURRENT,hardware/rev_a/auxiliary/contract.json
+AUX,J104,1,1,FIT,B6B-XH-A(LF)(SN),B6B-XH-A(LF)(SN),B6B-XH-A(LF)(SN),Connector_JST:JST_XH_B6B-XH-A_1x06_P2.50mm_Vertical,RETAIN_CURRENT,hardware/rev_a/auxiliary/contract.json
+AUX,J105,1,0,LANDINGS_ONLY,REGULATED_5V_TAILS,PCB_LANDINGS_ONLY,PCB_LANDINGS_ONLY,Aux_Lands:SolderTails_2,RETAIN_CURRENT,hardware/rev_a/auxiliary/contract.json
+AUX,J106,1,0,LANDINGS_ONLY,REMOTE_NO_STOP_CONTACT,PCB_LANDINGS_ONLY,PCB_LANDINGS_ONLY,Aux_Lands:SolderTails_2,RETAIN_CURRENT,hardware/rev_a/auxiliary/contract.json
+AUX,U101,1,1,FIT,ISO7721DR,ISO7721DR,ISO7721DR,Package_SO:SOIC-8_3.9x4.9mm_P1.27mm,RETAIN_CURRENT,hardware/rev_a/auxiliary/contract.json
+AUX,U102 U103 U104,3,3,FIT,TXU0304PWR,TXU0304PWR,TXU0304PWR,Package_SO:TSSOP-14_4.4x5mm_P0.65mm,RETAIN_CURRENT,hardware/rev_a/auxiliary/contract.json
+AUX,U105 U106,2,2,FIT,TPS3703A4330DSER,TPS3703A4330DSER,TPS3703A4330DSER,Package_SON:WSON-6_1.5x1.5mm_P0.5mm,RETAIN_CURRENT,hardware/rev_a/auxiliary/contract.json
+AUX,U107 U108,2,2,FIT,TPS3703A5500DSER,TPS3703A5500DSER,TPS3703A5500DSER,Package_SON:WSON-6_1.5x1.5mm_P0.5mm,RETAIN_CURRENT,hardware/rev_a/auxiliary/contract.json
+AUX,U109 U110,2,2,FIT,SN74LVC1G97DBVR,SN74LVC1G97DBVR,SN74LVC1G97DBVR,Package_TO_SOT_SMD:SOT-23-6,RETAIN_CURRENT,hardware/rev_a/auxiliary/contract.json
+AUX,U111,1,1,FIT,SN74LVC2G74DCUR,SN74LVC2G74DCUR,SN74LVC2G74DCUR,Package_SO:VSSOP-8_2.3x2mm_P0.5mm,RETAIN_CURRENT,hardware/rev_a/auxiliary/contract.json
+AUX,C101 C102 C103 C104 C105 C106 C107 C108 C109 C110 C111 C112 C113 C114 C115,15,15,FIT,100n,C0603C104K5RACTU,C0603C104K5RACTU,Capacitor_SMD:C_0603_1608Metric,RETAIN_CURRENT,hardware/rev_a/auxiliary/contract.json
+AUX,R101 R103 R105 R107 R110 R111 R112 R113,8,8,FIT,10k,RC0603FR-0710KL,RC0603FR-0710KL,Resistor_SMD:R_0603_1608Metric,RETAIN_CURRENT,hardware/rev_a/auxiliary/contract.json
+AUX,R102 R104 R106 R108 R109 R116,6,6,FIT,100k,RC0603FR-07100KL,RC0603FR-07100KL,Resistor_SMD:R_0603_1608Metric,RETAIN_CURRENT,hardware/rev_a/auxiliary/contract.json
+AUX,R114 R115,2,2,FIT,42.2k,RC0603FR-0742K2L,RC0603FR-0742K2L,Resistor_SMD:R_0603_1608Metric,RETAIN_CURRENT,hardware/rev_a/auxiliary/contract.json

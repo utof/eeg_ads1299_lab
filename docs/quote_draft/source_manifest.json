@@ -1,0 +1,62 @@
+{
+  "status": "UNSENT_QUOTATION_ONLY_NOT_MANUFACTURING_RELEASE",
+  "baseline_commit": "399677407a159ad10c766b4575b65aabc8bd3057",
+  "baseline_tree": "a3306419b36226e6b233a42ca6a08a59664e872f",
+  "repository": "https://github.com/utof/eeg_ads1299_lab",
+  "scope": {
+    "quote_lots_sets": [
+      1,
+      5
+    ],
+    "quantities_are_provisional": true,
+    "one_set": "1 AFE + 1 auxiliary + separately costed external modules/cables/mechanics",
+    "active_substitutions_applied": false,
+    "vendor_contacted": false,
+    "physical_hardware_tested": false,
+    "fabrication_authorized": false,
+    "power_authorized": false,
+    "body_use_authorized": false
+  },
+  "source_roots": [
+    "hardware/rev_a/kicad",
+    "hardware/rev_a/layout",
+    "hardware/rev_a/auxiliary",
+    "hardware/rev_a/mechanical"
+  ],
+  "input_sha256": {
+    "hardware/rev_a/bom.json": "514970772d5d3239b49b0ace9309fa83289497f88f18458b2cb802e684d1e4c9",
+    "hardware/rev_a/board_profile.json": "5e2baa1b1928f3e922626bbd2312abc73fef3864ec5164dd89d74c3a860f9a8c",
+    "hardware/rev_a/auxiliary/contract.json": "7d36ddabda0ab5ced7042850a3776b303c4a48a7666694c2a8b1cb6f623ebb75",
+    "hardware/rev_a/service_c4.json": "ad445ed9b7db6fbedcdfd9a7c4c06438d799f2d79385d27d22e51a5888945dab",
+    "hardware/rev_a/layout/rev_a.kicad_pcb": "60097ff4acf8408d5a172930de74bcd36aa50a379dd30a831e4bc64d3841c8a6",
+    "hardware/rev_a/auxiliary/auxiliary.kicad_pcb": "d4eb4781cc3529c5371d6ce0e1976d48028391047c5824ca4f474992e6fb3ec8",
+    "tests/fixtures/rev_a_netlist.xml.gz": "c28c654322ce9127174534819402d308704e05902234adcccd05c2fe2699682d",
+    "tests/fixtures/auxiliary_c3_netlist.xml.gz": "4d05997a81523dd4c8d4fb316b7b247a88d96639bd7da4a0b97e0009b85ec444",
+    "docs/REV_A_PILOT_CAPACITOR_DISPOSITION.md": "0b4d2c96cb0a68b6d873c7627e44786e49acc7a0293fa9fa0d3296db2169107d",
+    "docs/REV_A_100NF_REUSE_DECISION.md": "0b73b6e6457d7ff0bb7eb8e248b0c5460bbb2d5879ffe98df1c83e624de39d82",
+    "docs/REV_A_CONNECTOR_K1.md": "267643f43220becaa2c57fe53acaeb947d5ea84fe3a207e540c49ac1d4f844ef",
+    "docs/REV_A_SERVICE_C4.md": "aaa527d0619269e07a19b5c21dd91b4db524c22582d2e3f167cf2b748e41b040",
+    "docs/REV_A_CONTROLLER_INTERFACE_C1.md": "1f9ecabc20df917a9d4e40910fa06d17ea6c8b5a798dadc07d85299858c6c89a",
+    "docs/REV_A_CARRIER_K2.md": "51d02a4fa50653529949b682ddb60a049f5c02160968200431dc47b52997e60c",
+    "docs/REV_A_STACKUP_BENCH_REQUIREMENTS.md": "4c15a7c5f9389d90dbadafef953d628f52f5b88e23ff2a509ec8b643d6ce40f2",
+    "docs/REV_A_AUXILIARY_PLACEMENT_P1.md": "03f476996757a6cad738a64e0cf5fb05cbf13920424f1e8d9eeea9d2176c2303"
+  },
+  "inventory": {
+    "BOM_grouped_rows": 34,
+    "AFE_fitted_purchased": 61,
+    "AFE_DNP_sites": 8,
+    "AUX_fitted_purchased": 43,
+    "AUX_landing_groups_not_purchased": 5,
+    "AUX_mounting_holes_not_purchased": 4,
+    "external_MOD1_listed_once": 1,
+    "fitted_capacitors": 48,
+    "proposed_not_applied_AFE_replacements": 26
+  },
+  "limits": [
+    "No new catalog stock price or supplier process qualification",
+    "No fresh native CAD or physical measurements in packet extraction",
+    "No generated production Gerbers drills CPL or flashed firmware",
+    "Native tools and installed stock libraries are not bundled; authored PCB footprints and project-local libraries retained",
+    "Costs remain blank until sourced; not-supplied is not free"
+  ]
+}
