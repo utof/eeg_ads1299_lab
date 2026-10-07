@@ -16,6 +16,11 @@ Separate before-fabrication, before-power and later-characterization questions.
 Keep safety gates and necessary regressions; fewer checks is not the objective.
 A planning assumption never authorizes purchasing, energization or body use.
 
+Delivery planning is Moscow, Russia (user assumption, not a verified address).
+Do not spend slices on detailed price/stock lookups; keep unknown costs open and
+prioritize the next independent build or inspection decision. No supplier contact
+or order is implied. The canonical Q1 packet is in `docs/quote/`; do not duplicate it.
+
 ## GitHub: read this before trying to publish
 
 **Mandatory for every fresh agent:** read `docs/REPOSITORY_PUBLICATION.md` before
