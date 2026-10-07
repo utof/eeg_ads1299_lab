@@ -106,7 +106,15 @@ whether an unsafe unknown is acceptable: review bounded commissioning conditions
 first. Classify each uncertainty by the stage it blocks. Existing gates require
 explicit decisions; moving an item in this table never silently waives one.
 
-## 5. Pilot BOM triage completed; one concrete compatibility decision next
+## 5. Pilot BOM triage and dated follow-through
+
+**2026-10-07 follow-through:** the [100 nF review](REV_A_100NF_REUSE_DECISION.md)
+now prefers reuse of C0603C104K5RACTU for the combined pilot quotation, with exact
+land deviations and a conservative height allowance disclosed. No active BOM
+substitution or physical qualification occurred. The next independent decision
+is the remaining 1 uF / 10 uF pair, then one coordinated ceramic migration.
+The original prioritization below records how this task was selected; it is not
+an instruction to redo the completed 100 nF candidate review.
 
 The current BOM and auxiliary contract were counted at the baseline above.
 This is source inventory, not a fresh lifecycle/stock audit. The recorded concerns
@@ -121,16 +129,13 @@ and existing shortlist are in `REV_A_CAPACITOR_E1_DECISION.md` and #48.
 | AFE T491 VCAP1/reference capacitors | 2 | Retain design choice and node-specific requirements; do not apply the LDO ESR rule to these nodes |
 | Auxiliary C101–C115, C0603C104K5RACTU | 15 | Already the selected auxiliary 100 nF part; do not migrate these just because AFE Murata sourcing is open |
 
-**Next bounded compatibility decision:** determine whether the already-selected
-`C0603C104K5RACTU` can also serve the seven AFE 100 nF locations. Reusing one
-qualified identity would avoid adding another 100 nF family. This is a prioritized
-candidate to investigate, NOT an equivalence claim, part replacement or purchase.
-Check exact manufacturer specification, node bias/effective-C, termination/land,
-height and assembly applicability; a common package label alone is insufficient.
-Refresh only the current facts needed for this decision. Make a concrete
-retain/replace/needs-answer recommendation, then a coordinated change only if
-review supports it. Keep the 1 uF/10 uF decisions and #45 stackup/connector work in
-this same pilot disposition, rather than starting another accounting framework.
+**Completed candidate-choice follow-through:** see
+`REV_A_100NF_REUSE_DECISION.md`. The existing auxiliary identity is now preferred
+for quotation at the seven AFE sites as well, subject to the recorded land,
+height, exact-supply and node-specific effective-C conditions. The active BOM
+and boards are unchanged. This does not grant assembly or electrical approval.
+Next complete the 1 uF/10 uF pair and carry all three roles into one coordinated
+pilot disposition, rather than starting another accounting framework.
 Include total delivered-cost gaps; the historical $94.84 AFE allowance excludes
 the complete auxiliary, cables, carrier, tools, tax, shipping and assembly.
 
