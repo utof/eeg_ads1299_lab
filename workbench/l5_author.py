@@ -20,11 +20,11 @@ change("v.m_Uuid=p.KIID(uid(name)); b.Add(v); changed_ids.add(v.m_Uuid.AsString(
 change("v.SetWidth(p.FromMM(.6))", "v.SetWidth(p.F_Cu,p.FromMM(.6))")
 change("native=(OUT/'native-r24.kicad_pcb').read_text()", "native=(OUT/'native-r24.kicad_pcb').read_text()\nfor observed,wanted in uuid_map.items():\n    assert native.count(observed) == 1\n    native=native.replace(observed,wanted)")
 change("result=result.rstrip()[:-1]+f'\\n(net {new_code} \"MISO_DRV\")\\n'+'\\n'.join(extras)+'\\n)\\n'", "result=result.rstrip()[:-1]+'\\n'+'\\n'.join(extras)+'\\n)\\n'\nfirst = next(a for a,z,f in topforms(result) if f.startswith('(footprint'))\nresult = result[:first]+f'(net {new_code} \"MISO_DRV\")\\n'+result[first:]")
-# GPIO1 is the unused static-input shunt, NOT the MISO output. Its destination
-# moved with R20. Broaden only that disposable routing search to get around the
-# existing clock/control traces; the MISO 10mm/two-via rule is not changed.
+# Only the relocated unused GPIO1 shunt needs this wider disposable search.
+# The MISO 10mm/two-via and full-reference requirements are not relaxed.
 change("(54.5,64,34.8,38.5),'GPIO1/inner'", "(54.5,67,29.5,43),'GPIO1/inner'")
 change("assert miso_length <= 10", "assert miso_length <= 10\np.SaveBoard(str(OUT/'before-gpio-route.kicad_pcb'),b)")
+change("shutil.copytree(BASE/'hardware/rev_a/footprints',OUT/'footprints')", "# The complete CAD directory already retains its project-local libraries.")
 
 OUT.mkdir(exist_ok=True)
 (OUT/'corrected-author.py').write_text(source)
