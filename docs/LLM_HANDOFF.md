@@ -47,6 +47,25 @@ with explicitly fake API objects, NOT a native geometry emulator. One intended
 failure and seven passes were observed before the correction; all eight passed
 after it. No footprint, route, XML, BOM or contract changed in this repair.
 
+Evidence identity (historical, not a claim about every later PR head): hosted
+Python 3.11 Quality run 37842894311/job 113536458771 tested commit
+`6f8796950e53cb48d56603c70806a362c596b814`, full tree
+`92f980c241e78f94a8eb98b87b9f3b33a7c8ad2c`. Its ordinary gate passed the eight
+selector cases, with 1328 ordinary passes, 14 subtests and only the five original
+missing-position failures; the full gate FAILED. Format/lint/types/complexity/
+architecture/baseline completed first. Artifact 11578980390 SHA256
+`72f143784d3d2b31c12d49168e24fbd4475eaa87f9f1fc20138b48b2d7a4b478`
+and its JUnit were independently checked. This is not native or candidate proof.
+
+The focused local command was `python -m pytest -q
+ tests/test_auxiliary_clock_selection.py` (one command, wrapped here for width).
+Those before/after claims cover only that API-double selection scope, not the
+candidate's entire worktree. The test blob in both runs was
+`5c7314b50eb572cabf3bd755bad9d59893ef8c4c`; the pre-fix probe blob was
+`ab2a1e2cfe0c0402fd92cacbe3ff33d5cd45a598`, and the corrected probe blob was
+`7e7a3aad23060fe433e837f5749f34c95a0e5692`. Recreated local ancestry is not
+remote history; do not invent a different remote commit for these results.
+
 Read Codex review 5462618515 on preservation head 8ff5143, requested specifically
 against the recovered candidate. It reports three P1 blockers, not approval:
 1. Update placement inventory/native-DNP checks for the five exact new sites,
