@@ -1,0 +1,274 @@
+{
+  "scope": "Exact L5 auxiliary object delta for legacy comparisons only; not native or electrical approval",
+  "base_commit": "ff953c03c452f1572602b52aa62f42e80bfa9588",
+  "candidate_tree_on_exact_base": "2e50d2bdd9f25f6cc74e0294d8015a822dda50f2",
+  "allowed_new_footprints": [
+    "R117",
+    "R118",
+    "R119",
+    "R120"
+  ],
+  "changed_existing_footprint": "U102: only pads 5, 11, 12, 13 change net",
+  "affected_copper_nets": [
+    "AFE_CS",
+    "AFE_CS_DRV",
+    "AFE_MOSI",
+    "AFE_MOSI_DRV",
+    "AFE_SCLK",
+    "AFE_SCLK_DRV",
+    "MCU_MISO",
+    "MCU_MISO_DRV"
+  ],
+  "before": {
+    "084de168-ffe9-5e6f-a46f-4db803f4740c": {
+      "type": "segment",
+      "sha256": "9ac06dcd4b59a6678f44f7f824d052e8bbc90793fd7f407d8f92c99959fad047"
+    },
+    "12563d05-d931-581d-bc7e-1a02088861c7": {
+      "type": "segment",
+      "sha256": "848506ee4d73100cd3e04a9c6cae514526429f31ad603d2dc3226713c4829b85"
+    },
+    "13027f1b-40c3-549f-8b5a-b7cd69c5b9e0": {
+      "type": "segment",
+      "sha256": "507a942ddb0a2659f65146f6c623f40faee2a5dd9de5def673595641f1fa63a7"
+    },
+    "202f1435-478d-519e-bfee-65258db9a975": {
+      "type": "segment",
+      "sha256": "f26adb83962bd3661fb7dca8754191aee36bc6969a0bc61997792daeb88505ea"
+    },
+    "28f90bc5-2874-5849-b6f4-3e254ebad374": {
+      "type": "via",
+      "sha256": "17e1a61f07c97ca89775ea5a286331b416030675fb86859e1498b9a17cc2f97b"
+    },
+    "34b78612-00ef-54da-b5eb-b1e05db9b0fe": {
+      "type": "via",
+      "sha256": "404c667817960b35f56c2812465f04a508ce1e44566d54ec9c9ef61c290f54aa"
+    },
+    "36f3b6dd-9d7a-54fe-9c03-f7ebe5f77ae8": {
+      "type": "segment",
+      "sha256": "683b65f21fc48decf345553dc53d09cb26d9ad1a6528598d5d553a970a5cf002"
+    },
+    "460e29c3-0eea-5146-bc63-3587f021f584": {
+      "type": "segment",
+      "sha256": "05f5626f225ace6c40e9b5c235a909e2afc7c724ca7218ad15b91ba6998bff7e"
+    },
+    "4fe3d57b-2527-502b-af17-bd9b12e7fc71": {
+      "type": "segment",
+      "sha256": "b867cdc9030855f651f969be93397b39f26abb309af84eac2006a2546e8c5ec6"
+    },
+    "504350b6-5a28-5bbb-b65a-4bc2b73bbd1a": {
+      "type": "footprint",
+      "sha256": "6e83c61138f99ef7bbe01f9f8a2a00076d65b7a139063215e92c6ef713ab9371"
+    },
+    "52a0ced3-bf84-5a12-9ff1-73eb5a712017": {
+      "type": "segment",
+      "sha256": "61132a7b83134773cdd5598524f810072d0b7aeb3fe4dad9b2dae8b8b9590fad"
+    },
+    "6d07b5dc-1b2c-5463-acfb-41622a7b1dba": {
+      "type": "segment",
+      "sha256": "91d32e7d2eb880587cc1c9c421a19da6baea0b802d38ae76480983116d608511"
+    },
+    "7562ab07-32d3-5284-9829-0c5f0bc65f33": {
+      "type": "segment",
+      "sha256": "015ac21f82f721a10fc1cae9e269145be9179d26a864b24b6f6832b1537c3d06"
+    },
+    "998cdace-aac2-5cc2-94bb-f2466f103482": {
+      "type": "segment",
+      "sha256": "2cf1149cd0fd6c7835c12bf1d211df0eb74ca5c57d04db88942f0fbed7fca705"
+    },
+    "9b7b96c7-afd3-5806-af83-5589d8392110": {
+      "type": "segment",
+      "sha256": "9963c5ae322901f40f9b37ebb10e83fb6e908243b5ff26accdbb016cbad33680"
+    },
+    "b30dccce-04bb-58ea-8e2c-2e26df6f38f2": {
+      "type": "via",
+      "sha256": "0a7035f3c8e77e9fe19d98e17cc2ad1897642d9f842f3c3224ca2dc6e71e062b"
+    },
+    "bf1a09b9-2f69-5165-8ded-a905f82d4eb1": {
+      "type": "segment",
+      "sha256": "1557cd3f72874a994c26908612c20f0c15d5ce3c94c6ac802938702c9776da23"
+    },
+    "db9c6602-e99f-573c-a382-d9e29e7961ba": {
+      "type": "via",
+      "sha256": "51f984843494ca155df07431cd909835d67b51ada272b08449b66d2752fcd1e3"
+    },
+    "de84c8ab-6963-557d-bd07-e7b5c33799aa": {
+      "type": "segment",
+      "sha256": "658fee6d21357d6f2153b8b72a00c1e6d1f7d600c520de522d2af832f17a4167"
+    },
+    "f176ae8f-f63f-539e-b241-86767068738b": {
+      "type": "segment",
+      "sha256": "09da604d3eb699b511663fbe110885fbb236f8d811e9eacdc57381374cdbaa61"
+    },
+    "fd3dfd6f-caaf-51ee-a4c5-c9db88044b93": {
+      "type": "segment",
+      "sha256": "5a9aac90a091d8a516c96e887e40b0a69c4e7b15b55e7dc53080d2ebf9eadea0"
+    }
+  },
+  "after": {
+    "084de168-ffe9-5e6f-a46f-4db803f4740c": {
+      "type": "segment",
+      "sha256": "b6698509b9bda988f924b4f2c088323e0880078a3431708660db5390181b1f9b"
+    },
+    "09574a12-9a89-5763-b80b-3185ea152b3a": {
+      "type": "segment",
+      "sha256": "ca6f110bfa6660aa1cea693266901d5f3252b9a8fe28742c67c45ace8387aa58"
+    },
+    "0e4fa5d3-4e72-5a2a-bb71-c51d4dcb6f8a": {
+      "type": "via",
+      "sha256": "158109ceb51e588a7f99b64739f9e21541332f73b2c8dea15fb30e95ef79e61a"
+    },
+    "1995a8ae-4a79-50d2-9908-08e3d609ee06": {
+      "type": "segment",
+      "sha256": "4f97d0b5e971da6aa49812b8e32e9dbdbf11a3107af532de3718785597cd9eb1"
+    },
+    "202f1435-478d-519e-bfee-65258db9a975": {
+      "type": "segment",
+      "sha256": "3bd3617cf3f2fd9c3a6f786858ec79d31f93da59281d1ef583fdbda797b5b1bd"
+    },
+    "28f90bc5-2874-5849-b6f4-3e254ebad374": {
+      "type": "via",
+      "sha256": "2cd3533a09f77c9806619df962ec64bdc798fd8979079fcb7a05a6ef46dadbcd"
+    },
+    "30f748f6-336d-5f51-b10a-635c3a04f7b6": {
+      "type": "via",
+      "sha256": "b3449c4842e2c51176c593c8d4030cd428c2bb078231e8199143f2650c37af5d"
+    },
+    "34b78612-00ef-54da-b5eb-b1e05db9b0fe": {
+      "type": "via",
+      "sha256": "d95595d57caec1ec567e998650206e34403a861edb802f4ec69530001eb02cc8"
+    },
+    "41996a07-724e-5f5c-90b7-a1577000b718": {
+      "type": "via",
+      "sha256": "0f967e251d92797d4b7e1ae389a0f45f8d1f62e60b3d0daa5f00422240a01370"
+    },
+    "460e29c3-0eea-5146-bc63-3587f021f584": {
+      "type": "segment",
+      "sha256": "5d30e78fdcd7a86e9e1bb1c96ab90e1b87090cf5262c2a3d8d41461a5c127ae7"
+    },
+    "4fe3d57b-2527-502b-af17-bd9b12e7fc71": {
+      "type": "segment",
+      "sha256": "8ba1c4c5112df5df1ffe73bc6baea75b6389ccd57c638b4ae1ac38d55397fa5e"
+    },
+    "504350b6-5a28-5bbb-b65a-4bc2b73bbd1a": {
+      "type": "footprint",
+      "sha256": "003add425e925afbe822da6f632d697ba16f7facddd44eac718a4c8817bd3eb9"
+    },
+    "5141815c-062e-5492-ab55-930ba7fb896f": {
+      "type": "segment",
+      "sha256": "7eb4bd792468cc8f675c463f638e07be91291eea51b2e81e8825887e5c7a0372"
+    },
+    "52a0ced3-bf84-5a12-9ff1-73eb5a712017": {
+      "type": "segment",
+      "sha256": "6261650650184244a953b9f858141477d1b35c8a00dac5d855945d087d52b829"
+    },
+    "58e213eb-d573-5333-b888-b4c8c6405fd7": {
+      "type": "segment",
+      "sha256": "6f57fec61cabf80a2060ce38d03e3ccdcf8c80bba0dc840258d3cb9d55c248a3"
+    },
+    "596932f5-abe1-5a0a-8002-553815e984ba": {
+      "type": "segment",
+      "sha256": "c7e75c9fd9cb52deee4739f913b7c012f642f0dd28c1ddfcf772882d67c3ae1b"
+    },
+    "6260da9e-b661-571f-9acf-ab83f167fedd": {
+      "type": "segment",
+      "sha256": "1d17adea98d78ff5c10bdd5ed95cf2205a1a6647f074583b713bc61dad1f9405"
+    },
+    "63235413-8e25-554b-b879-cefbe0c14c57": {
+      "type": "segment",
+      "sha256": "b08f0ddf83c3a8015403e293a8ed5946468733bfadcc856670cac19aca372a15"
+    },
+    "6a5b3269-183c-518d-91c5-79b98b1ba63b": {
+      "type": "via",
+      "sha256": "666f2fe5a8d0c69adaf30510c91ffeaea755e0953234cdf70ec4d3d3d9245049"
+    },
+    "6dd3c496-7f22-57a6-a0ca-5167f6ca2423": {
+      "type": "footprint",
+      "sha256": "2f27691c52bba88ec667b6a6f0940e6c7119cd53e90ab11d764a7560cf70c356"
+    },
+    "7562ab07-32d3-5284-9829-0c5f0bc65f33": {
+      "type": "segment",
+      "sha256": "b1e8df1a06faea755fbf77f18d42687551545d8aed488fe1a54e2e07747d0e74"
+    },
+    "782ce240-b8da-5e58-976f-4be2858ab0fc": {
+      "type": "via",
+      "sha256": "b2fe9776a5750e2d7ab83ddcf103b5e14daca8b404d06a7cc3aad2ff9805510a"
+    },
+    "8615cfd7-58ca-53ef-858c-a83343356547": {
+      "type": "segment",
+      "sha256": "138952a608a904458a856493d7d0b5381379a8eea236523fe1262c49660e200d"
+    },
+    "8a3ec5cf-6bc9-5c28-a2e0-3477af628f2e": {
+      "type": "footprint",
+      "sha256": "015b92682be139772008a6c52b9e9e3302b16040cca075788e2a03bdd5a35880"
+    },
+    "8d4d21db-c61c-550b-b9c9-2ba4e22e8970": {
+      "type": "segment",
+      "sha256": "20b8061a186e514d0b3ccb439e809ab734c7a01b78834ced12b3aa325e349a6a"
+    },
+    "95adf2b0-2e88-58b9-a28d-8d47b2fe95b8": {
+      "type": "segment",
+      "sha256": "e3227c8f4266f5d528dba494b4fe7d5b2e84212dc2fa0c5baa7e6a85a9303d91"
+    },
+    "998cdace-aac2-5cc2-94bb-f2466f103482": {
+      "type": "segment",
+      "sha256": "1a004b97315203e4cbcf158ac5190302db8855251a49e19d71be9b802b8de754"
+    },
+    "9fcbee8b-8406-52a5-abdc-90d68ea2cc5a": {
+      "type": "segment",
+      "sha256": "08f84eba19361210c1337ef609ead90c9adfbffb169b437dea64e832712d0dbf"
+    },
+    "a697cf59-f429-5403-a46b-643656e1632b": {
+      "type": "segment",
+      "sha256": "df273e2b5c81271939ac7f3cab1ad600cf84d184850353f507e94639978c8175"
+    },
+    "a8ad4968-f474-581d-b044-1e6028386567": {
+      "type": "footprint",
+      "sha256": "3edfca0bcd26f56046503a6b80afd5dd9069ea64f373d8309cfda817d2cb714d"
+    },
+    "b30dccce-04bb-58ea-8e2c-2e26df6f38f2": {
+      "type": "via",
+      "sha256": "e036627eba36ee4951c4ebc201facb01e3c11bf8c4d26d7938d755a5d5e6033f"
+    },
+    "b77ad03e-68fa-5b83-9c0b-c1f8c09229f8": {
+      "type": "segment",
+      "sha256": "8037409e103dd567bdbf452dc0a6cad7a10a01fbfab65f2d9f5ed8fde3b020c0"
+    },
+    "bf1a09b9-2f69-5165-8ded-a905f82d4eb1": {
+      "type": "segment",
+      "sha256": "256426f27fe76b214f2aae3ab6116bc8c1adc2b4606abc1a1c305a5334446a0d"
+    },
+    "cf1620b6-9c33-5f65-91d9-fe62c44b904b": {
+      "type": "segment",
+      "sha256": "0291f7be7b572f2d5771de71ea62d3cd957fbc0cc054fe113be9395b4a03b847"
+    },
+    "d3ab466c-3ecb-53f0-9895-7126f884a12d": {
+      "type": "footprint",
+      "sha256": "089aaebdf76cc552d7df39e83de7680b55ae67d7df2e65fa6a6d1af93a353d94"
+    },
+    "dae1fdec-0c5e-58de-aa92-36fbfad3beef": {
+      "type": "segment",
+      "sha256": "a961f5560e1cb9c31c846bfebc8efadc0f8af4bdc81ed95fefccf0d4375c2e2b"
+    },
+    "db9c6602-e99f-573c-a382-d9e29e7961ba": {
+      "type": "via",
+      "sha256": "644149555556496b32efdc49ff213a5e55e78b12a82d694a25361411e8279897"
+    },
+    "dc406559-cb04-5318-a527-9dd6a022e617": {
+      "type": "segment",
+      "sha256": "00d657a5dfdf7f73dddbc2d8d46fd9c8c1bb89aa64e647ec95ea396a0ba54a80"
+    },
+    "de84c8ab-6963-557d-bd07-e7b5c33799aa": {
+      "type": "segment",
+      "sha256": "4db339f746bb3c95982e47b2df7316335a9ba5d0c7897ba4cef63c6ba32d93a6"
+    },
+    "fd3dfd6f-caaf-51ee-a4c5-c9db88044b93": {
+      "type": "segment",
+      "sha256": "0ff807f2cba56f0a591b33d7e903a8709fd33aa53077408e53f316955c49a17a"
+    },
+    "fddd20f5-0c3a-539f-9188-cb27ffdb4e43": {
+      "type": "via",
+      "sha256": "74a56bf880da5a9fda781ac209cc2c6f6631f2d7ef7f8dbdd3bf28f6cf263724"
+    }
+  }
+}

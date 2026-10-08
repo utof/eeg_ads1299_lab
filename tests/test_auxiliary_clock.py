@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from tests.auxiliary_preservation import copper_records, legacy_auxiliary_records
 from tests.test_auxiliary_placement import BOARD
 
 MEASURE = r"""
@@ -64,26 +65,15 @@ def test_reviewed_clock_geometry_does_not_return_to_the_long_close_route(
 
 def test_only_clock_copper_changes_in_the_review_repair() -> None:
     import hashlib
-    import re
 
     from tests.test_auxiliary_placement import ROOT
-    from tests.test_pcb_power import _form_end
 
     raw: object = json.loads(
         (ROOT / "tests/fixtures/auxiliary_clock_before_review.json").read_text()
     )
     assert isinstance(raw, dict)
-    text = BOARD.read_text()
-    net = re.search(r'\(net (\d+) "MCU_SCLK"\)', text)
-    assert net is not None
-    records = []
-    for match in re.finditer(r"\((footprint|segment|via)\s", text):
-        form = text[match.start() : _form_end(text, match.start())]
-        if match[1] != "footprint" and re.search(rf"\(net {net[1]}\)", form):
-            continue
-        ident = re.search(r'\(uuid "([^"]+)"', form)
-        assert ident is not None
-        records.append((ident[1], hashlib.sha256(form.encode()).hexdigest()))
+    normalized = legacy_auxiliary_records(copper_records(BOARD.read_text(), "MCU_SCLK"))
+    records = [(ident, item["sha256"]) for ident, item in normalized.items()]
     assert len(records) == raw["nonclock_copper_and_all_footprints_count"] == 831
     digest = hashlib.sha256(json.dumps(sorted(records), separators=(",", ":")).encode()).hexdigest()
     assert digest == raw["nonclock_copper_and_all_footprints_sha256"]

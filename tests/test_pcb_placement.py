@@ -5,9 +5,12 @@ import os
 import re
 import shutil
 import subprocess
+from collections.abc import Mapping
 from pathlib import Path
 
 import pytest
+
+from hardware.rev_a import BillOfMaterials, load_documents
 
 ROOT = Path(__file__).resolve().parents[1]
 CAD = ROOT / "hardware/rev_a/kicad"
@@ -16,14 +19,65 @@ BOARD = ROOT / "hardware/rev_a/layout/rev_a.kicad_pcb"
 
 def test_editable_placement_is_a_tracked_design_not_a_parking_grid() -> None:
     text = BOARD.read_text()
-    assert text.count('(footprint "') == 69
-    assert text.count('(pad "') == 251
-    assert text.count(" dnp)") == 8
+    _population_inventory(text, load_documents()[1])
     assert "(gr_rect " in text and '(layer "Edge.Cuts")' in text
     assert '(1 "In1.Cu" power)' in text and '(2 "In2.Cu" signal)' in text
     assert "(segment " in text
     assert "PLACEMENT DRAFT - NOT FOR FABRICATION" in text
     assert len(re.findall(r"\(zone\s", text)) == 1  # One native-filled ground region.
+
+
+def _population_inventory(text: str, bom: BillOfMaterials) -> None:
+    """Closed native-reference inventory and field/flag agreement; not a CAD parser."""
+    rows = {
+        ref: row
+        for row in bom["line_items"]
+        if row["id"] != "controller"
+        for ref in row["references"]
+    }
+    assert len(rows) == sum(
+        row["quantity"] for row in bom["line_items"] if row["id"] != "controller"
+    )
+    series = "R_MISO_SER" in rows
+    expected = {
+        f"{prefix}{n}"
+        for prefix, count in (("C", 33), ("D", 8), ("J", 3), ("R", 23 + int(series)), ("U", 2))
+        for n in range(1, count + 1)
+    }
+    references = re.findall(r'\(property\s+"Reference"\s+"([^"]+)"', text)
+    assert len(references) == len(set(references)) and set(references) == expected, "AFE inventory"
+    assert text.count('(pad "') == 251 + 2 * int(series)
+    unpopulated = {f"D{n}" for n in range(1, 9)} | ({"R24"} if series else set())
+    contracts = []
+    for reference in references:
+        part = _footprint_block(text, reference)
+        contract = _population_field(part, "ContractRef")
+        assert contract in rows, "unknown AFE contract reference"
+        contracts.append(contract)
+        _check_population_part(part, reference, contract, rows[contract], reference in unpopulated)
+    assert len(contracts) == len(set(contracts)) and set(contracts) == set(rows), "AFE BOM inventory"
+
+
+def _check_population_part(
+    part: str, reference: str, contract: str, row: Mapping[str, object], dnp: bool
+) -> None:
+    population = "dnp" if dnp else "fit"
+    assert row["population"] == _population_field(part, "Population") == population, reference
+    attrs = re.findall(r"\(attr\s+([^)]*)\)", part)
+    assert len(attrs) == 1 and ("dnp" in attrs[0].split()) is dnp, reference
+    assert "exclude_from_bom" not in attrs[0].split(), reference
+    assert _population_field(part, "MPN") == row["mpn"], reference
+    assert _population_field(part, "BOM_ID") == row["id"], reference
+    if reference == "R24":
+        assert contract == "R_MISO_SER" and row["id"] == "spi_series"
+        assert row["mpn"] == _population_field(part, "Value") == "NOT_SELECTED"
+        assert row["spec"] == {}, "no series resistance selected"
+
+
+def _population_field(part: str, name: str) -> str:
+    values = re.findall(r'\(property\s+"' + name + r'"\s+"([^"]*)"', part)
+    assert len(values) == 1, "missing/duplicate AFE " + name
+    return values[0]
 
 
 # KiCad's system Python binding is native authoring/check tooling, not a new
