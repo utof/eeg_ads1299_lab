@@ -14,7 +14,10 @@ import pcbnew as p,json,sys
 assert p.Version()=='9.0.2'
 b=p.LoadBoard(sys.argv[1]);items=list(b.GetTracks())
 clock=[t for t in items if t.Type()==p.PCB_TRACE_T and t.GetNetname()=='MCU_SCLK']
-response=[t for t in items if t.Type()==p.PCB_TRACE_T and t.GetNetname()=='MCU_MISO']
+# R120 splits one logical response path into two real electrical nets.
+# Screen both copper segments without electrically merging them or other domains.
+response=[t for t in items if t.Type()==p.PCB_TRACE_T
+          and t.GetNetname() in {'MCU_MISO','MCU_MISO_DRV'}]
 assert clock and response,'missing measured net'
 # Native exact segment distances, including nonparallel spans; widths removed
 # from the centerline distance. Pads/vias and electrical coupling are separate.

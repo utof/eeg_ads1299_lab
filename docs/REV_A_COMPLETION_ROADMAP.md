@@ -1,16 +1,19 @@
-# Rev A roadmap - L5 hardware candidate preserved, not yet applied or native-verified
+# Rev A roadmap - L5 integration blocked; split-response coverage repaired
 
 Main was checked at c2f93ee3 (PR97). Draft PR98 remains the continuation branch.
 An eleven-file LOCAL candidate adds all five DNP SPI positions to schematics and
 PCBs, with BOM/contract guards and focused tests. Its exact patch is preserved at
 [the L5 packet](recovery/l5_spi_candidate_20261008/README.md), NOT applied to active
 hardware. No native export/refill/DRC or full locked candidate gate has passed.
+The active clock selector now retains MCU_MISO_DRV coverage after splitting R120;
+this is a tested selector repair, not applied PCB source or native qualification.
 Read live state, AGENTS, REPOSITORY_PUBLICATION and LLM_HANDOFF before continuing.
 
 | Category | Remaining substantial turns | Done/status | Next slice or blocker |
 |---|---:|---|---|
 | SPI provision method | 0 for decision | L4 selects five accessible positions; no routine trace-surgery fallback | Retain scope; no chosen resistance or fitted parts |
-| Five-position source integration | 1-2 with working pinned CAD | Real local eleven-file candidate preserved; not applied in PR98 | Recover exact bytes into PR98; native exports/refill/parity/DRC, both-side cut/short faults, access/driver-route review |
+| Clock split coverage | 0 for selector repair | Real probe covers MCU_MISO and MCU_MISO_DRV; eight unit cases | Native distance/placement checks still required |
+| Five-position source integration | 1-2 with working pinned CAD and source publisher | Exact candidate recovered locally; not applied in PR98; three blocking review findings | Resolve DNP/inventory and narrow preservation deltas; native exports/refill/parity/DRC, ten cuts/five shorts and access review |
 | Other digital-channel disposition | 1 bounded decision plus evidence | MCU launch stages and DRDY/control paths separate | Actual source-end/channel evidence or explicit limited-pilot disposition |
 | Analog pilot choice | 0 for proposal | Six upstream pairs retained for internal-test-only pilot | Restricted purpose and possible revision cost accepted at release; E1 unchanged |
 | Components/manufacturing | 1-2 plus required evidence | Existing parts/process proposals and Q1 retained | Accepted stack/component/assembly decisions and coordinated changes |
@@ -30,6 +33,12 @@ Local diagnostics (104 installed-pytest passes plus 7 subtests and static route
 checks) are not a native/locked pass. The published active fixtures still lack
 five positions, so the original five red tests remain. Do not skip them, edit
 XML by hand, or interpret old hosted review/CI as approval of this candidate.
+Codex review 5462618515 identifies unresolved DNP/inventory, P2 preservation and
+missing native cut/short regressions. A local scoped integration diagnostic had
+15 failures/395 passes/7 subtests; this was not the locked or native gate.
+KiCad/pcbnew and locked dependency access are unavailable here; ordinary Git also
+failed DNS. Small connector writes do not apply the archived PCB source.
 No #45/#48, purchasing, fabrication, physical work/mating, power, external-input
-acquisition or person/animal permissions changed. Next recover and natively
-integrate the preserved candidate IN PR98, not another generic planning slice.
+acquisition or person/animal permissions changed. Next resolve those concrete
+findings and natively integrate IN PR98 with working CAD and source publication,
+not another recovery loop in the same blocked environment.

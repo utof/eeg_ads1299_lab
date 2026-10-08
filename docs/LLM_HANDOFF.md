@@ -1,4 +1,4 @@
-# Continue PR98 from the preserved L5 hardware candidate, not another study
+# Continue PR98: native integration blocked; clock split coverage repaired
 
 Read `REPOSITORY_PUBLICATION.md`, root `AGENTS.md`, `DEVELOPMENT.md` and
 `REV_A_BENCH_FIRST.md`. Read live main, open AND recently merged PRs, and original
@@ -7,14 +7,15 @@ review threads before changing anything. No missing reply proves work failed.
 ## Current state: recovery data is NOT the active engineering tree
 
 Main was checked at `c2f93ee30eb47f80a7702603f20ed22e6cce86af` (PR97).
-Draft PR98 is `work/l5-spi-series`; its last active-source base was
+Draft PR98 is `work/l5-spi-series`; the preserved hardware candidate is based on
 `ff953c03c452f1572602b52aa62f42e80bfa9588`, tree
 `928e94437784b2249042555e1fa17316406dfc41`.
 
 A real eleven-file LOCAL schematic/BOM/PCB/contracts/test candidate was authored.
 It is preserved in [the L5 recovery packet](recovery/l5_spi_candidate_20261008/README.md),
 with an exact base, per-file hashes, compact Git patch, and expected complete tree.
-This preservation commit does NOT apply that patch. The active board files,
+Preservation did NOT apply that patch, and this repair does not apply it either.
+The active board files,
 contracts and native XML fixtures still have the old topology. The original five
 missing-position tests therefore remain intentionally red. PR98 stays draft;
 no implementation completion, green gate, source merge or fabrication is claimed.
@@ -29,6 +30,53 @@ Do not silently fit zero-ohm links. An absent series part leaves a path open.
 The longer retained driver escapes (about 5.3-10.9 mm of track center-line, two
 vias each) need review, particularly R24's 10.85 mm route. Accessible lands are
 not proof of ideal source termination, timing margin or physical rework access.
+
+## Integration attempt and one active-source repair
+
+An integration attempt recovered the exact eleven-file candidate locally and
+verified every manifest hash. A scoped installed-pytest run found 15 failures,
+395 passes and 7 passing subtests. This is an incomplete integration diagnostic,
+not the ordinary locked gate or native CAD; stale XML explains many, not all,
+failures. Do not conclude that exporting the two netlists alone finishes L5.
+
+The actual clock-geometry probe had a separate blind spot: filtering only
+MCU_MISO dropped MCU_MISO_DRV after the R120 split. Its active-source selector
+now covers precisely both net names; clock limits, layers and native distance
+calculation are unchanged. Eight unit cases execute the real selection preamble
+with explicitly fake API objects, NOT a native geometry emulator. One intended
+failure and seven passes were observed before the correction; all eight passed
+after it. No footprint, route, XML, BOM or contract changed in this repair.
+
+Read Codex review 5462618515 on preservation head 8ff5143, requested specifically
+against the recovered candidate. It reports three P1 blockers, not approval:
+1. Update placement inventory/native-DNP checks for the five exact new sites,
+   preserving agreement between native DNP, Population and BOM/contract intent.
+   The auxiliary probe currently forbids every DNP; AFE counts still assume
+   69 footprints/251 pads/eight DNPs. Native validation is still required.
+2. Reconcile P2 U102 preservation narrowly: only pads 5/11/12/13 change nets.
+   Keep placement, pad geometry and unrelated copper protected. The older
+   non-clock aggregate guard also rejects the intentional L5 changes; do not
+   regenerate broad snapshots just to erase those failures.
+3. Add native cuts at both pads of every new resistor (ten sides), plus five
+   across-pad short/bypass mutations. Existing terminal cuts do not replace them.
+
+Also audit the hardcoded XML/BOM/inventory counts and K2 whole-board hash binding;
+review the new footprints' access before accepting any updated board binding.
+The per-net return screen still needs a fresh native run, not an inferred pass.
+No review finding has been closed, no preservation rule weakened, and no frozen
+XML modified. The prior no-major-issues ff953 review is not candidate approval.
+
+Local native execution was actually attempted and failed because pcbnew is
+missing. The locked gate attempt stalled in dependency downloads and was bounded
+at 20 s; it did not run the project gate. Available uv is 0.10.0, not 0.12.18.
+Normal Git access still failed DNS. Connector object writes work for the small
+source correction, but do not accept local file paths or apply the saved patch.
+A probe for the candidate's auxiliary PCB blob returned 404: its hash is not an
+already-published engineering blob. Do not treat the packet as integrated.
+The remaining integration needs working pinned native CAD and an ordinary Git
+publisher or equivalent authorized full-file transfer. Repeating recovery or
+package searches without changed capabilities will not close it. The earlier
+blocked runtime workflow remains blocked and must not be retried or bypassed.
 
 ## Next bounded source task
 
@@ -64,8 +112,9 @@ checks found five split paths, no copper bypasses, and ten detected pad-side cut
 Nominal new/modified copper and pad/via geometry had no modeled conflict below
 0.20 mm. Filled zones, fabrication tolerances and mounted hardware were NOT in
 that clearance result. This is NOT native DRC, a locked gate or physical evidence.
-No independent review or actual target compile was obtained for the candidate.
-Prior ff953 CI/Codex results cover only the older red-test/docs stage.
+The later candidate review is recorded above and remains blocking; no actual
+target compile was obtained for the candidate. Prior ff953 CI/Codex results
+cover only the older red-test/docs stage.
 
 ## Retained requirements and permissions
 
