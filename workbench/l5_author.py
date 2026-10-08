@@ -1,8 +1,4 @@
-"""Apply bounded corrections to the immutable R24 authoring attempt, then run it.
-
-This is disposable read-only authoring, not product source or a publisher.
-The complete corrected author is retained in its output for reproducibility.
-"""
+"""Bounded corrections to the immutable R24 attempt; no remote engineering writes."""
 from pathlib import Path
 import atexit
 import subprocess
@@ -18,15 +14,17 @@ def change(old, new):
     source = source.replace(old, new)
 
 change("text = text.rstrip()[:-1]+f'\\n(net {new_code} \"MISO_DRV\")\\n'+newfp+'\\n)\\n'", "text = text.rstrip()[:-1]+'\\n'+newfp+'\\n)\\n'\nfirst = next(a for a,z,f in topforms(text) if f.startswith('(footprint'))\ntext = text[:first]+f'(net {new_code} \"MISO_DRV\")\\n'+text[first:]")
-change("b = p.LoadBoard(str(boardpath))\nchanged_ids", "b = p.LoadBoard(str(boardpath))\nassert len(list(b.GetFootprints())) == 73, len(list(b.GetFootprints()))\nuuid_map = {}\nchanged_ids")
-# m_Uuid is intentionally read-only in the native Python API. Do not mutate it.
-# Map fresh native UUIDs to deterministic source UUIDs only after serialization.
+change("b = p.LoadBoard(str(boardpath))\nchanged_ids", "b = p.LoadBoard(str(boardpath))\nassert len(list(b.GetFootprints())) == sum(f.startswith('(footprint') for a,z,f in topforms(original))+1\nuuid_map = {}\nchanged_ids")
 change("t.m_Uuid=p.KIID(identity or uid(name)); b.Add(t); changed_ids.add(t.m_Uuid.AsString())", "wanted=identity or uid(name); uuid_map[t.m_Uuid.AsString()]=wanted; b.Add(t); changed_ids.add(wanted)")
 change("v.m_Uuid=p.KIID(uid(name)); b.Add(v); changed_ids.add(v.m_Uuid.AsString())", "wanted=uid(name); uuid_map[v.m_Uuid.AsString()]=wanted; b.Add(v); changed_ids.add(wanted)")
+change("v.SetWidth(p.FromMM(.6))", "v.SetWidth(p.F_Cu,p.FromMM(.6))")
 change("native=(OUT/'native-r24.kicad_pcb').read_text()", "native=(OUT/'native-r24.kicad_pcb').read_text()\nfor observed,wanted in uuid_map.items():\n    assert native.count(observed) == 1\n    native=native.replace(observed,wanted)")
 change("result=result.rstrip()[:-1]+f'\\n(net {new_code} \"MISO_DRV\")\\n'+'\\n'.join(extras)+'\\n)\\n'", "result=result.rstrip()[:-1]+'\\n'+'\\n'.join(extras)+'\\n)\\n'\nfirst = next(a for a,z,f in topforms(result) if f.startswith('(footprint'))\nresult = result[:first]+f'(net {new_code} \"MISO_DRV\")\\n'+result[first:]")
-# Count is computed from immutable source instead of an unverified absolute total.
-change("assert len(list(b.GetFootprints())) == 73, len(list(b.GetFootprints()))", "assert len(list(b.GetFootprints())) == sum(f.startswith('(footprint') for a,z,f in topforms(original))+1")
+# GPIO1 is the unused static-input shunt, NOT the MISO output. Its destination
+# moved with R20. Broaden only that disposable routing search to get around the
+# existing clock/control traces; the MISO 10mm/two-via rule is not changed.
+change("(54.5,64,34.8,38.5),'GPIO1/inner'", "(54.5,67,29.5,43),'GPIO1/inner'")
+change("assert miso_length <= 10", "assert miso_length <= 10\np.SaveBoard(str(OUT/'before-gpio-route.kicad_pcb'),b)")
 
 OUT.mkdir(exist_ok=True)
 (OUT/'corrected-author.py').write_text(source)
