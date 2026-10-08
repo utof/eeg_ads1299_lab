@@ -1,32 +1,33 @@
-# Rev A roadmap - L3 restricted analog pilot; next SPI rework provision
+# Rev A roadmap - L4 selects series positions; next is the scoped CAD edit
 
-L2 merged in PR95 at ea853b33; L1/B1-B3 and the sole Q1 packet are already merged.
-L3 chooses unchanged upstream analog routing for a proposed internal-test-only
-pilot, not E1 or manufacturing approval. Read live main/open/recent PRs, AGENTS,
-REPOSITORY_PUBLICATION and the handoff; do not recreate completed work.
-Moscow planning remains; detailed prices and supplier outreach stay paused.
+L3 merged in PR96 at cc89a5b9; L1/L2, B1-B3 and the sole Q1 packet are retained.
+L4 rejects routine trace-surgery fallback and selects five custom-board SPI
+series positions. It does not add them, choose damping values or release hardware.
+Read live main/open/recent PRs, AGENTS, REPOSITORY_PUBLICATION and the handoff.
+Moscow remains the planning destination; detailed prices/outreach stay paused.
 
 | Category | Remaining substantial turns | Done/status | Next slice or blocker |
 |---|---:|---|---|
-| Architecture / continuity | 0 for this slice | Existing modules, one gate and repository-first instructions retained | No new framework for a restricted engineering proposal |
-| Six-pair analog pilot choice | 0 for proposal selection | L3 retains all nine locations for internal-test-only pilot; external performance unqualified | Explicit restricted-purpose/revision-risk acceptance in eventual release; E1 unchanged |
-| SPI damping/rework provision | 1 bounded source decision | L2 protocol retained; actual driver segments identified | NEXT: practical supported rework access or minimal series-footprint provision, not guessed resistor values |
-| Components / manufacturing | 1-2 plus required evidence | Active-vs-proposed identities and Q1 questions preserved | Applicable stack/process/component decisions and coordinated source migration |
-| B1-B3 setup and observations | 0 for paper-method choices | Existing fixture, local pairs and supported sense-tail method | Real attachment, insulation, restraint and instruments in B2 run card |
-| Fabrication release | 1 after prerequisites | Not released; limited-pilot proposal is not release | Accept consistent source, restricted scope, outstanding dispositions and cost/order decision |
-| First power / internal capture | Equipment/assembly-dependent | Existing firmware gate false and run record empty | Accepted assembly, numeric energy/current/ramp/abort/discharge bounds, then separately authorized commissioning |
-| External dummy E1 / body use | Later separate scope | No external capability qualified; another PCB revision may be required | E1 source/coupling/noise/uncertainty and startup/interface review; no body-use inference |
-| Prices / RFQ | Paused | Single frozen unsent packet | No lookup campaign, duplicate packet or unsolicited supplier contact |
+| SPI provision method | 0 for decision | Five positions identified; four source escapes enter nominal package body boxes | No claimed solder/rework qualification or fitted parts |
+| Five-position implementation | 1-2 source turns | Exact driver/downstream boundaries and proposed refs in L4 | NEXT: coherent schematic/BOM/PCB/contracts edit with targeted failing tests and native review |
+| Other digital-channel disposition | 1 bounded decision plus needed evidence | Three MCU-driven stages and DRDY/control paths explicitly separate | Actual source-end access/channel evidence or bounded pilot disposition; not solved by five pads |
+| Analog pilot choice | 0 for proposal | L3 retains six upstream pairs for internal-test-only purpose | Explicit scope/revision-risk acceptance at release; E1 unchanged |
+| Components / manufacturing | 1-2 plus required evidence | Existing candidates and Q1 process questions retained | Accepted stack/component/assembly decisions and coordinated changes |
+| B1-B3 physical setup | Assembly/equipment-dependent | Existing plans and B2 run card, no new framework | Actual contacts, insulation, restraint, instruments and approved limits |
+| Fabrication release | 1 after prerequisites | Not released; Q1 remains a frozen quote snapshot | Consistent revision, restricted purpose, remaining dispositions and order approval |
+| First power / internal capture | Approved physical-work dependent | Firmware gate false, no acquisition | Inspected real assembly and measured commissioning under separate permission |
+| Prices / RFQ | Paused | One canonical unsent packet | No duplicate packet or price/stock campaign |
 
-Estimates overlap and exclude external responses, fabrication/shipping and
-physical measurements. L3 does not claim zero coupling: normal external inputs
-are unselected, not magically immune to pin, supply or parasitic effects. B1
-is still required; one square wave cannot verify external wiring or low noise.
-No E1 number, pending-reference guard, Q1 hash or physical approval changes.
+Estimates overlap and exclude supplier/fabrication/shipping/physical time.
+Five positions cover the custom-board SPI drivers, not every output in the
+system. The three MCU launch segments and DRDY/control/fault behavior remain
+subject to their own conditions. No universal resistor, source-impedance value,
+loop/edge budget or first-power setting is inferred from nominal geometry.
 
-Next resolve the concrete SPI rework/termination provision before the affected
-release. Use L2's existing conditions and B2's observation record rather than
-creating another timing/probe study. A selected source change requires coherent
-CAD/BOM/contracts and targeted regressions; a drawing-note merge does not waive
-#45/#48. Purchasing, fabrication, fixture construction/mating, power, external
-acquisition and person/animal connection remain unauthorized.
+Next implement AUX R117-R120 and AFE R24 as proposed in L4, not a further
+paper provisioning exercise. Keep existing R114 on the receiver side, avoid
+parallel bypasses and verify both sides of the added parts. No bare-IC lifting,
+blind trace cuts, global footprint edits or enlarged reference allowances.
+Keep the implementation separate from unrelated refactors and capacitor choices.
+All #45/#48 and purchase/fabrication/rework/construction/mating/power/external-
+acquisition/person or animal connection permissions remain unchanged.
