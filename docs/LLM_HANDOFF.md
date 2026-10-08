@@ -1,4 +1,4 @@
-# Continue from L1: located return-edge inventory; next is the complete SPI channel
+# Continue from L2: SPI protocol retained; electrical channel acceptance remains distinct
 
 **Read `REPOSITORY_PUBLICATION.md` before GitHub publication or recovery.**
 Read root `AGENTS.md`, `DEVELOPMENT.md` and `REV_A_BENCH_FIRST.md`. Start with
@@ -13,7 +13,9 @@ B2 merged in PR92 at `8c08e012e58b9bde7ca2b0f3df9c0126d10b0c00`, tree
 merged, as are capacitor/S1-S4/P3/R1/C1-C4/F1/K2 decisions. PR90 is a closed
 competing RFQ; never revive `quote_draft/`. B3 merged in PR93 at
 `2a5d0e60cc823ffdfbea5d0c45164b6b648deb6c`, tree
-`ed83eefb7d2286214d3a38dbea98a1c703491892`. Check live status for L1's merge.
+`ed83eefb7d2286214d3a38dbea98a1c703491892`. L1 merged in PR94 at
+`9af4a71c1f2895d4c9e8517ffae3f2cb58f26bd5`, tree
+`42c3e2a08a2bf50ece59038a1ce997ec7cd02c26`. Check live status for L2.
 
 Read **`REV_A_CONTACT_ACCESS_B3.md`** and its small read-only
 `studies/b3_access_envelope.scad`. The existing K2 ribbon blocks a straight
@@ -46,15 +48,32 @@ all 118 non-ground auxiliary vias join F/In2 about the same domain's In1 plane.
 This retains copper for design/DFM continuation, NOT manufacture or electrical
 acceptance. Real antipad/terminal/channel and stackup decisions are not waived.
 
-**Next bounded engineering task:** check the complete existing 1 MHz SPI read
-channel, from MCU clock launch through the buffer/cable/AFE and data return to
-the actual MCU sample event. Reconcile firmware mode and timing with applicable
-component propagation/setup/hold conditions. Distinguish guaranteed limits from
-typical values and missing cable/loading/edge data; state the dependent waveform
-check without inventing a termination resistor or another simulator framework.
-Internal-test mode still needs a functioning digital path; it cannot validate
-external coupling/noise or exempt rail/fault conditions. Do not re-audit the
-same 18 nominal edge records or repeat B1-B3, S1-S4, capacitor or quote studies.
+**L2 complete-channel protocol/timing review:** read `REV_A_SPI_CHANNEL_L2.md`.
+Keep the existing 1 MHz, MSB-first mode1 and command delays. The actual pinned
+Arduino3.3.12 path programs mode1 and clocks eight-bit hardware transfers; it
+is not ESP-IDF's per-device input-delay/dummy-cycle driver. The ADC launches
+DOUT following rising SCLK; the logical MCU receive edge is falling, not the
+C++ return event. Do not add dummy clocks, switch modes or slow SPI merely
+because there is a cable. All hardware and actual firmware gates stay unchanged.
+
+L2 maps four complete signal paths and separates setup, hold, command guards
+and whole-frame timing. The conditional 11+17+11=39 ns subtotal uses the TXU
+5 pF propagation test, NOT S2's assumed100pF or the actual cable. The ideal
+500-39=461ns remainder is NOT qualified margin. Actual load/interconnect/MCU
+aperture and monotonic receiver edges remain required; no numeric resistor is
+selected and no termination waiver follows. Pulldowns are not source damping.
+The source guard3us versus4*666ns gives336ns before uncertainty/skew, not a
+measured receiver-local pass. 120clock-us per nominal4ms excludes software gaps;
+status/DRDY checks are not a CRC or complete physical-edge guarantee.
+
+**Next independent before-fabrication decision:** revisit the ONE existing six-
+pair AFE upstream coupling disposition against the now-selected pilot scope and
+stackup requirement (`REV_A_UPSTREAM_COUPLING_DISPOSITION.md`). Decide concrete
+combined rework versus an explicitly bounded internal-test pilot proposal; do
+not silently accept it for fabrication or claim external E1 performance. Preserve
+the original geometry/guards until that separate decision. L2's unclosed actual
+channel and termination/rework-provision acceptance remains a dependent release
+item, recorded in B2, not a reason for another generic SPI/probe framework.
 
 B1-B3 now define the intended startup fixture, observations and contact approach.
 Do not add another generic measurement plan. Actual implementation/commissioning
