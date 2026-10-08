@@ -1,4 +1,4 @@
-# Continue from B3: supported sense access, no more generic probe planning
+# Continue from L1: located return-edge inventory; next is the complete SPI channel
 
 **Read `REPOSITORY_PUBLICATION.md` before GitHub publication or recovery.**
 Read root `AGENTS.md`, `DEVELOPMENT.md` and `REV_A_BENCH_FIRST.md`. Start with
@@ -11,7 +11,9 @@ Source publication, Codex review, CI and merge are different operations.
 B2 merged in PR92 at `8c08e012e58b9bde7ca2b0f3df9c0126d10b0c00`, tree
 `7e7322374c84b58704f0d30388f458e165bfea2a`. B1/PR91 and Q1/PR89 are already
 merged, as are capacitor/S1-S4/P3/R1/C1-C4/F1/K2 decisions. PR90 is a closed
-competing RFQ; never revive `quote_draft/`. Inspect live status for B3's merge.
+competing RFQ; never revive `quote_draft/`. B3 merged in PR93 at
+`2a5d0e60cc823ffdfbea5d0c45164b6b648deb6c`, tree
+`ed83eefb7d2286214d3a38dbea98a1c703491892`. Check live status for L1's merge.
 
 Read **`REV_A_CONTACT_ACCESS_B3.md`** and its small read-only
 `studies/b3_access_envelope.scad`. The existing K2 ribbon blocks a straight
@@ -31,14 +33,28 @@ Actual wire/attachment process, joint inspection and restraints remain before-us
 requirements. Separate negative sense conductors must not become an external
 common ground bus, power return or unreviewed instrument-earth connection.
 
-**Next independent build step:** review the existing before-fabrication layout/
-return-path items for the limited internal-test pilot. Start with the recorded
-18 pending auxiliary reference records/20 outlines and source-defined return
-transitions. Identify specific source repairs versus explicit limited-pilot
-engineering dispositions versus later measurements. Do not enlarge reference
-allowances, add arbitrary meanders or declare whole-channel performance from
-DRC0. Record exact remaining external evidence where it is necessary; do not
-repeat a broad supply, capacitor, RFQ or probe-family search to avoid it.
+**L1 return-edge triage:** read `REV_A_PILOT_RETURN_DISPOSITION_L1.md` and
+`studies/l1_return_triage.json`. The 20 historical envelope records are not
+20 present defects: 19 are active in the planar check, two duplicate one
+RAILS_OK location, and the old y=35 TARGET_VIN5 outline disappeared after R1.
+The native count remains 18 affected tracks. Active residuals lie at other-net
+via-clearance edges, not own-net exclusions; nominal penetration is 0.5 to
+6.1901 um, NOT a fabrication tolerance, loop length or noise bound. Keep the
+pending fixture and all guards unchanged. No mandatory reroute is established
+solely to erase this counter, and no blanket extra ground-via rule is justified:
+all 118 non-ground auxiliary vias join F/In2 about the same domain's In1 plane.
+This retains copper for design/DFM continuation, NOT manufacture or electrical
+acceptance. Real antipad/terminal/channel and stackup decisions are not waived.
+
+**Next bounded engineering task:** check the complete existing 1 MHz SPI read
+channel, from MCU clock launch through the buffer/cable/AFE and data return to
+the actual MCU sample event. Reconcile firmware mode and timing with applicable
+component propagation/setup/hold conditions. Distinguish guaranteed limits from
+typical values and missing cable/loading/edge data; state the dependent waveform
+check without inventing a termination resistor or another simulator framework.
+Internal-test mode still needs a functioning digital path; it cannot validate
+external coupling/noise or exempt rail/fault conditions. Do not re-audit the
+same 18 nominal edge records or repeat B1-B3, S1-S4, capacitor or quote studies.
 
 B1-B3 now define the intended startup fixture, observations and contact approach.
 Do not add another generic measurement plan. Actual implementation/commissioning
