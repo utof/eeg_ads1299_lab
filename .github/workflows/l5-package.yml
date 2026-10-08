@@ -24,19 +24,28 @@ jobs:
           set -eu
           gh api repos/utof/eeg_ads1299_lab/actions/artifacts/11560957956/zip > /tmp/l5-data.zip
           echo '0a066352d46f83ef65cbe782be5fc5f91fbaafadecad9610bd2b0ebae8857988  /tmp/l5-data.zip' | sha256sum -c -
-      - name: Verify diagnostics and scope; create a local bundle without publishing
-        env:
-          L5_AUTHOR_RUN: '37802027896'
-          L5_AUTHOR_ARTIFACT: '11560957956'
+      - name: Show bounded original failures and related input schemas
         run: |
-          set -eu
-          git worktree add --detach /tmp/l5-stage ff953c03c452f1572602b52aa62f42e80bfa9588
-          mkdir -p /tmp/l5-stage/docs/checkpoints
-          python3 "$GITHUB_WORKSPACE/workbench/l5_r24_package.py"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        if: always()
-        with:
-          name: l5-r24-source-package
-          path: /tmp/l5-package/
-          if-no-files-found: warn
-          retention-days: 14
+          python3 - <<'PY'
+          import re, zipfile, pathlib
+          with zipfile.ZipFile('/tmp/l5-data.zip') as z:
+              text=z.read('ordinary-gate.log').decode()
+          sections=re.split(r'(?m)^_{5,}\s+(.+?)\s+_{5,}\s*$',text)
+          seen=set()
+          for i in range(1,len(sections)-1,2):
+              name=sections[i]; base=name.split('[')[0]
+              if base in seen or 'two_terminal_series_boundary' in name: continue
+              seen.add(base)
+              print('FAILURE_DETAIL',name,'\n',sections[i+1][-4500:])
+          paths=['hardware/rev_a/current_return.py','hardware/rev_a/test_baseline.py','tests/test_schematic_contract.py','tests/test_pcb_seed.py','tests/test_schematic_bom.py','tests/test_schematic_gate.py','tests/test_supply_acceptance_s3.py','tests/test_steady_source_s4.py']
+          for rel in paths:
+              p=pathlib.Path(rel)
+              if not p.exists(): continue
+              lines=p.read_text().splitlines()
+              keep=set()
+              for i,line in enumerate(lines):
+                  if any(key in line for key in ('source_hash','sha256','MD_BOM','markdown_bom','dnp','len(graph','69','251','77','MISO','render_bom','bom_markdown')):
+                      keep.update(range(max(0,i-3),min(len(lines),i+5)))
+              print('INPUT_ANCHORS',rel)
+              for i in sorted(keep): print(f'{i+1}: {lines[i]}')
+          PY
