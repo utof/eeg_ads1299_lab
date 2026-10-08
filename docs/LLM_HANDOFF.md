@@ -1,4 +1,4 @@
-# Continue from L3: restricted analog pilot proposed; next is practical SPI rework provision
+# Continue from L4: implement five accessible SPI series positions; no trace-surgery fallback
 
 **Read `REPOSITORY_PUBLICATION.md` before GitHub publication or recovery.**
 Read root `AGENTS.md`, `DEVELOPMENT.md` and `REV_A_BENCH_FIRST.md`. Start with
@@ -17,7 +17,9 @@ competing RFQ; never revive `quote_draft/`. B3 merged in PR93 at
 `9af4a71c1f2895d4c9e8517ffae3f2cb58f26bd5`, tree
 `42c3e2a08a2bf50ece59038a1ce997ec7cd02c26`. L2 merged in PR95 at
 `ea853b338ebe6b79f01d283244eec77faebc64f4`, tree
-`df5b2668f8aca78754d71c1207e97634317ae0c0`. Check live PR/main status for L3.
+`df5b2668f8aca78754d71c1207e97634317ae0c0`. L3 merged in PR96 at
+`cc89a5b9cbdcdbd975109f75dd4a9d0587286384`, tree
+`a211a23296f9981429dd162cf1501dfe1c7b5968`. Check live PR/main status for L4.
 
 Read **`REV_A_CONTACT_ACCESS_B3.md`** and its small read-only
 `studies/b3_access_envelope.scad`. The existing K2 ribbon blocks a straight
@@ -81,14 +83,30 @@ pins from electrical damage or eliminate supply/package/parasitic coupling.
 E1's external-source, noise, coherent-error and uncertainty limits stay intact.
 Never claim that internal-test success qualifies the external R/C/channel path.
 
-**Next concrete before-fabrication decision:** close L2's practical SPI source-
-damping/rework provision at the actual drivers, starting with U102 clock output
-and U1 DOUT. Inspect physical access and choose an accepted supported rework
-method or a minimal series-footprint provision; no guessed universal resistor,
-blind wire cut, new driver library or generic timing study. Account for the
-other L2 driven segments too. Any engineering edit needs coherent BOM/CAD/
-contract changes, targeted failing tests, exact-head native checks and review.
-Do not repeat this analog scope choice, L1/B1-B3, supply/capacitor studies or RFQ.
+**L4 provision decision:** read `REV_A_SPI_PROVISION_L4.md`. Choose five
+accessible series-component positions in the next custom-board revision, not
+cut-and-flywire rework: AUX R117/U102.13 SCLK, R118/U102.12 MOSI,
+R119/U102.11 CS, R120/U102.5 MCU-side MISO, and AFE R24/U1.43 DOUT.
+These are proposed unused references, NOT implemented footprints or selected
+nonzero resistor values. Four launches go into the nominal F.Fab body box
+before their first via. R114 is a shunt pulldown and must stay receiver-side of
+R120; replacing it with a small resistor would load MISO toward ground.
+Prefer accessible existing-family 0603 lands with short driver-side routing;
+final placement/parts/process still need native and physical-access review.
+No parallel bypass: absent component means open, unlike a fitted 0-ohm link.
+Zero ohms may represent an unpowered continuity baseline, never automatic
+first-power/damping approval. No chip lifting, hidden cuts or aerial logic wires.
+
+**Next source task:** implement these five series positions coherently across
+schematics/BOM/PCB/contracts/fixtures, with failing split-net/path checks first,
+native parity/refill/cut-track checks and independent review. Preserve unaffected
+copper and all reference/domain/bypass guards; scope any necessary local change
+explicitly. Do not write another generic rework/timing plan in place of this edit.
+The three MCU-driven segments remain separate, not fixed by parts after U102;
+no resistor at AUX J102 is automatically source termination at the DevKit.
+DRDY/other control-channel requirements are not waived or silently added to the
+five-site scope. Q1 is historical: record later accepted deltas without changing
+its frozen input hashes. L1-L3/B1-B3, price searches and RFQ are not repeat tasks.
 
 B1-B3 now define the intended startup fixture, observations and contact approach.
 Do not add another generic measurement plan. Actual implementation/commissioning
