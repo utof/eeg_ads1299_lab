@@ -1,0 +1,42 @@
+name: L5 read-only R24 source packaging
+on:
+  push:
+    branches: [workbench/l5-native-runtime]
+    paths: [.github/workflows/l5-package.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: e57d4cddb3304a1cc15cbce9f9e679178e4f1b16
+          fetch-depth: 0
+          show-progress: false
+          persist-credentials: false
+      - name: Fetch one immutable authoring artifact as data
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          gh api repos/utof/eeg_ads1299_lab/actions/artifacts/11560957956/zip > /tmp/l5-data.zip
+          echo '0a066352d46f83ef65cbe782be5fc5f91fbaafadecad9610bd2b0ebae8857988  /tmp/l5-data.zip' | sha256sum -c -
+      - name: Verify diagnostics and scope; create a local bundle without publishing
+        env:
+          L5_AUTHOR_RUN: '37802027896'
+          L5_AUTHOR_ARTIFACT: '11560957956'
+        run: |
+          set -eu
+          git worktree add --detach /tmp/l5-stage ff953c03c452f1572602b52aa62f42e80bfa9588
+          mkdir -p /tmp/l5-stage/docs/checkpoints
+          python3 "$GITHUB_WORKSPACE/workbench/l5_r24_package.py"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: l5-r24-source-package
+          path: /tmp/l5-package/
+          if-no-files-found: warn
+          retention-days: 14
