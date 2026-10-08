@@ -1,10 +1,55 @@
-# Continue from L4: implement five accessible SPI series positions; no trace-surgery fallback
+# Continue PR98: L5 fail-first tests published; five-position CAD edit unfinished
 
 **Read `REPOSITORY_PUBLICATION.md` before GitHub publication or recovery.**
 Read root `AGENTS.md`, `DEVELOPMENT.md` and `REV_A_BENCH_FIRST.md`. Start with
 live main, open AND recently merged PRs and original review threads. Missing
 chat replies have followed successful merges. Do not recreate their work.
 Source publication, Codex review, CI and merge are different operations.
+
+## Unfinished PR98: resume this branch, do not recreate the red tests
+
+L4 already merged in PR97. This turn inspected live main
+`c2f93ee30eb47f80a7702603f20ed22e6cce86af`, tree
+`16447ed746e72930b25b450375ebcd8c5c6dbeb6`. The current implementation is the
+**draft PR98, branch `work/l5-spi-series`**, not a merged PCB update. First
+published test commit: `2fff3ddf4ea1f0ac0fe4265274b3640137cc7cd9`, tree
+`bcccd9aa9a0c9b8edaa295bccf8d0c6f4ef15267`. Read its live head and checks.
+
+`tests/test_spi_series_positions.py` is the required fail-first starting point:
+five missing-position failures for R117/R118/R119/R120/R24 and one passing R114
+shunt check were observed using installed pytest9.0.2 as a LOCAL DIAGNOSTIC.
+The exact downstream AFE netlist also contains off-board logical MOD1.GPIO13;
+keep it with J1.5 after R24, not on the new U1.43 driver-only net. This is a
+logical representation, not an additional physical PCB pad or a new direct MCU
+wire bypassing the auxiliary buffers. R114 stays with J102.19 after R120.
+
+**No PCB, schematic, BOM, fixture or production/firmware implementation was
+changed.** Do not merge the red stage, mark failures xfail, weaken expectations,
+or claim six tests are a completed hardware revision. The remainder is the
+coherent five-position source edit below, IN PR98, followed by fresh native
+exports, both-side cut/short checks, refill/parity/DRC and independent review.
+The existing native export/fixture equality checks must remain; hand-editing
+frozen XML to satisfy the new tests is not CAD implementation.
+
+Local execution limits: Git clone failed DNS; KiCad/ngspice are absent; installed
+uv0.10.0 differs from required0.12.18, and `uv sync --locked --all-extras` failed
+to download pinned dependencies. No full locked local gate or native run is
+claimed. The recovered 397 non-hidden source files match all nine main directory
+trees. The deliberate artifact test's extra AFE newline was removed and its
+original SHA256 verified. Unchanged hidden-root identities reconstruct the exact
+main tree but do not mean those bytes were downloaded. Git object API publication
+uses the real remote parent/base tree; synthetic local recovery ancestry is NOT
+published. GitHub writes work; do not misreport a local network failure as a
+repository permission denial. Inspect actual hosted results, not old PR97 greens.
+
+First red-head hosted evidence: Quality run37789793195, Python3.13 job113353822280,
+passed format/lint/types/complexity/architecture/baseline, then reported exactly
+five missing-position failures, 1320 ordinary passes and 14 passing subtests.
+There were no other test failures/errors/skips in its JUnit. Artifact11555503052
+SHA256 `60ad0cca93caec6c2321e0e6816d70ffd3f035cbc026753952bbc9a3e8f5ef54`
+was downloaded and checked. This proves the first red stage, NOT a green gate,
+a final-head result, native CAD execution or physical hardware qualification.
+Read subsequent checks/review on the live PR98 head; do not reuse this as a pass.
 
 ## Current source and next practical task
 
@@ -19,7 +64,8 @@ competing RFQ; never revive `quote_draft/`. B3 merged in PR93 at
 `ea853b338ebe6b79f01d283244eec77faebc64f4`, tree
 `df5b2668f8aca78754d71c1207e97634317ae0c0`. L3 merged in PR96 at
 `cc89a5b9cbdcdbd975109f75dd4a9d0587286384`, tree
-`a211a23296f9981429dd162cf1501dfe1c7b5968`. Check live PR/main status for L4.
+`a211a23296f9981429dd162cf1501dfe1c7b5968`. L4 merged in PR97 at the main
+identity above; PR98 is the unfinished implementation.
 
 Read **`REV_A_CONTACT_ACCESS_B3.md`** and its small read-only
 `studies/b3_access_envelope.scad`. The existing K2 ribbon blocks a straight
@@ -97,7 +143,7 @@ No parallel bypass: absent component means open, unlike a fitted 0-ohm link.
 Zero ohms may represent an unpowered continuity baseline, never automatic
 first-power/damping approval. No chip lifting, hidden cuts or aerial logic wires.
 
-**Next source task:** implement these five series positions coherently across
+**Next source task (continue PR98):** implement these five series positions coherently across
 schematics/BOM/PCB/contracts/fixtures, with failing split-net/path checks first,
 native parity/refill/cut-track checks and independent review. Preserve unaffected
 copper and all reference/domain/bypass guards; scope any necessary local change
