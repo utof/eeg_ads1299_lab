@@ -1,0 +1,54 @@
+name: L5 read-only native authoring runtime
+on:
+  push:
+    branches: [workbench/l5-native-runtime]
+    paths: [.github/workflows/l5-native-runtime.yml]
+permissions:
+  contents: read
+jobs:
+  runtime:
+    runs-on: ubuntu-24.04
+    container: debian:trixie@sha256:9cc080028c43b27d2074d63a5f9caf7166d731494965616c1a6d2827a004585c
+    timeout-minutes: 15
+    env:
+      UV_PYTHON_DOWNLOADS: never
+      UV_CACHE_DIR: /tmp/l5-uv-cache
+    steps:
+      - name: Install the existing pinned CAD toolchain; retain package bytes
+        run: |
+          set -eu
+          rm -f /etc/apt/apt.conf.d/docker-clean
+          apt-get update -qq
+          apt-get install --yes --no-install-recommends ca-certificates git g++ python3 python3-pip python3-venv kicad=9.0.2+dfsg-1 kicad-symbols=9.0.2-1 kicad-footprints=9.0.2-1 ngspice > /tmp/l5-install.log 2>&1 || { tail -60 /tmp/l5-install.log; exit 1; }
+          python3 -m pip install --break-system-packages uv==0.12.18
+          test "$(kicad-cli version)" = 9.0.2
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ff953c03c452f1572602b52aa62f42e80bfa9588
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Resolve only the existing locked dependencies and retain exact source
+        run: |
+          set -eu
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          test "$(git rev-parse HEAD)" = ff953c03c452f1572602b52aa62f42e80bfa9588
+          test "$(git rev-parse HEAD^{tree})" = 928e94437784b2249042555e1fa17316406dfc41
+          uv sync --locked --all-extras
+          mkdir -p /tmp/l5-runtime
+          git branch l5-runtime-baseline HEAD
+          git bundle create /tmp/l5-runtime/source.bundle l5-runtime-baseline
+          git diff --exit-code
+          test -z "$(git ls-files --others --exclude-standard)"
+          cp /tmp/l5-install.log /tmp/l5-runtime/
+          dpkg-query -W > /tmp/l5-runtime/packages.tsv
+          tar -C /var/cache/apt/archives -czf /tmp/l5-runtime/debs.tar.gz --wildcards '*.deb'
+          tar -C /tmp -czf /tmp/l5-runtime/uv-cache.tar.gz l5-uv-cache
+          cp "$(command -v uv)" /tmp/l5-runtime/uv
+          cd /tmp/l5-runtime
+          sha256sum source.bundle debs.tar.gz uv-cache.tar.gz uv packages.tsv > SHA256SUMS.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: l5-read-only-native-runtime
+          path: /tmp/l5-runtime/
+          if-no-files-found: error
+          retention-days: 7
