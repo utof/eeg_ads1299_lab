@@ -1,4 +1,4 @@
-# Continue from L2: SPI protocol retained; electrical channel acceptance remains distinct
+# Continue from L3: restricted analog pilot proposed; next is practical SPI rework provision
 
 **Read `REPOSITORY_PUBLICATION.md` before GitHub publication or recovery.**
 Read root `AGENTS.md`, `DEVELOPMENT.md` and `REV_A_BENCH_FIRST.md`. Start with
@@ -15,7 +15,9 @@ competing RFQ; never revive `quote_draft/`. B3 merged in PR93 at
 `2a5d0e60cc823ffdfbea5d0c45164b6b648deb6c`, tree
 `ed83eefb7d2286214d3a38dbea98a1c703491892`. L1 merged in PR94 at
 `9af4a71c1f2895d4c9e8517ffae3f2cb58f26bd5`, tree
-`42c3e2a08a2bf50ece59038a1ce997ec7cd02c26`. Check live status for L2.
+`42c3e2a08a2bf50ece59038a1ce997ec7cd02c26`. L2 merged in PR95 at
+`ea853b338ebe6b79f01d283244eec77faebc64f4`, tree
+`df5b2668f8aca78754d71c1207e97634317ae0c0`. Check live PR/main status for L3.
 
 Read **`REV_A_CONTACT_ACCESS_B3.md`** and its small read-only
 `studies/b3_access_envelope.scad`. The existing K2 ribbon blocks a straight
@@ -66,14 +68,27 @@ The source guard3us versus4*666ns gives336ns before uncertainty/skew, not a
 measured receiver-local pass. 120clock-us per nominal4ms excludes software gaps;
 status/DRDY checks are not a CRC or complete physical-edge guarantee.
 
-**Next independent before-fabrication decision:** revisit the ONE existing six-
-pair AFE upstream coupling disposition against the now-selected pilot scope and
-stackup requirement (`REV_A_UPSTREAM_COUPLING_DISPOSITION.md`). Decide concrete
-combined rework versus an explicitly bounded internal-test pilot proposal; do
-not silently accept it for fabrication or claim external E1 performance. Preserve
-the original geometry/guards until that separate decision. L2's unclosed actual
-channel and termination/rework-provision acceptance remains a dependent release
-item, recorded in B2, not a reason for another generic SPI/probe framework.
+**L3 decision:** read `REV_A_ANALOG_PILOT_L3.md`. Retain the six upstream
+net-pair geometries for a proposed INTERNAL-TEST-ONLY first pilot rather than
+reroute them now. All nine current locations were rechecked. This closes the
+choice of pilot proposal, not manufacturing approval or external performance.
+The release decision must explicitly accept the restricted purpose and the
+possibility of another PCB revision before E1; no order or gate is authorized.
+The existing 0x65/MUX101 internal test bypasses normal external selection; the
+0x61/MUX001 alternative is internal short, NOT an external acquisition mode.
+B1 remains required, BIAS/lead-off/SRB remain off. Mux switches do not isolate
+pins from electrical damage or eliminate supply/package/parasitic coupling.
+E1's external-source, noise, coherent-error and uncertainty limits stay intact.
+Never claim that internal-test success qualifies the external R/C/channel path.
+
+**Next concrete before-fabrication decision:** close L2's practical SPI source-
+damping/rework provision at the actual drivers, starting with U102 clock output
+and U1 DOUT. Inspect physical access and choose an accepted supported rework
+method or a minimal series-footprint provision; no guessed universal resistor,
+blind wire cut, new driver library or generic timing study. Account for the
+other L2 driven segments too. Any engineering edit needs coherent BOM/CAD/
+contract changes, targeted failing tests, exact-head native checks and review.
+Do not repeat this analog scope choice, L1/B1-B3, supply/capacitor studies or RFQ.
 
 B1-B3 now define the intended startup fixture, observations and contact approach.
 Do not add another generic measurement plan. Actual implementation/commissioning
