@@ -1,0 +1,49 @@
+name: L5 native authoring workbench
+on:
+  push:
+    branches: [workbench/l5-native-runtime]
+    paths: [.github/workflows/l5-author.yml, workbench/l5_author.py]
+permissions:
+  contents: read
+concurrency:
+  group: l5-native-authoring
+  cancel-in-progress: false
+jobs:
+  author:
+    runs-on: ubuntu-24.04
+    container: debian:trixie@sha256:9cc080028c43b27d2074d63a5f9caf7166d731494965616c1a6d2827a004585c
+    timeout-minutes: 15
+    env:
+      UV_PYTHON_DOWNLOADS: never
+      KICAD9_FOOTPRINT_DIR: /usr/share/kicad/footprints
+    steps:
+      - name: Install the existing pinned native engine
+        run: |
+          apt-get update -qq
+          apt-get install --yes --no-install-recommends ca-certificates git g++ python3 python3-pip python3-venv kicad=9.0.2+dfsg-1 kicad-symbols=9.0.2-1 kicad-footprints=9.0.2-1 > /tmp/l5-cad-install.log 2>&1 || { tail -60 /tmp/l5-cad-install.log; exit 1; }
+          python3 -m pip install --break-system-packages uv==0.12.18
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Prepare exact unmodified engineering baseline
+        run: |
+          set -eu
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          test "$(git rev-parse ff953c03c452f1572602b52aa62f42e80bfa9588^{tree})" = 928e94437784b2249042555e1fa17316406dfc41
+          git worktree add --detach /tmp/l5-edit ff953c03c452f1572602b52aa62f42e80bfa9588
+          cd /tmp/l5-edit
+          uv sync --locked --all-extras
+          mkdir -p /tmp/l5-out
+      - name: Execute bounded authoring without repository writes or hardware access
+        run: |
+          cd /tmp/l5-edit
+          python3 "$GITHUB_WORKSPACE/workbench/l5_author.py"
+      - name: Retain only small source and diagnostic outputs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: l5-native-authoring
+          path: /tmp/l5-out/
+          if-no-files-found: warn
+          retention-days: 7
