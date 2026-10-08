@@ -41,12 +41,13 @@ jobs:
           test -z "$(git ls-files --others --exclude-standard)"
           cp /tmp/l5-install.log /tmp/l5-runtime/
           dpkg-query -W > /tmp/l5-runtime/packages.tsv
-          tar -C /var/cache/apt/archives -czf /tmp/l5-runtime/debs.tar.gz --wildcards '*.deb'
+          (cd /var/cache/apt/archives && sha256sum ./*.deb > /tmp/l5-runtime/debs.sha256 && tar -czf /tmp/l5-runtime/debs.tar.gz ./*.deb)
           tar -C /tmp -czf /tmp/l5-runtime/uv-cache.tar.gz l5-uv-cache
           cp "$(command -v uv)" /tmp/l5-runtime/uv
           cd /tmp/l5-runtime
-          sha256sum source.bundle debs.tar.gz uv-cache.tar.gz uv packages.tsv > SHA256SUMS.txt
+          sha256sum source.bundle debs.tar.gz uv-cache.tar.gz uv packages.tsv debs.sha256 > SHA256SUMS.txt
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
         with:
           name: l5-read-only-native-runtime
           path: /tmp/l5-runtime/
