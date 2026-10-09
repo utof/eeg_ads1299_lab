@@ -77,7 +77,7 @@ def _check_population_part(
 
 
 def _population_field(part: str, name: str) -> str:
-    values = re.findall(r'\(property\s+"' + name + r'"\s+"([^"]*)"', part)
+    values: list[str] = re.findall(r'\(property\s+"' + name + r'"\s+"([^"]*)"', part)
     assert len(values) == 1, "missing/duplicate AFE " + name
     return values[0]
 

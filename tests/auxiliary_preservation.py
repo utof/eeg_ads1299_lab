@@ -51,7 +51,9 @@ def legacy_auxiliary_records(actual: dict[str, dict[str, str]]) -> dict[str, dic
     """
     raw: object = json.loads(DELTA.read_text())
     assert isinstance(raw, dict), "invalid L5 delta root"
-    before, after = _records(raw["before"]), _records(raw["after"])
+    before_raw: object = raw["before"]
+    after_raw: object = raw["after"]
+    before, after = _records(before_raw), _records(after_raw)
     assert len(before) == 21 and len(after) == 41
     affected = before.keys() | after.keys()
     observed = {ident: actual[ident] for ident in affected & actual.keys()}

@@ -196,7 +196,7 @@ def test_split_does_not_reset_the_existing_whole_channel_limits(fault: str) -> N
 
 def test_own_contact_exclusion_does_not_borrow_contacts_across_the_split() -> None:
     """Execute the real terminal selector using only net/layer getter doubles."""
-    selectors = [
+    selectors: list[ast.stmt] = [
         node
         for node in ast.walk(ast.parse(_OUTPUT_REFERENCE_SCRIPT))
         if isinstance(node, ast.Assign) and _assigns(node, "terminals")
