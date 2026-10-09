@@ -297,7 +297,20 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
         assert report["physical_hardware_tested"] is False
         assert report["body_connection_authorized"] is False
         assert report["schematic_released"] is False
-        assert len(read_object(report["source_sha256"], "hashes")) == 107
+        hashes = read_object(report["source_sha256"], "hashes")
+        # These seven named L5 inputs were deliberately added to the snapshot.
+        # Retain the old inventory count outside that exact set, not any new total.
+        l5_inputs = {
+            "tests/auxiliary_preservation.py",
+            "tests/test_auxiliary_preservation.py",
+            "tests/test_pcb_population.py",
+            "tests/fixtures/auxiliary_l5_delta.json",
+            "tests/test_output_reference_selection.py",
+            "tests/test_spi_series_positions.py",
+            "tests/test_spi_series_native.py",
+        }
+        assert l5_inputs <= hashes.keys()
+        assert len(hashes.keys() - l5_inputs) == 107
         directory = out / str(report["artifact_directory"])
         harness = read_object(json.loads((directory / "harness.json").read_text()), "harness")
         assert harness["physical_wiring_approved"] is False
