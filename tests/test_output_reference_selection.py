@@ -64,9 +64,10 @@ def _reference_selection(board: _Board) -> object:
     assert len(loops) == 1, "review the selector adapter after probe restructuring"
     loop = copy.deepcopy(loops[0])
     boundary = next(i for i, statement in enumerate(loop.body) if _assigns(statement, "allowed"))
-    loop.body = loop.body[:boundary] + ast.parse(
-        "selected[name] = tuple(item.ident for item in items)"
-    ).body
+    loop.body = (
+        loop.body[:boundary]
+        + ast.parse("selected[name] = tuple(item.ident for item in items)").body
+    )
     scope: dict[str, object] = {
         "b": board,
         "p": SimpleNamespace(PCB_VIA_T=2, In2_Cu=2),
