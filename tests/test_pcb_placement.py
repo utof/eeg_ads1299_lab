@@ -55,7 +55,9 @@ def _population_inventory(text: str, bom: BillOfMaterials) -> None:
         assert contract in rows, "unknown AFE contract reference"
         contracts.append(contract)
         _check_population_part(part, reference, contract, rows[contract], reference in unpopulated)
-    assert len(contracts) == len(set(contracts)) and set(contracts) == set(rows), "AFE BOM inventory"
+    assert len(contracts) == len(set(contracts)) and set(contracts) == set(rows), (
+        "AFE BOM inventory"
+    )
 
 
 def _check_population_part(
@@ -888,8 +890,14 @@ def shape(item, clearance=0):
     return poly
 
 rows = {}
-for name in ("MISO", "DRDY"):
+for name in ("MISO", "MISO_DRV", "DRDY"):
     items = [t for t in b.GetTracks() if t.GetNetname() == name]
+    if name == "MISO_DRV":
+        split = b.FindFootprintByReference("R24") is not None
+        assert bool(items) == split, "missing/unexpected MISO driver segment"
+        if not split:
+            continue
+    assert items, "missing measured output segment: " + name
     vias = [t for t in items if t.Type() == p.PCB_VIA_T]
     traces = [t for t in items if t.Type() != p.PCB_VIA_T]
     layers = sorted({b.GetLayerName(t.GetLayer()) for t in traces})
@@ -916,7 +924,23 @@ for name in ("MISO", "DRDY"):
         "inner_tracks_straight": all(t.Type() == p.PCB_TRACE_T for t in inner),
         "unreferenced_projection_mm2": uncovered.Area() / 1e12,
     }
-print(json.dumps(rows))
+def combine_output_rows(rows):
+    # R24 divides electrical nets, not the preexisting channel-length/via budget.
+    # Combine METRICS only, after each net's separate own-contact clipping.
+    result = dict(rows)
+    if "MISO_DRV" not in rows:
+        return result
+    driver, receiver = rows["MISO_DRV"], rows["MISO"]
+    combined = dict(receiver)
+    combined["layers"] = sorted(set(receiver["layers"]) | set(driver["layers"]))
+    for field in ("segments", "vias", "inner_trace_mm", "unreferenced_projection_mm2"):
+        combined[field] = receiver[field] + driver[field]
+    for field in ("inner_in_escape_rectangle", "inner_tracks_straight"):
+        combined[field] = receiver[field] and driver[field]
+    result["MISO"] = combined
+    return result
+
+print(json.dumps(combine_output_rows(rows)))
 """
 
 
@@ -979,7 +1003,10 @@ import pcbnew as p
 assert p.Version() == "9.0.2"
 b = p.LoadBoard(sys.argv[1])
 net, change = sys.argv[2:]
-tracks = [t for t in b.GetTracks() if t.GetNetname() == net and t.Type() != p.PCB_VIA_T]
+# Select both physical segments for the logical MISO fault/control operation.
+# Each retained or subdivided track keeps its own native net code below.
+names = ("MISO", "MISO_DRV") if net == "MISO" else (net,)
+tracks = [t for t in b.GetTracks() if t.GetNetname() in names and t.Type() != p.PCB_VIA_T]
 assert tracks
 if change == "back-escape":
     inner = [t for t in tracks if t.GetLayer() == p.In2_Cu]

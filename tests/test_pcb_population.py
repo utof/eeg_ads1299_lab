@@ -15,11 +15,11 @@ from tests.auxiliary_placement_probe import SCRIPT
 from tests.test_pcb_power import _form_end
 
 # Inventory-only input: deliberately no placement/routing qualification is implied.
-_SERIES = '''(footprint "Resistor_SMD:R_0603_1608Metric"
+_SERIES = """(footprint "Resistor_SMD:R_0603_1608Metric"
 (property "Reference" "R24") (property "ContractRef" "R_MISO_SER")
 (property "Value" "NOT_SELECTED") (property "MPN" "NOT_SELECTED")
 (property "BOM_ID" "spi_series") (property "Population" "dnp")
-(attr smd dnp) (pad "1" smd roundrect) (pad "2" smd roundrect))'''
+(attr smd dnp) (pad "1" smd roundrect) (pad "2" smd roundrect))"""
 
 
 def _part(text: str, reference: str) -> str:
@@ -146,7 +146,9 @@ def _native_population_block(reference: str, row: dict[str, object], part: _Foot
     else:
         raise AssertionError("native pad boundary missing")
     scope: dict[str, object] = {"row": row, "fs": {reference: part}, "p": SimpleNamespace(F_Cu=0)}
-    exec(compile(ast.Module(body=statements, type_ignores=[]), "<native-population>", "exec"), scope)
+    exec(
+        compile(ast.Module(body=statements, type_ignores=[]), "<native-population>", "exec"), scope
+    )
 
 
 def _row(reference: str) -> dict[str, object]:
@@ -161,7 +163,9 @@ def _row(reference: str) -> dict[str, object]:
 
 
 @pytest.mark.parametrize("reference", ["R117", "R118", "R119", "R120"])
-def test_native_population_block_accepts_only_the_reviewed_unpopulated_sites(reference: str) -> None:
+def test_native_population_block_accepts_only_the_reviewed_unpopulated_sites(
+    reference: str,
+) -> None:
     _native_population_block(reference, _row(reference), _Footprint())
 
 

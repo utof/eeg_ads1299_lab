@@ -54,7 +54,9 @@ def test_every_l5_delta_object_rejects_a_changed_hash() -> None:
 @pytest.mark.parametrize("mode", ["missing", "mixed", "resurrect"])
 def test_l5_mapping_rejects_partial_application(mode: str) -> None:
     before, candidate = _candidate_records()
-    common = next(ident for ident in before if ident in candidate and candidate[ident] != before[ident])
+    common = next(
+        ident for ident in before if ident in candidate and candidate[ident] != before[ident]
+    )
     if mode == "missing":
         del candidate[common]
     elif mode == "mixed":
