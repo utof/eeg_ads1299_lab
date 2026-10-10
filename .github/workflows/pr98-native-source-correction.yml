@@ -1,0 +1,163 @@
+name: Publish verified PR98 native source correction
+on:
+  push:
+    branches: [workbench/pr98-source-publication-20261010]
+    paths: [.github/workflows/pr98-native-source-correction.yml]
+permissions:
+  contents: write
+  actions: read
+jobs:
+  source-correction:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 27c6525d3ef1721b7c48f7db52c69896b8759d3a
+          fetch-depth: 0
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: pr98-native-authoring-evidence
+          run-id: 38074668398
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/native-input
+      - name: Apply only independently predetermined source corrections and native fixtures
+        env:
+          PR98_NATIVE_INPUT: ${{ runner.temp }}/native-input
+        run: |
+          python3 - <<'PY'
+          import ast, gzip, hashlib, json, os, pathlib, re, subprocess, tempfile
+          from pathlib import Path
+          START = '27c6525d3ef1721b7c48f7db52c69896b8759d3a'
+          TREE = 'bd59a0cb3027eea46d88ea4fe464380416d423fd'
+          DEST = 'refs/heads/workbench/pr98-native-corrected-20261010'
+          EXPECTED = {
+              'hardware/rev_a/auxiliary/auxiliary.kicad_pcb',
+              'hardware/rev_a/check_baseline.py',
+              'hardware/rev_a/layout/rev_a.kicad_pcb',
+              'tests/auxiliary_preservation.py',
+              'tests/fixtures/auxiliary_c3_netlist.xml.gz',
+              'tests/fixtures/auxiliary_l5_delta.json',
+              'tests/fixtures/rev_a_bom.csv',
+              'tests/fixtures/rev_a_netlist.xml.gz',
+              'tests/test_auxiliary_contract.py',
+              'tests/test_auxiliary_native.py',
+              'tests/test_schematic_bom.py',
+              'tests/test_schematic_contract.py',
+              'tests/test_schematic_gate.py',
+              'tests/test_schematic_native.py',
+          }
+          def git(*args, env=None):
+              return subprocess.check_output(['git', *args], env=env, timeout=90).decode().strip()
+          def sha(data):
+              return hashlib.sha256(data).hexdigest()
+          assert git('rev-parse', 'HEAD') == START
+          assert git('rev-parse', 'HEAD^{tree}') == 'f8a8c4a5064ae60a86a73fbd13767b0cfbb03364'
+          assert not git('status', '--porcelain', '--untracked-files=all')
+          assert git('ls-remote', 'origin', 'refs/heads/work/l5-spi-series').split()[0] == START
+          assert not git('ls-remote', 'origin', DEST)
+          native = Path(os.environ['PR98_NATIVE_INPUT'])
+          native_receipt = json.loads((native / 'native-authoring.json').read_text())
+          assert native_receipt['source_commit'] == START
+          assert native_receipt['source_tree'] == 'f8a8c4a5064ae60a86a73fbd13767b0cfbb03364'
+          for path, digest in {
+              'afe/netlist.xml':'8ca51dd37e30fdac8ee44ed6d34f5a804353a430bf37d714ddc209cec314af52',
+              'auxiliary/netlist.xml':'2127764af7978f46d11f7d26d4300d97c79d39695060b4d1a30917792f4f7277',
+              'afe/bom.csv':'8daa0f3e515e0a693fc71ec45478f3338335985fd59d3770bb9e5a5a5b281fc9',
+          }.items():
+              assert sha((native / path).read_bytes()) == digest, path
+          base = Path('.')
+          def replace_exact(path, before, after):
+              p=base/path; text=p.read_text(); assert text.count(before)==1, (path, before)
+              p.write_text(text.replace(before, after, 1))
+          for filename, count in [('hardware/rev_a/layout/rev_a.kicad_pcb',1), ('hardware/rev_a/auxiliary/auxiliary.kicad_pcb',4)]:
+              p=base/filename; text=p.read_text()
+              names = 'MISO_DRV' if count == 1 else 'AFE_SCLK_DRV|AFE_MOSI_DRV|AFE_CS_DRV|MCU_MISO_DRV'
+              matches=list(re.finditer(r'(?m)^\(net \d+ "(?:'+names+r')"\)\n?',text))
+              assert len(matches)==count and all(m.start()>text.index('(footprint ') for m in matches)
+              declarations=''.join(m.group().strip()+'\n' for m in matches)
+              for m in reversed(matches): text=text[:m.start()]+text[m.end():]
+              start=text.index('(footprint ')
+              p.write_text(text[:start]+declarations+text[start:])
+          p=base/'hardware/rev_a/auxiliary/auxiliary.kicad_pcb'; text=p.read_text()
+          delta_path=base/'tests/fixtures/auxiliary_l5_delta.json'; delta=json.loads(delta_path.read_text())
+          removed={}
+          for uid in ('71d75102-d62b-56fa-836c-16e727e27d6b','c6fdfa53-7da1-5491-8519-b5f54483d35b'):
+              matches=list(re.finditer(r'\(via[^\n]*\(uuid "'+uid+r'"\)\)',text))
+              assert len(matches)==1 and uid not in delta['before'] and uid not in delta['after']
+              form=matches[0].group(); removed[uid]=sha(form.encode())
+              delta['before'][uid]={'type':'via','sha256':removed[uid]}
+              text=text.replace(form,'',1)
+          assert removed == {
+              '71d75102-d62b-56fa-836c-16e727e27d6b':'1402feedb01e6750cdd217bc15f9a9a708f775d25b0d2b8694a8440eaff14395',
+              'c6fdfa53-7da1-5491-8519-b5f54483d35b':'e0ea2972ff9af14b1f5d47a431580f124021ea486104e1a9bdd756b46f28c9cf',
+          }
+          p.write_text(text)
+          delta['native_correction']={'source_commit':START,'run_id':38074668398,
+              'reason':'Remove exactly two native-DRC single-layer via stubs after L5 rerouting; no surviving planar copper changes',
+              'removed_via_sha256':removed}
+          delta['before']=dict(sorted(delta['before'].items()))
+          delta_path.write_text(json.dumps(delta,indent=2)+'\n')
+          replace_exact('tests/auxiliary_preservation.py','assert len(before) == 21 and len(after) == 41','assert len(before) == 23 and len(after) == 41')
+          p=base/'hardware/rev_a/check_baseline.py'; before=p.read_text()
+          old='def _validate_spi_series(\n    parts: dict[str, BomItem], require: Callable[[bool, str], None]\n) -> None:'
+          new='def _validate_spi_series(parts: dict[str, BomItem], require: Callable[[bool, str], None]) -> None:'
+          assert before.count(old)==1
+          p.write_text(before.replace(old,new,1)); assert ast.dump(ast.parse(before))==ast.dump(ast.parse(p.read_text()))
+          for source, destination in [('afe/netlist.xml','tests/fixtures/rev_a_netlist.xml.gz'),('auxiliary/netlist.xml','tests/fixtures/auxiliary_c3_netlist.xml.gz')]:
+              raw=(native/source).read_bytes(); data=bytearray(gzip.compress(raw,mtime=0)); data[9]=255
+              assert gzip.decompress(data)==raw
+              (base/destination).write_bytes(data)
+          (base/'tests/fixtures/rev_a_bom.csv').write_bytes((native/'afe/bom.csv').read_bytes())
+          changes={
+              'tests/test_schematic_contract.py': [('len(netlist.parts) == 70','len(netlist.parts) == 71'),('len(netlist.nets) == 262','len(netlist.nets) == 264'),('count == 15196','count == 15576'),('accepted == 54','accepted == 55')],
+              'tests/test_schematic_bom.py': [('len(rows) == 70','len(rows) == 71'),('sum(row["DNP"] == "DNP" for row in rows) == 8','sum(row["DNP"] == "DNP" for row in rows) == 9')],
+              'tests/test_schematic_gate.py': [('report["component_count"] == 70 and report["terminal_count"] == 262','report["component_count"] == 71 and report["terminal_count"] == 264')],
+              'tests/test_schematic_native.py': [('len(netlist.parts) == 70','len(netlist.parts) == 71')],
+              'tests/test_auxiliary_contract.py': [('len(graph.parts) == len(contract.parts) == 48','len(graph.parts) == len(contract.parts) == 52'),('sum(len(p.pins) for p in contract.parts.values()) == 212','sum(len(p.pins) for p in contract.parts.values()) == 220'),('sum(p.in_bom for p in contract.parts.values()) == 43','sum(p.in_bom for p in contract.parts.values()) == 47')],
+              'tests/test_auxiliary_native.py': [('len(rows) == 43','len(rows) == 47')],
+          }
+          for name, substitutions in changes.items():
+              for before, after in substitutions: replace_exact(name,before,after)
+          assert set(git('diff','--name-only').splitlines()) == EXPECTED
+          git('add','--',*sorted(EXPECTED))
+          assert git('write-tree') == TREE, 'complete independent expected tree mismatch'
+          assert git('rev-parse', TREE + ':.github') == git('rev-parse', START + ':.github')
+          assert git('rev-parse', TREE + ':firmware') == git('rev-parse', START + ':firmware')
+          assert git('rev-parse', TREE + ':docs/quote') == git('rev-parse', START + ':docs/quote')
+          env=dict(os.environ,GIT_AUTHOR_NAME='utof',GIT_COMMITTER_NAME='utof',GIT_AUTHOR_EMAIL='38869938+utof@users.noreply.github.com',GIT_COMMITTER_EMAIL='38869938+utof@users.noreply.github.com')
+          message=('fix(hardware): declare SPI nets before pads and import native exports\n\n'
+                   'Actual KiCad9.0.2 diagnosed five driver pads loading as no-net because\n'
+                   'their declarations appeared after footprints. Move only declarations;\n'
+                   'retain numeric nets, pad fields and planar routes. Remove exactly two\n'
+                   'native-DRC single-layer via stubs and extend only the explicit L5 delta.\n'
+                   'Use genuine native XML/CSV from immutable source27c6525d/run38074668398.\n'
+                   'Reconcile exact inventory increases, preserving all mutation loops.\n'
+                   'One AST-preserving formatter fix. Fourteen files, independently fixed\n'
+                   'expected treebd59a0c. No original snapshot, firmware, Q1, workflow or\n'
+                   'dependency/gate changes. Installed-pytest338 focused passes locally;\n'
+                   'not a locked or native correction pass. Fresh native refill/faults\n'
+                   'and K2 binding/access review remain. No fabrication or power release.\n')
+          head=git('commit-tree',TREE,'-p',START,'-m',message,env=env)
+          assert git('ls-remote','origin','refs/heads/work/l5-spi-series').split()[0] == START
+          git('push','origin',head+':'+DEST)
+          assert git('ls-remote','origin',DEST).split()[0] == head
+          temp=Path(tempfile.mkdtemp(prefix='pr98-correction-',dir=os.environ['RUNNER_TEMP']))
+          fresh=temp/'fresh'
+          subprocess.run(['git','clone','--no-local','--branch',DEST.removeprefix('refs/heads/'),'https://github.com/utof/eeg_ads1299_lab.git',str(fresh)],check=True,timeout=120)
+          assert git('-C',str(fresh),'rev-parse','HEAD') == head
+          assert git('-C',str(fresh),'rev-parse','HEAD^{tree}') == TREE
+          assert not git('-C',str(fresh),'status','--porcelain','--untracked-files=all')
+          out=Path(os.environ['RUNNER_TEMP'])/'pr98-correction-receipt'; out.mkdir()
+          receipt={'parent':START,'published_head':head,'published_tree':TREE,'destination':DEST,'files':{name:git('rev-parse',TREE+':'+name) for name in sorted(EXPECTED)},'native_input_run':38074668398,'native_input_artifact':11677788438,'independent_clone_verified':True,'native_correction_tested':False,'hardware_released':False}
+          (out/'receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
+          subprocess.run(['git','-C',str(fresh),'bundle','create',str(out/'source.bundle'),DEST],check=True,timeout=90)
+          (out/'SHA256SUMS').write_text(''.join(sha(p.read_bytes())+'  '+p.name+'\n' for p in sorted(out.iterdir()) if p.is_file()))
+          print(json.dumps(receipt,indent=2))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pr98-native-source-correction-receipt
+          path: ${{ runner.temp }}/pr98-correction-receipt/
+          retention-days: 14
+          if-no-files-found: error
