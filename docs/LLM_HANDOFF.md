@@ -1,4 +1,4 @@
-# Continue PR98: reference repair applied; reconcile dependent studies and K2
+# Continue PR98: reference repair applied; reconcile S1-S4 and K2
 
 Read root `AGENTS.md`, `REPOSITORY_PUBLICATION.md`, `DEVELOPMENT.md` and
 `REV_A_BENCH_FIRST.md`. Check live main, PR98 and original review threads.
@@ -75,8 +75,15 @@ checked e10d0f60 plus the independently reconstructed three-file tree
 
 This is a FOCUSED selection, NOT the complete project gate or complete native
 selection. Do not borrow it as a pass for another source revision. The full
-ordinary gate has known S2/S3/S4 failures; a full native selection after3519 is
-being inspected separately. Read its actual results before extending any claim.
+ordinary gate on exact3519 still has14 S2/S3/S4 failures. The COMPLETE native
+selection now finished:309 cases,308 passes and one S1 source-identity failure,
+zero errors/skips,351.788s inside the unchanged450s budget. Run38093139105,
+job114333497330 and artifact11684254915 were source/hash/JUnit checked. C104/P3,
+equivalent-copper/reference-void and all15 SPI faults pass in that full selection.
+The remaining native failure is test_supply_inventory_matches_current_native_geometry,
+which rejects the pre-L5 AFE board identity. See
+`checkpoints/20261011_l5_complete_native.json`. The full selection still FAILS;
+no hash was refreshed to hide it and runtime variation is not an optimization.
 The older3f984 full-selection timeout and its ten markers are historical failures,
 not evidence that the repaired C104/P3 controls still fail. Do not repeat that fix.
 
@@ -98,7 +105,8 @@ and native job examples in REPOSITORY_PUBLICATION; do not blindly rerun fixed jo
 
 ## Next bounded engineering task
 
-Reconcile S2/S3/S4 with the applied five-site topology. Start with the14 exact
+Reconcile S1 native inventory and S2/S3/S4 with the applied five-site topology.
+Start with the one exact native failure above and the14 exact
 historical failures in20261010_l5_applied_native.json and current exact-head CI.
 Source bindings name pre-L5 BOM/contracts; S2 also assumes unsplit driver nets.
 **Do not simply refresh hashes.** Account for open DNP positions versus expressly
@@ -112,8 +120,8 @@ native mechanical checks before changing its binding. Do not loosen it.
 
 Complete ordinary/native/firmware gates and independent exact-head review remain
 required before merge. Keep the450s complete native budget and71% branch floor.
-A previous complete selection exceeded450s: remove genuinely redundant work only
-with equivalent results if it still does, never extend time or omit cases to pass.
+The latest complete native selection finished within450s; retain that budget
+and every case rather than treating the previous timeout as a reason to loosen it.
 Inspect original reviews and subsequent comments; a diagnostic or documentation
 review is not complete engineering acceptance. PR98 remains draft and unmerged.
 
