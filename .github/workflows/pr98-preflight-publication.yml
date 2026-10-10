@@ -1,0 +1,54 @@
+name: Publish PR98 hosted preflight
+on:
+  push:
+    branches: [workbench/pr98-source-publication-20261010]
+    paths: [.github/workflows/pr98-preflight-publication.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: e10d0f60f39de7118f555777a8f25f5a357be592
+          fetch-depth: 0
+      - name: Verify and publish source data without executing project code
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib,subprocess
+          BASE='e10d0f60f39de7118f555777a8f25f5a357be592'
+          TREE='529fcfad456de16b20daa65a0d587be61813e57e'
+          DEST='refs/heads/workbench/pr98-preflight-published-20261011'
+          def git(*args,env=None):return subprocess.check_output(['git',*args],env=env,timeout=90).decode().strip()
+          assert git('rev-parse','HEAD')==BASE and not git('status','--porcelain','--untracked-files=all')
+          assert git('ls-remote','origin','refs/heads/work/l5-spi-series').split()[0]==BASE
+          assert not git('ls-remote','origin',DEST)
+          data=subprocess.check_output(['git','cat-file','blob','820cdf39db8b63e7b753c616b7a5a868422a47b6:workbench/pr98_preflight.patch'])
+          assert hashlib.sha256(data).hexdigest()=='79255a8e8c4b463c3efdfda0e40f974586dee71c2b5b1cec01977e796c099dc2'
+          patch=pathlib.Path(os.environ['RUNNER_TEMP'])/'preflight.patch';patch.write_bytes(data)
+          git('apply','--index','--check',str(patch));git('apply','--index',str(patch))
+          files={'AGENTS.md':'4f114acc18d692c74d4e8e4c52e003a6f85a3221','README.md':'ca75a66f73fdc75a60143d3fac789761ec82f5a5','docs/DEVELOPMENT.md':'a89501c946d04a50fa8b321787fe35a9fa83e07b','docs/LLM_HANDOFF.md':'31651199e987c1df733d95a148762ac441d910fc','docs/REPOSITORY_PUBLICATION.md':'fb67c626b50215616bc2826bcee4b0f1b0363861','tests/test_agent_entrypoints.py':'1276b2ec4c29e7d51e77dffec39f9c1c7167eed1'}
+          assert set(git('diff','--cached','--name-only').splitlines())==set(files)
+          for name,sha in files.items():assert git('hash-object',name)==sha,name
+          assert git('write-tree')==TREE
+          env=dict(os.environ,GIT_AUTHOR_NAME='utof',GIT_COMMITTER_NAME='utof',GIT_AUTHOR_EMAIL='38869938+utof@users.noreply.github.com',GIT_COMMITTER_EMAIL='38869938+utof@users.noreply.github.com')
+          message='docs(workflow): require hosted capability preflight before local setup\n\nPut the user instruction and proven source-only/read-only KiCad route at\nall four agent entrypoints. Require actual connected/hosted failure before\nmanual setup; local DNS or missing tools alone are not a global blocker.\nPreserve explicit-denial boundaries, source hashes, read-only validation,\nexact-head checks, permissions and physical release gates.\n\nStrengthen the existing entrypoint test without adding test count: one\nintended missing-link failure before, three local passes after. Those are\ninstalled-pytest source checks, not the full locked gate. Six files only;\nno hardware, product CI, dependency, firmware or main change. PR98 stays\ndraft and its remaining engineering failures are not waived.\n'
+          head=git('commit-tree',TREE,'-p',BASE,'-m',message,env=env)
+          assert git('ls-remote','origin','refs/heads/work/l5-spi-series').split()[0]==BASE
+          git('push','origin',head+':'+DEST)
+          assert git('ls-remote','origin',DEST).split()[0]==head
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'preflight-receipt';out.mkdir()
+          (out/'receipt.json').write_text(json.dumps({'base':BASE,'head':head,'tree':TREE,'files':files,'destination':DEST,'project_code_executed':False,'hardware_released':False},indent=2)+'\n')
+          git('update-ref','refs/heads/preflight-receipt',head)
+          git('bundle','create',str(out/'source.bundle'),'refs/heads/preflight-receipt')
+          (out/'SHA256SUMS').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.name+'\n' for p in sorted(out.iterdir()) if p.is_file()))
+          print((out/'receipt.json').read_text())
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pr98-preflight-publication
+          path: ${{ runner.temp }}/preflight-receipt/
+          retention-days: 14
+          if-no-files-found: error
