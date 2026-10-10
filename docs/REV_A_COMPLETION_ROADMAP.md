@@ -1,40 +1,33 @@
-# Rev A roadmap - native SPI fault source and AFE split coverage added
+# Rev A roadmap - five SPI positions applied; native fault checks pass
 
-Continue draft PR98 from live head; main was c2f93ee3 (PR97). The failed cc9 turn
-published its DNP/preservation repairs; do not repeat them. The eleven-file
-hardware candidate remains preserved, NOT applied. Read AGENTS,
-REPOSITORY_PUBLICATION, REV_A_BENCH_FIRST and LLM_HANDOFF before continuing.
+Continue draft PR98 from live head. Main remains c2f93ee3. The candidate was
+ACTUALLY APPLIED at27c6525d, corrected from native findings atf5338e69 and its
+fresh ground fill saved at3f98404f. Do not reapply the archived patch or recreate
+tests. Read LLM_HANDOFF, REPOSITORY_PUBLICATION and the exact-source receipt
+`checkpoints/20261010_l5_applied_native.json`.
 
 | Category | Remaining substantial turns | Done/status | Next slice or blocker |
 |---|---:|---|---|
-| SPI provision decision | 0 | Five accessible positions chosen; no trace-surgery fallback | No fitted resistance or first-power approval |
-| DNP/inventory and preservation | 0 for source repair; native confirmation pending | Closed named inventories and exact 21/41 delta; original snapshots retained | Applied native/export confirmation and review |
-| Native pad-fault source | 0 to author; execution pending | Ten cuts and five bridges now specified with fault-specific DRC witnesses | Execute on both applied/refilled boards; not unit doubles |
-| Split-output coverage | 0 for source repair | AUX clock selector and AFE output/reference/mutation probes cover both segments | Whole-channel limits unchanged; native geometry confirmation |
-| Five-position hardware integration | 1-2 with working pinned CAD and complete-file publication | Saved candidate still unapplied | Fresh exports/count consumers, refill/parity/ERC/DRC, new fault cases and access review |
-| Other digital-channel disposition | 1 bounded decision plus evidence | MCU launches and DRDY/control paths separate | Actual source-end/channel evidence or limited-pilot disposition |
-| Analog pilot choice | 0 for proposal | Six upstream pairs retained for internal-test-only pilot | Accept restricted purpose/revision risk at release; E1 unchanged |
-| Components/manufacturing | 1-2 plus required evidence | Existing parts/process proposals and frozen Q1 retained | Accepted stack/component/assembly decisions |
-| B1-B3 startup setup | Assembly/equipment-dependent | Existing plans and B2 run card retained | Actual contacts, insulation, restraints, instruments and limits |
+| Bulk source publication | 0 | Verified source-only hosted publisher works; actual PCB/schematic/BOM source in PR98 | No local setup handoff or recovery loop |
+| Five SPI positions and native faults | 0 for application and focused native closure | Both boards0parity/0DRC/0unfinished;7sheets0ERC;10cuts+5shorts pass onf5338e69 | Full reference/access selection and independent acceptance |
+| Remaining L5 integration | 1-2 | Source and fresh exports/fills applied; full ordinary gate has14failures | Reconcile S2/S3/S4 actual/conditional paths and source bindings; K2 binding/access review; exact full gates |
+| Other digital-channel disposition | 1 bounded decision plus evidence | MCU launches and DRDY/control paths remain separate | Actual source-end/channel evidence or limited-pilot disposition |
+| Analog pilot choice | 0 for proposal | Six upstream pairs retained for internal-test-only pilot | Restricted purpose/revision risk accepted at release; E1 unchanged |
+| Components/manufacturing | 1-2 plus required evidence | Existing proposals and frozen Q1 retained | Accepted stack/component/assembly decisions |
+| B1-B3 startup setup | Assembly/equipment-dependent | Existing plans/run card retained | Actual contacts, insulation, restraint, instruments and limits |
 | Fabrication release | 1 after prerequisites | Not released | One consistent reviewed revision and restricted-purpose acceptance |
-| First internal capture | Approved physical-work dependent | Firmware gate false; no acquisition | Inspected assembly and separately approved commissioning |
-| External-input characterization | Later, measurement-dependent | Unqualified; further revision possible | Existing external-source/noise/coupling/uncertainty requirements |
-| Prices/RFQ | Paused | Sole frozen unsent Q1 | No duplicate packet, detailed lookup or outreach |
+| First internal capture | Approved physical-work dependent | Firmware gatefalse; no acquisition | Inspected assembly and separately approved commissioning |
+| External-input characterization | Later, measurement-dependent | Unqualified; another revision possible | Existing source/noise/coupling/uncertainty requirements |
+| Prices/RFQ | Paused | Sole frozen unsent Q1 | No lookup/outreach/duplicate packet |
 
-Estimates overlap and exclude supplier responses, fabrication, shipping and
-measurements. The 57 focused local passes are source/API-double checks. Fifteen
-native cases were deselected there; an actual native attempt stopped at missing
-KiCad before mutation. No native cut/short or hardware pass is claimed. Exact
-before/after source identities and commands are in LLM_HANDOFF. Previous cc9 CI
-stopped at formatting; inspect current-head results rather than borrowing a pass.
+Estimates overlap and exclude manufacturing, shipping, supplier responses and
+measurements. Fifteen native cases actually executed in32.755s on exactf5338e69,
+not on every subsequent documentation head. Current full ordinary gate failures
+are source/electrical-consistency blockers, not permission to rewrite histories
+or weaken checks. DNP sites are open; no fitted resistance is selected.
 
-MISO and MISO_DRV share existing total via/length/reference budgets; own-contact
-exclusions stay net-specific. No limit was reset per segment. Format-only fixes
-leave existing population/preservation behavior intact. Gate orchestration,
-450 s CAD budget, 71% floor, dependencies, firmware and Q1 remain unchanged.
-
-Next integrate the preserved candidate in PR98 with working KiCad/source transfer;
-run new native fault cases, fresh exports/refill/parity/DRC and independent review.
-Do not recreate geometry, another archive or a new measurement plan. The prior
-blocked runtime workflow must not be retried or bypassed. All #45/#48 and
-purchase/fabrication/physical work/mating/power/external-input/body-use gates remain.
+The isolated publishers are source-only. Native CAD runs separately read-only
+with existing pinned tools. Product workflows/permissions/dependencies,450s CAD
+budget,71%floor, original P2/clock snapshots, firmware and Q1 remain unchanged.
+Read actual full diagnostic and review outcomes. No fabrication, power, physical
+work/mating, external-input acquisition or person/animal use is authorized.
