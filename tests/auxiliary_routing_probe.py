@@ -132,7 +132,7 @@ if mode=='cut':
     assert tracks,'no terminal escape found'
     for t in tracks:b.Remove(t)
 elif mode in ('reverse','split','reverse-residual','split-residual'):
-    ident='90ba6800-0027-5595-a212-7b1f01cfa8dd' if mode.endswith('-residual') else '36f3b6dd-9d7a-54fe-9c03-f7ebe5f77ae8'
+    ident='90ba6800-0027-5595-a212-7b1f01cfa8dd' if mode.endswith('-residual') else '58e213eb-d573-5333-b888-b4c8c6405fd7'
     t=next(t for t in b.GetTracks() if t.m_Uuid.AsString()==ident)
     a,c=p.VECTOR2I(t.GetStart()),p.VECTOR2I(t.GetEnd())
     if mode.startswith('reverse'):t.SetStart(c);t.SetEnd(a)
@@ -151,9 +151,12 @@ elif mode in ('edge-growth','edge-remote'):
         o.Append(p.FromMM(x),p.FromMM(y))
     b.Add(z)
 elif mode in ('reference-void','remote-void'):
-    # One real existing long AFE_SCLK segment at (34.3,9.6)-(39.05,24.9).
-    # A local ground-only window changes no signal copper and does not cross a source P2 bypass.
-    x,y=(36.675,17.25) if mode=='reference-void' else (10.,15.)
+    # Target the actual post-L5 AFE_SCLK trace, not the removed pre-series route.
+    # Derive the local window from its midpoint; remote control stays in HOST_GND.
+    t=next(t for t in b.GetTracks() if t.m_Uuid.AsString()=='58e213eb-d573-5333-b888-b4c8c6405fd7')
+    assert t.Type()==p.PCB_TRACE_T and t.GetNetname()=='AFE_SCLK'
+    a,c=t.GetStart(),t.GetEnd()
+    x,y=((a.x+c.x)/2e6,(a.y+c.y)/2e6) if mode=='reference-void' else (10.,15.)
     z=p.ZONE(b);z.SetIsRuleArea(True);z.SetLayer(p.In1_Cu);z.SetZoneName('P3_REFERENCE_PROBE')
     z.SetDoNotAllowTracks(False);z.SetDoNotAllowVias(False);z.SetDoNotAllowPads(False)
     z.SetDoNotAllowCopperPour(True);z.SetDoNotAllowFootprints(False)
