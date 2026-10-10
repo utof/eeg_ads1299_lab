@@ -1,0 +1,163 @@
+{
+  "scope": "C104/P3 reference repair and hosted capability preflight; not a full gate or release",
+  "published_engineering_commit": "3519b21e335584244771c73c5c87b70d66037a7e",
+  "published_engineering_tree": "9475d027c1a0ba1c3cf9c35c2da9e0a1be07888c",
+  "preflight_commit": "220e926395e0afbc5e150818e37278706b239b44",
+  "preflight_tree": "529fcfad456de16b20daa65a0d587be61813e57e",
+  "native_checkout": "e10d0f60f39de7118f555777a8f25f5a357be592",
+  "native_modified_tree": "21d4c3247c7b873aa9bc799fd4d861836cdf5125",
+  "native_result_to_published_source": "Exactly the three artifact source files, independently hashed and reconstructed, applied on preflight documentation commit; all other native test inputs unchanged.",
+  "native_run": 38092481309,
+  "native_job": 114331583320,
+  "native_artifact": 11684458355,
+  "native_artifact_sha256": "feaa687dfb218495181db08bcc48635c8c1e80f3efbe41d56e6997842f82b5dc",
+  "environment": {
+    "kicad": "9.0.2",
+    "uv": "0.12.18",
+    "locked_dependencies": true,
+    "read_only_repository_permissions": true,
+    "selection_timeout_seconds": 450
+  },
+  "native_tests": {
+    "passed": 113,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "junit_seconds": 238.409,
+    "includes_spi_cuts": 10,
+    "includes_spi_shorts": 5,
+    "includes_legacy_terminal_cuts": 39,
+    "modules": {
+      "tests.test_auxiliary_ground": 42,
+      "tests.test_auxiliary_routing": 49,
+      "tests.test_auxiliary_clock": 6,
+      "tests.test_reference_performance": 1,
+      "tests.test_spi_series_native": 15
+    }
+  },
+  "source_preservation_tests": {
+    "passed": 11,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0
+  },
+  "fresh_auxiliary_canonical": {
+    "schematic_parity": 0,
+    "other_drc": 0,
+    "unconnected": 0
+  },
+  "source_files": {
+    "hardware/rev_a/auxiliary/auxiliary.kicad_pcb": {
+      "sha256": "7af81c7d445ff20ac35dc2cfbcc076e07f95d6b910bf6130b252056b158e2ff8",
+      "blob": "aba2cf8255aacb586e5017954e74fb6fa72420ac"
+    },
+    "tests/auxiliary_routing_probe.py": {
+      "sha256": "d5dfeef76f40f4320f10b7cfbf7295bcabe87b1fb6459377674bca87cdcec848",
+      "blob": "ef40d9c9727d85ddecb61df89e0e34937071afa7"
+    },
+    "tests/fixtures/auxiliary_l5_delta.json": {
+      "sha256": "e84cfb6165b318c75f9d2715bbd3685c21aac335fac6bc86b90c288559d15cc8",
+      "blob": "ad1aa029173bfe20d28998ef02cce4f4ef112831"
+    }
+  },
+  "coordinate_changes": {
+    "0e4fa5d3-4e72-5a2a-bb71-c51d4dcb6f8a": [
+      "38.75 23.05",
+      "38.9 23.15"
+    ],
+    "09574a12-9a89-5763-b80b-3185ea152b3a": [
+      "38.75 23.05",
+      "38.9 23.15"
+    ],
+    "8d4d21db-c61c-550b-b9c9-2ba4e22e8970": [
+      "38.75 23.05",
+      "38.9 23.15"
+    ],
+    "41996a07-724e-5f5c-90b7-a1577000b718": [
+      "38.1 23.7",
+      "38.075 23.025"
+    ],
+    "cf1620b6-9c33-5f65-91d9-fe62c44b904b": [
+      "38.1 23.7",
+      "38.075 23.025"
+    ],
+    "b77ad03e-68fa-5b83-9c0b-c1f8c09229f8": [
+      "38.1 23.7",
+      "38.075 23.025"
+    ],
+    "30f748f6-336d-5f51-b10a-635c3a04f7b6": [
+      "38.6 19.25",
+      "38.45 19.25"
+    ],
+    "5141815c-062e-5492-ab55-930ba7fb896f": [
+      "38.6 19.25",
+      "38.45 19.25"
+    ],
+    "dae1fdec-0c5e-58de-aa92-36fbfad3beef": [
+      "38.6 19.25",
+      "38.45 19.25"
+    ]
+  },
+  "preservation": {
+    "before_records": 23,
+    "after_records": 41,
+    "updated_after_hashes": 9,
+    "original_before_map_unchanged": true,
+    "original_p2_and_clock_snapshots_unchanged": true,
+    "component_placements_unchanged": true,
+    "zone_outline_settings_unchanged": true,
+    "only_changed_cached_fill": "TARGET_GND 81952ffc-dd7f-5880-a07c-cb7c615be34b"
+  },
+  "mutation_repair": {
+    "old_absent_target": "36f3b6dd-9d7a-54fe-9c03-f7ebe5f77ae8",
+    "live_target": "58e213eb-d573-5333-b888-b4c8c6405fd7",
+    "live_net": "AFE_SCLK",
+    "uses_current_midpoint_for_reference_void": true,
+    "original_reference_checker_unchanged": true
+  },
+  "before_triage": {
+    "run": 38091991025,
+    "artifact": 11684088163,
+    "sha256": "015002075b118d509dc8dd296f473c54b29b2898db0c880540eaf3bd9ab583d3",
+    "C104_return_gap_mm2": 0.1470094296705,
+    "P3_new_full_width_gap_mm2": 0.002076282133,
+    "P3_track": "c4455c3b-ea0d-5d22-8a62-23973dd1e173"
+  },
+  "rejected_trial": {
+    "run": 38092300270,
+    "artifact": 11684437615,
+    "sha256": "949e4a5f842a1147234850069e91de2c73c7f1767a5a42443544296edb4ac41a",
+    "reason": "SCLK via versus MISO trace clearance below unchanged 0.20 mm rule",
+    "published": false
+  },
+  "source_publication": {
+    "run": 38093026800,
+    "workflow_commit": "9aad11a812704f83a2e434c5c6690c34ca5e259b",
+    "destination": "workbench/pr98-reference-published-20261011",
+    "parent": "220e926395e0afbc5e150818e37278706b239b44",
+    "exact_three_file_tree_checked_independently": true,
+    "fresh_remote_clone_checked": true,
+    "project_or_artifact_code_executed_with_write_privileges": false,
+    "pr_update_nonforce_with_expected_head": true
+  },
+  "report_sha256": {
+    "native-tests.xml": "0a7abbec0f34bf39906d2aaae2c707498d537d42b22ca9366ef59c732abbb630",
+    "source-tests.xml": "e7e3e36da81f1b03a144aa8f0b6f92dd0b5398970f2e07af2177e3dc4c8db42d",
+    "source-receipt.json": "6245b49576ab32f98207375785d3bdd9d9361d6a2a6f71815cc23ca50134d22a",
+    "canonical-result.json": "ba405d8d427f96f5706e9338e70212d18f1f570036321da05446b5de806fbdb3",
+    "source.patch": "7ff45abe3dd2c7b0bf9a784c6eb05b8c3f7f7dbb81e7b2aafc985a2ec7d0fb81"
+  },
+  "native_command": "timeout 450s uv run --locked python -m pytest -q -m schematic tests/test_auxiliary_ground.py tests/test_auxiliary_routing.py tests/test_auxiliary_clock.py tests/test_reference_performance.py tests/test_spi_series_native.py --junitxml=reports/reference-repair/native-tests.xml --basetemp=reports/reference-repair/native-tests",
+  "source_command": "uv run --locked python -m pytest -q -m 'not schematic' tests/test_auxiliary_preservation.py tests/test_auxiliary_routing.py tests/test_auxiliary_clock.py --junitxml=reports/reference-repair/source-tests.xml",
+  "full_project_gate_passed": false,
+  "complete_native_selection_passed": false,
+  "remaining": [
+    "S2-S4 current-return and source bindings: distinguish open DNP sites from conditional fitted paths",
+    "K2 board/access binding and independent acceptance",
+    "Complete exact-head ordinary/native/firmware gates under unchanged limits",
+    "Final independent source review"
+  ],
+  "fabrication_authorized": false,
+  "powering_authorized": false,
+  "body_connection_authorized": false
+}
