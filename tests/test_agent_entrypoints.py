@@ -11,6 +11,7 @@ def test_all_agent_entrypoints_link_to_the_same_real_runbook() -> None:
     for filename in ("AGENTS.md", "README.md", "docs/DEVELOPMENT.md", "docs/LLM_HANDOFF.md"):
         opening = "\n".join((ROOT / filename).read_text().splitlines()[:35])
         assert "REPOSITORY_PUBLICATION.md" in opening, filename
+        assert "REPOSITORY_PUBLICATION.md#hosted-capability-preflight" in opening, filename
 
 
 def test_interrupted_turn_recovery_has_a_root_link_and_live_state_instructions() -> None:

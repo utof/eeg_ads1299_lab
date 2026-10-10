@@ -4,6 +4,11 @@ Read root `AGENTS.md`, `REPOSITORY_PUBLICATION.md`, `DEVELOPMENT.md` and
 `REV_A_BENCH_FIRST.md`. Check live main, PR98 and original review threads.
 **Do not apply the archived candidate again. It is already active source.**
 
+Use the [hosted capability preflight](REPOSITORY_PUBLICATION.md#hosted-capability-preflight)
+before proposing local setup. Connected publication and read-only native execution
+are available independently of this terminal. Do not reapply the saved candidate
+or repeat the historical runtime-packaging denial.
+
 ## Actual source state
 
 Main remains `c2f93ee30eb47f80a7702603f20ed22e6cce86af` (PR97). Continue draft

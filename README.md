@@ -21,6 +21,11 @@ It is **not a finished EEG recorder, a validated PCB, or permission to attach a 
 
 The earlier uploaded reports are background, not software dependencies. This package does not depend on their old ZIP links or on an AD8232/ADS1115.
 
+**For assistant-run repository work:** follow the [hosted capability preflight](docs/REPOSITORY_PUBLICATION.md#hosted-capability-preflight)
+before proposing downloads or local setup. The installation commands below are
+for people choosing to run the lab locally, not prerequisites for hosted editing
+or KiCad validation through the connected tools.
+
 ## First run: Linux, macOS, or Windows
 
 Use Python **3.11 or newer**; Python 3.13 is the development default. CI exercises clean locked installations on Linux with Python 3.11 and 3.13. macOS and Windows are not currently covered by that CI matrix. `pyproject.toml` and `uv.lock` define the current dependencies; `requirements-tested.txt` is a historical validation record.
