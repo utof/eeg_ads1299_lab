@@ -1,0 +1,163 @@
+diff --git a/AGENTS.md b/AGENTS.md
+index b64604c..4f114ac 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -2,6 +2,13 @@
+ 
+ Read `docs/DEVELOPMENT.md`, `docs/LLM_HANDOFF.md`, and the Rev A hardware baseline before changing code.
+ 
++**Before any manual-setup handoff, complete the [hosted capability preflight](docs/REPOSITORY_PUBLICATION.md#hosted-capability-preflight).**
++Use the working connected GitHub/source-only publisher and separate read-only
++hosted KiCad/CI route when available. Missing local Git/gh/KiCad/pcbnew or DNS
++is not a reason to ask the user to install or download tools. Inspect current
++schemas, successful PR98 workflows and exact-head results; distinguish unavailable
++local tools from an explicit denial, which must never be bypassed.
++
+ ## Practical engineering first — standing user preference
+ 
+ Read [the bench-first decision](docs/REV_A_BENCH_FIRST.md) before choosing a slice.
+diff --git a/README.md b/README.md
+index 61ca7b7..ca75a66 100644
+--- a/README.md
++++ b/README.md
+@@ -21,6 +21,11 @@ It is **not a finished EEG recorder, a validated PCB, or permission to attach a
+ 
+ The earlier uploaded reports are background, not software dependencies. This package does not depend on their old ZIP links or on an AD8232/ADS1115.
+ 
++**For assistant-run repository work:** follow the [hosted capability preflight](docs/REPOSITORY_PUBLICATION.md#hosted-capability-preflight)
++before proposing downloads or local setup. The installation commands below are
++for people choosing to run the lab locally, not prerequisites for hosted editing
++or KiCad validation through the connected tools.
++
+ ## First run: Linux, macOS, or Windows
+ 
+ Use Python **3.11 or newer**; Python 3.13 is the development default. CI exercises clean locked installations on Linux with Python 3.11 and 3.13. macOS and Windows are not currently covered by that CI matrix. `pyproject.toml` and `uv.lock` define the current dependencies; `requirements-tested.txt` is a historical validation record.
+diff --git a/docs/DEVELOPMENT.md b/docs/DEVELOPMENT.md
+index d858d36..a89501c 100644
+--- a/docs/DEVELOPMENT.md
++++ b/docs/DEVELOPMENT.md
+@@ -7,6 +7,12 @@ and root `AGENTS.md`. Publishing source, asking Codex for review, running CI and
+ merging are separate operations; do not infer one from another or repeat a denied
+ operation through a different route.
+ 
++For work requested in chat, use the [hosted capability preflight](REPOSITORY_PUBLICATION.md#hosted-capability-preflight)
++before handing setup to the user. Local tool absence does not disable connected
++GitHub publication or the pinned native tools on hosted runners. The setup
++instructions below apply to a local development environment, not a mandatory
++prerequisite for the assistant's authorized hosted work.
++
+ ## Setup
+ 
+ Work from the repository root. Python 3.11 is the minimum supported version; the normal development interpreter is 3.13. CI checks both. Install uv 0.12.18 using its [official standalone installation instructions](https://docs.astral.sh/uv/getting-started/installation/), then synchronize the locked project, development tools, and optional serial dependency:
+diff --git a/docs/LLM_HANDOFF.md b/docs/LLM_HANDOFF.md
+index ce3be1a..3165119 100644
+--- a/docs/LLM_HANDOFF.md
++++ b/docs/LLM_HANDOFF.md
+@@ -4,6 +4,11 @@ Read root `AGENTS.md`, `REPOSITORY_PUBLICATION.md`, `DEVELOPMENT.md` and
+ `REV_A_BENCH_FIRST.md`. Check live main, PR98 and original review threads.
+ **Do not apply the archived candidate again. It is already active source.**
+ 
++Use the [hosted capability preflight](REPOSITORY_PUBLICATION.md#hosted-capability-preflight)
++before proposing local setup. Connected publication and read-only native execution
++are available independently of this terminal. Do not reapply the saved candidate
++or repeat the historical runtime-packaging denial.
++
+ ## Actual source state
+ 
+ Main remains `c2f93ee30eb47f80a7702603f20ed22e6cce86af` (PR97). Continue draft
+diff --git a/docs/REPOSITORY_PUBLICATION.md b/docs/REPOSITORY_PUBLICATION.md
+index 3298444..fb67c62 100644
+--- a/docs/REPOSITORY_PUBLICATION.md
++++ b/docs/REPOSITORY_PUBLICATION.md
+@@ -4,6 +4,79 @@ This note records observed methods, not a grant of permissions or a script to
+ execute automatically. First read live main/PR heads and the current handoff.
+ Do not reconstruct already-published source because a chat turn failed.
+ 
++## Hosted capability preflight
++
++**Standing user instruction: do the repository work from this chat when an
++available authorized hosted route can do it. Do not transfer setup work to the
++user merely because this chat's local terminal lacks Git, gh, KiCad, OpenSCAD,
++network access or locked Python dependencies.** This is an execution decision,
++not a promise that every future tool is available. The assistant must inspect
++actual capabilities before declaring a blocker.
++
++Before telling the user to download, clone, install, run a helper, or configure a
++local/Codex environment, complete this preflight in the current session:
++
++| Needed operation | Check/use first | What is NOT a blocker for this route |
++|---|---|---|
++| Read or publish ordinary source | Discover connected GitHub actions; use real file contents or blob/tree/commit plus non-force expected-head ref update | Local git/gh DNS or authentication failure |
++| Publish large authored CAD or native output | Inspect the successful PR98 source-only publisher below; use a separately authorized, exact-SHA/hash/scope-bounded source job on a workbench branch | No local-file-upload action; inability to transcribe a large PCB into a text argument |
++| Run KiCad, native tests or target compilation | Inspect existing product CI and recent read-only workbench jobs; use the project's pinned environment on an exact source revision | No local kicad-cli, pcbnew or toolchain |
++| Resume after a failed chat/job | Read live PR/main refs, complete trees, original review threads and retained artifact receipts | A missing final answer or an artifact-export failure AFTER a successful push |
++
++A user request to continue normal engineering includes the ordinary scoped source
++and validation operations needed for that work; do not repeatedly ask the user to
++perform them instead. It does NOT grant permission to change repository settings,
++credentials, release gates, dependencies or main directly. An explicit tool denial
++applies to the denied operation: stop it and do not retry/bypass it. Distinguish it
++from a missing local executable, DNS error, obsolete job, or missing action. In
++PR98 the blocked runtime-packaging operation was not retried; separately scoped
++source-only publication and read-only native authoring were accepted and worked.
++
++### Proven route and verification order
++
++Read the actual files on `workbench/pr98-source-publication-20261010` via the
++connector; these are examples to inspect, NOT fixed jobs to blindly rerun:
++
++* `.github/workflows/pr98-source-publication.yml` and
++  `pr98-native-source-correction.yml`: immutable source/data checks, exact base and
++  expected output tree, temporary non-main destination, no project execution with
++  write privileges. The engineer then verifies the remote tree and advances only
++  the intended PR branch with an expected-head, non-force update.
++* `.github/workflows/pr98-native-authoring.yml` and
++  `pr98-full-native-diagnostic.yml`: separate contents:read, no persisted checkout
++  credentials, pinned KiCad 9.0.2/uv/lock, ignored output directories, bounded
++  commands, source-unchanged checks and retained native evidence. A diagnostic
++  selection is NOT a substitute for the full shared gate.
++* `.github/workflows/pr98-save-native-fill.yml`: source-only import of verified
++  native DATA. Its historical push succeeded before optional bundle creation
++  failed. Verify side effects before retrying; create a local named ref before
++  any future bundle export.
++
++For a new slice use fresh source/branch/artifact/hash guards matching the actual
++user-authorized change. Keep publisher and read-only execution separate; do not
++run unreviewed project/artifact code in the write-enabled job. Workbench workflows
++stay outside the engineering PR. Use existing native helpers and `tools.check`,
++not a new project runner. Preserve the 450 s CAD budget and all test selections.
++
++After publication, inspect actual exact-head CI; a GITHUB_TOKEN push can fail to
++trigger another workflow, and a successful publisher is not a test pass. Use the
++connected, guarded PR update and read the resulting runs. Download native evidence,
++verify its source identity, SHA256 and report content, then review the exact
++engineering head. Never borrow an old green result or count collection as execution.
++
++### When a manual handoff is justified
++
++Only after the relevant connected/hosted action actually fails or is unavailable
++under its discovered schema, record the exact action, source revision, returned
++error and remaining alternatives. Report source publication, native execution,
++review and physical work as separate states. Do not claim all GitHub work is
++blocked from one failed route, or repeat package/recovery searches without a
++changed capability. Ask for the smallest genuinely user-only action only when no
++available authorized route can complete it, or when the user explicitly requests
++local instructions. Never request credentials or a broad permissions increase.
++Physical inspection/measurement and release decisions remain separate and cannot
++be replaced by hosted execution. Update the current handoff before ending the turn.
++
+ ## Fresh-agent decision path (start here)
+ 
+ 1. Read `AGENTS.md`, current `LLM_HANDOFF.md`, live main and open PRs. Inspect
+diff --git a/tests/test_agent_entrypoints.py b/tests/test_agent_entrypoints.py
+index 22a8eaf..1276b2e 100644
+--- a/tests/test_agent_entrypoints.py
++++ b/tests/test_agent_entrypoints.py
+@@ -11,6 +11,7 @@ def test_all_agent_entrypoints_link_to_the_same_real_runbook() -> None:
+     for filename in ("AGENTS.md", "README.md", "docs/DEVELOPMENT.md", "docs/LLM_HANDOFF.md"):
+         opening = "\n".join((ROOT / filename).read_text().splitlines()[:35])
+         assert "REPOSITORY_PUBLICATION.md" in opening, filename
++        assert "REPOSITORY_PUBLICATION.md#hosted-capability-preflight" in opening, filename
+ 
+ 
+ def test_interrupted_turn_recovery_has_a_root_link_and_live_state_instructions() -> None:
