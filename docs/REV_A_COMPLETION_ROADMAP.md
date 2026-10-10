@@ -10,7 +10,7 @@ tests. Read LLM_HANDOFF, REPOSITORY_PUBLICATION and the exact-source receipt
 |---|---:|---|---|
 | Bulk source publication | 0 | Verified source-only hosted publisher works; actual PCB/schematic/BOM source in PR98 | No local setup handoff or recovery loop |
 | Five SPI positions and native faults | 0 for application and focused native closure | Both boards0parity/0DRC/0unfinished;7sheets0ERC;10cuts+5shorts pass onf5338e69 | Full reference/access selection and independent acceptance |
-| Remaining L5 integration | 1-2 | Source and fresh exports/fills applied; full ordinary gate has14failures | Reconcile S2/S3/S4 actual/conditional paths and source bindings; K2 binding/access review; exact full gates |
+| Remaining L5 integration | 2-3 | Applied source/fills; full ordinary gate has14failures; full CAD selection times out with reference findings | C104/P3 native triage, obsolete mutation targets, S2-S4 conditional paths and K2 binding; full gates within unchanged budget |
 | Other digital-channel disposition | 1 bounded decision plus evidence | MCU launches and DRDY/control paths remain separate | Actual source-end/channel evidence or limited-pilot disposition |
 | Analog pilot choice | 0 for proposal | Six upstream pairs retained for internal-test-only pilot | Restricted purpose/revision risk accepted at release; E1 unchanged |
 | Components/manufacturing | 1-2 plus required evidence | Existing proposals and frozen Q1 retained | Accepted stack/component/assembly decisions |
@@ -22,9 +22,11 @@ tests. Read LLM_HANDOFF, REPOSITORY_PUBLICATION and the exact-source receipt
 
 Estimates overlap and exclude manufacturing, shipping, supplier responses and
 measurements. Fifteen native cases actually executed in32.755s on exactf5338e69,
-not on every subsequent documentation head. Current full ordinary gate failures
-are source/electrical-consistency blockers, not permission to rewrite histories
-or weaken checks. DNP sites are open; no fitted resistance is selected.
+not on every subsequent documentation head. Full CAD run38076033192 on3f98404f timed out at450s with ten failure markers
+and no final JUnit. Retained logs identify a C104 return-reference gap, P3
+reference-growth and obsolete mutation targets; see the additional
+`checkpoints/20261010_l5_full_native.json` receipt. These and the full ordinary
+gate failures are blockers, not permission to rewrite histories or weaken checks. DNP sites are open; no fitted resistance is selected.
 
 The isolated publishers are source-only. Native CAD runs separately read-only
 with existing pinned tools. Product workflows/permissions/dependencies,450s CAD

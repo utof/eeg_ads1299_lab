@@ -1,4 +1,4 @@
-# Continue PR98: hardware APPLIED; native splits pass; reconcile remaining bindings
+# Continue PR98: hardware APPLIED; fix remaining native reference and study blockers
 
 Read root `AGENTS.md`, `REPOSITORY_PUBLICATION.md`, `DEVELOPMENT.md` and
 `REV_A_BENCH_FIRST.md`. Check live main, PR98 and original review threads.
@@ -61,9 +61,19 @@ The durable receipt is `checkpoints/20261010_l5_applied_native.json`.
   tree. This is not a local locked/full gate. Local uv/dependency/network issues
   remain, but do not imply loss of GitHub writes or hosted KiCad.
 
-The full schematic selection is being inspected separately on the saved-fill
-source. Read actual current run/artifacts before claiming an all-CAD/full-gate pass.
-No manufacturing, populated-access, timing/noise or physical-safety pass follows.
+The complete schematic selection on saved-fill3f98404f did NOT finish inside the
+unchanged450s budget. Run38076033192/job114283053171 ended with ten visible failure
+markers and no final JUnit; do not invent complete totals or call it a pass.
+Artifact11679241216, SHA256
+b4f99687b26f58f972c7f700d1fafa32add266aeb020a233b014e7ec29e2de0c,
+was ZIP/CRC/source-identity checked. Exact retained failures and log hashes are in
+`checkpoints/20261010_l5_full_native.json`. The canonical C104 bypass probe reports
+`C104 return local reference gap`. P3 reports unreviewed full-width reference
+growth at trackc4455c3b-ea0d-5d22-8a62-23973dd1e173. Reverse/split mutation controls
+still seek removed trace36f3b6dd-9d7a-54fe-9c03-f7ebe5f77ae8 and fail before mutation.
+These are additional native source/review blockers, not contradicted by clean DRC
+or the separate15-case SPI pass. No manufacturing, populated-access, timing/noise
+or physical-safety pass follows.
 
 ## Working publication and native tools: no manual setup handoff
 
@@ -92,9 +102,18 @@ Read REPOSITORY_PUBLICATION for exact workbench paths and records. The earlier
 blocked RUNTIME-PACKAGING operation remains distinct and must not be retried.
 Do not ask the user to install Git/KiCad merely because this terminal lacks them.
 
-## Next bounded task: remaining source/electrical consistency, not recovery
+## Next bounded task: C104/reference triage, then dependent source consistency
 
-Reconcile S2/S3/S4 with the APPLIED five-site topology. Read the14 exact failures
+First examine the canonical C104 ground-return corridor and the P3 reference-growth
+finding under fresh native fill. Determine the actual clearance/route and split-net
+exclusion cause; fix the source or justify a narrowly reviewed representation
+correction, never erase the finding by widening pending outlines or lowering limits.
+Repair the two obsolete reverse/split mutation targets using real surviving copper
+while retaining the independent equivalent-copper and reference-void checks. The
+450s complete-selection overrun also remains a failure: improve redundant work
+only with equivalent results, not extra time or omitted cases.
+
+Then reconcile S2/S3/S4 with the APPLIED five-site topology. Read the14 exact failures
 and the original study assumptions first. **Do not blindly refresh hashes** or
 pretend unpopulated series positions are fitted links: account for driver/downstream
 paths and conditional fit assumptions, preserve historical evidence, and retain
