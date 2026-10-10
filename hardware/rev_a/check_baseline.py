@@ -464,6 +464,7 @@ def validate(profile: BoardProfile, bom: BillOfMaterials, sources: SourcesDocume
             "do not buy/count the devkit module twice",
         )
 
+        _validate_spi_series(parts, require)
         _validate_service(profile, parts, require)
         _validate_clock_input(profile, parts, require)
         _validate_afe(profile, parts, require)
@@ -473,6 +474,27 @@ def validate(profile: BoardProfile, bom: BillOfMaterials, sources: SourcesDocume
     except (KeyError, TypeError, ValueError, InvalidOperation, AttributeError) as exc:
         errors.append(f"malformed or incomplete design document: {exc}")
     return errors
+
+
+def _validate_spi_series(
+    parts: dict[str, BomItem], require: Callable[[bool, str], None]
+) -> None:
+    row = parts["spi_series"]
+    require(
+        row["references"] == ["R_MISO_SER"]
+        and row["quantity"] == 1
+        and row["population"] == "dnp"
+        and row["package"] == "0603",
+        "SPI series position must remain the single unpopulated 0603 R_MISO_SER",
+    )
+    require(
+        row["mpn"] == "NOT_SELECTED" and row["spec"] == {},
+        "SPI series position has no selected MPN or resistance, including zero ohms",
+    )
+    require(
+        money(row["planning_unit_usd"]) == 0,
+        "SPI series unpopulated placeholder is not a quoted fitted-part cost",
+    )
 
 
 def _validate_service(

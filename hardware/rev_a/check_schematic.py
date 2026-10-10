@@ -44,6 +44,7 @@ FOOTPRINTS = {
     "straps": "Resistor_SMD:R_0603_1608Metric",
     "bus_pulldowns": "Resistor_SMD:R_0603_1608Metric",
     "analog_feed": "Resistor_SMD:R_0603_1608Metric",
+    "spi_series": "Resistor_SMD:R_0603_1608Metric",
     "input_c": "Capacitor_SMD:C_0603_1608Metric",
     "bias_c": "Capacitor_SMD:C_0603_1608Metric",
     "decap_1u": "Capacitor_SMD:C_0603_1608Metric",
@@ -185,7 +186,8 @@ def _symbol(item: str) -> str:
     }
     if item in choices:
         return choices[item]
-    return "R" if item in {"input_r", "bias_r", "straps", "bus_pulldowns", "analog_feed"} else "C"
+    resistors = {"input_r", "bias_r", "straps", "bus_pulldowns", "analog_feed", "spi_series"}
+    return "R" if item in resistors else "C"
 
 
 def _value_errors(part: SchematicPart, row: BomItem, errors: list[str]) -> None:
@@ -250,7 +252,7 @@ def _ads_pins() -> dict[str, tuple[str | None, str, str]]:
         (43, "DOUT"),
         (47, "DRDY"),
     ]:
-        pins[str(number)] = ("MISO" if function == "DOUT" else function, "output", function)
+        pins[str(number)] = ("MISO_DRV" if function == "DOUT" else function, "output", function)
     for number, function in [
         (34, "DIN"),
         (35, "PWDN"),
@@ -327,6 +329,7 @@ def _supply_caps() -> dict[str, str]:
 def _passive_pairs() -> dict[str, tuple[str, str]]:
     pairs = {
         "R_AVDD_FEED": ("VIN_5V_AFE", "AVDD"),
+        "R_MISO_SER": ("MISO_DRV", "MISO"),
         "R_BIAS_FB": ("BIASOUT", "BIASINV"),
         "C_BIAS_FB": ("BIASOUT", "BIASINV"),
         "R_BIAS_OUT": ("BIASOUT", "BIAS_AFTER_1M_DUMMY"),

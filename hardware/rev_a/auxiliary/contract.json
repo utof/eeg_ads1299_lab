@@ -112,7 +112,8 @@
           "type": "input"
         }
       },
-      "sheet": "auxiliary.kicad_sch"
+      "sheet": "auxiliary.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "J102",
@@ -234,7 +235,8 @@
           "type": "output"
         }
       },
-      "sheet": "auxiliary.kicad_sch"
+      "sheet": "auxiliary.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "J103",
@@ -266,7 +268,8 @@
           "type": "output"
         }
       },
-      "sheet": "auxiliary.kicad_sch"
+      "sheet": "auxiliary.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "J104",
@@ -308,7 +311,8 @@
           "type": "output"
         }
       },
-      "sheet": "auxiliary.kicad_sch"
+      "sheet": "auxiliary.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "J105",
@@ -330,7 +334,8 @@
           "type": "passive"
         }
       },
-      "sheet": "auxiliary.kicad_sch"
+      "sheet": "auxiliary.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "J106",
@@ -352,7 +357,8 @@
           "type": "passive"
         }
       },
-      "sheet": "arming.kicad_sch"
+      "sheet": "arming.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "U101",
@@ -404,7 +410,8 @@
           "type": "power_in"
         }
       },
-      "sheet": "auxiliary.kicad_sch"
+      "sheet": "auxiliary.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "U102",
@@ -436,7 +443,7 @@
           "type": "input"
         },
         "5": {
-          "net": "MCU_MISO",
+          "net": "MCU_MISO_DRV",
           "function": "A4Y",
           "type": "tri_state"
         },
@@ -456,17 +463,17 @@
           "type": "power_in"
         },
         "13": {
-          "net": "AFE_SCLK",
+          "net": "AFE_SCLK_DRV",
           "function": "B1Y",
           "type": "tri_state"
         },
         "12": {
-          "net": "AFE_MOSI",
+          "net": "AFE_MOSI_DRV",
           "function": "B2Y",
           "type": "tri_state"
         },
         "11": {
-          "net": "AFE_CS",
+          "net": "AFE_CS_DRV",
           "function": "B3Y",
           "type": "tri_state"
         },
@@ -486,7 +493,8 @@
           "type": "input"
         }
       },
-      "sheet": "bus.kicad_sch"
+      "sheet": "bus.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "U103",
@@ -568,7 +576,8 @@
           "type": "input"
         }
       },
-      "sheet": "bus.kicad_sch"
+      "sheet": "bus.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "U104",
@@ -650,7 +659,8 @@
           "type": "input"
         }
       },
-      "sheet": "bus.kicad_sch"
+      "sheet": "bus.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "U105",
@@ -692,7 +702,8 @@
           "type": "open_collector"
         }
       },
-      "sheet": "supervision.kicad_sch"
+      "sheet": "supervision.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "U106",
@@ -734,7 +745,8 @@
           "type": "open_collector"
         }
       },
-      "sheet": "supervision.kicad_sch"
+      "sheet": "supervision.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "U107",
@@ -776,7 +788,8 @@
           "type": "open_collector"
         }
       },
-      "sheet": "supervision.kicad_sch"
+      "sheet": "supervision.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "U108",
@@ -818,7 +831,8 @@
           "type": "open_collector"
         }
       },
-      "sheet": "supervision.kicad_sch"
+      "sheet": "supervision.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "U109",
@@ -860,7 +874,8 @@
           "type": "output"
         }
       },
-      "sheet": "arming.kicad_sch"
+      "sheet": "arming.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "U110",
@@ -902,7 +917,8 @@
           "type": "output"
         }
       },
-      "sheet": "arming.kicad_sch"
+      "sheet": "arming.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "U111",
@@ -954,7 +970,8 @@
           "type": "output"
         }
       },
-      "sheet": "arming.kicad_sch"
+      "sheet": "arming.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "C101",
@@ -976,7 +993,8 @@
           "type": "passive"
         }
       },
-      "sheet": "auxiliary.kicad_sch"
+      "sheet": "auxiliary.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "C102",
@@ -998,7 +1016,8 @@
           "type": "passive"
         }
       },
-      "sheet": "auxiliary.kicad_sch"
+      "sheet": "auxiliary.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "C103",
@@ -1020,7 +1039,8 @@
           "type": "passive"
         }
       },
-      "sheet": "bus.kicad_sch"
+      "sheet": "bus.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "C104",
@@ -1042,7 +1062,8 @@
           "type": "passive"
         }
       },
-      "sheet": "bus.kicad_sch"
+      "sheet": "bus.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "C105",
@@ -1064,7 +1085,8 @@
           "type": "passive"
         }
       },
-      "sheet": "bus.kicad_sch"
+      "sheet": "bus.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "C106",
@@ -1086,7 +1108,8 @@
           "type": "passive"
         }
       },
-      "sheet": "bus.kicad_sch"
+      "sheet": "bus.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "C107",
@@ -1108,7 +1131,8 @@
           "type": "passive"
         }
       },
-      "sheet": "bus.kicad_sch"
+      "sheet": "bus.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "C108",
@@ -1130,7 +1154,8 @@
           "type": "passive"
         }
       },
-      "sheet": "bus.kicad_sch"
+      "sheet": "bus.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "C109",
@@ -1152,7 +1177,8 @@
           "type": "passive"
         }
       },
-      "sheet": "supervision.kicad_sch"
+      "sheet": "supervision.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "C110",
@@ -1174,7 +1200,8 @@
           "type": "passive"
         }
       },
-      "sheet": "supervision.kicad_sch"
+      "sheet": "supervision.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "C111",
@@ -1196,7 +1223,8 @@
           "type": "passive"
         }
       },
-      "sheet": "supervision.kicad_sch"
+      "sheet": "supervision.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "C112",
@@ -1218,7 +1246,8 @@
           "type": "passive"
         }
       },
-      "sheet": "supervision.kicad_sch"
+      "sheet": "supervision.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "C113",
@@ -1240,7 +1269,8 @@
           "type": "passive"
         }
       },
-      "sheet": "arming.kicad_sch"
+      "sheet": "arming.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "C114",
@@ -1262,7 +1292,8 @@
           "type": "passive"
         }
       },
-      "sheet": "arming.kicad_sch"
+      "sheet": "arming.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "C115",
@@ -1284,7 +1315,8 @@
           "type": "passive"
         }
       },
-      "sheet": "arming.kicad_sch"
+      "sheet": "arming.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "R101",
@@ -1306,7 +1338,8 @@
           "type": "passive"
         }
       },
-      "sheet": "supervision.kicad_sch"
+      "sheet": "supervision.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "R102",
@@ -1328,7 +1361,8 @@
           "type": "passive"
         }
       },
-      "sheet": "supervision.kicad_sch"
+      "sheet": "supervision.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "R103",
@@ -1350,7 +1384,8 @@
           "type": "passive"
         }
       },
-      "sheet": "supervision.kicad_sch"
+      "sheet": "supervision.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "R104",
@@ -1372,7 +1407,8 @@
           "type": "passive"
         }
       },
-      "sheet": "supervision.kicad_sch"
+      "sheet": "supervision.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "R105",
@@ -1394,7 +1430,8 @@
           "type": "passive"
         }
       },
-      "sheet": "supervision.kicad_sch"
+      "sheet": "supervision.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "R106",
@@ -1416,7 +1453,8 @@
           "type": "passive"
         }
       },
-      "sheet": "supervision.kicad_sch"
+      "sheet": "supervision.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "R107",
@@ -1438,7 +1476,8 @@
           "type": "passive"
         }
       },
-      "sheet": "supervision.kicad_sch"
+      "sheet": "supervision.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "R108",
@@ -1460,7 +1499,8 @@
           "type": "passive"
         }
       },
-      "sheet": "supervision.kicad_sch"
+      "sheet": "supervision.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "R109",
@@ -1482,7 +1522,8 @@
           "type": "passive"
         }
       },
-      "sheet": "arming.kicad_sch"
+      "sheet": "arming.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "R110",
@@ -1504,7 +1545,8 @@
           "type": "passive"
         }
       },
-      "sheet": "arming.kicad_sch"
+      "sheet": "arming.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "R111",
@@ -1526,7 +1568,8 @@
           "type": "passive"
         }
       },
-      "sheet": "arming.kicad_sch"
+      "sheet": "arming.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "R112",
@@ -1548,7 +1591,8 @@
           "type": "passive"
         }
       },
-      "sheet": "arming.kicad_sch"
+      "sheet": "arming.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "R113",
@@ -1570,7 +1614,8 @@
           "type": "passive"
         }
       },
-      "sheet": "arming.kicad_sch"
+      "sheet": "arming.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "R114",
@@ -1592,7 +1637,8 @@
           "type": "passive"
         }
       },
-      "sheet": "bus.kicad_sch"
+      "sheet": "bus.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "R115",
@@ -1614,7 +1660,8 @@
           "type": "passive"
         }
       },
-      "sheet": "bus.kicad_sch"
+      "sheet": "bus.kicad_sch",
+      "population": "fit"
     },
     {
       "reference": "R116",
@@ -1636,7 +1683,100 @@
           "type": "passive"
         }
       },
-      "sheet": "bus.kicad_sch"
+      "sheet": "bus.kicad_sch",
+      "population": "fit"
+    },
+    {
+      "reference": "R117",
+      "contract_ref": "R_AFE_SCLK_SER",
+      "symbol": "R",
+      "value": "NOT_SELECTED",
+      "mpn": "NOT_SELECTED",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "AFE_SCLK_DRV",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "AFE_SCLK",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "bus.kicad_sch",
+      "population": "dnp"
+    },
+    {
+      "reference": "R118",
+      "contract_ref": "R_AFE_MOSI_SER",
+      "symbol": "R",
+      "value": "NOT_SELECTED",
+      "mpn": "NOT_SELECTED",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "AFE_MOSI_DRV",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "AFE_MOSI",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "bus.kicad_sch",
+      "population": "dnp"
+    },
+    {
+      "reference": "R119",
+      "contract_ref": "R_AFE_CS_SER",
+      "symbol": "R",
+      "value": "NOT_SELECTED",
+      "mpn": "NOT_SELECTED",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "AFE_CS_DRV",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "AFE_CS",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "bus.kicad_sch",
+      "population": "dnp"
+    },
+    {
+      "reference": "R120",
+      "contract_ref": "R_MCU_MISO_SER",
+      "symbol": "R",
+      "value": "NOT_SELECTED",
+      "mpn": "NOT_SELECTED",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "in_bom": true,
+      "pins": {
+        "1": {
+          "net": "MCU_MISO_DRV",
+          "function": "1",
+          "type": "passive"
+        },
+        "2": {
+          "net": "MCU_MISO",
+          "function": "2",
+          "type": "passive"
+        }
+      },
+      "sheet": "bus.kicad_sch",
+      "population": "dnp"
     }
   ],
   "external_assumptions": [
