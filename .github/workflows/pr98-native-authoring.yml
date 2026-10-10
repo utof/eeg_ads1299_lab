@@ -21,7 +21,7 @@ jobs:
           python3 -m pip install --break-system-packages uv==0.12.18
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
-          ref: 27c6525d3ef1721b7c48f7db52c69896b8759d3a
+          ref: f5338e69edfd0e7614adcb2be36253597ee05b5f
           fetch-depth: 0
           persist-credentials: false
       - name: Install the unchanged locked project
@@ -36,7 +36,7 @@ jobs:
           from tests.test_auxiliary_ground import _fresh
           from tests.test_auxiliary_placement import CAD as AUX_CAD
           source = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
-          assert source == '27c6525d3ef1721b7c48f7db52c69896b8759d3a'
+          assert source == 'f5338e69edfd0e7614adcb2be36253597ee05b5f'
           assert subprocess.check_output(['kicad-cli', 'version'], text=True).strip() == '9.0.2'
           assert not subprocess.check_output(['git', 'status', '--porcelain', '--untracked-files=all'], text=True).strip()
           out = pathlib.Path('reports/l5-authoring')
