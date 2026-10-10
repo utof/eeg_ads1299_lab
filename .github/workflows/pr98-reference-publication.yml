@@ -1,0 +1,85 @@
+name: Publish verified PR98 reference repair
+on:
+  push:
+    branches: [workbench/pr98-source-publication-20261010]
+    paths: [.github/workflows/pr98-reference-publication.yml]
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 220e926395e0afbc5e150818e37278706b239b44
+          fetch-depth: 0
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: pr98-reference-repair
+          run-id: 38092481309
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/verified-reference-data
+      - name: Publish three immutable source files without executing project or artifact code
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib,shutil,subprocess,xml.etree.ElementTree as ET
+          BASE='220e926395e0afbc5e150818e37278706b239b44'
+          TREE='9475d027c1a0ba1c3cf9c35c2da9e0a1be07888c'
+          DEST='refs/heads/workbench/pr98-reference-published-20261011'
+          def git(*args,env=None,cwd=None):return subprocess.check_output(['git',*args],env=env,cwd=cwd,timeout=90).decode().strip()
+          def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
+          assert git('rev-parse','HEAD')==BASE
+          assert git('rev-parse','HEAD^{tree}')=='529fcfad456de16b20daa65a0d587be61813e57e'
+          assert not git('status','--porcelain','--untracked-files=all')
+          assert git('ls-remote','origin','refs/heads/work/l5-spi-series').split()[0]==BASE
+          assert not git('ls-remote','origin',DEST)
+          data=pathlib.Path(os.environ['RUNNER_TEMP'])/'verified-reference-data'
+          reports={'source-receipt.json':'6245b49576ab32f98207375785d3bdd9d9361d6a2a6f71815cc23ca50134d22a','native-tests.xml':'0a7abbec0f34bf39906d2aaae2c707498d537d42b22ca9366ef59c732abbb630','source-tests.xml':'e7e3e36da81f1b03a144aa8f0b6f92dd0b5398970f2e07af2177e3dc4c8db42d','canonical-result.json':'ba405d8d427f96f5706e9338e70212d18f1f570036321da05446b5de806fbdb3'}
+          for name,digest in reports.items():assert (data/name).is_file() and not (data/name).is_symlink() and sha(data/name)==digest,name
+          source=json.loads((data/'source-receipt.json').read_text())
+          assert source['base']=='e10d0f60f39de7118f555777a8f25f5a357be592'
+          assert source['candidate_tree']=='21d4c3247c7b873aa9bc799fd4d861836cdf5125'
+          for name,count in [('native-tests.xml',113),('source-tests.xml',11)]:
+              s=ET.parse(data/name).getroot().find('testsuite')
+              assert s is not None and s.attrib['tests']==str(count)
+              assert all(s.attrib[k]=='0' for k in ('errors','failures','skipped'))
+              assert len(s.findall('testcase'))==count
+          assert all(v==[] for v in json.loads((data/'canonical-result.json').read_text()).values())
+          files={
+            'hardware/rev_a/auxiliary/auxiliary.kicad_pcb':('24d8bca3cc3f3d919122eb97241807ec95ed9e22','aba2cf8255aacb586e5017954e74fb6fa72420ac','7af81c7d445ff20ac35dc2cfbcc076e07f95d6b910bf6130b252056b158e2ff8'),
+            'tests/auxiliary_routing_probe.py':('59ebfa39cfd3eab89bf1f36475340186e993ba87','ef40d9c9727d85ddecb61df89e0e34937071afa7','d5dfeef76f40f4320f10b7cfbf7295bcabe87b1fb6459377674bca87cdcec848'),
+            'tests/fixtures/auxiliary_l5_delta.json':('70806eabfca6b3de9532636cec8d25849be9e68b','ad1aa029173bfe20d28998ef02cce4f4ef112831','e84cfb6165b318c75f9d2715bbd3685c21aac335fac6bc86b90c288559d15cc8')}
+          assert set(source['files'])==set(files)
+          for name,(before,after,digest) in files.items():
+              assert git('hash-object',name)==before,name
+              p=data/'source'/name;assert p.is_file() and not p.is_symlink() and sha(p)==digest,name
+              content=p.read_bytes()
+              assert hashlib.sha1(b'blob '+str(len(content)).encode()+b'\0'+content).hexdigest()==after,name
+              pathlib.Path(name).write_bytes(content)
+          assert set(git('diff','--name-only').splitlines())==set(files)
+          git('add','--',*sorted(files));assert git('write-tree')==TREE
+          env=dict(os.environ,GIT_AUTHOR_NAME='utof',GIT_COMMITTER_NAME='utof',GIT_AUTHOR_EMAIL='38869938+utof@users.noreply.github.com',GIT_COMMITTER_EMAIL='38869938+utof@users.noreply.github.com')
+          message='fix(hardware): restore C104 and MISO reference coverage after SPI split\n\nMove three new SPI vias and their six attached track endpoints without\nchanging any footprint, net identity, layer, width, drill or zone outline.\nSave only the genuine new TARGET_GND fill and the nine exact after hashes\nin the existing 23-before/41-after preservation delta. Original snapshots\nand all reference, clock and bypass limits remain unchanged.\n\nRetarget reverse/split and reference-void controls to the live AFE_SCLK\ntrace after the former target was removed by L5. Native read-only run\n38092481309 validated candidate tree21d4c324: 113 native passes including\nall15 SPI cuts/shorts and existing reference/representation/bypass cases,\nplus11 source preservation passes. Canonical auxiliary DRC/parity/open\nfindings are zero. First trial was rejected for clearance and not applied.\n\nImport exactly three independently verified artifact files on220e9263,\nretaining hosted-preflight docs. No project/artifact code runs in this\nsource publisher. Full S2-S4/K2 and complete-gate acceptance remain open.\nNo fitted value, fabrication, power or body-use approval; PR98 stays draft.\n'
+          head=git('commit-tree',TREE,'-p',BASE,'-m',message,env=env)
+          assert git('ls-remote','origin','refs/heads/work/l5-spi-series').split()[0]==BASE
+          git('push','origin',head+':'+DEST)
+          assert git('ls-remote','origin',DEST).split()[0]==head
+          fresh=pathlib.Path(os.environ['RUNNER_TEMP'])/'reference-fresh'
+          git('clone','--no-local','--branch',DEST.removeprefix('refs/heads/'),'https://github.com/'+os.environ['GITHUB_REPOSITORY']+'.git',str(fresh))
+          assert git('rev-parse','HEAD',cwd=fresh)==head and git('rev-parse','HEAD^{tree}',cwd=fresh)==TREE
+          assert not git('status','--porcelain',cwd=fresh)
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'reference-publication';out.mkdir()
+          (out/'receipt.json').write_text(json.dumps({'base':BASE,'head':head,'tree':TREE,'files':files,'native_run':38092481309,'native_artifact':11684458355,'native_artifact_sha256':'feaa687dfb218495181db08bcc48635c8c1e80f3efbe41d56e6997842f82b5dc','native_candidate_tree':source['candidate_tree'],'reports':reports,'project_code_executed':False,'full_gate_passed':False,'hardware_released':False},indent=2)+'\n')
+          git('update-ref','refs/heads/reference-receipt',head)
+          git('bundle','create',str(out/'source.bundle'),'refs/heads/reference-receipt')
+          (out/'SHA256SUMS').write_text(''.join(sha(p)+'  '+p.name+'\n' for p in sorted(out.iterdir()) if p.is_file()))
+          print((out/'receipt.json').read_text())
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pr98-reference-publication
+          path: ${{ runner.temp }}/reference-publication/
+          retention-days: 14
+          if-no-files-found: error
