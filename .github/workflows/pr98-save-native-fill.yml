@@ -1,0 +1,99 @@
+name: Save verified PR98 native ground fill
+on:
+  push:
+    branches: [workbench/pr98-source-publication-20261010]
+    paths: [.github/workflows/pr98-save-native-fill.yml]
+permissions:
+  contents: write
+  actions: read
+jobs:
+  save-fill:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: f5338e69edfd0e7614adcb2be36253597ee05b5f
+          fetch-depth: 0
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: pr98-native-authoring-evidence
+          run-id: 38075526473
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/native-fill
+      - name: Transplant one exact native cache, preserving all other authored bytes
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib,re,subprocess
+          START='f5338e69edfd0e7614adcb2be36253597ee05b5f'
+          TREE='79ac4f265df0cc4521fb162c34ae41c0401c2990'
+          DEST='refs/heads/workbench/pr98-native-filled-20261010'
+          NAME='hardware/rev_a/auxiliary/auxiliary.kicad_pcb'
+          def git(*args,env=None):
+              return subprocess.check_output(['git',*args],env=env,timeout=90).decode().strip()
+          def sha(data):return hashlib.sha256(data).hexdigest()
+          assert git('rev-parse','HEAD')==START
+          assert not git('status','--porcelain','--untracked-files=all')
+          assert git('ls-remote','origin','refs/heads/work/l5-spi-series').split()[0]==START
+          assert not git('ls-remote','origin',DEST)
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'native-fill'
+          receipt=json.loads((root/'native-authoring.json').read_text())
+          assert receipt['source_commit']==START and receipt['kicad_version']=='9.0.2'
+          assert all(count==0 for board in receipt['boards'].values() for count in board.values())
+          source=pathlib.Path(NAME).read_text()
+          native=(root/'auxiliary/auxiliary.kicad_pcb').read_text()
+          assert sha(source.encode())=='e46954a15933f86041152f105bd862752abe7b19f6a463443a6c2725d9748d96'
+          assert sha(native.encode())=='efc27acf58d7263c8195453e273388a3a8dbff0bdbcf8c78f234133d338009cf'
+          def end_form(text,start):
+              depth=0
+              for token in re.finditer(r'"(?:\\.|[^"\\])*"|[()]',text[start:]):
+                  if token[0]=='(':depth+=1
+                  elif token[0]==')':
+                      depth-=1
+                      if depth==0:return start+token.end()
+              raise ValueError('unbalanced source form')
+          def zone(text):
+              for match in re.finditer(r'\(zone\s',text):
+                  end=end_form(text,match.start());form=text[match.start():end]
+                  if '(uuid "81952ffc-dd7f-5880-a07c-cb7c615be34b")' in form:return match.start(),end,form
+              raise ValueError('target zone missing')
+          def cache(form):
+              matches=list(re.finditer(r'\(filled_polygon\s',form));assert len(matches)==1
+              start=matches[0].start();end=end_form(form,start)
+              return start,end,form[start:end]
+          a,z,old=zone(source);_,_,new=zone(native)
+          x,y,old_cache=cache(old);u,v,new_cache=cache(new)
+          assert old[:x]+old[y:]==new[:u]+new[v:]
+          assert sha(old_cache.encode())=='bcb58aa3c116c44acb2dfba9b678bdc968b736578effbd510d9121ac3801ffe2'
+          assert sha(new_cache.encode())=='646f883dc2773af29d0dc53a4fefd2847288294f06df863ad975a6e37b39bd86'
+          updated=source[:a]+old[:x]+new_cache+old[y:]+source[z:]
+          assert updated.replace(new_cache,old_cache,1)==source
+          assert sha(updated.encode())=='843877a3bb6ec91f1b35e0bfa460803de29b57e65383eee2f2daeaf27f84b118'
+          pathlib.Path(NAME).write_text(updated)
+          assert git('diff','--name-only')==NAME
+          git('add','--',NAME);assert git('write-tree')==TREE
+          env=dict(os.environ,GIT_AUTHOR_NAME='utof',GIT_COMMITTER_NAME='utof',GIT_AUTHOR_EMAIL='38869938+utof@users.noreply.github.com',GIT_COMMITTER_EMAIL='38869938+utof@users.noreply.github.com')
+          message=('fix(hardware): save the verified native auxiliary ground fill\n\n'
+                   'Transplant only the TARGET_GND filled_polygon from actual KiCad9.0.2\n'
+                   'run38075526473 on f5338e69. Zone outline/settings and every other\n'
+                   'authored byte are unchanged. The other seven zone forms, including\n'
+                   'the AFE ground fill, already match the fresh native output exactly.\n'
+                   'Both refilled boards had zero parity/DRC/unfinished findings; all15\n'
+                   'native L5 cuts/bridges passed. This is not a full gate or release.\n'
+                   'Remaining S2-S4 source binding and K2 review must not be waived.\n')
+          head=git('commit-tree',TREE,'-p',START,'-m',message,env=env)
+          assert git('ls-remote','origin','refs/heads/work/l5-spi-series').split()[0]==START
+          git('push','origin',head+':'+DEST)
+          assert git('ls-remote','origin',DEST).split()[0]==head
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'fill-receipt';out.mkdir()
+          (out/'receipt.json').write_text(json.dumps({'parent':START,'head':head,'tree':TREE,'path':NAME,'blob':git('rev-parse',TREE+':'+NAME),'source_run':38075526473,'source_artifact':11678039527,'hardware_released':False},indent=2)+'\n')
+          subprocess.run(['git','bundle','create',str(out/'source.bundle'),head,'^'+START],check=True,timeout=90)
+          (out/'SHA256SUMS').write_text(''.join(sha(p.read_bytes())+'  '+p.name+'\n' for p in sorted(out.iterdir()) if p.is_file()))
+          print((out/'receipt.json').read_text())
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pr98-native-fill-receipt
+          path: ${{ runner.temp }}/fill-receipt/
+          retention-days: 14
+          if-no-files-found: error
