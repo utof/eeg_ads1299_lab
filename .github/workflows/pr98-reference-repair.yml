@@ -1,0 +1,108 @@
+name: PR98 bounded reference repair
+on:
+  push:
+    branches: [workbench/pr98-source-publication-20261010]
+    paths: [.github/workflows/pr98-reference-repair.yml]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    container: debian:trixie@sha256:9cc080028c43b27d2074d63a5f9caf7166d731494965616c1a6d2827a004585c
+    timeout-minutes: 15
+    env:
+      UV_PYTHON_DOWNLOADS: never
+      KICAD9_FOOTPRINT_DIR: /usr/share/kicad/footprints
+    steps:
+      - name: Install pinned native environment
+        run: |
+          apt-get update -qq
+          apt-get install --yes --no-install-recommends ca-certificates git g++ python3 python3-pip python3-venv kicad=9.0.2+dfsg-1 kicad-symbols=9.0.2-1 kicad-footprints=9.0.2-1 > /tmp/cad-install.log 2>&1 || { tail -60 /tmp/cad-install.log; exit 1; }
+          python3 -m pip install --break-system-packages uv==0.12.18
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: e10d0f60f39de7118f555777a8f25f5a357be592
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Apply only nine coordinate edits and current mutation targets to disposable checkout
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          uv sync --locked --all-extras
+          uv run --locked python - <<'PY'
+          from pathlib import Path
+          import re,json,hashlib,subprocess,shutil
+          from tests.test_pcb_power import _form_end
+          from tests.test_auxiliary_ground import _fresh
+          from tests.test_auxiliary_placement import CAD,BOARD
+          assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()=='e10d0f60f39de7118f555777a8f25f5a357be592'
+          assert not subprocess.check_output(['git','status','--porcelain'],text=True).strip()
+          out=Path('reports/reference-repair');out.mkdir(parents=True)
+          changes={
+            '0e4fa5d3-4e72-5a2a-bb71-c51d4dcb6f8a':('38.75 23.05','39.05 23.05'),
+            '09574a12-9a89-5763-b80b-3185ea152b3a':('38.75 23.05','39.05 23.05'),
+            '8d4d21db-c61c-550b-b9c9-2ba4e22e8970':('38.75 23.05','39.05 23.05'),
+            '41996a07-724e-5f5c-90b7-a1577000b718':('38.1 23.7','38.15 23.05'),
+            'cf1620b6-9c33-5f65-91d9-fe62c44b904b':('38.1 23.7','38.15 23.05'),
+            'b77ad03e-68fa-5b83-9c0b-c1f8c09229f8':('38.1 23.7','38.15 23.05'),
+            '30f748f6-336d-5f51-b10a-635c3a04f7b6':('38.6 19.25','38.45 19.25'),
+            '5141815c-062e-5492-ab55-930ba7fb896f':('38.6 19.25','38.45 19.25'),
+            'dae1fdec-0c5e-58de-aa92-36fbfad3beef':('38.6 19.25','38.45 19.25')}
+          source=BOARD.read_text();assert hashlib.sha256(source.encode()).hexdigest()=='843877a3bb6ec91f1b35e0bfa460803de29b57e65383eee2f2daeaf27f84b118'
+          forms={}
+          for m in re.finditer(r'\((segment|via)\s',source):
+              e=_form_end(source,m.start());f=source[m.start():e];uid=re.search(r'\(uuid "([^"]+)"',f)[1]
+              if uid in changes:forms[uid]=(m.start(),e,f)
+          assert len(forms)==9
+          delta=Path('tests/fixtures/auxiliary_l5_delta.json');data=json.loads(delta.read_text())
+          assert len(data['before'])==23 and len(data['after'])==41
+          for uid,(a,e,f) in sorted(forms.items(),key=lambda row:row[1][0],reverse=True):
+              old,new=changes[uid];assert f.count(old)==1
+              assert hashlib.sha256(f.encode()).hexdigest()==data['after'][uid]['sha256']
+              nf=f.replace(old,new);source=source[:a]+nf+source[e:];data['after'][uid]['sha256']=hashlib.sha256(nf.encode()).hexdigest()
+          BOARD.write_text(source);delta.write_text(json.dumps(data,indent=2)+'\n')
+          probe=Path('tests/auxiliary_routing_probe.py');s=probe.read_text()
+          assert s.count('36f3b6dd-9d7a-54fe-9c03-f7ebe5f77ae8')==1
+          s=s.replace('36f3b6dd-9d7a-54fe-9c03-f7ebe5f77ae8','58e213eb-d573-5333-b888-b4c8c6405fd7')
+          old="    # One real existing long AFE_SCLK segment at (34.3,9.6)-(39.05,24.9).\n    # A local ground-only window changes no signal copper and does not cross a source P2 bypass.\n    x,y=(36.675,17.25) if mode=='reference-void' else (10.,15.)"
+          new="    # Target the actual post-L5 AFE_SCLK trace, not the removed pre-series route.\n    # Derive the local window from its midpoint; remote control stays in HOST_GND.\n    t=next(t for t in b.GetTracks() if t.m_Uuid.AsString()=='58e213eb-d573-5333-b888-b4c8c6405fd7')\n    assert t.Type()==p.PCB_TRACE_T and t.GetNetname()=='AFE_SCLK'\n    a,c=t.GetStart(),t.GetEnd()\n    x,y=((a.x+c.x)/2e6,(a.y+c.y)/2e6) if mode=='reference-void' else (10.,15.)"
+          assert old in s;probe.write_text(s.replace(old,new))
+          cad=out/'canonical';shutil.copytree(CAD,cad);report=_fresh(cad)
+          (out/'canonical-result.json').write_text(json.dumps({k:report[k] for k in ('schematic_parity','violations','unconnected_items')},indent=2)+'\n')
+          assert all(report[k]==[] for k in ('schematic_parity','violations','unconnected_items')),json.dumps(report)
+          def zone(text):
+              for m in re.finditer(r'\(zone\s',text):
+                  e=_form_end(text,m.start());f=text[m.start():e]
+                  if '(uuid "81952ffc-dd7f-5880-a07c-cb7c615be34b")' in f:return m.start(),e,f
+              raise ValueError('target reference zone missing')
+          def cache(form):
+              items=list(re.finditer(r'\(filled_polygon\s',form));assert len(items)==1
+              a=items[0].start();e=_form_end(form,a);return a,e,form[a:e]
+          a,e,old=zone(source);_,_,new=zone((cad/BOARD.name).read_text())
+          x,y,old_fill=cache(old);u,v,new_fill=cache(new)
+          assert old[:x]+old[y:]==new[:u]+new[v:]
+          filled=source[:a]+old[:x]+new_fill+old[y:]+source[e:]
+          assert filled.replace(new_fill,old_fill,1)==source
+          BOARD.write_text(filled)
+          expected={str(BOARD.relative_to(Path.cwd())),str(delta),str(probe)}
+          actual=set(subprocess.check_output(['git','diff','--name-only'],text=True).splitlines());assert actual==expected,(actual,expected)
+          subprocess.run(['git','add','--',*sorted(expected)],check=True)
+          tree=subprocess.check_output(['git','write-tree'],text=True).strip()
+          (out/'source.patch').write_bytes(subprocess.check_output(['git','diff','--cached','--binary']))
+          source_hashes={}
+          for name in sorted(expected):
+              p=Path(name);q=out/'source'/name;q.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(p,q)
+              source_hashes[name]={'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'blob':subprocess.check_output(['git','hash-object',name],text=True).strip()}
+          (out/'source-receipt.json').write_text(json.dumps({'base':'e10d0f60f39de7118f555777a8f25f5a357be592','candidate_tree':tree,'files':source_hashes,'moves':changes,'full_gate_passed':False,'published':False,'hardware_released':False},indent=2)+'\n')
+          PY
+      - name: Run existing reference, representation and SPI fault cases with unchanged limits
+        run: |
+          uv run --locked ruff check tests/auxiliary_routing_probe.py
+          uv run --locked python -m pytest -q -m 'not schematic' tests/test_auxiliary_preservation.py tests/test_auxiliary_routing.py tests/test_auxiliary_clock.py --junitxml=reports/reference-repair/source-tests.xml
+          timeout 450s uv run --locked python -m pytest -q -m schematic tests/test_auxiliary_ground.py tests/test_auxiliary_routing.py tests/test_auxiliary_clock.py tests/test_reference_performance.py tests/test_spi_series_native.py --junitxml=reports/reference-repair/native-tests.xml --basetemp=reports/reference-repair/native-tests > reports/reference-repair/native-tests.log 2>&1 || { tail -100 reports/reference-repair/native-tests.log; exit 1; }
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: pr98-reference-repair
+          path: reports/reference-repair/
+          retention-days: 14
+          if-no-files-found: error
