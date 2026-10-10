@@ -476,9 +476,7 @@ def validate(profile: BoardProfile, bom: BillOfMaterials, sources: SourcesDocume
     return errors
 
 
-def _validate_spi_series(
-    parts: dict[str, BomItem], require: Callable[[bool, str], None]
-) -> None:
+def _validate_spi_series(parts: dict[str, BomItem], require: Callable[[bool, str], None]) -> None:
     row = parts["spi_series"]
     require(
         row["references"] == ["R_MISO_SER"]

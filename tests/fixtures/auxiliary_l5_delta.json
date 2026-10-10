@@ -68,6 +68,10 @@
       "type": "segment",
       "sha256": "91d32e7d2eb880587cc1c9c421a19da6baea0b802d38ae76480983116d608511"
     },
+    "71d75102-d62b-56fa-836c-16e727e27d6b": {
+      "type": "via",
+      "sha256": "1402feedb01e6750cdd217bc15f9a9a708f775d25b0d2b8694a8440eaff14395"
+    },
     "7562ab07-32d3-5284-9829-0c5f0bc65f33": {
       "type": "segment",
       "sha256": "015ac21f82f721a10fc1cae9e269145be9179d26a864b24b6f6832b1537c3d06"
@@ -87,6 +91,10 @@
     "bf1a09b9-2f69-5165-8ded-a905f82d4eb1": {
       "type": "segment",
       "sha256": "1557cd3f72874a994c26908612c20f0c15d5ce3c94c6ac802938702c9776da23"
+    },
+    "c6fdfa53-7da1-5491-8519-b5f54483d35b": {
+      "type": "via",
+      "sha256": "e0ea2972ff9af14b1f5d47a431580f124021ea486104e1a9bdd756b46f28c9cf"
     },
     "db9c6602-e99f-573c-a382-d9e29e7961ba": {
       "type": "via",
@@ -269,6 +277,15 @@
     "fddd20f5-0c3a-539f-9188-cb27ffdb4e43": {
       "type": "via",
       "sha256": "74a56bf880da5a9fda781ac209cc2c6f6631f2d7ef7f8dbdd3bf28f6cf263724"
+    }
+  },
+  "native_correction": {
+    "source_commit": "27c6525d3ef1721b7c48f7db52c69896b8759d3a",
+    "run_id": 38074668398,
+    "reason": "Remove exactly two native-DRC single-layer via stubs after L5 rerouting; no surviving planar copper changes",
+    "removed_via_sha256": {
+      "71d75102-d62b-56fa-836c-16e727e27d6b": "1402feedb01e6750cdd217bc15f9a9a708f775d25b0d2b8694a8440eaff14395",
+      "c6fdfa53-7da1-5491-8519-b5f54483d35b": "e0ea2972ff9af14b1f5d47a431580f124021ea486104e1a9bdd756b46f28c9cf"
     }
   }
 }

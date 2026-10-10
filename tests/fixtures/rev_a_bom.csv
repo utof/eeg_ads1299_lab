@@ -67,5 +67,6 @@
 "R21","R_GPIO2_DN","10k","RC0603FR-0710KL","Resistor_SMD:R_0603_1608Metric","fit","",""
 "R22","R_GPIO3_DN","10k","RC0603FR-0710KL","Resistor_SMD:R_0603_1608Metric","fit","",""
 "R23","R_GPIO4_DN","10k","RC0603FR-0710KL","Resistor_SMD:R_0603_1608Metric","fit","",""
+"R24","R_MISO_SER","NOT_SELECTED","NOT_SELECTED","Resistor_SMD:R_0603_1608Metric","dnp","DNP",""
 "U1","U1","ADS1299-4PAGR","ADS1299-4PAGR","Package_QFP:TQFP-64_10x10mm_P0.5mm","fit","",""
 "U2","U2","TPS7A2033PDBVR","TPS7A2033PDBVR","Package_TO_SOT_SMD:SOT-23-5","fit","",""

@@ -54,7 +54,7 @@ def legacy_auxiliary_records(actual: dict[str, dict[str, str]]) -> dict[str, dic
     before_raw: object = raw["before"]
     after_raw: object = raw["after"]
     before, after = _records(before_raw), _records(after_raw)
-    assert len(before) == 21 and len(after) == 41
+    assert len(before) == 23 and len(after) == 41
     affected = before.keys() | after.keys()
     observed = {ident: actual[ident] for ident in affected & actual.keys()}
     if observed == before:

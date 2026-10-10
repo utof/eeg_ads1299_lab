@@ -95,7 +95,7 @@ def test_auxiliary_native_erc_netlist_pdf_and_bom(tmp_path: Path) -> None:
         ],
     )
     rows = list(csv.DictReader(io.StringIO(read_schematic_file(tmp_path / "bom.csv"))))
-    assert len(rows) == 43
+    assert len(rows) == 47
     assert {r["ContractRef"] for r in rows} == {r for r, p in contract.parts.items() if p.in_bom}
     for row in rows:
         part = contract.parts[row["ContractRef"]]

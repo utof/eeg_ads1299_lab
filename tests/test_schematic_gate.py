@@ -293,7 +293,7 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
         report = read_object(json.loads(marker.read_text()), "schematic")
         assert report["source_commit"] == "a" * 40
         assert report["source_dirty"] is True
-        assert report["component_count"] == 70 and report["terminal_count"] == 262
+        assert report["component_count"] == 71 and report["terminal_count"] == 264
         assert report["physical_hardware_tested"] is False
         assert report["body_connection_authorized"] is False
         assert report["schematic_released"] is False
