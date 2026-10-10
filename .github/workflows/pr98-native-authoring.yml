@@ -1,0 +1,84 @@
+name: PR98 native authoring evidence
+on:
+  push:
+    branches: [workbench/pr98-source-publication-20261010]
+    paths: [.github/workflows/pr98-native-authoring.yml]
+permissions:
+  contents: read
+jobs:
+  native-authoring:
+    runs-on: ubuntu-24.04
+    container: debian:trixie@sha256:9cc080028c43b27d2074d63a5f9caf7166d731494965616c1a6d2827a004585c
+    timeout-minutes: 15
+    env:
+      UV_PYTHON_DOWNLOADS: never
+      KICAD9_FOOTPRINT_DIR: /usr/share/kicad/footprints
+    steps:
+      - name: Install the existing pinned native CAD environment
+        run: |
+          apt-get update -qq
+          apt-get install --yes --no-install-recommends ca-certificates git g++ python3 python3-pip python3-venv kicad=9.0.2+dfsg-1 kicad-symbols=9.0.2-1 kicad-footprints=9.0.2-1 > /tmp/cad-install.log 2>&1 || { tail -60 /tmp/cad-install.log; exit 1; }
+          python3 -m pip install --break-system-packages uv==0.12.18
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 27c6525d3ef1721b7c48f7db52c69896b8759d3a
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install the unchanged locked project
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          uv sync --locked --all-extras
+      - name: Generate genuine native exports and independently refilled board reports
+        run: |
+          uv run --locked python - <<'PY'
+          import hashlib, json, os, pathlib, shutil, subprocess
+          from tests.test_pcb_placement import _native_report, CAD, BOARD
+          from tests.test_auxiliary_ground import _fresh
+          from tests.test_auxiliary_placement import CAD as AUX_CAD
+          source = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          assert source == '27c6525d3ef1721b7c48f7db52c69896b8759d3a'
+          assert subprocess.check_output(['kicad-cli', 'version'], text=True).strip() == '9.0.2'
+          assert not subprocess.check_output(['git', 'status', '--porcelain', '--untracked-files=all'], text=True).strip()
+          out = pathlib.Path('reports/l5-authoring')
+          out.mkdir(parents=True)
+          receipt = {'source_commit': source, 'source_tree': subprocess.check_output(['git', 'rev-parse', 'HEAD^{tree}'], text=True).strip(), 'kicad_version': '9.0.2', 'commands': [], 'boards': {}, 'full_gate_passed': False, 'hardware_released': False}
+          fields = 'Reference,ContractRef,Value,MPN,Footprint,Population,${DNP},${EXCLUDE_FROM_BOARD}'
+          labels = 'Reference,ContractRef,Value,MPN,Footprint,Population,DNP,OffBoard'
+          for name, directory, schematic in [('afe', CAD, 'rev_a.kicad_sch'), ('auxiliary', AUX_CAD, 'auxiliary.kicad_sch')]:
+              cad = out / name
+              shutil.copytree(directory, cad)
+              if name == 'afe':
+                  shutil.copyfile(BOARD, cad / BOARD.name)
+              root = str(cad / schematic)
+              env = dict(os.environ, KICAD_CONFIG_HOME=str(cad / 'config'), LC_ALL='C', LANG='C')
+              commands = [
+                  ('netlist', ['sch', 'export', 'netlist', '--format', 'kicadxml', '-o', str(cad / 'netlist.xml'), root]),
+                  ('bom', ['sch', 'export', 'bom', '--fields', fields, '--labels', labels, '-o', str(cad / 'bom.csv'), root]),
+                  ('erc', ['sch', 'erc', '--format', 'json', '--severity-all', '--exit-code-violations', '-o', str(cad / 'erc.json'), root]),
+              ]
+              for label, args in commands:
+                  result = subprocess.run(['kicad-cli', *args], capture_output=True, text=True, env=env, timeout=45)
+                  (cad / (label + '.log')).write_text(result.stdout + result.stderr)
+                  receipt['commands'].append({'board': name, 'command': label, 'returncode': result.returncode})
+                  assert result.returncode in ((0, 5) if label == 'erc' else (0,)), result.stdout + result.stderr
+              report = _native_report(cad) if name == 'afe' else _fresh(cad)
+              receipt['boards'][name] = {key: len(report[key]) for key in ('schematic_parity', 'violations', 'unconnected_items')}
+          receipt['artifact_sha256'] = {str(p.relative_to(out)): hashlib.sha256(p.read_bytes()).hexdigest() for p in out.rglob('*') if p.is_file()}
+          (out / 'native-authoring.json').write_text(json.dumps(receipt, indent=2) + '\n')
+          print(json.dumps(receipt, indent=2))
+          PY
+      - name: Execute the existing fifteen native L5 fault regressions
+        run: |
+          uv run --locked python -m pytest -q -m schematic tests/test_spi_series_native.py --junitxml=reports/l5-authoring/series-pytest.xml --basetemp=reports/l5-authoring/series-tests
+      - name: Verify the read-only authoring run did not change tracked source
+        if: always()
+        run: |
+          git diff --exit-code
+          test -z "$(git ls-files --others --exclude-standard)"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: pr98-native-authoring-evidence
+          path: reports/l5-authoring/
+          retention-days: 14
+          if-no-files-found: error
