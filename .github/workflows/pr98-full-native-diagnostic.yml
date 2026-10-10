@@ -1,0 +1,48 @@
+name: PR98 complete native CAD diagnostic
+on:
+  push:
+    branches: [workbench/pr98-source-publication-20261010]
+    paths: [.github/workflows/pr98-full-native-diagnostic.yml]
+permissions:
+  contents: read
+jobs:
+  native-diagnostic:
+    runs-on: ubuntu-24.04
+    container: debian:trixie@sha256:9cc080028c43b27d2074d63a5f9caf7166d731494965616c1a6d2827a004585c
+    timeout-minutes: 15
+    env:
+      UV_PYTHON_DOWNLOADS: never
+      KICAD9_FOOTPRINT_DIR: /usr/share/kicad/footprints
+    steps:
+      - name: Install the existing pinned native CAD environment
+        run: |
+          apt-get update -qq
+          apt-get install --yes --no-install-recommends ca-certificates git g++ python3 python3-pip python3-venv kicad=9.0.2+dfsg-1 kicad-symbols=9.0.2-1 kicad-footprints=9.0.2-1 > /tmp/cad-install.log 2>&1 || { tail -60 /tmp/cad-install.log; exit 1; }
+          python3 -m pip install --break-system-packages uv==0.12.18
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 3f98404f2755331359f2aa95354a0a3ea934ae92
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install unchanged locked environment and record exact source
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          uv sync --locked --all-extras
+          mkdir -p reports/l5-native-full
+          git rev-parse HEAD HEAD^{tree} > reports/l5-native-full/identity.txt
+          kicad-cli version > reports/l5-native-full/kicad-version.txt
+      - name: Run the existing full schematic selection with its unchanged 450 second budget
+        run: |
+          timeout 450s uv run --locked python -m pytest -q -m schematic --junitxml=reports/l5-native-full/pytest.xml --basetemp=reports/l5-native-full/tests > reports/l5-native-full/pytest.log 2>&1 || { tail -120 reports/l5-native-full/pytest.log; exit 1; }
+      - name: Verify source unchanged
+        if: always()
+        run: |
+          git diff --exit-code
+          test -z "$(git ls-files --others --exclude-standard)"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: pr98-complete-native-cad-diagnostic
+          path: reports/l5-native-full/
+          retention-days: 14
+          if-no-files-found: error
