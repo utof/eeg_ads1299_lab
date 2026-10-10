@@ -1,0 +1,155 @@
+{
+  "scope": "L5 applied source and independently executed native CAD; not complete release",
+  "source_sequence": {
+    "previous_head": "08a8ddd036b891af9fac59b83755ba173bdd6611",
+    "applied_head": "27c6525d3ef1721b7c48f7db52c69896b8759d3a",
+    "applied_tree": "f8a8c4a5064ae60a86a73fbd13767b0cfbb03364",
+    "native_correction_head": "f5338e69edfd0e7614adcb2be36253597ee05b5f",
+    "native_correction_tree": "bd59a0cb3027eea46d88ea4fe464380416d423fd",
+    "saved_fill_head": "3f98404f2755331359f2aa95354a0a3ea934ae92",
+    "saved_fill_tree": "79ac4f265df0cc4521fb162c34ae41c0401c2990"
+  },
+  "publication": {
+    "run": 38074447882,
+    "artifact": 11677667993,
+    "sha256": "c8bd9673c01fdd46eed92e4b730512bfe2d23d54624b7ef473b7755446b9299c",
+    "correction_run": 38075413943,
+    "correction_artifact": 11678079229,
+    "correction_sha256": "0fd9806982e1d50040e1920d2ca3a58963d64773c3ce850d9e19067300f0671c"
+  },
+  "native_before": {
+    "source": "27c6525d3ef1721b7c48f7db52c69896b8759d3a",
+    "run": 38074668398,
+    "artifact": 11677788438,
+    "sha256": "4dde39d9d87e98dfe847d41694b6e2bbefdf1046098de62394253622cb992e04",
+    "afe": {
+      "parity": 1,
+      "other_drc": 2,
+      "unconnected": 0
+    },
+    "auxiliary": {
+      "parity": 4,
+      "other_drc": 18,
+      "unconnected": 0
+    },
+    "fault_test_setup_errors": 15,
+    "mutations_executed": 0
+  },
+  "native_after": {
+    "source": "f5338e69edfd0e7614adcb2be36253597ee05b5f",
+    "tree": "bd59a0cb3027eea46d88ea4fe464380416d423fd",
+    "run": 38075526473,
+    "job": 114281578606,
+    "artifact": 11678039527,
+    "sha256": "d725b438a10282962f9804b564083a73ef6db06bd9b0bcafba1b6029a1daa454",
+    "kicad": "9.0.2",
+    "erc_sheets": 7,
+    "erc_findings": 0,
+    "afe": {
+      "parity": 0,
+      "other_drc": 0,
+      "unconnected": 0
+    },
+    "auxiliary": {
+      "parity": 0,
+      "other_drc": 0,
+      "unconnected": 0
+    },
+    "fault_tests": {
+      "passed": 15,
+      "cuts": 10,
+      "shorts": 5,
+      "errors": 0,
+      "skips": 0,
+      "seconds": 32.755
+    }
+  },
+  "ordinary_gate": {
+    "source": "f5338e69edfd0e7614adcb2be36253597ee05b5f",
+    "run": 38075492727,
+    "job": 114281478579,
+    "artifact": 11677939676,
+    "sha256": "e90797eff42fa8193d20c6ef716dd76b0fded5ab5546649526b9712673bdf93f",
+    "python": "3.11",
+    "passed": false,
+    "junit_tests_including_subtests": 1404,
+    "junit_failures": 14,
+    "junit_errors": 0,
+    "junit_skips": 0,
+    "failed_cases": [
+      {
+        "module": "tests.test_current_return_s2",
+        "case": "test_actual_study_keeps_the_four_channel_frame_and_port_kcl"
+      },
+      {
+        "module": "tests.test_current_return_s2",
+        "case": "test_current_ledger_matches_both_schematic_sides_and_unchanged_firmware"
+      },
+      {
+        "module": "tests.test_current_return_s2",
+        "case": "test_remote_load_cancels_but_signal_return_does_not"
+      },
+      {
+        "module": "tests.test_steady_source_s4",
+        "case": "test_evidence_is_bound_to_current_sources_and_existing_worksheet"
+      },
+      {
+        "module": "tests.test_steady_source_s4",
+        "case": "test_conditional_regulator_scenario_reuses_s3_and_still_cannot_pass[normal]"
+      },
+      {
+        "module": "tests.test_steady_source_s4",
+        "case": "test_conditional_regulator_scenario_reuses_s3_and_still_cannot_pass[flag]"
+      },
+      {
+        "module": "tests.test_steady_source_s4",
+        "case": "test_conditional_regulator_scenario_reuses_s3_and_still_cannot_pass[env]"
+      },
+      {
+        "module": "tests.test_steady_source_s4",
+        "case": "test_changed_transitive_header_invalidates_the_evidence[board_config_rev_a_s3.h]"
+      },
+      {
+        "module": "tests.test_steady_source_s4",
+        "case": "test_changed_transitive_header_invalidates_the_evidence[bench_console.h]"
+      },
+      {
+        "module": "tests.test_supply_acceptance_s3",
+        "case": "test_default_worksheet_cannot_approve_missing_bounds"
+      },
+      {
+        "module": "tests.test_supply_acceptance_s3",
+        "case": "test_filled_hypotheses_check_ground_sign_and_do_not_qualify"
+      },
+      {
+        "module": "tests.test_supply_acceptance_s3",
+        "case": "test_upper_limit_is_checked_too"
+      },
+      {
+        "module": "tests.test_supply_acceptance_s3",
+        "case": "test_optimized_valid_worksheet_keeps_all_unknowns[flag]"
+      },
+      {
+        "module": "tests.test_supply_acceptance_s3",
+        "case": "test_optimized_valid_worksheet_keeps_all_unknowns[env]"
+      }
+    ]
+  },
+  "fill": {
+    "source": "f5338e69edfd0e7614adcb2be36253597ee05b5f",
+    "zone": "81952ffc-dd7f-5880-a07c-cb7c615be34b",
+    "old_cache_sha256": "bcb58aa3c116c44acb2dfba9b678bdc968b736578effbd510d9121ac3801ffe2",
+    "new_cache_sha256": "646f883dc2773af29d0dc53a4fefd2847288294f06df863ad975a6e37b39bd86",
+    "native_board_sha256": "efc27acf58d7263c8195453e273388a3a8dbff0bdbcf8c78f234133d338009cf",
+    "new_board_sha256": "843877a3bb6ec91f1b35e0bfa460803de29b57e65383eee2f2daeaf27f84b118"
+  },
+  "limits": [
+    "No full shared gate pass",
+    "No fitted series resistance selected",
+    "S2-S4 source/conditional-path reconciliation and K2 binding/access review remain",
+    "Do not infer physical safety from CAD or tests"
+  ],
+  "fabrication_authorized": false,
+  "powering_authorized": false,
+  "body_connection_authorized": false
+}

@@ -108,3 +108,46 @@ inspect each original review thread and any new findings, then merge only when
 accepted. Preserve small durable receipts and current next-step instructions in
 the repository. Distinguish local/hosted checks, source review and physical tests.
 No publication or merge changes fabrication, purchasing, power or body-use gates.
+
+## PR98: source application and native validation worked on 2026-10-10
+
+The local terminal still lacked GitHub DNS and KiCad. That did not prevent actual
+source publication or native execution. Do not repeat the claim that the user
+must install tools to restore an already-working connector.
+
+Source-only workflow `.github/workflows/pr98-source-publication.yml` on branch
+`workbench/pr98-source-publication-20261010`, run38074447882, checked the existing
+L5 packet's immutable manifest/fragments/patch and exact historical candidate tree.
+It applied exactly11 verified files on08a8ddd0, preserving all later repairs, used
+`git commit-tree`, pushed only a new temporary branch, then independently cloned
+and checked it. The engineering commit27c6525d/treef8a8c4a5 contains no workbench
+workflow. Connector reconstruction of the full tree and a leased non-force PR
+update completed active-source publication. Artifact11677667993 retained a full
+source bundle; its ZIP/internal hashes and local clone/fsck were checked.
+
+`pr98-native-source-correction.yml`, run38075413943, later used immutable genuine
+native XML/CSV data and predetermined stdlib-only substitutions. It required the
+independently computed14-file treebd59a0c before publishingf5338e69. Neither source
+publisher imported or executed project/artifact code. Only the source job had
+contents:write; no credential or repository-setting changes were made.
+
+Separate `pr98-native-authoring.yml` used contents:read, persist-credentials:false,
+exact source SHA, existing pinned KiCad9.0.2/uv/lock and existing CAD helpers/tests.
+Runs38074668398 and38075526473 supplied real before/after native findings; the
+latter had both boards clean and all15new faults passing. Native outputs remained
+artifacts, not tool/runtime packages. A separate complete-native selection is a
+diagnostic, NOT a substitute for the full shared gate when ordinary tests fail.
+
+`pr98-save-native-fill.yml` successfully pushed3f98404f/tree79ac4f26 with one exact
+TARGET_GND cache from the native output; optional bundle export failed afterward
+because its raw commit had no local named ref. Remote commit/tree plus every
+source byte were independently checked against local objects. A post-push artifact
+failure is not evidence that the push failed. Do not rerun a completed source
+operation; use a local named ref for any future bundle export.
+
+These are scoped examples, not generic authorization or automatically reusable
+jobs: old SHA/branch/artifact guards intentionally reject other source states.
+Use fresh exact identities and user-authorized scope; never rerun fixed jobs on
+new input or bypass a denied operation. The previously blocked runtime-packaging
+workflow was not retried and is not made permissible by successful source moves.
+All product CI, firmware, frozen Q1,450sCAD/71%floor and physical gates are unchanged.

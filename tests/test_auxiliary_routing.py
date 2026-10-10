@@ -1,19 +1,17 @@
 """P3 full auxiliary routing requires real native connectivity, not net labels."""
 
-import hashlib
 import json
 import os
-import re
 import shutil
 import subprocess
 from pathlib import Path
 
 import pytest
 
+from tests.auxiliary_preservation import copper_records, legacy_auxiliary_records
 from tests.auxiliary_routing_probe import MUTATE, SCRIPT
 from tests.test_auxiliary_ground import _fresh
 from tests.test_auxiliary_placement import BOARD, CAD, ROOT
-from tests.test_pcb_power import _form_end
 
 
 @pytest.mark.schematic
@@ -68,14 +66,7 @@ def test_p3_preserves_all_p2_footprints_and_original_copper() -> None:
     assert isinstance(data, dict)
     expected: object = data["items"]
     assert isinstance(expected, dict) and len(expected) == 153
-    actual: dict[str, dict[str, str]] = {}
-    text = BOARD.read_text()
-    for match in re.finditer(r"\((footprint|segment|via)\s", text):
-        raw = text[match.start() : _form_end(text, match.start())]
-        ident = re.search(r'\(uuid "([^"]+)"', raw)
-        assert ident is not None
-        assert ident[1] not in actual, "duplicate source UUID"
-        actual[ident[1]] = {"type": match[1], "sha256": hashlib.sha256(raw.encode()).hexdigest()}
+    actual = legacy_auxiliary_records(copper_records(BOARD.read_text()))
     records: dict[object, object] = expected
     for ident, record in records.items():
         assert isinstance(ident, str) and isinstance(record, dict)

@@ -45,6 +45,16 @@ The machine-readable source of truth is [`hardware/rev_a/bom.json`](../hardware/
 | `B6B-XH-A(LF)(SN)` | 1 | FIT | $0.50 |
 | `BAV199,215` | 8 | DNP | $2.40 |
 
+L5 adds an explicitly **unpopulated** series footprint on the AFE; no resistor MPN,
+resistance (including zero ohms), first-power fit or fitted-part cost is selected.
+The placeholder below contributes zero because nothing is fitted, not because a
+resistor or assembly is free. AUX R117-R120 have the same unselected DNP state.
+
+| L5 position | MPN status | Quantity | Population | Fitted allowance |
+| --- | --- | ---: | --- | ---: |
+| R24 / R_MISO_SER | `NOT_SELECTED` | 1 | DNP | $0.00 |
+
+
 Fitted components: **$76.84**. Bare-PCB reserve: **$15.00**. Harness/mating reserve: **$3.00**. **Planning subtotal: $94.84**. Optional BAV199 population adds $2.40. Shipping, tax/VAT/import charges, assembly/stencil/setup, tools, bench instrumentation, battery/charger, enclosure, and any patient-safety hardware are excluded. The $3.00 historical harness reserve is not evidence that the newly identified IDC assemblies and coded carrier fit that allowance. Obtain one delivered basket/assembly quote before purchasing; $94.84 is not a delivered total or a demonstration that the $100 objective is met.
 
 C4 adds a dedicated six-way J3 service connector for the auxiliary circuit:

@@ -1,33 +1,35 @@
-# Rev A roadmap - L4 selects series positions; next is the scoped CAD edit
+# Rev A roadmap - five SPI positions applied; native fault checks pass
 
-L3 merged in PR96 at cc89a5b9; L1/L2, B1-B3 and the sole Q1 packet are retained.
-L4 rejects routine trace-surgery fallback and selects five custom-board SPI
-series positions. It does not add them, choose damping values or release hardware.
-Read live main/open/recent PRs, AGENTS, REPOSITORY_PUBLICATION and the handoff.
-Moscow remains the planning destination; detailed prices/outreach stay paused.
+Continue draft PR98 from live head. Main remains c2f93ee3. The candidate was
+ACTUALLY APPLIED at27c6525d, corrected from native findings atf5338e69 and its
+fresh ground fill saved at3f98404f. Do not reapply the archived patch or recreate
+tests. Read LLM_HANDOFF, REPOSITORY_PUBLICATION and the exact-source receipt
+`checkpoints/20261010_l5_applied_native.json`.
 
 | Category | Remaining substantial turns | Done/status | Next slice or blocker |
 |---|---:|---|---|
-| SPI provision method | 0 for decision | Five positions identified; four source escapes enter nominal package body boxes | No claimed solder/rework qualification or fitted parts |
-| Five-position implementation | 1-2 source turns | Exact driver/downstream boundaries and proposed refs in L4 | NEXT: coherent schematic/BOM/PCB/contracts edit with targeted failing tests and native review |
-| Other digital-channel disposition | 1 bounded decision plus needed evidence | Three MCU-driven stages and DRDY/control paths explicitly separate | Actual source-end access/channel evidence or bounded pilot disposition; not solved by five pads |
-| Analog pilot choice | 0 for proposal | L3 retains six upstream pairs for internal-test-only purpose | Explicit scope/revision-risk acceptance at release; E1 unchanged |
-| Components / manufacturing | 1-2 plus required evidence | Existing candidates and Q1 process questions retained | Accepted stack/component/assembly decisions and coordinated changes |
-| B1-B3 physical setup | Assembly/equipment-dependent | Existing plans and B2 run card, no new framework | Actual contacts, insulation, restraint, instruments and approved limits |
-| Fabrication release | 1 after prerequisites | Not released; Q1 remains a frozen quote snapshot | Consistent revision, restricted purpose, remaining dispositions and order approval |
-| First power / internal capture | Approved physical-work dependent | Firmware gate false, no acquisition | Inspected real assembly and measured commissioning under separate permission |
-| Prices / RFQ | Paused | One canonical unsent packet | No duplicate packet or price/stock campaign |
+| Bulk source publication | 0 | Verified source-only hosted publisher works; actual PCB/schematic/BOM source in PR98 | No local setup handoff or recovery loop |
+| Five SPI positions and native faults | 0 for application and focused native closure | Both boards0parity/0DRC/0unfinished;7sheets0ERC;10cuts+5shorts pass onf5338e69 | Full reference/access selection and independent acceptance |
+| Remaining L5 integration | 2-3 | Applied source/fills; full ordinary gate has14failures; full CAD selection times out with reference findings | C104/P3 native triage, obsolete mutation targets, S2-S4 conditional paths and K2 binding; full gates within unchanged budget |
+| Other digital-channel disposition | 1 bounded decision plus evidence | MCU launches and DRDY/control paths remain separate | Actual source-end/channel evidence or limited-pilot disposition |
+| Analog pilot choice | 0 for proposal | Six upstream pairs retained for internal-test-only pilot | Restricted purpose/revision risk accepted at release; E1 unchanged |
+| Components/manufacturing | 1-2 plus required evidence | Existing proposals and frozen Q1 retained | Accepted stack/component/assembly decisions |
+| B1-B3 startup setup | Assembly/equipment-dependent | Existing plans/run card retained | Actual contacts, insulation, restraint, instruments and limits |
+| Fabrication release | 1 after prerequisites | Not released | One consistent reviewed revision and restricted-purpose acceptance |
+| First internal capture | Approved physical-work dependent | Firmware gatefalse; no acquisition | Inspected assembly and separately approved commissioning |
+| External-input characterization | Later, measurement-dependent | Unqualified; another revision possible | Existing source/noise/coupling/uncertainty requirements |
+| Prices/RFQ | Paused | Sole frozen unsent Q1 | No lookup/outreach/duplicate packet |
 
-Estimates overlap and exclude supplier/fabrication/shipping/physical time.
-Five positions cover the custom-board SPI drivers, not every output in the
-system. The three MCU launch segments and DRDY/control/fault behavior remain
-subject to their own conditions. No universal resistor, source-impedance value,
-loop/edge budget or first-power setting is inferred from nominal geometry.
+Estimates overlap and exclude manufacturing, shipping, supplier responses and
+measurements. Fifteen native cases actually executed in32.755s on exactf5338e69,
+not on every subsequent documentation head. Full CAD run38076033192 on3f98404f timed out at450s with ten failure markers
+and no final JUnit. Retained logs identify a C104 return-reference gap, P3
+reference-growth and obsolete mutation targets; see the additional
+`checkpoints/20261010_l5_full_native.json` receipt. These and the full ordinary
+gate failures are blockers, not permission to rewrite histories or weaken checks. DNP sites are open; no fitted resistance is selected.
 
-Next implement AUX R117-R120 and AFE R24 as proposed in L4, not a further
-paper provisioning exercise. Keep existing R114 on the receiver side, avoid
-parallel bypasses and verify both sides of the added parts. No bare-IC lifting,
-blind trace cuts, global footprint edits or enlarged reference allowances.
-Keep the implementation separate from unrelated refactors and capacitor choices.
-All #45/#48 and purchase/fabrication/rework/construction/mating/power/external-
-acquisition/person or animal connection permissions remain unchanged.
+The isolated publishers are source-only. Native CAD runs separately read-only
+with existing pinned tools. Product workflows/permissions/dependencies,450s CAD
+budget,71%floor, original P2/clock snapshots, firmware and Q1 remain unchanged.
+Read actual full diagnostic and review outcomes. No fabrication, power, physical
+work/mating, external-input acquisition or person/animal use is authorized.
