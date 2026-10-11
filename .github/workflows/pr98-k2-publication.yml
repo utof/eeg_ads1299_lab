@@ -1,0 +1,90 @@
+name: Publish verified PR98 K2 source
+on:
+  push:
+    branches: [workbench/pr98-k2-20261012]
+    paths: [.github/workflows/pr98-k2-publication.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 58ebd9a9d880b0349fbb78de0a1244ded3b41940
+          fetch-depth: 0
+      - name: Verify exact source data and publish without executing project code
+        run: |
+          python3 - <<'PY'
+          import base64,gzip,hashlib,json,os,pathlib,subprocess
+          BASE='58ebd9a9d880b0349fbb78de0a1244ded3b41940'
+          TREE='4d708bd58651725ad8609f413d05d61bee8f7044'
+          DATA='c33c3fea0c507dac96e3ba823396cfc379213ef2'
+          DEST='refs/heads/workbench/pr98-k2-published-20261012'
+          EXPECTED={'docs/LLM_HANDOFF.md','docs/REV_A_CARRIER_K2.md','docs/REV_A_COMPLETION_ROADMAP.md','docs/checkpoints/20261012_l5_k2_review.json','tests/test_carrier_cad.py','tests/test_carrier_l5.py','tools/check.py'}
+          def git(*args,env=None):
+              return subprocess.check_output(['git',*args],env=env,timeout=90)
+          def text(*args):return git(*args).decode().strip()
+          def sha(data):return hashlib.sha256(data).hexdigest()
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'k2-publication';out.mkdir()
+          assert text('rev-parse','HEAD')==BASE
+          assert text('rev-parse','HEAD^{tree}')=='8db525021d1be098a8fbc88ddc7158f542899f20'
+          assert not text('status','--porcelain','--untracked-files=all')
+          assert text('ls-remote','origin','refs/heads/work/l5-spi-series').split()[0]==BASE
+          assert not text('ls-remote','origin',DEST)
+          raw=git('show',DATA+':workbench/pr98-k2-source.patch.b64')
+          (out/'transferred-source.b64').write_bytes(raw)
+          # Repair the observed transport typo only, then require the ORIGINAL full digest.
+          old=b'KoIQrqvTfqb5nxLpUM';new=b'KoIQrqvTfqbqy3nxLpUM'
+          assert raw.count(old)==1
+          encoded=raw.replace(old,new)
+          assert sha(encoded)=='3606eb75596e915eac0332dfb570ca41068d284a6ff7e861c5d044c184bd6d56',sha(encoded)
+          patch=gzip.decompress(base64.b64decode(encoded.strip(),validate=True))
+          assert sha(patch)=='6e83b1b2ad75bf68f8b4521eb8d4702c9b8e7f59d902109355bd3593c6af3e17'
+          path=out/'verified-source.patch';path.write_bytes(patch)
+          subprocess.run(['git','apply','--index',str(path)],check=True,timeout=30)
+          assert set(text('diff','--cached','--name-only').splitlines())==EXPECTED
+          assert text('write-tree')==TREE
+          subprocess.run(['git','diff','--cached','--check'],check=True,timeout=30)
+          env=dict(os.environ,GIT_AUTHOR_NAME='utof',GIT_COMMITTER_NAME='utof',GIT_AUTHOR_EMAIL='38869938+utof@users.noreply.github.com',GIT_COMMITTER_EMAIL='38869938+utof@users.noreply.github.com')
+          message=('fix(hardware): bind K2 to reviewed R24 allocation and service limits\n\n'
+                   'Review the actual added R24 footprint against retained K2/B3 geometry.\n'
+                   'Keep one strict whole-board hash and shifted-R24/land rejection controls.\n'
+                   'The allocated volume fits, but straight upper approaches are obstructed\n'
+                   'when assembled. Upper-assembly removal is a future unpowered service\n'
+                   'condition, not part selection, solder-tool fit or physical permission.\n\n'
+                   'Local installed pytest with real OpenSCAD2021.01 passed65 carrier/service\n'
+                   'cases. Native KiCad and the full locked published-head gates are pending.\n'
+                   'PCB, carrier solids, B3 geometry, firmware, Q1 and thresholds unchanged.\n'
+                   'tools.check adds one input identity only, no selection or runner change.\n'
+                   'Seven hash-verified source files; no project code runs in this publisher.\n'
+                   'Keep PR98 draft pending combined tests and independent review.\n')
+          head=git('commit-tree',TREE,'-p',BASE,'-m',message,env=env).decode().strip()
+          git('update-ref','refs/heads/k2-verified',head)
+          assert text('ls-remote','origin','refs/heads/work/l5-spi-series').split()[0]==BASE
+          git('push','origin',head+':'+DEST)
+          assert text('ls-remote','origin',DEST).split()[0]==head
+          fresh=out/'fresh'
+          git('clone','--no-local','--branch',DEST.removeprefix('refs/heads/'),'https://github.com/'+os.environ['GITHUB_REPOSITORY']+'.git',str(fresh))
+          assert text('-C',str(fresh),'rev-parse','HEAD')==head
+          assert text('-C',str(fresh),'rev-parse','HEAD^{tree}')==TREE
+          assert not text('-C',str(fresh),'status','--porcelain')
+          subprocess.run(['git','bundle','create',str(out/'source.bundle'),'refs/heads/k2-verified'],check=True,timeout=90)
+          receipt={'base':BASE,'head':head,'tree':TREE,'files':sorted(EXPECTED),'source_only':True,'native_validation_passed':False,'hardware_released':False}
+          (out/'receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
+          (out/'SHA256SUMS').write_text(''.join(sha(p.read_bytes())+'  '+p.name+'\n' for p in sorted(out.iterdir()) if p.is_file()))
+          print(json.dumps(receipt,indent=2))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: pr98-k2-publication
+          path: |
+            ${{ runner.temp }}/k2-publication/receipt.json
+            ${{ runner.temp }}/k2-publication/SHA256SUMS
+            ${{ runner.temp }}/k2-publication/source.bundle
+            ${{ runner.temp }}/k2-publication/verified-source.patch
+            ${{ runner.temp }}/k2-publication/transferred-source.b64
+          retention-days: 14
+          if-no-files-found: error
