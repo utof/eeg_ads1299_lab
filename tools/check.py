@@ -365,6 +365,7 @@ def _schematic_snapshot(cad: Path, footprints: Path) -> dict[str, str]:
         "tests/test_spi_series_positions.py",
         "tests/test_spi_series_native.py",
         "tests/test_service_access.py",
+        "tests/test_carrier_l5.py",
         "hardware/rev_a/service_c4.json",
         "tests/test_pcb_power.py",
         "tests/test_auxiliary_contract.py",

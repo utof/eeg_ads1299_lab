@@ -1,4 +1,4 @@
-# Continue PR98: S1-S4 reconciled; K2 and independent acceptance remain
+# Continue PR98: K2 nominal review completed; validate combined source and review
 
 Read root `AGENTS.md`, `REPOSITORY_PUBLICATION.md`, `DEVELOPMENT.md` and
 `REV_A_BENCH_FIRST.md`. Read live main/PR98 heads and the original review threads.
@@ -111,23 +111,37 @@ failures are historical, not present at d45acaaf. No new independent review has
 completed; the last request reported quota exhaustion. Do not repeat completed
 supply reconciliation merely because a receipt-only head differs from d45acaaf.
 
-## Next bounded engineering task
+## K2 nominal review and current task
 
-Review K2's strict AFE whole-board binding and actual R24 placement/access before
-changing its expected identity. Its current test still names the pre-L5 board.
-R24 is at(57.0,29.4); the old component placements, outline, mating interfaces and
-carrier SCAD are unchanged, but that alone is not populated solder/tool-access
-proof. Use the existing carrier/service CAD and native OpenSCAD checks; retain
-all wrong-port, tilted-insertion, cable, support and altered-board controls.
-Do not blindly replace a hash or imply that an unspecified fitted part has a
-qualified height or safe rework clearance. Separate nominal DNP/allocated-envelope
-compatibility from actual fitting and workmanship acceptance.
+The last remaining old-board binding was reproduced on58ebd9a9 before correction.
+K2's current nominal review is in the L5 amendment of REV_A_CARRIER_K2.md; retain
+that distinction from historical C3/C4 bindings. R24 is the only added AFE
+footprint.68 original footprint forms are identical; U1's only footprint change
+is its driver-pad net annotation. Original placement/outline and K2/B3 CAD stay
+unchanged. The3.2x1.6x4mm R24 allocation lies inside the existing blanket region,
+not a newly selected component envelope. The whole-board binding remains strict.
 
-Independent exact-source review remains required. The last requested Codex
-review returned usage-limit exhaustion (comment6103095217); no review of the new
-supply slice is claimed. Retain the original threads and findings; do not infer
-approval from an older review, another account, a green subset or successful
-source transport. Keep PR98 draft until complete gates and review are accepted.
+Local actual OpenSCAD2021.01 checks show nominal R24 allocation clearance but
+BLOCKED straight upper access in the installed arrangement. Both0.5mm approach
+probes clear the base/service allocation only in the specified upper-assembly-
+removed state. Joint-level solder/tool access and fitting remain unqualified.
+No in-situ soldering under a ribbon, arbitrary0ohm fitting or physical action is
+authorized. See the new native placement/courtyard and altered-R24 controls.
+
+Next inspect the exact new-head ordinary, native, KiCad and firmware gates and
+independent review. Local installed-pytest/OpenSCAD authoring is not the full
+locked gate or native KiCad result. Do not repeat S1-S4, C104/P3 or candidate
+application. The source changes do not modify PCB, carrier geometry or firmware.
+After combined acceptance, continue L4's remaining MCU-launch/control-channel
+pilot disposition; do not start a new generic study or quote campaign.
+
+Independent exact-source review remains required. The last historical Codex
+request returned usage-limit exhaustion(comment6103095217). No new review is
+claimed. Retain original threads; never infer approval from an old review,
+another account, collection-only results or a source-transfer job. Keep PR98
+draft and unmerged until all gates and review are accepted. All450s/71% limits
+and existing fault cases remain. Hosted preflight still applies; no user local
+setup is needed for the available connected/native routes.
 
 ## Retained boundaries
 

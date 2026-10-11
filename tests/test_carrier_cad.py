@@ -211,12 +211,12 @@ def test_release_strain_bar_before_withdrawal(tmp_path: Path) -> None:
 
 
 def test_carrier_is_bound_to_reviewed_board() -> None:
-    # C4 adds J3 and service routes, with independent mating/support checks.
-    # All old raw footprint/copper forms remain unchanged; see REV_A_SERVICE_C4.md.
-    # Keep a strict whole-file binding: future geometry changes still fail.
+    # L5 adds R24 inside K2's existing component allocation. See the L5 amendment
+    # in REV_A_CARRIER_K2.md and test_carrier_l5.py for access/altered-board controls.
+    # One strict whole-file binding; neither part fitting nor rework is approved.
     board = ROOT / "hardware/rev_a/layout/rev_a.kicad_pcb"
     assert hashlib.sha256(board.read_bytes()).hexdigest() == (
-        "60097ff4acf8408d5a172930de74bcd36aa50a379dd30a831e4bc64d3841c8a6"
+        "7873928ea7118b9e39822c0c2b2a70f47df58b01c8b1696c16d343b2b7ec1b7a"
     )
 
 
