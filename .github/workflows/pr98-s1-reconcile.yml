@@ -1,0 +1,78 @@
+name: PR98 S1 native reconciliation
+on:
+  push:
+    branches: [workbench/pr98-source-publication-20261010]
+    paths: [.github/workflows/pr98-s1-reconcile.yml]
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-24.04
+    container: debian:trixie@sha256:9cc080028c43b27d2074d63a5f9caf7166d731494965616c1a6d2827a004585c
+    timeout-minutes: 15
+    env:
+      UV_PYTHON_DOWNLOADS: never
+      KICAD9_FOOTPRINT_DIR: /usr/share/kicad/footprints
+    steps:
+      - name: Install existing pinned CAD environment
+        run: |
+          apt-get update -qq
+          apt-get install --yes --no-install-recommends ca-certificates git g++ python3 python3-pip python3-venv kicad=9.0.2+dfsg-1 kicad-symbols=9.0.2-1 kicad-footprints=9.0.2-1 > /tmp/cad-install.log 2>&1 || { tail -60 /tmp/cad-install.log; exit 1; }
+          python3 -m pip install --break-system-packages uv==0.12.18
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 075ffd6c3875d29302a47bf4601b14304d8248e2
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Establish baseline and recapture with the unchanged native algorithm
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          uv sync --locked --all-extras
+          uv run --locked python - <<'PY'
+          import hashlib,json,pathlib,runpy,subprocess,sys,xml.etree.ElementTree as ET
+          out=pathlib.Path('reports/s1-l5');out.mkdir(parents=True)
+          def git(*args): return subprocess.check_output(['git',*args],timeout=60).decode().strip()
+          assert git('rev-parse','HEAD')=='075ffd6c3875d29302a47bf4601b14304d8248e2'
+          assert git('rev-parse','HEAD^{tree}')=='0f5414235ecd8bda4d5f2034e5474f5a0a4dcd82'
+          assert not git('status','--porcelain','--untracked-files=all')
+          assert subprocess.check_output(['kicad-cli','version'],text=True).strip()=='9.0.2'
+          subprocess.run(['git','bundle','create',str(out/'base.bundle'),'HEAD'],check=True,timeout=60)
+          baseline=subprocess.run([sys.executable,'-m','pytest','-q','tests/test_supply_inventory.py::test_supply_inventory_matches_current_native_geometry','--junitxml='+str(out/'before.xml')],capture_output=True,text=True,timeout=60)
+          (out/'before.log').write_text(baseline.stdout+baseline.stderr)
+          cases=ET.parse(out/'before.xml').getroot().findall('.//testcase')
+          assert baseline.returncode==1 and len(cases)==1 and cases[0].find('failure') is not None
+          assert 'S1 source identity differs' in baseline.stdout
+          probe=pathlib.Path('tests/supply_inventory_probe.py');old_probe=probe.read_text()
+          old=pathlib.Path('docs/studies/s1_supply_paths.json').read_bytes();(out/'historical-s1.json').write_bytes(old)
+          updated=old_probe.replace("SOURCE_COMMIT='f6932ead58c1d02af145de405312a7f885dbb010'","SOURCE_COMMIT='3519b21e335584244771c73c5c87b70d66037a7e'").replace("SOURCE_TREE='a1bb3a16687c65f736de9c2634bb5ec2e4b990ac'","SOURCE_TREE='9475d027c1a0ba1c3cf9c35c2da9e0a1be07888c'")
+          assert updated!=old_probe
+          probe.write_text(updated)
+          script=runpy.run_path(str(probe))['SCRIPT']
+          result=subprocess.run(['/usr/bin/python3','-c',script,str(pathlib.Path.cwd())],capture_output=True,text=True,timeout=45)
+          (out/'native-stderr.log').write_text(result.stderr);assert result.returncode==0,result.stderr
+          fresh=json.loads(result.stdout);previous=json.loads(old)
+          assert fresh['source_commit']=='3519b21e335584244771c73c5c87b70d66037a7e'
+          assert fresh['qualified'] is False
+          identities={'source_commit','source_tree','boards'}
+          assert {k:v for k,v in fresh.items() if k not in identities}=={k:v for k,v in previous.items() if k not in identities},'supply geometry/accounting changed; review before any rebinding'
+          model=pathlib.Path('docs/studies/s1_supply_paths.json');model.write_text(result.stdout)
+          after=subprocess.run([sys.executable,'-m','pytest','-q','tests/test_supply_inventory.py','--junitxml='+str(out/'after.xml')],capture_output=True,text=True,timeout=90)
+          (out/'after.log').write_text(after.stdout+after.stderr);assert after.returncode==0,after.stdout+after.stderr
+          names={'tests/supply_inventory_probe.py','docs/studies/s1_supply_paths.json'}
+          assert set(git('diff','--name-only').splitlines())==names
+          files={}
+          for name in sorted(names):
+              p=pathlib.Path(name);q=out/'source'/name;q.parent.mkdir(parents=True,exist_ok=True);q.write_bytes(p.read_bytes())
+              files[name]={'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'blob':git('hash-object',name)}
+          receipt={'base':git('rev-parse','HEAD'),'geometry_commit':fresh['source_commit'],'geometry_tree':fresh['source_tree'],'geometry_and_assumptions_unchanged':True,'kicad':'9.0.2','files':files,'full_gate_passed':False,'hardware_released':False}
+          (out/'receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
+          (out/'source.patch').write_bytes(subprocess.check_output(['git','diff','--binary']))
+          (out/'SHA256SUMS').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+str(p.relative_to(out))+'\n' for p in sorted(out.rglob('*')) if p.is_file()))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: pr98-s1-native-reconciliation
+          path: reports/s1-l5/
+          retention-days: 14
+          if-no-files-found: error
