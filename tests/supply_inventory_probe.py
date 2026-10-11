@@ -66,8 +66,8 @@ def inventory(board, active, requests):
      return {'net':net,'from':start,'to':end,'centerline_mm_excludes_vertical_via_length':d,'via_transitions':sum(k=='via' for k,*_ in h),'segments_traversed':len({x[1]for x in h if x[0]=='segment'}),'front_mm':sum(x[2]for x in h if x[0]=='segment'and x[3][2]==k.F_Cu),'In2_mm':sum(x[2]for x in h if x[0]=='segment'and x[3][2]==k.In2_Cu),'minimum_track_width_mm':min(widths),'front_resistance_squares':sum(x[2]/(byid[x[1]].GetWidth()/1e6) for x in h if x[0]=='segment'and x[3][2]==k.F_Cu),'inner_resistance_squares':sum(x[2]/(byid[x[1]].GetWidth()/1e6) for x in h if x[0]=='segment'and x[3][2]==k.In2_Cu),'sections':[{'kind':kind,'id':ident,'length_mm':dist,'from':list(a),'to':list(z),'width_mm':byid[ident].GetWidth()/1e6 if kind=='segment' else None} for kind,ident,dist,a,z in h], 'trace_UUIDs':sorted({x[1]for x in h if x[0]=='segment'})}
     return [route(a,b) for a,b in requests]
 ROOT=Path(sys.argv[1])
-SOURCE_COMMIT='f6932ead58c1d02af145de405312a7f885dbb010'
-SOURCE_TREE='a1bb3a16687c65f736de9c2634bb5ec2e4b990ac'
+SOURCE_COMMIT='3519b21e335584244771c73c5c87b70d66037a7e'
+SOURCE_TREE='9475d027c1a0ba1c3cf9c35c2da9e0a1be07888c'
 BOARD_PATHS=['hardware/rev_a/layout/rev_a.kicad_pcb',
              'hardware/rev_a/auxiliary/auxiliary.kicad_pcb']
 def git_object(spec):
