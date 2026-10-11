@@ -8,12 +8,13 @@
     "firmware/esp32_ads1299_bench/board_config.h": "30b46ea5aa773ba2aca8089a293afa69e93a692d63e4fa4189d18cb93db0c6d5",
     "firmware/esp32_ads1299_bench/esp32_ads1299_bench.ino": "3932ad9b5c47e7fdf49cd66570d18682fb7c62b2af1a633641f0b7573b76417c",
     "firmware/toolchain.json": "b2b75e30ea9fbd7de610abf62e0c3237961096944b02f58b5686d36965edd286",
-    "hardware/rev_a/bom.json": "514970772d5d3239b49b0ace9309fa83289497f88f18458b2cb802e684d1e4c9",
-    "hardware/rev_a/auxiliary/contract.json": "7d36ddabda0ab5ced7042850a3776b303c4a48a7666694c2a8b1cb6f623ebb75",
-    "docs/studies/s3_acceptance.json": "f71398b850e4cd4f5f998d5f3e58ef9b4939f210f98017631f249c308acea120",
-    "docs/REV_A_SUPPLY_ACCEPTANCE_S3.md": "a9a49d28027f8b3a79734daca9ca9bc2fbcff1225f7e237dc750a8b761f80e39",
+    "hardware/rev_a/bom.json": "74dbfabd206e37806c7d6df877a3d226db7d5a141f637f9913d3eb1c5efc401c",
+    "hardware/rev_a/auxiliary/contract.json": "b0780c92066b864333f2b9d838c5d485b33a214899a7d8d218f32cd1471de482",
+    "docs/studies/s3_acceptance.json": "0d4622d4708275b3568ad2ee11fab84df0b71bb6bbc0e9cf7f3f793cd9b3dc83",
+    "docs/REV_A_SUPPLY_ACCEPTANCE_S3.md": "4ebc8d26415d1868d7a2f0e65d57a175241ce09ce6a369659b6bbb152af32d84",
     "firmware/esp32_ads1299_bench/board_config_rev_a_s3.h": "b5dd71640643a8f4e42a34154dc99e79714baa165658530b1256b82139f53f5e",
-    "firmware/esp32_ads1299_bench/bench_console.h": "0fb67ee46488d1aae7e1b48d5c98031b784660ea6146a39409462d715575f47b"
+    "firmware/esp32_ads1299_bench/bench_console.h": "0fb67ee46488d1aae7e1b48d5c98031b784660ea6146a39409462d715575f47b",
+    "docs/studies/s2_current_return.json": "712a928b89b9b5756f8bb0745f8ef88e173858c6fa78f9f68768938d3ced6601"
   },
   "setup": {
     "channels": 4,
@@ -38,7 +39,20 @@
       "console_rx_GPIO": 17,
       "console_tx_GPIO": 18,
       "console_baud": 460800,
-      "phase": "after separately authorized startup and settling; never activated by this study"
+      "phase": "after separately authorized startup and settling; never activated by this study",
+      "separate_spi_population_review_required": true
+    },
+    "spi_population": {
+      "state": "OPEN_DNP",
+      "references": [
+        "R117",
+        "R118",
+        "R119",
+        "R120",
+        "R24"
+      ],
+      "resistance_ohm": null,
+      "acquisition_possible": false
     }
   },
   "adc_regulator": {

@@ -9,10 +9,22 @@ component-evidence result and an identified setup blocker, not completed power
 qualification. No board, circuit, firmware, cable, part or permission changed.
 
 Use [the existing S3 worksheet](REV_A_SUPPLY_ACCEPTANCE_S3.md), not a new solver.
-The evidence record is `studies/s4_serial_evidence.json`. Nine input hashes bind
-it to the actual firmware/build selection, component records and unchanged S3
-worksheet. The source snapshot also includes this note, record and their tests.
+The evidence record is `studies/s4_serial_evidence.json`. Ten input hashes bind
+it to the actual firmware/build selection, component records and reconciled S2/S3
+records and S3 worksheet. The source snapshot also includes this note, record and their tests.
 The mandatory [GitHub runbook](REPOSITORY_PUBLICATION.md) remains in force.
+
+## L5 population prerequisite (2026-10-11)
+
+The actual five SPI series sites remain OPEN DNP / NOT_SELECTED. The named
+acquisition setup therefore requires a separately reviewed population decision
+AND the existing firmware/commissioning reviews. Setting the firmware review
+flag true alone cannot bridge R117-R120/R24. No fitted resistance is selected.
+The record now binds the reconciled S2/S3 data and explicitly reports this open
+hardware state, while preserving the distributed firmware and every vendor
+condition, unverified current/temperature/load bound and empty measurement field.
+The hypothetical serial setup is still not a measured or reachable operating
+state of this unpopulated board. Rail accuracy arithmetic cannot qualify it.
 
 ## One named setup, not every possible operating mode
 
@@ -25,7 +37,7 @@ profile-gate states are separate records, not one simultaneously reachable setup
 | State | Review gate and console | Acquisition |
 |---|---|---|
 | Distributed build | BOARD_PROFILE_REVIEWED=false; onboard `Serial.begin(460800)` | Stops before controls/acquisition; C1 header pins NOT configured |
-| Hypothetical acquisition | Would require a separately reviewed true gate; `Serial.begin(CONSOLE_BAUD, SERIAL_8N1, CONSOLE_RX, CONSOLE_TX)` uses RX17/TX18 at460800 | Only after authorized startup/settling; NOT authorized or enabled here |
+| Hypothetical acquisition | Would require separately reviewed SPI population and a true gate; `Serial.begin(CONSOLE_BAUD, SERIAL_8N1, CONSOLE_RX, CONSOLE_TX)` uses RX17/TX18 at460800 | Only after authorized startup/settling; NOT authorized or enabled here |
 
 The recorded `BOARD_PROFILE_REVIEWED_required=true` is a COUNTERFACTUAL condition,
 not an actual firmware flag change or an approval. The real distributed flag
