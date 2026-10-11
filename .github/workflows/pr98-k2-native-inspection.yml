@@ -1,0 +1,58 @@
+name: PR98 read-only K2 native inspection
+on:
+  push:
+    branches: [workbench/pr98-k2-20261012]
+    paths: [.github/workflows/pr98-k2-native-inspection.yml]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    container: debian:trixie@sha256:9cc080028c43b27d2074d63a5f9caf7166d731494965616c1a6d2827a004585c
+    timeout-minutes: 10
+    env:
+      UV_PYTHON_DOWNLOADS: never
+      KICAD9_FOOTPRINT_DIR: /usr/share/kicad/footprints
+    steps:
+      - name: Install the existing pinned native environment
+        run: |
+          apt-get update -qq
+          apt-get install --yes --no-install-recommends ca-certificates git python3 python3-pip python3-venv kicad=9.0.2+dfsg-1 kicad-symbols=9.0.2-1 kicad-footprints=9.0.2-1 > /tmp/k2-install.log 2>&1 || { tail -60 /tmp/k2-install.log; exit 1; }
+          python3 -m pip install --break-system-packages uv==0.12.18
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 2888cede92df9c80fb2b0d294951d6db127b12c8
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Record exact unchanged source and inspect native field API
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          test "$(git rev-parse HEAD^{tree})" = 4d708bd58651725ad8609f413d05d61bee8f7044
+          uv sync --locked --all-extras
+          mkdir -p reports/k2-inspection
+          git rev-parse HEAD HEAD^{tree} > reports/k2-inspection/identity.txt
+          /usr/bin/python3 - <<'PY' > reports/k2-inspection/native-fields.json
+          import json,pcbnew as p
+          assert p.Version()=='9.0.2'
+          b=p.LoadBoard('hardware/rev_a/layout/rev_a.kicad_pcb')
+          f=b.FindFootprintByReference('R24');assert f is not None
+          fields={a.GetName():a.GetText() for a in f.GetFields()}
+          pads=[{'number':a.GetNumber(),'position_nm':[a.GetPosition().x,a.GetPosition().y],'size_nm':[a.GetSize().x,a.GetSize().y],'net':a.GetNetname()} for a in f.Pads()]
+          edges=[{'start_nm':[a.GetStart().x,a.GetStart().y],'end_nm':[a.GetEnd().x,a.GetEnd().y],'width_nm':a.GetWidth()} for a in f.GraphicalItems() if a.GetLayer()==p.F_CrtYd]
+          print(json.dumps({'kicad':p.Version(),'native_dnp':f.IsDNP(),'fields':fields,'pads':pads,'courtyard':edges,'has_GetProperty':hasattr(f,'GetProperty'),'physical_qualification':False},indent=2))
+          PY
+      - name: Execute only the unchanged published placement and binding checks
+        run: |
+          uv run --locked python -m pytest -q tests/test_carrier_l5.py::test_r24_native_lands_and_courtyard_match_the_allocated_space tests/test_carrier_cad.py::test_carrier_is_bound_to_reviewed_board tests/test_service_access.py::test_service_native_footprint_has_actual_six_pad_placement --junitxml=reports/k2-inspection/pytest.xml --basetemp=reports/k2-inspection/tests > reports/k2-inspection/pytest.log 2>&1 || { cat reports/k2-inspection/pytest.log; exit 1; }
+      - name: Verify no source change
+        if: always()
+        run: |
+          git diff --exit-code
+          test -z "$(git ls-files --others --exclude-standard)"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: pr98-k2-native-inspection
+          path: reports/k2-inspection/
+          retention-days: 14
+          if-no-files-found: error
