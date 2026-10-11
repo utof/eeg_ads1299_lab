@@ -79,6 +79,8 @@ def _run(model: Path, log: Path, optimization: str = "normal") -> dict[str, obje
 def test_default_worksheet_cannot_approve_missing_bounds(tmp_path: Path) -> None:
     result = _run(MODEL, tmp_path / "worksheet.log")
     assert result["physical_qualification"] is False
+    assert result["acquisition_possible_as_authored"] is False
+    assert result["spi_population_state"] == "OPEN_DNP"
     rows = read_object(result["windows"], "windows")
     assert set(rows) == {
         "AVDD",
@@ -219,6 +221,8 @@ def test_optimized_valid_worksheet_keeps_all_unknowns(tmp_path: Path, optimizati
 @pytest.mark.parametrize(
     "field,value",
     [
+        ("spi_population_state", "FIT"),
+        ("acquisition_possible_as_authored", True),
         ("schema", "unapproved"),
         ("scope", "physical_release"),
         ("physical_qualification", True),

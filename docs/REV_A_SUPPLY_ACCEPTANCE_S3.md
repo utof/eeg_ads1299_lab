@@ -1,5 +1,21 @@
 # S3 supply acceptance worksheet — conditional arithmetic, not a release
 
+## Applied L5 interpretation (2026-10-11)
+
+The bound input revision below includes the freshly reconciled S1 inventory and
+S2's actual OPEN DNP versus conditional fitted-path distinction. Native extraction
+retains the same supply-path geometry and assumptions; the five SPI gaps do not
+change the eight rail KVL recipes, their signs, or the 21 unknown voltage terms.
+Those gaps DO prevent normal acquisition. Rail windows, even with hypothetical
+values filled in, cannot approve SPI continuity or population. All five parts
+remain DNP/NOT_SELECTED, and no fitted value or physical result is introduced.
+
+The executable worksheet independently requires the OPEN_DNP/false state to match
+the source-bound S2 record. Historical S3 input identities remain in Git; current
+inputs are anchored to the actual preceding S1/S2 reconciliation commit, not
+silently attributed to the earlier board. All measurement records remain empty.
+
+
 **Decision:** collect bounded evidence for the complete source/feed/return loop
 before choosing a supply, widening copper or approving operation. The editable
 worksheet is `studies/s3_acceptance.json`; the exact executable block below
@@ -8,8 +24,8 @@ terms start **unknown**, not zero. The eight output rows are consequently
 indeterminate. There are no physical measurement records in this template.
 
 S2 is merged as `188d954a4546d945f825008a723e4ad345e96fc3`. The worksheet's
-immutable input baseline is its reviewed head `319f685439fa5ed7c34eeabf44537d48fbddcd90`,
-tree `b17c00d67a95594ddfeda4d6973d78173dd5f4b5`, identical to that merge.
+immutable input baseline is its reviewed head `7bc15dcb7a53d00677e7d9d67314287989b17dff`,
+tree `b0886ef1870d362d85d9b4552710a223c1e56594`, identical to that merge.
 Nine committed inputs, including BOTH boards, are checked against their original
 Git bytes and SHA256s. Source history is required; a bare ZIP is not provenance.
 S1/S2 sensitivity examples remain historical hypotheses, not accepted limits.
@@ -173,8 +189,8 @@ require(m["scope"] == "conditional_signed_DC_intervals_not_a_release", "wrong sc
 require(m["physical_qualification"] is False, "no physical approval path")
 require(m["evidence_status"] == "unreviewed_hypotheses_only", "unreviewed hypotheses only")
 require(m["measurement_records"] == [], "template contains no physical results")
-require(m["source_commit"] == "319f685439fa5ed7c34eeabf44537d48fbddcd90", "wrong source commit")
-require(m["source_tree"] == "b17c00d67a95594ddfeda4d6973d78173dd5f4b5", "wrong source tree")
+require(m["source_commit"] == "7bc15dcb7a53d00677e7d9d67314287989b17dff", "wrong source commit")
+require(m["source_tree"] == "b0886ef1870d362d85d9b4552710a223c1e56594", "wrong source tree")
 require(
     subprocess.check_output(
         ["git", "rev-parse", m["source_commit"] + "^{tree}"], text=True, timeout=5
@@ -201,6 +217,13 @@ for name, digest in m["input_sha256"].items():
         current == original and hashlib.sha256(current).hexdigest() == digest,
         "input bytes: " + name,
     )
+require(m["spi_population_state"] == "OPEN_DNP", "SPI population is not approved")
+require(m["acquisition_possible_as_authored"] is False, "no acquisition approval path")
+s2 = json.loads(Path("docs/studies/s2_current_return.json").read_text())
+require(s2["spi_population"] == {
+    "state": "OPEN_DNP", "references": ["R117", "R118", "R119", "R120", "R24"],
+    "resistance_ohm": None, "acquisition_possible": False,
+}, "upstream population record differs")
 p = json.loads(Path("hardware/rev_a/board_profile.json").read_text())
 require(
     not any(p["gates"].values()) and not p["afe"]["external_dummy_mode_enabled"],
@@ -281,6 +304,8 @@ print(
                 "remaining_before_all_other_losses_V": remaining,
                 "with_assumed_110mV_common_loss_V": source_target[0] - 0.010 * rmax - 0.110,
             },
+            "acquisition_possible_as_authored": False,
+            "spi_population_state": "OPEN_DNP",
             "physical_qualification": False,
         },
         indent=2,
