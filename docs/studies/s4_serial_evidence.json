@@ -11,7 +11,7 @@
     "hardware/rev_a/bom.json": "74dbfabd206e37806c7d6df877a3d226db7d5a141f637f9913d3eb1c5efc401c",
     "hardware/rev_a/auxiliary/contract.json": "b0780c92066b864333f2b9d838c5d485b33a214899a7d8d218f32cd1471de482",
     "docs/studies/s3_acceptance.json": "0d4622d4708275b3568ad2ee11fab84df0b71bb6bbc0e9cf7f3f793cd9b3dc83",
-    "docs/REV_A_SUPPLY_ACCEPTANCE_S3.md": "4ebc8d26415d1868d7a2f0e65d57a175241ce09ce6a369659b6bbb152af32d84",
+    "docs/REV_A_SUPPLY_ACCEPTANCE_S3.md": "5f1885a76dddd0395764085becb775392cb4f933fe73eb1ab09a400cdef3a896",
     "firmware/esp32_ads1299_bench/board_config_rev_a_s3.h": "b5dd71640643a8f4e42a34154dc99e79714baa165658530b1256b82139f53f5e",
     "firmware/esp32_ads1299_bench/bench_console.h": "0fb67ee46488d1aae7e1b48d5c98031b784660ea6146a39409462d715575f47b",
     "docs/studies/s2_current_return.json": "712a928b89b9b5756f8bb0745f8ef88e173858c6fa78f9f68768938d3ced6601"

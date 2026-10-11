@@ -23,9 +23,11 @@ reports voltage intervals, lower/upper margins and missing terms. All 21 physica
 terms start **unknown**, not zero. The eight output rows are consequently
 indeterminate. There are no physical measurement records in this template.
 
-S2 is merged as `188d954a4546d945f825008a723e4ad345e96fc3`. The worksheet's
-immutable input baseline is its reviewed head `7bc15dcb7a53d00677e7d9d67314287989b17dff`,
-tree `b0886ef1870d362d85d9b4552710a223c1e56594`, identical to that merge.
+The original S2 merge was `188d954a4546d945f825008a723e4ad345e96fc3`. This
+updated worksheet instead uses committed input baseline
+`7bc15dcb7a53d00677e7d9d67314287989b17dff`, tree
+`b0886ef1870d362d85d9b4552710a223c1e56594`, in the unmerged L5 work. This is
+not the old merge tree and has no independent-review approval yet.
 Nine committed inputs, including BOTH boards, are checked against their original
 Git bytes and SHA256s. Source history is required; a bare ZIP is not provenance.
 S1/S2 sensitivity examples remain historical hypotheses, not accepted limits.
