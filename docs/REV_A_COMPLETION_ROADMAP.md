@@ -8,7 +8,7 @@ publication and separate read-only hosted execution rather than local setup hand
 
 | Category | Remaining substantial turns | Done/status | Next slice or blocker |
 |---|---:|---|---|
-| S1-S4 source/topology reconciliation | 0 for this source repair | Fresh unchanged S1 geometry; explicit actual OPEN_DNP versus conditional S2-S4 examples | Combined exact-head results and independent acceptance |
+| S1-S4 source/topology reconciliation | 0 for this source repair | Fresh unchanged S1 geometry; explicit actual OPEN_DNP versus conditional S2-S4 examples | Exact d45 ordinary/CAD/firmware pass; independent acceptance pending |
 | C104/P3 reference repair | 0 for this repair | Already applied; prior complete CAD passed all relevant reference/fault cases | Retain geometry and unchanged thresholds |
 | K2 nominal fit/source binding and access | 1 bounded review plus needed evidence | Strict pre-L5 whole-board binding remains intentionally unchanged | Review R24 allocation, carrier/service interference and solder/tool access; run existing native controls |
 | Independent review / PR98 merge | Review-availability dependent | Last Codex request returned review quota exhaustion; draft not merged | Complete exact-head gates and independent review; no old approval substitution |
@@ -38,3 +38,11 @@ permission changed in the supply slice. Keep450s CAD/71% coverage, all15 SPI fau
 39 prior terminal cuts and the reference/domain/mounting guards. Next address K2
 against actual current source, then finish combined acceptance; do not repeat
 source recovery or weaken a test to make the remaining binding failure disappear.
+
+Exact d45acaaf verification: both ordinary Python jobs pass;1399 ordinary tests
+plus14 subtests in checked3.13 output; all309 KiCad cases pass in364.617s; actual
+ESP32-S3 compilation passes. The native integration selection has186passes and
+only the strict K2 board-binding failure. The whole PR is still blocked; do not
+count later receipt-only commits as a new execution of those results. Read
+`checkpoints/20261011_l5_supply_gate.json`. Next K2 review must retain its strict
+altered-board protection and distinguish DNP nominal space from fitted-part access.

@@ -80,6 +80,37 @@ are outside this engineering tree. The real six-commit source bundle, all12 blob
 and independent tree composition were checked before the leased PR ref update.
 The ordinary/native/firmware gates still use the one existing tools.check runner.
 
+## Actual combined-source results at d45acaaf
+
+All results in this section belong to exact published commit
+`d45acaaf73e8c6a499b3ad1963ac70f9b5d7acaa`, tree
+`85d3da926fb0adf0c256ae933b1bb31913581673`, not later receipt-only commits.
+See `checkpoints/20261011_l5_supply_gate.json` for runs, artifacts and digests.
+Python3.11 and3.13 ordinary jobs pass; the checked3.13 JUnit contains1399 ordinary
+passes plus14 subtests, zero failures/errors/skips. The S1-S4 failures are repaired.
+
+The complete shared schematic gate passes on the same source. All309 actual
+KiCad cases pass in364.617s inside unchanged450s, including S1's native inventory
+and both altered-board controls, the reference repair and all15 SPI faults.
+Seven sheets have0ERC; both freshly checked boards have0parity/0otherDRC/0opens.
+The49 repeated console cases pass and are a subset of existing native integration,
+not49 new cases. Ninety-one local source hashes and all5 primary output hashes
+were independently checked;23 external library hashes were not rechecked locally.
+
+Actual ESP32-S3 target compilation also passes. Its exact source identity,7 input
+hashes and4 binary hashes were independently verified. Firmware guards remain
+false and no hardware was programmed or powered. Ordinary commit-hook and
+tracked-source-unchanged checks passed where applicable.
+
+The separate native integration selection completes187 cases:186pass and one
+failure, `tests.test_carrier_cad::test_carrier_is_bound_to_reviewed_board`.
+It compares current AFE hash7873928e... with pre-L5 hash60097ff4.... That strict
+K2 binding is deliberately UNCHANGED pending the next geometry/access review.
+This is not a green whole-project gate; do not merge. Earlier supply-format
+failures are historical, not present at d45acaaf. No new independent review has
+completed; the last request reported quota exhaustion. Do not repeat completed
+supply reconciliation merely because a receipt-only head differs from d45acaaf.
+
 ## Next bounded engineering task
 
 Review K2's strict AFE whole-board binding and actual R24 placement/access before
