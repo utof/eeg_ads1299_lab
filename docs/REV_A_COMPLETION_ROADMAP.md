@@ -1,46 +1,40 @@
-# Rev A roadmap - C104/P3 reference repair applied; S1-S4 source reconciliation remains
+# Rev A roadmap - S1-S4 reconciled; K2 and independent acceptance remain
 
-Continue draft PR98 from live head. Main remains c2f93ee3. Five SPI sites are active
-source. Hosted capability instructions are in220e9263; the three-file reference
-repair is in3519b21e/tree9475d027. Read LLM_HANDOFF and the [hosted capability
-preflight](REPOSITORY_PUBLICATION.md#hosted-capability-preflight), not old local
-setup handoffs. Do not reapply the saved candidate or recreate passing tests.
+Continue draft PR98 from live head; main was checked at c2f93ee3. Hardware already
+contains five SPI positions and the C104/P3 reference repair. Never reapply the
+archived candidate. Read LLM_HANDOFF and the [hosted capability
+preflight](REPOSITORY_PUBLICATION.md#hosted-capability-preflight). Use connected
+publication and separate read-only hosted execution rather than local setup handoffs.
 
 | Category | Remaining substantial turns | Done/status | Next slice or blocker |
 |---|---:|---|---|
-| Hosted publication/native workflow | 0 for working route and instructions | Five Markdown entrypoints/runbook updated; existing test guards discoverability | Use authorized exact-source publisher and separate read-only execution |
-| C104/P3 reference and obsolete mutations | 0 for this repair | Three vias/six endpoints adjusted;113 native cases and11 source checks passed | Final combined-source review and complete gates, not another geometry recovery |
-| Remaining L5 integration | 1-3 plus acceptance | SPI positions/fills and native fault cases applied; complete native selection308pass/1S1 failure in351.788s | Reconcile S1-S4 open/conditional fitted paths, K2 binding/access and full project gates |
-| Other digital-channel disposition | 1 bounded decision plus evidence | MCU launches and DRDY/control paths remain separate | Actual source-end/channel evidence or explicit limited-pilot disposition |
-| Analog pilot choice | 0 for proposal | Six upstream pairs retained for internal-test-only pilot | Restricted purpose/revision risk accepted at release; E1 unchanged |
-| Components/manufacturing | 1-2 plus required evidence | Existing proposals and frozen Q1 retained | Accepted stack/component/assembly decisions |
-| B1-B3 startup setup | Assembly/equipment-dependent | Existing plans/run card retained | Actual contacts, insulation, restraint, instruments and limits |
-| Fabrication release | 1 after prerequisites | Not released | One consistent reviewed revision and restricted-purpose acceptance |
-| First internal capture | Approved physical-work dependent | Firmware gatefalse; no acquisition | Inspected assembly and separately approved commissioning |
-| External-input characterization | Later, measurement-dependent | Unqualified; another revision possible | Existing source/noise/coupling/uncertainty requirements |
-| Prices/RFQ | Paused | Sole frozen unsent Q1 | No lookup/outreach/duplicate packet |
+| S1-S4 source/topology reconciliation | 0 for this source repair | Fresh unchanged S1 geometry; explicit actual OPEN_DNP versus conditional S2-S4 examples | Combined exact-head results and independent acceptance |
+| C104/P3 reference repair | 0 for this repair | Already applied; prior complete CAD passed all relevant reference/fault cases | Retain geometry and unchanged thresholds |
+| K2 nominal fit/source binding and access | 1 bounded review plus needed evidence | Strict pre-L5 whole-board binding remains intentionally unchanged | Review R24 allocation, carrier/service interference and solder/tool access; run existing native controls |
+| Independent review / PR98 merge | Review-availability dependent | Last Codex request returned review quota exhaustion; draft not merged | Complete exact-head gates and independent review; no old approval substitution |
+| Other digital-channel disposition | 1 bounded decision plus evidence | MCU launch stages and DRDY/control paths remain separate | Source-end/channel evidence or explicit limited-pilot disposition |
+| Components/manufacturing | 1-2 plus evidence | Existing proposals and frozen Q1 retained | Accepted stack/component/assembly decisions and actual SPI fit decision |
+| Startup / internal capture | Assembly/equipment-dependent | Existing B1-B3 plans; all five SPI sites open; firmware gatefalse | Actual population/assembly/instruments and separately approved commissioning |
+| Fabrication release | 1 after prerequisites | Not released | One consistent revision and acceptance of restricted pilot purpose/revision risk |
+| External-input characterization | Later, measurement-dependent | Unqualified; another PCB revision possible | Existing E1 source/noise/coupling/uncertainty requirements |
+| Prices/RFQ | Paused | Sole frozen unsent Q1 | No lookup, duplicate packet, outreach or purchasing |
 
-Estimates overlap and exclude manufacturing/shipping, supplier responses and
-measurements. The113 native passes in238.409s refer to the exact three-file
-candidate21d4c324 over e10d0f60, verified and published on the preflight docs as
-3519b21e. This selection contains existing reference/corridor/clock,39 terminal-cut
-and15 SPI fault cases; it is NOT the complete CAD or full project gate. The first
-clearance-violating trial was rejected and never applied. Full S2-S4/K2 acceptance
-is still required. The subsequent complete native selection on exact3519b21e
-finished all309 cases in351.788s:308 passed and only the S1 recorded-source
-identity check failed, with zero errors/skips. No timeout or test selection was
-relaxed. See `checkpoints/20261011_l5_complete_native.json`. Read the focused
-evidence and source hashes in
-`checkpoints/20261011_l5_reference_repair.json`, preserving historical receipts.
+Estimates overlap and exclude supplier/manufacturing/shipping waits and physical
+measurements. They are not safety percentages. The supply repair leaves all
+numerical assumptions, unknown bounds and qualification=false intact; current
+examples require separately reviewed fitted receiver waveforms, not invisible
+zero-ohm links across the actual DNP sites. No operating capture was performed.
 
-No component moved; only three new SPI vias and six endpoints plus native fill
-changed. Original23before/41after mapping counts, P2/clock snapshots, ground zone
-outlines/settings and reference limits remain. Unpopulated sites are open; no
-fitted resistance or source-termination qualification is selected.
+Read `checkpoints/20261011_l5_supply_reconciliation.json` for exact source/run
+identities. S1's five native cases pass after fresh extraction; the source-only
+six-commit import preserves real input history. The formatter preserves both
+executable-example ASTs and changes only S4's dependent document digest. Hosted
+ordinary, CAD, native integration and target compilation are separate results;
+no partial or old result is a full combined-source pass.
 
-The source-only publisher and native read-only execution are separate; workbench
-workflows remain outside the engineering PR. Product workflows, dependencies,
-450s CAD allowance,71% floor, firmware, Q1 and physical permissions are unchanged.
-No fabrication, power, physical work/mating, external-input acquisition or
-person/animal use is authorized. Next reconcile S1-S4 and K2,
-then require complete exact-head gates and independent review before merge.
+The existing hardware/reference checkpoints remain historical and unchanged.
+No PCB, component, firmware, product workflow, dependency, frozen Q1 or physical
+permission changed in the supply slice. Keep450s CAD/71% coverage, all15 SPI faults,
+39 prior terminal cuts and the reference/domain/mounting guards. Next address K2
+against actual current source, then finish combined acceptance; do not repeat
+source recovery or weaken a test to make the remaining binding failure disappear.

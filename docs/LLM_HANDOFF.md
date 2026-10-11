@@ -1,152 +1,120 @@
-# Continue PR98: reference repair applied; reconcile S1-S4 and K2
+# Continue PR98: S1-S4 reconciled; K2 and independent acceptance remain
 
 Read root `AGENTS.md`, `REPOSITORY_PUBLICATION.md`, `DEVELOPMENT.md` and
-`REV_A_BENCH_FIRST.md`. Check live main, PR98 and original review threads.
-**Do not apply the archived candidate again. It is already active source.**
+`REV_A_BENCH_FIRST.md`. Read live main/PR98 heads and the original review threads.
+**The five SPI sites and reference repair are already applied. Never reapply the
+archived candidate or recreate completed geometry and fault tests.**
 
 Use the [hosted capability preflight](REPOSITORY_PUBLICATION.md#hosted-capability-preflight)
-before proposing downloads or local setup. Missing local Git/gh/KiCad/pcbnew/DNS
-is not a global blocker. Connected source-only publication and separate read-only
-hosted native execution work. An explicit denial must not be retried or bypassed;
-the historical runtime-packaging denial does not describe these accepted routes.
+before suggesting local downloads/setup. Connected GitHub source publication and
+separate read-only hosted KiCad/CI work. Missing local Git/gh/KiCad/pcbnew/DNS is
+not a global blocker. Respect actual explicit denials; the old runtime-packaging
+operation is separate and has not been retried or bypassed.
 
-## Current engineering state
+## Published engineering and provenance
 
-Main was checked at `c2f93ee30eb47f80a7702603f20ed22e6cce86af` (PR97).
-Continue draft PR98, `work/l5-spi-series`, from its live head. This slice published
-preflight commit `220e926395e0afbc5e150818e37278706b239b44`, then actual repair
-`3519b21e335584244771c73c5c87b70d66037a7e`, tree
-`9475d027c1a0ba1c3cf9c35c2da9e0a1be07888c`. Later documentation commits must not
-be mistaken for a new hardware revision or a separate native execution.
+Main was checked at `c2f93ee30eb47f80a7702603f20ed22e6cce86af`. Continue draft PR98,
+`work/l5-spi-series`; nothing in this slice authorizes a merge or physical work.
+The hardware is still the reference-repaired `3519b21e335584244771c73c5c87b70d66037a7e`
+geometry. No PCB, schematic, active BOM/contract, firmware, dependency, product
+workflow, Q1 or release flag changed during the supply reconciliation.
 
-The five DNP/NOT_SELECTED SPI positions were applied at27c6525d, native net-order
-and two unused-via defects corrected atf5338e69, and fresh ground fill saved at
-3f98404f. Native XML/CSV fixtures are genuine exports, not hand-edited graphs.
-Those operations and all later test repairs remain in ancestry. Historical exact
-receipts are `checkpoints/20261010_l5_applied_native.json` and
-`checkpoints/20261010_l5_full_native.json`; do not rewrite them as current passes.
+Six real commits were imported through `bcff4880d035aa0b91e17b51c9f43a5727b15aa8`,
+tree `f15982a95988de6c4ef73861662fbcc6200e0361`. They descend from actual075ffd6c;
+no synthetic materialization ancestry or recreated input-commit metadata was
+published. The source-linked S2/S3 checkpoints must remain available in history:
+S1 input6e4a207e/tree0c89cb59 and S2 input7bc15dcb/treeb0886ef1. Later formatting
+and current-handoff commits are not new hardware revisions.
 
-## C104/P3 repair now applied, not another proposal
+## S1: new native extraction, not a blind hash replacement
 
-Native triage on e10d0f60 located a 0.1470094296705 mm2 C104 return-reference gap
-beside R118's driver via and 0.002076282133 mm2 of new full-width reference loss
-at AFE_MISO track c4455c3b beside R118's downstream via. A first candidate violated
-the unchanged 0.20 mm clearance rule and was rejected before publication.
+Read-only pinned KiCad9.0.2 run38112788509 first reproduced the old recorded-source
+failure, then reran the unchanged native path algorithm against current source.
+All selected17 paths, grouped resistance-square terms, via/PTH counts, numerical
+assumptions and qualification=false were identical to the historical S1 record.
+Only source commit/tree and the two PCB identities changed. All5 existing S1
+checks passed afterward, including both deliberately altered-board rejections.
+The record now binds to actual hardware3519b21e/tree9475d027. This is a native
+SUPPLY-path preservation result, not unchanged SPI wiring or an impedance bound.
+Historical S1 source remains in Git; earlier checkpoints were not overwritten.
 
-The accepted repair moves exactly THREE new SPI vias and their SIX attached
-track endpoints. The SCLK driver via moves from(38.75,23.05) to(38.9,23.15),
-MOSI driver from(38.1,23.7) to(38.075,23.025), and MOSI downstream from(38.6,19.25)
-to(38.45,19.25), in mm. No footprint, net code/name, layer, width, drill or zone
-outline/settings change. Only the actual native TARGET_GND filled_polygon cache
-is transplanted after refill. All other authored geometry and the AFE stay intact.
+## S2-S4: actual open positions versus conditional examples
 
-The explicit L5 preservation map remains23 before/41 after. Only the NINE after
-hashes of those exact geometry forms change. The original before map and P2/clock
-snapshots remain unchanged; unrelated and partially applied changes still fail.
+All five R117-R120/R24 positions are OPEN_DNP / NOT_SELECTED; resistance is null
+and acquisition_possible=false. S2 checks both frozen native XML graphs and all
+five exact driver/downstream partitions before calculating. R114 remains on the
+R120 receiver side and logical MOD1.GPIO13 stays downstream of R24 with J1.5.
+No resistor value, including zero ohms, is selected by a calculation.
 
-Reverse/split controls now target live AFE_SCLK trace58e213eb instead of removed
-36f3b6dd. The reference-void control derives its location from that live trace's
-midpoint; its remote control remains in HOST_GND. The actual reference checker,
-frozen pending-edge outlines, corridor widths, antipad exclusions, clock limits
-and fault acceptance criteria are unchanged. Neither a broad exemption nor a
-lowered threshold is part of this repair.
+S2 reports zero IDEAL DC through each absent series component, explicitly not
+zero leakage/displacement/protection/current elsewhere or an isolation barrier.
+Actual total operating-current maximum stays null. Its prior quiet/acquisition
+numbers are retained only as conditional receiver-voltage/completed-transition
+examples AFTER separately reviewed population. Series loss, settling and real
+receiver voltage are not inferred; the original seven-pull/count/KCL arithmetic
+and all eight unknown bounds are unchanged.
 
-## Exact evidence and its boundary
+S3 binds the reconciled S1/S2 inputs and explicitly reports OPEN_DNP and no
+as-authored acquisition. All21 default voltage bounds remain null; the original
+eight signed voltage-window recipes and physical_qualification=false remain.
+New malformed-population/approval controls remain effective under optimized
+Python as well. S4 binds the reconciled S2/S3 records and requires separate SPI
+population review as well as the existing firmware and commissioning reviews.
+Its vendor applicability conditions, numerical regulator example, unknown loads,
+empty measurements and distributed firmware=false configuration are unchanged.
 
-See `checkpoints/20261011_l5_reference_repair.json` for all source blobs, SHA256s,
-commands, movements and failed/passing run identities. Read-only run38092481309,
-job114331583320 used pinned KiCad9.0.2 and uv0.12.18 with the unchanged lock. It
-checked e10d0f60 plus the independently reconstructed three-file tree
-`21d4c3247c7b873aa9bc799fd4d861836cdf5125`:
+## Verification identities and limits
 
-* 113 actual native cases passed, zero failures/errors/skips, JUnit238.409s.
-  The selection contains49 auxiliary-routing,42 auxiliary-ground,15 SPI fault,
-  6 clock and1 reference-performance cases. It includes all39 legacy terminal
-  cuts, all15 SPI cuts/shorts, the repaired C104/P3 checks, equivalent-copper and
-  reference-void controls. These are not API doubles or collection-only results.
-* 11 ordinary source-preservation cases passed. The canonical auxiliary board
-  had0 schematic mismatches,0 other DRC findings and0 unfinished connections.
-* Artifact11684458355 SHA256
-  feaa687dfb218495181db08bcc48635c8c1e80f3efbe41d56e6997842f82b5dc was downloaded;
-  ZIP/CRC, JUnits, three source-file Git/SHA256 hashes and both independent trees
-  were verified. Actual native fill was compared with independent coordinate
-  edits: no other source byte differed. The three files were applied on220e9263
-  to retain the preflight docs, producing published tree9475d027.
+Read `checkpoints/20261011_l5_supply_reconciliation.json` for exact native capture,
+source publication, formatter and final hosted gate identities/results. Local
+installed-pytest authoring checks passed64 S2-S4 cases before final formatting;
+this is not a local locked gate. The first published bcff4880 hosted gate stopped
+at formatting of two executable Markdown blocks. Do not reuse that failed result
+as a pass or recreate already-correct examples; formatting preserved their ASTs.
+The only dependent S4 formatter adjustment is the corresponding S3 document hash.
 
-This is a FOCUSED selection, NOT the complete project gate or complete native
-selection. Do not borrow it as a pass for another source revision. The full
-ordinary gate on exact3519 still has14 S2/S3/S4 failures. The COMPLETE native
-selection now finished:309 cases,308 passes and one S1 source-identity failure,
-zero errors/skips,351.788s inside the unchanged450s budget. Run38093139105,
-job114333497330 and artifact11684254915 were source/hash/JUnit checked. C104/P3,
-equivalent-copper/reference-void and all15 SPI faults pass in that full selection.
-The remaining native failure is test_supply_inventory_matches_current_native_geometry,
-which rejects the pre-L5 AFE board identity. See
-`checkpoints/20261011_l5_complete_native.json`. The full selection still FAILS;
-no hash was refreshed to hide it and runtime variation is not an optimization.
-The older3f984 full-selection timeout and its ten markers are historical failures,
-not evidence that the repaired C104/P3 controls still fail. Do not repeat that fix.
-
-Local checks used installed pytest, not a successfully synchronized local locked
-environment. Full native execution occurred on GitHub. Source publishers had
-write permission only for verified source data; no project/artifact code executed
-there. The read-only native job authored only disposable copies. Product workflows,
-selected dependencies, firmware, Q1 and release flags were unchanged.
-
-## Agent instructions are now guarded at every entrypoint
-
-AGENTS.md, README.md, DEVELOPMENT.md and this handoff all link near the beginning
-to the hosted capability preflight. The existing three-case entrypoint test now
-also requires that specific link in each opening. It failed before the docs and
-passes afterward; this tests discoverability, not all future assistant behavior.
-Do not tell the user that local setup is required without actual relevant
-connected/hosted failure under current schemas. Use the working scoped publication
-and native job examples in REPOSITORY_PUBLICATION; do not blindly rerun fixed jobs.
+The source-only publisher verifies immutable bytes, full tree and exact changed
+paths, publishes a temporary non-main branch, and independently clones it. Native
+execution is separate, contents:read and no persisted credentials. Workbench jobs
+are outside this engineering tree. The real six-commit source bundle, all12 blobs
+and independent tree composition were checked before the leased PR ref update.
+The ordinary/native/firmware gates still use the one existing tools.check runner.
 
 ## Next bounded engineering task
 
-Reconcile S1 native inventory and S2/S3/S4 with the applied five-site topology.
-Start with the one exact native failure above and the14 exact
-historical failures in20261010_l5_applied_native.json and current exact-head CI.
-Source bindings name pre-L5 BOM/contracts; S2 also assumes unsplit driver nets.
-**Do not simply refresh hashes.** Account for open DNP positions versus expressly
-conditional fitted current paths, preserving historical evidence and every
-unknown/qualification-false result. No numerical resistor is selected by this work.
+Review K2's strict AFE whole-board binding and actual R24 placement/access before
+changing its expected identity. Its current test still names the pre-L5 board.
+R24 is at(57.0,29.4); the old component placements, outline, mating interfaces and
+carrier SCAD are unchanged, but that alone is not populated solder/tool-access
+proof. Use the existing carrier/service CAD and native OpenSCAD checks; retain
+all wrong-port, tilted-insertion, cable, support and altered-board controls.
+Do not blindly replace a hash or imply that an unspecified fitted part has a
+qualified height or safe rework clearance. Separate nominal DNP/allocated-envelope
+compatibility from actual fitting and workmanship acceptance.
 
-K2's strict AFE whole-board binding/access review remains. R24 is at(57.0,29.4);
-old placements, board outline and mating interfaces are retained, but nominal
-clearance is not populated solder/tool-access evidence. Review K2/B3 and existing
-native mechanical checks before changing its binding. Do not loosen it.
+Independent exact-source review remains required. The last requested Codex
+review returned usage-limit exhaustion (comment6103095217); no review of the new
+supply slice is claimed. Retain the original threads and findings; do not infer
+approval from an older review, another account, a green subset or successful
+source transport. Keep PR98 draft until complete gates and review are accepted.
 
-Complete ordinary/native/firmware gates and independent exact-head review remain
-required before merge. Keep the450s complete native budget and71% branch floor.
-The latest complete native selection finished within450s; retain that budget
-and every case rather than treating the previous timeout as a reason to loosen it.
-Inspect original reviews and subsequent comments; a diagnostic or documentation
-review is not complete engineering acceptance. PR98 remains draft and unmerged.
+## Retained boundaries
 
-## Retained engineering and physical boundaries
+Keep the450s complete native CAD budget,71% branch floor, all39 prior terminal
+cuts,15 SPI faults,15 bypass corridors and reference/domain/mounting requirements.
+The C104/P3 repair and surviving reverse/split/reference-void targets already pass;
+use the historical20261011 reference/native checkpoints instead of repeating it.
+MISO and MISO_DRV retain the original combined whole-channel reference budgets.
 
-All five series positions remain DNP/NOT_SELECTED: absent parts are OPEN, not
-zero ohms. R114 remains42.2k on the receiver side; logical MOD1.GPIO13 stays
-with J1.5 downstream of R24. Original driver-length figures predate this small
-via adjustment; current source geometry, not those historical figures, must be
-used for any later timing/access assessment. No termination performance or
-physical rework access is established. No cut/flying-wire fallback is approved.
+L1-L4/B1-B3 and#45/#48 remain. The proposed first pilot is INTERNAL-TEST-ONLY with
+six upstream analog pairs retained; E1 external-input acceptance and possible
+additional PCB revision cost remain separate. Internal mux modes are not electrical
+isolation. MCU launch stages and other controls remain a separate decision.
+B1 uses J2; B2's run card and B3 contacts/insulation/restraint/earth/uncertainty checks
+remain. Keep R -> fresh F1 arm -> wake/clock ->150ms -> VCAP1>1.1V -> reset, not
+raised VCAP1 while parked in PWDN. BOARD_PROFILE_REVIEWED staysfalse; both DevKit
+USB ports stay excluded. STOP is not a power disconnect.
 
-Retain L1-L4/B1-B3, all15 bypass corridors,39 earlier terminal cuts, domain/mounting
-and pending-reference guards. MISO/MISO_DRV share original whole-channel budgets.
-The proposed pilot remains INTERNAL-TEST-ONLY with six upstream analog pairs;
-E1 acceptance and possible further revision cost remain separate. Internal mux
-modes are not an isolation barrier; MCU launches/other controls remain separate.
-
-B1 uses J2, not J1; B2's run card and B3 insulation/restraint/earth/uncertainty
-requirements remain. Keep R -> fresh F1 arm -> wake/clock ->150ms -> VCAP1>1.1V ->
-reset, not a raised-VCAP1 requirement while parked in PWDN. BOARD_PROFILE_REVIEWED
-staysfalse; both DevKit USB ports stay excluded. Retain HOST/TARGET isolation,
-complete-run fault invalidation and analog fault limits. STOP is not a disconnect.
-No assembly, measurement instrument or human/animal connection is qualified.
-
-Moscow remains a planning assumption; Q1 is the sole frozen unsent packet. No
-prices/outreach, purchasing, fabrication, physical work/rework/mating, powering,
-external-input acquisition or person/animal use is authorized.
+Moscow remains a planning assumption and Q1 the sole frozen unsent packet. No
+prices/outreach, purchases, fabrication, physical construction/rework/mating,
+powering, external-input acquisition or person/animal connection is authorized.

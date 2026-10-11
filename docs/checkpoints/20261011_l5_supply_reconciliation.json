@@ -1,0 +1,103 @@
+{
+  "scope": "S1-S4 reconciliation; current open positions remain unqualified",
+  "base": "075ffd6c3875d29302a47bf4601b14304d8248e2",
+  "published_supply_head": "bcff4880d035aa0b91e17b51c9f43a5727b15aa8",
+  "published_supply_tree": "f15982a95988de6c4ef73861662fbcc6200e0361",
+  "original_commits": 6,
+  "hardware_changed": false,
+  "numerical_bounds_changed": false,
+  "spi_state": "OPEN_DNP",
+  "selected_resistance_ohm": null,
+  "acquisition_possible_as_authored": false,
+  "s1_native_capture": {
+    "run": 38112788509,
+    "artifact": 11692023408,
+    "archive_sha256": "a7bdac64066482ccf8416f989ba7800e39deb619934db33640f4f115689297c9",
+    "geometry_source": "3519b21e335584244771c73c5c87b70d66037a7e",
+    "kicad": "9.0.2",
+    "before_failures": 1,
+    "after_passed": 5,
+    "after_errors": 0,
+    "after_skips": 0,
+    "after_seconds": 1.166,
+    "only_changed_fields": [
+      "source_commit",
+      "source_tree",
+      "boards"
+    ],
+    "all_other_geometry_accounting_and_assumptions_identical": true
+  },
+  "source_publication": {
+    "run": 38113796745,
+    "artifact": 11692562141,
+    "archive_sha256": "27dab0ed21382ebcb9e8ab28ab667f780d6295dc0101ea026b1801d03fb2d169",
+    "bundle_sha256": "0408ac2b0b536f4a3752f5467a1a788a1d0d735f434079a7482e401f45b69653",
+    "independent_clone_and_composed_tree_verified": true,
+    "project_code_executed_in_publisher": false
+  },
+  "first_hosted_gate": {
+    "source": "bcff4880d035aa0b91e17b51c9f43a5727b15aa8",
+    "run": 38113853256,
+    "artifact": 11693190229,
+    "archive_sha256": "42be52ab6c346a549d3ac9d4b24ef502ea4fd9c57eb20a6e8baf7db543b008f6",
+    "passed": false,
+    "stopped_at": "two unformatted executable Markdown blocks"
+  },
+  "formatted_candidate": {
+    "run": 38113975332,
+    "artifact": 11692702214,
+    "archive_sha256": "4f635c6671d4b6a58faffc634f9804def20bcf33a5dd68c8a171668645aef463",
+    "base": "bcff4880d035aa0b91e17b51c9f43a5727b15aa8",
+    "tree": "35082d810f657aced8f695b471b28a1d9f27d2cb",
+    "files": {
+      "docs/REV_A_CURRENT_RETURN_S2.md": {
+        "blob": "5d7d7cf877087c70a620003807d3a6ab2fe7ef10",
+        "sha256": "5f09304955eab332132a4c06071e58d02bc48dfbdd2132303452c759dec3ab03"
+      },
+      "docs/REV_A_SUPPLY_ACCEPTANCE_S3.md": {
+        "blob": "6f1bbf51705e9c0389dfacdc71db81adb68ea847",
+        "sha256": "b8cd4aa68f43d7e965dba769d88f84e7d50299e6b09d89a227c08eacf06c7bee"
+      },
+      "docs/studies/s4_serial_evidence.json": {
+        "blob": "b6705d014ac953fc8ef40b2efc918d510ca9cb97",
+        "sha256": "a57f7cad2987e01c78928973959ddc2252c2a680e4e7757ebf8b99456e17c55a"
+      }
+    },
+    "both_program_asts_unchanged": true,
+    "only_s4_change": "S3 document SHA256",
+    "ordinary_gate_passed": true,
+    "tests_including_subtests": 1413,
+    "ordinary_passed": 1399,
+    "subtests_passed": 14,
+    "errors": 0,
+    "skips": 0,
+    "failures": 0,
+    "branch_coverage_percent": 86.93107932379714,
+    "gate_seconds": 200.255958065,
+    "native_or_firmware_pass_claimed": false
+  },
+  "local_diagnostics": {
+    "source_before_final_format": "f16baa7855e93c039819af290a219b31ae7028a2",
+    "command": "PYTHONPATH=. python -m pytest -q tests/test_current_return_s2.py tests/test_supply_acceptance_s3.py tests/test_steady_source_s4.py",
+    "passed": 64,
+    "locked": false,
+    "native": false,
+    "observed_fail_first": [
+      "S2 missing spi_population",
+      "S4 separate population prerequisite"
+    ]
+  },
+  "independent_review_completed": false,
+  "last_review_quota_comment": 6103095217,
+  "remaining": [
+    "K2 current board binding, nominal carrier/service fit and population/tool access",
+    "combined exact-head gates and independent review",
+    "existing manufacturing/commissioning/electrical requirements"
+  ],
+  "fabrication_authorized": false,
+  "powering_authorized": false,
+  "body_connection_authorized": false,
+  "formatted_published_head": "e2c4be7486ab5859ee71fbf429e75802b3cd429c",
+  "formatted_published_tree": "35082d810f657aced8f695b471b28a1d9f27d2cb",
+  "source_changed_paths_count": 12
+}
