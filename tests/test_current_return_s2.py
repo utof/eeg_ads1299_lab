@@ -231,8 +231,10 @@ def test_s2_declares_all_five_unpopulated_series_gaps() -> None:
     }, "S2 must distinguish the five actual DNP gaps from conditional operating examples"
 
 
-@pytest.mark.parametrize("field,value", [("state", "FIT"), ("resistance_ohm", 0.0),
-                                         ("acquisition_possible", True)])
+@pytest.mark.parametrize(
+    "field,value",
+    [("state", "FIT"), ("resistance_ohm", 0.0), ("acquisition_possible", True)],
+)
 def test_s2_rejects_population_claims_without_source_change(
     tmp_path: Path, field: str, value: object
 ) -> None:
@@ -247,7 +249,9 @@ def test_s2_rejects_population_claims_without_source_change(
     (studies / "s1_supply_paths.json").write_bytes(
         (ROOT / "docs/studies/s1_supply_paths.json").read_bytes()
     )
-    model = read_object(json.loads((ROOT / "docs/studies/s2_current_return.json").read_text()), "S2")
+    model = read_object(
+        json.loads((ROOT / "docs/studies/s2_current_return.json").read_text()), "S2"
+    )
     population = read_object(model["spi_population"], "population")
     population[field] = value
     model["spi_population"] = population

@@ -190,8 +190,10 @@ def test_changed_transitive_header_invalidates_the_evidence(
 def test_named_acquisition_also_requires_separate_spi_population() -> None:
     setup = read_object(_record()["setup"], "setup")
     assert setup.get("spi_population") == {
-        "state": "OPEN_DNP", "references": ["R117", "R118", "R119", "R120", "R24"],
-        "resistance_ohm": None, "acquisition_possible": False,
+        "state": "OPEN_DNP",
+        "references": ["R117", "R118", "R119", "R120", "R24"],
+        "resistance_ohm": None,
+        "acquisition_possible": False,
     }, "a true firmware review flag alone cannot bridge unpopulated SPI positions"
     hypothetical = read_object(setup["hypothetical_acquisition"], "hypothetical")
     assert hypothetical.get("separate_spi_population_review_required") is True
