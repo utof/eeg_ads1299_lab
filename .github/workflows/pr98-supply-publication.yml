@@ -1,0 +1,82 @@
+name: Publish verified PR98 supply reconciliation
+on:
+  push:
+    branches: [workbench/pr98-source-publication-20261010]
+    paths: [.github/workflows/pr98-supply-publication.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 0768784db16b30d0059889246e6f5098dc51b815
+          fetch-depth: 0
+      - name: Verify immutable data and import without executing project code
+        run: |
+          python3 - <<'PY'
+          import base64,gzip,hashlib,json,os,pathlib,subprocess
+          BASE='075ffd6c3875d29302a47bf4601b14304d8248e2'
+          HEAD='bcff4880d035aa0b91e17b51c9f43a5727b15aa8'
+          TREE='f15982a95988de6c4ef73861662fbcc6200e0361'
+          DEST='refs/heads/workbench/pr98-supply-verified-20261011'
+          expected={
+            'docs/REV_A_CURRENT_RETURN_S2.md':'61c7d374086234211ad9d6ed10a4bb0804e2d547',
+            'docs/REV_A_STEADY_SOURCE_S4.md':'cf0cdc698eb0d1c4a5b4c57d7b98985a8d8bb218',
+            'docs/REV_A_SUPPLY_ACCEPTANCE_S3.md':'c60a57ed2ce3ab292b2aa7adf6537136f6245abc',
+            'docs/REV_A_SUPPLY_RETURN_S1.md':'aa10d46e55953b03ee9b9ff44fd225a0bd5031ef',
+            'docs/studies/s1_supply_paths.json':'3eec1d7915003d16cd0034c83186b42fbc847102',
+            'docs/studies/s2_current_return.json':'6a922436efe103031b8e58b280afd12791b9807a',
+            'docs/studies/s3_acceptance.json':'dd2cf8348ee8d36277450433c5eba5ce49553d0b',
+            'docs/studies/s4_serial_evidence.json':'8c7e4a494c6cc53f9e763b1b41e55a91c40d11f1',
+            'tests/supply_inventory_probe.py':'914d7b6d4e25c6c1399b0a094721383f5f8f7d81',
+            'tests/test_current_return_s2.py':'ad18ed5cdb34be2de2d12633ae7ed1267585e46e',
+            'tests/test_steady_source_s4.py':'65c5e69743c06fe541ab8c6ed89208279e15c707',
+            'tests/test_supply_acceptance_s3.py':'573ee95ae877d613175baab23d304093255a0fdc'}
+          def git(*args,cwd=None):
+              return subprocess.check_output(['git',*args],cwd=cwd,timeout=90).decode().strip()
+          def sha(data):return hashlib.sha256(data).hexdigest()
+          assert git('rev-parse','HEAD')=='0768784db16b30d0059889246e6f5098dc51b815'
+          assert not git('status','--porcelain','--untracked-files=all')
+          assert git('ls-remote','origin','refs/heads/work/l5-spi-series').split()[0]==BASE
+          data=pathlib.Path('workbench/pr98-supply.bundle.gz.b64').read_bytes()
+          assert sha(data)=='36e2a50126a28386f6e715c45f07bb95a7f550078cfcb28ff24bc18aeec50782'
+          packed=base64.b64decode(data.strip(),validate=True)
+          assert sha(packed)=='8cd974cb5375ed444c1a556a72828a5d6baf6b5ca40af343dbccbeaf8fe6561f'
+          raw=gzip.decompress(packed)
+          assert len(raw)==13082 and sha(raw)=='0408ac2b0b536f4a3752f5467a1a788a1d0d735f434079a7482e401f45b69653'
+          root=pathlib.Path(os.environ['RUNNER_TEMP']);bundle=root/'supply.bundle';bundle.write_bytes(raw)
+          git('bundle','verify',str(bundle))
+          git('fetch',str(bundle),'refs/heads/local/supply-reconciliation')
+          assert git('rev-parse','FETCH_HEAD')==HEAD
+          assert git('rev-parse',HEAD+'^{tree}')==TREE
+          git('merge-base','--is-ancestor',BASE,HEAD)
+          assert git('rev-list','--count',BASE+'..'+HEAD)=='6'
+          assert set(git('diff','--name-only',BASE,HEAD).splitlines())==set(expected)
+          assert all(git('rev-parse',HEAD+':'+path)==blob for path,blob in expected.items())
+          for path in ('hardware','firmware','.github','tools','lab','uv.lock','pyproject.toml','docs/quote'):
+              assert git('rev-parse',BASE+':'+path)==git('rev-parse',HEAD+':'+path),path
+          git('fsck','--no-dangling',HEAD)
+          assert not git('ls-remote','origin',DEST)
+          assert git('ls-remote','origin','refs/heads/work/l5-spi-series').split()[0]==BASE
+          git('push','origin',HEAD+':'+DEST)
+          assert git('ls-remote','origin',DEST).split()[0]==HEAD
+          fresh=root/'fresh-supply'
+          git('clone','--no-local','--branch',DEST.removeprefix('refs/heads/'),'https://github.com/utof/eeg_ads1299_lab.git',str(fresh))
+          assert git('rev-parse','HEAD',cwd=fresh)==HEAD
+          assert git('rev-parse','HEAD^{tree}',cwd=fresh)==TREE
+          assert not git('status','--porcelain','--untracked-files=all',cwd=fresh)
+          out=root/'supply-receipt';out.mkdir()
+          (out/'receipt.json').write_text(json.dumps({'base':BASE,'head':HEAD,'tree':TREE,'commits':6,'files':expected,'independent_clone_verified':True,'project_code_executed':False,'engineering_pr_updated':False,'full_gate_passed':False,'hardware_released':False},indent=2)+'\n')
+          (out/'commits.txt').write_text(git('log','--format=%H %P %T %s',BASE+'..'+HEAD)+'\n')
+          (out/'source.bundle').write_bytes(raw)
+          (out/'SHA256SUMS').write_text(''.join(sha(p.read_bytes())+'  '+p.name+'\n' for p in sorted(out.iterdir()) if p.is_file()))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pr98-supply-publication-receipt
+          path: ${{ runner.temp }}/supply-receipt/
+          retention-days: 14
+          if-no-files-found: error
