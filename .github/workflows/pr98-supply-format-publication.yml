@@ -1,0 +1,70 @@
+name: Publish verified PR98 supply formatting
+on:
+  push:
+    branches: [workbench/pr98-source-publication-20261010]
+    paths: [.github/workflows/pr98-supply-format-publication.yml]
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: bcff4880d035aa0b91e17b51c9f43a5727b15aa8
+          fetch-depth: 0
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: pr98-supply-formatted-quality
+          run-id: 38113975332
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/formatted-supply
+      - name: Copy only independently verified source data without executing it
+        run: |
+          python3 - <<'PY'
+          import ast,hashlib,json,os,pathlib,re,subprocess
+          BASE='bcff4880d035aa0b91e17b51c9f43a5727b15aa8'
+          TREE='35082d810f657aced8f695b471b28a1d9f27d2cb'
+          DEST='refs/heads/workbench/pr98-supply-formatted-20261011'
+          expected={'docs/REV_A_CURRENT_RETURN_S2.md':'5f09304955eab332132a4c06071e58d02bc48dfbdd2132303452c759dec3ab03','docs/REV_A_SUPPLY_ACCEPTANCE_S3.md':'b8cd4aa68f43d7e965dba769d88f84e7d50299e6b09d89a227c08eacf06c7bee','docs/studies/s4_serial_evidence.json':'a57f7cad2987e01c78928973959ddc2252c2a680e4e7757ebf8b99456e17c55a'}
+          def git(*args,env=None,cwd=None):return subprocess.check_output(['git',*args],env=env,cwd=cwd,timeout=90).decode().strip()
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'formatted-supply'
+          assert git('rev-parse','HEAD')==BASE and not git('status','--porcelain','--untracked-files=all')
+          assert git('ls-remote','origin','refs/heads/work/l5-spi-series').split()[0]==BASE
+          receipt=json.loads((root/'receipt.json').read_text());assert receipt['base']==BASE and receipt['tree']==TREE
+          assert set(receipt['files'])==set(expected)
+          for name,digest in expected.items():
+              p=pathlib.Path(name);old=p.read_bytes();data=(root/'source'/name).read_bytes()
+              assert hashlib.sha256(data).hexdigest()==digest,name
+              if name.endswith('.md'):
+                  a=re.findall(r'```python\n(.*?)\n```',old.decode(),re.S);b=re.findall(r'```python\n(.*?)\n```',data.decode(),re.S)
+                  assert len(a)==len(b)==1 and ast.dump(ast.parse(a[0]))==ast.dump(ast.parse(b[0])),name
+              else:
+                  a=json.loads(old);b=json.loads(data);a['input_sha256']['docs/REV_A_SUPPLY_ACCEPTANCE_S3.md']=expected['docs/REV_A_SUPPLY_ACCEPTANCE_S3.md'];assert a==b
+              p.write_bytes(data)
+          assert set(git('diff','--name-only').splitlines())==set(expected)
+          git('add','--',*sorted(expected));assert git('write-tree')==TREE
+          env=dict(os.environ,GIT_AUTHOR_NAME='utof',GIT_COMMITTER_NAME='utof',GIT_AUTHOR_EMAIL='38869938+utof@users.noreply.github.com',GIT_COMMITTER_EMAIL='38869938+utof@users.noreply.github.com')
+          message='style(studies): format identical executable examples and bind S4 digest\n\nImport exactly three hash-verified native formatter output files. Both\nembedded programs retain identical ASTs; only the dependent S3 document\ndigest changes in S4. Read-only locked run38113975332 passed the complete\nordinary gate on tree35082d81:1399 ordinary tests plus14 subtests and\n86.931079 percent branch coverage. This is not a native, firmware or\nphysical pass. No project code executes in the source publisher.\n'
+          head=git('commit-tree',TREE,'-p',BASE,'-m',message,env=env)
+          assert not git('ls-remote','origin',DEST)
+          assert git('ls-remote','origin','refs/heads/work/l5-spi-series').split()[0]==BASE
+          git('push','origin',head+':'+DEST);assert git('ls-remote','origin',DEST).split()[0]==head
+          fresh=pathlib.Path(os.environ['RUNNER_TEMP'])/'fresh-formatted'
+          git('clone','--no-local','--branch',DEST.removeprefix('refs/heads/'),'https://github.com/utof/eeg_ads1299_lab.git',str(fresh))
+          assert git('rev-parse','HEAD',cwd=fresh)==head and git('rev-parse','HEAD^{tree}',cwd=fresh)==TREE
+          assert not git('status','--porcelain','--untracked-files=all',cwd=fresh)
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'format-receipt';out.mkdir()
+          (out/'receipt.json').write_text(json.dumps({'base':BASE,'head':head,'tree':TREE,'files':expected,'original_run':38113975332,'artifact':11692702214,'independent_clone_verified':True,'project_code_executed':False,'hardware_released':False},indent=2)+'\n')
+          git('update-ref','refs/heads/supply-format-receipt',head)
+          git('bundle','create',str(out/'source.bundle'),'refs/heads/supply-format-receipt','^'+BASE)
+          (out/'SHA256SUMS').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.name+'\n' for p in sorted(out.iterdir()) if p.is_file()))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pr98-supply-format-publication
+          path: ${{ runner.temp }}/format-receipt/
+          retention-days: 14
+          if-no-files-found: error
