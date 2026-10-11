@@ -222,10 +222,16 @@ for name, digest in m["input_sha256"].items():
 require(m["spi_population_state"] == "OPEN_DNP", "SPI population is not approved")
 require(m["acquisition_possible_as_authored"] is False, "no acquisition approval path")
 s2 = json.loads(Path("docs/studies/s2_current_return.json").read_text())
-require(s2["spi_population"] == {
-    "state": "OPEN_DNP", "references": ["R117", "R118", "R119", "R120", "R24"],
-    "resistance_ohm": None, "acquisition_possible": False,
-}, "upstream population record differs")
+require(
+    s2["spi_population"]
+    == {
+        "state": "OPEN_DNP",
+        "references": ["R117", "R118", "R119", "R120", "R24"],
+        "resistance_ohm": None,
+        "acquisition_possible": False,
+    },
+    "upstream population record differs",
+)
 p = json.loads(Path("hardware/rev_a/board_profile.json").read_text())
 require(
     not any(p["gates"].values()) and not p["afe"]["external_dummy_mode_enabled"],

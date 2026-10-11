@@ -204,16 +204,16 @@ require(
     "source tree differs",
 )
 inputs = {
-    'firmware/esp32_ads1299_bench/esp32_ads1299_bench.ino',
-    'firmware/esp32_ads1299_bench/board_config_rev_a_s3.h',
-    'firmware/esp32_ads1299_bench/rev_a_startup.h',
-    'hardware/rev_a/board_profile.json',
-    'hardware/rev_a/bom.json',
-    'hardware/rev_a/auxiliary/contract.json',
-    'hardware/rev_a/service_c4.json',
-    'docs/studies/s1_supply_paths.json',
-    'tests/fixtures/rev_a_netlist.xml.gz',
-    'tests/fixtures/auxiliary_c3_netlist.xml.gz',
+    "firmware/esp32_ads1299_bench/esp32_ads1299_bench.ino",
+    "firmware/esp32_ads1299_bench/board_config_rev_a_s3.h",
+    "firmware/esp32_ads1299_bench/rev_a_startup.h",
+    "hardware/rev_a/board_profile.json",
+    "hardware/rev_a/bom.json",
+    "hardware/rev_a/auxiliary/contract.json",
+    "hardware/rev_a/service_c4.json",
+    "docs/studies/s1_supply_paths.json",
+    "tests/fixtures/rev_a_netlist.xml.gz",
+    "tests/fixtures/auxiliary_c3_netlist.xml.gz",
 }
 require(set(m["input_sha256"]) == inputs, "source input inventory differs")
 for name, digest in m["input_sha256"].items():
@@ -228,30 +228,47 @@ positions = {
     "R120": ("auxiliary", ("U102", "5"), {("J102", "19"), ("R114", "1")}),
     "R24": ("afe", ("U1", "43"), {("J1", "5"), ("MOD1", "GPIO13")}),
 }
-require(m["spi_population"] == {
-    "state": "OPEN_DNP", "references": list(positions),
-    "resistance_ohm": None, "acquisition_possible": False,
-}, "unreviewed population or acquisition claim")
+require(
+    m["spi_population"]
+    == {
+        "state": "OPEN_DNP",
+        "references": list(positions),
+        "resistance_ohm": None,
+        "acquisition_possible": False,
+    },
+    "unreviewed population or acquisition claim",
+)
 graphs = {
-    board: parse_schematic_xml(gzip.decompress(Path("tests/fixtures/" + name).read_bytes()).decode())
-    for board, name in (("afe", "rev_a_netlist.xml.gz"),
-                        ("auxiliary", "auxiliary_c3_netlist.xml.gz"))
+    board: parse_schematic_xml(
+        gzip.decompress(Path("tests/fixtures/" + name).read_bytes()).decode()
+    )
+    for board, name in (
+        ("afe", "rev_a_netlist.xml.gz"),
+        ("auxiliary", "auxiliary_c3_netlist.xml.gz"),
+    )
 }
 
 
 def nodes(graph, ref, pin):
     names = {part.native_ref: key for key, part in graph.parts.items()}
     net = graph.nets[(names[ref], pin)]
-    return {(graph.parts[key].native_ref, number)
-            for (key, number), code in graph.nets.items() if code == net}
+    return {
+        (graph.parts[key].native_ref, number)
+        for (key, number), code in graph.nets.items()
+        if code == net
+    }
 
 
 for ref, (board, driver, receivers) in positions.items():
     graph = graphs[board]
     part = next(part for part in graph.parts.values() if part.native_ref == ref)
-    require(part.value == "NOT_SELECTED" and part.properties["MPN"] == "NOT_SELECTED"
-            and part.properties["Population"] == "dnp" and "dnp" in part.properties,
-            ref + " is not the reviewed open position")
+    require(
+        part.value == "NOT_SELECTED"
+        and part.properties["MPN"] == "NOT_SELECTED"
+        and part.properties["Population"] == "dnp"
+        and "dnp" in part.properties,
+        ref + " is not the reviewed open position",
+    )
     require(nodes(graph, *driver) == {driver, (ref, "1")}, ref + " driver bypass")
     require(nodes(graph, ref, "2") == receivers | {(ref, "2")}, ref + " receiver partition")
 
