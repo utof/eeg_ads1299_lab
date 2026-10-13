@@ -56,8 +56,10 @@ def test_r24_native_lands_and_courtyard_match_the_allocated_space(tmp_path: Path
 import pcbnew as p, sys
 assert p.Version() == '9.0.2'
 b = p.LoadBoard(sys.argv[1]); f = b.FindFootprintByReference('R24')
-assert f is not None and f.IsDNP() and f.GetProperty('Population') == 'dnp'
-assert f.GetValue() == 'NOT_SELECTED' and f.GetProperty('MPN') == 'NOT_SELECTED'
+assert f is not None and f.IsDNP()
+fields = {field.GetName(): field.GetText() for field in f.GetFields()}
+assert fields['Population'] == 'dnp'
+assert f.GetValue() == 'NOT_SELECTED' and fields['MPN'] == 'NOT_SELECTED'
 assert f.GetLayer() == p.F_Cu and f.GetOrientationDegrees() == 0
 assert (f.GetPosition().x, f.GetPosition().y) == (57000000, 29400000)
 pads = {a.GetNumber(): a for a in f.Pads()}
@@ -97,10 +99,7 @@ def test_carrier_binding_rejects_altered_r24(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, edit: str
 ) -> None:
     text = (carrier.ROOT / BOARD_PATH).read_text()
-    forms = [
-        text[m.start() : _form_end(text, m.start())]
-        for m in re.finditer(r"\(footprint\s", text)
-    ]
+    forms = [text[m.start() : _form_end(text, m.start())] for m in re.finditer(r"\(footprint\s", text)]
     footprint = next(f for f in forms if '(property "Reference" "R24"' in f)
     old, new = (
         ("(at 57.0 29.4 0)", "(at 57.5 29.4 0)")
