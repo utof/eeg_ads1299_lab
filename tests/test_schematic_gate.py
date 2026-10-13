@@ -152,6 +152,7 @@ def _change_dependency(root: Path, fault: str) -> None:
         "change-child": root / "hardware/rev_a/kicad/power.kicad_sch",
         "change-board": root / "hardware/rev_a/layout/rev_a.kicad_pcb",
         "change-board-test": root / "tests/test_pcb_placement.py",
+        "change-carrier-l5": root / "tests/test_carrier_l5.py",
         "change-power-test": root / "tests/test_pcb_power.py",
         "change-ground-test": root / "tests/test_auxiliary_ground.py",
         "change-ground-oracle": root / "tests/auxiliary_ground_probe.py",
@@ -214,6 +215,7 @@ def _change_dependency(root: Path, fault: str) -> None:
         "change-aux-library",
         "change-board",
         "change-board-test",
+        "change-carrier-l5",
         "change-power-test",
         "change-ground-test",
         "change-ground-oracle",
@@ -298,7 +300,7 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
         assert report["body_connection_authorized"] is False
         assert report["schematic_released"] is False
         hashes = read_object(report["source_sha256"], "hashes")
-        # These seven named L5 inputs were deliberately added to the snapshot.
+        # These eight named L5 inputs were deliberately added to the snapshot.
         # Retain the old inventory count outside that exact set, not any new total.
         l5_inputs = {
             "tests/auxiliary_preservation.py",
@@ -308,6 +310,7 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
             "tests/test_output_reference_selection.py",
             "tests/test_spi_series_positions.py",
             "tests/test_spi_series_native.py",
+            "tests/test_carrier_l5.py",
         }
         assert l5_inputs <= hashes.keys()
         assert len(hashes.keys() - l5_inputs) == 107
