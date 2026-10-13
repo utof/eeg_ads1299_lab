@@ -99,7 +99,9 @@ def test_carrier_binding_rejects_altered_r24(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, edit: str
 ) -> None:
     text = (carrier.ROOT / BOARD_PATH).read_text()
-    forms = [text[m.start() : _form_end(text, m.start())] for m in re.finditer(r"\(footprint\s", text)]
+    forms = [
+        text[m.start() : _form_end(text, m.start())] for m in re.finditer(r"\(footprint\s", text)
+    ]
     footprint = next(f for f in forms if '(property "Reference" "R24"' in f)
     old, new = (
         ("(at 57.0 29.4 0)", "(at 57.5 29.4 0)")
