@@ -5,9 +5,12 @@ import os
 import re
 import shutil
 import subprocess
+from collections.abc import Mapping
 from pathlib import Path
 
 import pytest
+
+from hardware.rev_a import BillOfMaterials, load_documents
 
 ROOT = Path(__file__).resolve().parents[1]
 CAD = ROOT / "hardware/rev_a/kicad"
@@ -16,14 +19,67 @@ BOARD = ROOT / "hardware/rev_a/layout/rev_a.kicad_pcb"
 
 def test_editable_placement_is_a_tracked_design_not_a_parking_grid() -> None:
     text = BOARD.read_text()
-    assert text.count('(footprint "') == 69
-    assert text.count('(pad "') == 251
-    assert text.count(" dnp)") == 8
+    _population_inventory(text, load_documents()[1])
     assert "(gr_rect " in text and '(layer "Edge.Cuts")' in text
     assert '(1 "In1.Cu" power)' in text and '(2 "In2.Cu" signal)' in text
     assert "(segment " in text
     assert "PLACEMENT DRAFT - NOT FOR FABRICATION" in text
     assert len(re.findall(r"\(zone\s", text)) == 1  # One native-filled ground region.
+
+
+def _population_inventory(text: str, bom: BillOfMaterials) -> None:
+    """Closed native-reference inventory and field/flag agreement; not a CAD parser."""
+    rows = {
+        ref: row
+        for row in bom["line_items"]
+        if row["id"] != "controller"
+        for ref in row["references"]
+    }
+    assert len(rows) == sum(
+        row["quantity"] for row in bom["line_items"] if row["id"] != "controller"
+    )
+    series = "R_MISO_SER" in rows
+    expected = {
+        f"{prefix}{n}"
+        for prefix, count in (("C", 33), ("D", 8), ("J", 3), ("R", 23 + int(series)), ("U", 2))
+        for n in range(1, count + 1)
+    }
+    references = re.findall(r'\(property\s+"Reference"\s+"([^"]+)"', text)
+    assert len(references) == len(set(references)) and set(references) == expected, "AFE inventory"
+    assert text.count('(pad "') == 251 + 2 * int(series)
+    unpopulated = {f"D{n}" for n in range(1, 9)} | ({"R24"} if series else set())
+    contracts = []
+    for reference in references:
+        part = _footprint_block(text, reference)
+        contract = _population_field(part, "ContractRef")
+        assert contract in rows, "unknown AFE contract reference"
+        contracts.append(contract)
+        _check_population_part(part, reference, contract, rows[contract], reference in unpopulated)
+    assert len(contracts) == len(set(contracts)) and set(contracts) == set(rows), (
+        "AFE BOM inventory"
+    )
+
+
+def _check_population_part(
+    part: str, reference: str, contract: str, row: Mapping[str, object], dnp: bool
+) -> None:
+    population = "dnp" if dnp else "fit"
+    assert row["population"] == _population_field(part, "Population") == population, reference
+    attrs = re.findall(r"\(attr\s+([^)]*)\)", part)
+    assert len(attrs) == 1 and ("dnp" in attrs[0].split()) is dnp, reference
+    assert "exclude_from_bom" not in attrs[0].split(), reference
+    assert _population_field(part, "MPN") == row["mpn"], reference
+    assert _population_field(part, "BOM_ID") == row["id"], reference
+    if reference == "R24":
+        assert contract == "R_MISO_SER" and row["id"] == "spi_series"
+        assert row["mpn"] == _population_field(part, "Value") == "NOT_SELECTED"
+        assert row["spec"] == {}, "no series resistance selected"
+
+
+def _population_field(part: str, name: str) -> str:
+    values: list[str] = re.findall(r'\(property\s+"' + name + r'"\s+"([^"]*)"', part)
+    assert len(values) == 1, "missing/duplicate AFE " + name
+    return values[0]
 
 
 # KiCad's system Python binding is native authoring/check tooling, not a new
@@ -834,8 +890,14 @@ def shape(item, clearance=0):
     return poly
 
 rows = {}
-for name in ("MISO", "DRDY"):
+for name in ("MISO", "MISO_DRV", "DRDY"):
     items = [t for t in b.GetTracks() if t.GetNetname() == name]
+    if name == "MISO_DRV":
+        split = b.FindFootprintByReference("R24") is not None
+        assert bool(items) == split, "missing/unexpected MISO driver segment"
+        if not split:
+            continue
+    assert items, "missing measured output segment: " + name
     vias = [t for t in items if t.Type() == p.PCB_VIA_T]
     traces = [t for t in items if t.Type() != p.PCB_VIA_T]
     layers = sorted({b.GetLayerName(t.GetLayer()) for t in traces})
@@ -862,7 +924,23 @@ for name in ("MISO", "DRDY"):
         "inner_tracks_straight": all(t.Type() == p.PCB_TRACE_T for t in inner),
         "unreferenced_projection_mm2": uncovered.Area() / 1e12,
     }
-print(json.dumps(rows))
+def combine_output_rows(rows):
+    # R24 divides electrical nets, not the preexisting channel-length/via budget.
+    # Combine METRICS only, after each net's separate own-contact clipping.
+    result = dict(rows)
+    if "MISO_DRV" not in rows:
+        return result
+    driver, receiver = rows["MISO_DRV"], rows["MISO"]
+    combined = dict(receiver)
+    combined["layers"] = sorted(set(receiver["layers"]) | set(driver["layers"]))
+    for field in ("segments", "vias", "inner_trace_mm", "unreferenced_projection_mm2"):
+        combined[field] = receiver[field] + driver[field]
+    for field in ("inner_in_escape_rectangle", "inner_tracks_straight"):
+        combined[field] = receiver[field] and driver[field]
+    result["MISO"] = combined
+    return result
+
+print(json.dumps(combine_output_rows(rows)))
 """
 
 
@@ -925,7 +1003,10 @@ import pcbnew as p
 assert p.Version() == "9.0.2"
 b = p.LoadBoard(sys.argv[1])
 net, change = sys.argv[2:]
-tracks = [t for t in b.GetTracks() if t.GetNetname() == net and t.Type() != p.PCB_VIA_T]
+# Select both physical segments for the logical MISO fault/control operation.
+# Each retained or subdivided track keeps its own native net code below.
+names = ("MISO", "MISO_DRV") if net == "MISO" else (net,)
+tracks = [t for t in b.GetTracks() if t.GetNetname() in names and t.Type() != p.PCB_VIA_T]
 assert tracks
 if change == "back-escape":
     inner = [t for t in tracks if t.GetLayer() == p.In2_Cu]

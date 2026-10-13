@@ -1,0 +1,43 @@
+{
+  "base": "58ebd9a9d880b0349fbb78de0a1244ded3b41940",
+  "base_tree": "8db525021d1be098a8fbc88ddc7158f542899f20",
+  "old_board_sha256": "60097ff4acf8408d5a172930de74bcd36aa50a379dd30a831e4bc64d3841c8a6",
+  "current_board_sha256": "7873928ea7118b9e39822c0c2b2a70f47df58b01c8b1696c16d343b2b7ec1b7a",
+  "old_footprints": 69,
+  "current_footprints": 70,
+  "added": [
+    "R24"
+  ],
+  "existing_raw_footprints_identical": 68,
+  "U1_only_change": "one pad net MISO to MISO_DRV; inverse substitution recovers entire raw footprint",
+  "outline_and_all_top_level_gr_lines_identical": true,
+  "carrier_view_and_b3_scad_byte_identical": true,
+  "allocated_r24_volume_mm": [
+    3.2,
+    1.6,
+    4
+  ],
+  "body_selected": false,
+  "physical_rework_qualified": false,
+  "local_native": {
+    "renderer": "OpenSCAD version 2021.01",
+    "locked_environment": false,
+    "command": "python -m pytest -q -m native tests/test_carrier_cad.py tests/test_carrier_l5.py tests/test_service_access.py",
+    "new_tests": "R24 allocation with collision control, two upper approaches, two altered-board source controls",
+    "native_kicad_executed_locally": false
+  },
+  "pre_fix_binding": "Existing whole-file binding failed before correction: old60097ff4 versus current7873928e",
+  "first_test_control": "A disposable misplaced-box/header contact produced a nonmanifold STL, correctly rejected; replaced only that negative control with an outboard-rail intrusion. No acceptance predicate changed.",
+  "upper_approach": "0.5 mm diameter, z4.1..30 mm: blocked installed, clear carrier/service-only; not a solder-tool or joint-level model",
+  "source_unchanged_paths": {
+    "hardware/rev_a/layout/rev_a.kicad_pcb": "7873928ea7118b9e39822c0c2b2a70f47df58b01c8b1696c16d343b2b7ec1b7a",
+    "hardware/rev_a/mechanical/carrier_k2.scad": "208842fcac79d8585496a57f8776602a367ce88c7a93d74194dd65525a601f34",
+    "hardware/rev_a/mechanical/view_k2.scad": "6c2cb9c64f6a7740767fc7c893da30a7ca58ee56eefba18e8cb010bfd6696e56",
+    "docs/studies/b3_access_envelope.scad": "b26d0a3d7b052d9a3257d430319851c3b12009856d5ec34f218897c1b4d9dd1c"
+  },
+  "hosted_combined_gate": "pending exact published head",
+  "independent_review_completed": false,
+  "fabrication_authorized": false,
+  "powering_authorized": false,
+  "body_connection_authorized": false
+}

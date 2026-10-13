@@ -48,11 +48,14 @@ def test_evidence_is_bound_to_current_sources_and_existing_worksheet() -> None:
         "firmware/esp32_ads1299_bench/bench_console.h",
         "hardware/rev_a/bom.json",
         "hardware/rev_a/auxiliary/contract.json",
+        "docs/studies/s2_current_return.json",
         "docs/studies/s3_acceptance.json",
         "docs/REV_A_SUPPLY_ACCEPTANCE_S3.md",
     }
     for name, digest in hashes.items():
         assert hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == digest, name
+    s2 = read_object(json.loads((ROOT / "docs/studies/s2_current_return.json").read_text()), "S2")
+    assert read_object(m["setup"], "setup")["spi_population"] == s2["spi_population"]
     assert DOCUMENT.is_file(), "missing evidence-to-worksheet explanation"
     text = DOCUMENT.read_text()
     for required in ("SGM2212", "CP2102N", "1 mA", "3.6 V", "250.5 mV", "not a maximum"):
@@ -182,3 +185,15 @@ def test_changed_transitive_header_invalidates_the_evidence(
     changed.write_bytes(changed.read_bytes() + b"\n// detached provenance fault\n")
     with pytest.raises(AssertionError, match=header.replace(".", r"\.")):
         test_evidence_is_bound_to_current_sources_and_existing_worksheet()
+
+
+def test_named_acquisition_also_requires_separate_spi_population() -> None:
+    setup = read_object(_record()["setup"], "setup")
+    assert setup.get("spi_population") == {
+        "state": "OPEN_DNP",
+        "references": ["R117", "R118", "R119", "R120", "R24"],
+        "resistance_ohm": None,
+        "acquisition_possible": False,
+    }, "a true firmware review flag alone cannot bridge unpopulated SPI positions"
+    hypothetical = read_object(setup["hypothetical_acquisition"], "hypothetical")
+    assert hypothetical.get("separate_spi_population_review_required") is True

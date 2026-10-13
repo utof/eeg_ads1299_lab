@@ -1,5 +1,25 @@
 # S1 supply-and-return DC budget: conditional, not a release
 
+## L5 geometry reconciliation (2026-10-11)
+
+The current inventory is a fresh KiCad 9.0.2 extraction of geometry commit
+`3519b21e335584244771c73c5c87b70d66037a7e`, tree
+`9475d027c1a0ba1c3cf9c35c2da9e0a1be07888c`. Read-only run38112788509
+first reproduced the old source-identity failure, then used the unchanged native
+path algorithm. All selected paths, grouped resistance squares, PTH/via counts,
+assumptions and qualification=false matched the earlier inventory exactly. Only
+the recorded geometry commit/tree and the two board hashes changed. All five
+existing S1 checks then passed, including both altered-board rejection cases.
+Historical S1 source and results remain in Git at the earlier commit below.
+
+This establishes preservation of the selected SUPPLY paths, not unchanged signal
+connectivity: R117-R120 and R24 are now OPEN DNP positions. Their absence cannot
+be treated as fitted links or proof of zero parasitic current. The numerical
+load examples below remain hypotheses, not the consumption of an operating board.
+No source voltage, resistance, load bound, current or physical permission changed.
+
+## Original S1 analysis (retained)
+
 Source baseline: merged PR81 main `f6932ead58c1d02af145de405312a7f885dbb010`,
 tree `a1bb3a16687c65f736de9c2634bb5ec2e4b990ac`. Both PCB byte hashes and the
 native route inventory are bound in `studies/s1_supply_paths.json`. No copper,

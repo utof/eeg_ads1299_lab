@@ -27,6 +27,7 @@ class AuxiliaryPart:
     mpn: str
     footprint: str
     in_bom: bool
+    population: str
     pins: dict[str, AuxiliaryPin]
     sheet: str
 
@@ -56,7 +57,18 @@ def _string(value: object) -> str:
 
 _ROOT_FIELDS = frozenset({"revision", "status", "parts", "external_assumptions", "approval"})
 _PART_FIELDS = frozenset(
-    {"reference", "contract_ref", "symbol", "value", "mpn", "footprint", "in_bom", "pins", "sheet"}
+    {
+        "reference",
+        "contract_ref",
+        "symbol",
+        "value",
+        "mpn",
+        "footprint",
+        "in_bom",
+        "population",
+        "pins",
+        "sheet",
+    }
 )
 _PIN_FIELDS = frozenset({"net", "function", "type"})
 _PIN_TYPES = frozenset(
@@ -141,9 +153,33 @@ def _part(row: dict[str, object]) -> AuxiliaryPart:
         _string(row["mpn"]),
         _string(row["footprint"]),
         row["in_bom"] is True,
+        _member(row["population"], frozenset({"fit", "dnp"}), "population"),
         _pins(row["pins"]),
         _member(row["sheet"], _AUX_SHEETS, "sheet"),
     )
+
+
+_SERIES_POSITIONS = {
+    "R_AFE_SCLK_SER": "R117",
+    "R_AFE_MOSI_SER": "R118",
+    "R_AFE_CS_SER": "R119",
+    "R_MCU_MISO_SER": "R120",
+}
+
+
+def _population(ref: str, part: AuxiliaryPart) -> None:
+    expected = "dnp" if ref in _SERIES_POSITIONS else "fit"
+    if part.population != expected:
+        raise ValueError("C3 population must retain fitted devices and unpopulated SPI positions")
+    if expected == "dnp" and not (
+        part.reference == _SERIES_POSITIONS[ref]
+        and part.symbol == "R"
+        and part.value == part.mpn == "NOT_SELECTED"
+        and part.footprint == "Resistor_SMD:R_0603_1608Metric"
+        and part.in_bom
+        and part.sheet == "bus.kicad_sch"
+    ):
+        raise ValueError("C3 SPI position must remain an unselected in-BOM 0603 resistor")
 
 
 def parse_auxiliary_contract(content: str) -> AuxiliaryContract:
@@ -167,6 +203,7 @@ def parse_auxiliary_contract(content: str) -> AuxiliaryContract:
         ref, part = _string(row["contract_ref"]), _part(row)
         if ref in parts or part.reference in references:
             raise ValueError("C3 duplicate part")
+        _population(ref, part)
         references.add(part.reference)
         parts[ref] = part
     return AuxiliaryContract(parts)
@@ -191,7 +228,9 @@ def _identity_errors(netlist: SchematicNetlist, contract: AuxiliaryContract) -> 
             errors.append(f"C3 {ref}: MPN differs")
         if ("exclude_from_bom" not in actual.properties) != expected.in_bom:
             errors.append(f"C3 {ref}: BOM inclusion differs")
-        if actual.properties.get("Population") != "fit" or "dnp" in actual.properties:
+        if actual.properties.get("Population") != expected.population or (
+            "dnp" in actual.properties
+        ) != (expected.population == "dnp"):
             errors.append(f"C3 {ref}: population differs")
         if "exclude_from_board" in actual.properties:
             errors.append(f"C3 {ref}: missing from board")

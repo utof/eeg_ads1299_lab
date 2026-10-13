@@ -1,0 +1,49 @@
+{
+  "scope": "Full native CAD selection attempted; terminated at unchanged timeout; not a passing gate",
+  "source_commit": "3f98404f2755331359f2aa95354a0a3ea934ae92",
+  "source_tree": "79ac4f265df0cc4521fb162c34ae41c0401c2990",
+  "workflow_run": 38076033192,
+  "job": 114283053171,
+  "artifact": 11679241216,
+  "artifact_sha256": "b4f99687b26f58f972c7f700d1fafa32add266aeb020a233b014e7ec29e2de0c",
+  "kicad_version": "9.0.2",
+  "timeout_seconds": 450,
+  "completed": false,
+  "final_junit_present": false,
+  "observed_progress_failure_markers": 10,
+  "full_pass_count_claimed": false,
+  "tracked_source_unchanged": true,
+  "observations": [
+    {
+      "artifact_path": "tests/p2-ground-canonical0/cad/p2-bypass-C104.log",
+      "sha256": "05931fbb05164a04e458e37f484d2be6fd5c06868013d2d3b80ee0366fc6e4d1",
+      "output": "Traceback (most recent call last):\n  File \"<string>\", line 77, in <module>\n    covered_strip(poly,gv,iv,cap+' return')\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<string>\", line 54, in covered_strip\n    assert q.Area()/1e12<=1e-6,label+' local reference gap'\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: C104 return local reference gap\n"
+    },
+    {
+      "artifact_path": "tests/test_global_routes_have_explic0/cad/p3-reference.log",
+      "sha256": "8fa403c7be3b0a889dd7af2616a8d7bcd4af62960e302bb6f3f267beac765a96",
+      "output": "Traceback (most recent call last):\n  File \"<string>\", line 106, in <module>\n    assert outside.Area()/1e12<=1e-6,'P3 unreviewed full-width reference growth: '+t.m_Uuid.AsString()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: P3 unreviewed full-width reference growth: c4455c3b-ea0d-5d22-8a62-23973dd1e173\n"
+    },
+    {
+      "artifact_path": "tests/test_benign_p3_representations0/cad/p3-mutation.log",
+      "sha256": "67b9b93bdf6258526786c453d6d3ef8fe4347502a221f515b18c6d902f5c7b15",
+      "output": "Traceback (most recent call last):\n  File \"<string>\", line 12, in <module>\n    t=next(t for t in b.GetTracks() if t.m_Uuid.AsString()==ident)\nStopIteration\n"
+    },
+    {
+      "artifact_path": "tests/test_benign_p3_representations1/cad/p3-mutation.log",
+      "sha256": "67b9b93bdf6258526786c453d6d3ef8fe4347502a221f515b18c6d902f5c7b15",
+      "output": "Traceback (most recent call last):\n  File \"<string>\", line 12, in <module>\n    t=next(t for t in b.GetTracks() if t.m_Uuid.AsString()==ident)\nStopIteration\n"
+    },
+    {
+      "artifact_path": "tests/test_reference_screen_reduces_0/reference-work.log",
+      "sha256": "157114c9dc7e04c41ff23863486104c346be516589e2c66e45cb5dda2d348f09",
+      "output": "Traceback (most recent call last):\n  File \"<string>\", line 15, in <module>\n    exec(compile(SOURCE,'<committed-P3-probe>','exec'),scope)\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<committed-P3-probe>\", line 106, in <module>\nAssertionError: P3 unreviewed full-width reference growth: c4455c3b-ea0d-5d22-8a62-23973dd1e173\n"
+    }
+  ],
+  "mutation_source_target": "36f3b6dd-9d7a-54fe-9c03-f7ebe5f77ae8",
+  "mutation_target_note": "The old reverse/split target is in the explicit L5 before map and absent from current PCB. Keep equivalent-copper controls, but target current actual copper and verify the intended fault mechanism.",
+  "next": "Triage C104 return corridor and P3 reference-growth finding without weakening limits, repair obsolete mutation targets, reconcile S2-S4 conditional paths and K2 binding, and complete full gates inside unchanged budget.",
+  "fabrication_authorized": false,
+  "powering_authorized": false,
+  "body_connection_authorized": false
+}

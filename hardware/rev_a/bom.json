@@ -433,6 +433,24 @@
       "spec": {}
     },
     {
+      "id": "spi_series",
+      "mpn": "NOT_SELECTED",
+      "manufacturer": "Not selected; unpopulated provision",
+      "description": "R24 source-series 0603 position. DNP/open; fit and resistance require separate approval. Zero allowance is not a price.",
+      "package": "0603",
+      "references": [
+        "R_MISO_SER"
+      ],
+      "quantity": 1,
+      "population": "dnp",
+      "planning_unit_usd": "0.00",
+      "source_ids": [
+        "TI_ADS_DS"
+      ],
+      "evidence": "L4 five-position design requirement; no purchased part, resistance, initial fit or cost is selected. This row reserves lands only.",
+      "spec": {}
+    },
+    {
       "id": "clamps",
       "mpn": "BAV199,215",
       "manufacturer": "Nexperia",

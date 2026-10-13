@@ -1,0 +1,63 @@
+{
+  "scope": "Complete native selection completed with one S1 source-binding failure; not a full project pass",
+  "source_commit": "3519b21e335584244771c73c5c87b70d66037a7e",
+  "source_tree": "9475d027c1a0ba1c3cf9c35c2da9e0a1be07888c",
+  "run": 38093139105,
+  "job": 114333497330,
+  "artifact": 11684254915,
+  "artifact_sha256": "cc64052093f2eaba15c40bb9d0e6e1600cde44e272d817302d92b06e39b2c8fe",
+  "kicad": "9.0.2",
+  "uv": "0.12.18",
+  "locked": true,
+  "timeout_seconds": 450,
+  "completed": true,
+  "junit_seconds": 351.788,
+  "tests": 309,
+  "passed": 308,
+  "failures": 1,
+  "errors": 0,
+  "skips": 0,
+  "failure": {
+    "module": "tests.test_supply_inventory",
+    "case": "test_supply_inventory_matches_current_native_geometry",
+    "message": "S1 source identity differs from the recorded geometry baseline: hardware/rev_a/layout/rev_a.kicad_pcb"
+  },
+  "no_timeout_or_selection_relaxation": true,
+  "C104_P3_and_mutation_checks_passed": true,
+  "all_15_SPI_faults_passed": true,
+  "report_sha256": {
+    "identity.txt": "50e9d005c3e2f2ab00fc34c9b188bd37540ed8257cbe6293bab4210240456685",
+    "kicad-version.txt": "cb59c54a0c419202b393c39beebcdbef094e480bdea5c82290050c265a1f7508",
+    "pytest.xml": "5f2170637b8885799086dca8e14ec6da4298c63c4d6d901418360b062a3dfc03",
+    "pytest.log": "5bc6ddbd77a0d994bbeb2c3ffc1d17d3e111ea247d775766e8a5938e789d0275"
+  },
+  "ordinary_gate": {
+    "source": "3519b21e335584244771c73c5c87b70d66037a7e",
+    "run": 38093065634,
+    "artifact": 11684763519,
+    "sha256": "bd333f177c92df144f899ba9ad2e303e3fb904b54f77b31b818c4e11958b8c0d",
+    "python": "3.13",
+    "junit_cases_including_subtests": 1404,
+    "failures": 14,
+    "errors": 0,
+    "skips": 0,
+    "failed_modules": [
+      "tests.test_current_return_s2",
+      "tests.test_supply_acceptance_s3",
+      "tests.test_steady_source_s4"
+    ],
+    "pretest_checks_passed": [
+      "format",
+      "lint",
+      "types",
+      "complexity",
+      "architecture",
+      "baseline"
+    ],
+    "full_gate_passed": false
+  },
+  "next": "Reconcile S1 native inventory and S2-S4 with actual source/open-DNP versus conditional fitted paths; retain K2 access/source-binding review and exact full gates. Do not blindly refresh historical hashes.",
+  "fabrication_authorized": false,
+  "powering_authorized": false,
+  "body_connection_authorized": false
+}

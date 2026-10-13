@@ -11,6 +11,7 @@ import pytest
 
 from hardware.rev_a import load_documents, make_pcb_seed, parse_schematic_xml
 from tests.footprint_fixtures import footprint_sources
+from tests.test_pcb_placement import _population_inventory
 
 ROOT = Path(__file__).resolve().parents[1]
 CAD = ROOT / "hardware/rev_a/kicad"
@@ -39,9 +40,7 @@ def _seed(xml: str = XML, libraries: dict[str, str] | None = None) -> str:
 def test_seed_contains_all_board_instances_and_no_invented_routes_or_outline() -> None:
     board = _seed()
     assert board.startswith("(kicad_pcb ")
-    assert board.count('(footprint "') == 69
-    assert board.count('(pad "') == 251  # 262 terminals minus 11 off-board MOD1 pins.
-    assert board.count(" dnp)") == 8
+    _population_inventory(board, load_documents()[1])
     assert '"MOD1"' not in board
     assert '(property "Reference" "U1"' in board
     assert '(property "ContractRef" "C_REF"' in board

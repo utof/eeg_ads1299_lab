@@ -45,7 +45,18 @@ libraries=Path(os.environ['KICAD9_FOOTPRINT_DIR']);courts={}
 for row in contract['parts']:
     ref=row['reference'];f=fs[ref]
     assert f.GetValue()==row['value'] and f.GetFPID().GetLibItemName()==row['footprint'].split(':')[1]
-    assert f.IsExcludedFromBOM()==(not row['in_bom']) and not f.IsDNP()
+    # Only L4's four named positions may be unpopulated. Do not equate DNP
+    # with BOM exclusion or trust a custom Population field over the native bit.
+    series=ref in ('R117','R118','R119','R120')
+    population='dnp' if series else 'fit'
+    assert row.get('population','fit')==population,ref+' declared population'
+    assert f.GetFieldText('Population')==population,ref+' Population field'
+    assert f.IsDNP()==series,ref+' native DNP'
+    assert f.IsExcludedFromBOM()==(not row['in_bom']),ref+' BOM exclusion'
+    assert f.GetFieldText('MPN')==row['mpn'],ref+' MPN field'
+    if series:
+        assert row['in_bom'] is True,ref+' series must remain in BOM'
+        assert row['mpn']==row['value']=='NOT_SELECTED',ref+' unselected series'
     assert f.GetLayer()==p.F_Cu,'front-side only'
     pads={z.GetNumber():z for z in f.Pads()};assert set(pads)==set(row['pins'])
     lib,name=row['footprint'].split(':')
@@ -119,7 +130,7 @@ for ref in ('U102','U103','U104'):
 for r,u in [('R102','U105'),('R104','U106'),('R106','U107'),('R108','U108')]:
     assert dist(pos(pad(r,1)),pos(pad(u,1)))<=3.,r+' sense locality'
 assert pad('J104',2).GetNetCode()!=pad('J104',3).GetNetCode(),'premature feed/sense join'
-print(json.dumps({'mode':mode,'circuit_footprints':48,'mechanical_NPTH':4,'all_pads':sum(len(list(f.Pads())) for f in fs.values()),
+print(json.dumps({'mode':mode,'circuit_footprints':len(contract['parts']),'mechanical_NPTH':4,'all_pads':sum(len(list(f.Pads())) for f in fs.values()),
     'host_target_pad_bbox_gap_mm':separation,'bypass_supply_pad_centers_mm':measured,
     'hole_reserved_box_to_pad_gap_mm':hole_margins,'mating_allocations_mm':areas,
     'mount_allocations_mm':mount_areas,'mount_to_termination_gaps_mm':mount_access_gaps,

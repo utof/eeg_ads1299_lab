@@ -6,10 +6,71 @@ Base `dbc99981a592904428f2432094dc62c4a13dcc55`; PCB SHA256
 No PCB, pin mapping, BOM, firmware, electrical model or approval flag changed.
 K1's HTSW migration is already complete. Historical M1/K1 records stay unchanged.
 
+## L5 nominal-envelope continuity review (2026-10-12)
+
+This amendment supersedes the historical PCB bindings below for the current
+nominal K2 assessment. Engineering source reviewed: PR98 at
+`58ebd9a9d880b0349fbb78de0a1244ded3b41940`, tree
+`8db525021d1be098a8fbc88ddc7158f542899f20`; the PCB is the L5 source retained
+since hardware commit3519b21e. Current AFE SHA256 is
+`7873928ea7118b9e39822c0c2b2a70f47df58b01c8b1696c16d343b2b7ec1b7a`.
+The strict one-hash test now binds this file. It does not strip metadata, accept
+arbitrary revisions, select a fitted part, or authorize building/using the carrier.
+
+Source comparison with the preceding C4 board (SHA25660097ff4...) found exactly
+one added footprint: R24. All68 other unchanged footprint forms match byte for
+byte. U1 alone differs in one pad-net annotation (MISO to MISO_DRV); reversing
+that exact annotation recovers its entire old footprint. Existing placements,
+pads, outline and top-level drawing lines are unchanged. Both K2 SCAD files and
+the B3 access overlay are byte-identical. SPI tracks/vias DID change elsewhere;
+this is not a claim that all electrical copper is unchanged. Existing native
+support, service, reference and fault checks must still pass on current source.
+
+R24 is the unpopulated 0603 footprint at(57.0,29.4), rotation0 on F.Cu.
+Its pad centres are(56.175,29.4) and(57.825,29.4). A proposed allocation
+x=55.4..58.6, y=28.6..30.2, z=0..4 mm contains its complete courtyard including
+line width and fits wholly within K2's existing blanket component allocation.
+**3.2 x1.6 x4 mm is allocated space, NOT a selected resistor's dimensions or a
+manufacturer maximum.** Future part, termination, solder, placement, height and
+assembly tolerances must fit that allocation or receive a new review. Native
+DNP/Population/NOT_SELECTED and pad/courtyard coordinates are checked separately.
+No resistance, including zero ohms, is approved by this review.
+
+Real OpenSCAD2021.01 Boolean checks use the existing K2 and B3 models. The allocated
+20.48 mm3 volume is wholly inside the blanket allocation and has no modeled
+intersection with the installed K2/header/socket/ribbon/service/retainer and B3
+pair-corridor volumes. A deliberately misplaced copy intersects an outboard rail.
+These checks are nominal rigid-envelope evidence, not measured manufacturing fit.
+
+**R24 is not accessible from straight above in the assembled arrangement.** The
+existing B3-style0.5-mm virtual approach at each R24 land, z=4.1..30 mm, intersects
+the retained upper assembly/pair corridors. With bridges, cartridges, ribbons and
+crossing sense tails absent, the same approaches clear the carrier base and J3
+allocation. This narrow probe is NOT a soldering-tool envelope and says nothing
+about the actual joint-level space below z=4.1 mm. Removing only one cable is not
+claimed sufficient; the B3 sense corridor can also obstruct the approach.
+
+Accordingly no in-situ adjustment beneath the assembled ribbon is supported.
+A future approved de-energized/discharged service process must first make the
+upper work area accessible and account for attached sense tails, joint-level
+clearance, actual tool size/angle, thermal exposure, insulation and reassembly
+inspection. This is a condition on that future process, not an instruction or
+permission to remove hardware, solder, mate or power anything now. No flying-wire
+or blind-cut fallback is introduced. Actual workmanship and tool access remain
+before-use acceptance items, not reasons to redesign a nominally clear carrier.
+
+`tests/test_carrier_l5.py` retains this distinction with three native volume/access
+cases, one native KiCad placement/courtyard case, and two source-identity rejection
+controls (shifted R24 and altered land). The original K2 and C4 wrong-port, tilt,
+cable, seating, installation and support cases remain unmodified. No tolerances,
+renderer failure handling, time allowance or existing test selection are relaxed.
+Exact execution scope and limitations are in the L5 K2 checkpoint and handoff;
+a passing hash alone is not mechanical or electrical qualification.
+
 ## C3 metadata-only continuity review
 
 The original K2 source identity above is historical. After the coordinated C3
-seven-pulldown migration, the current strict carrier test binds PCB SHA256
+seven-pulldown migration, the then-current strict carrier test bound PCB SHA256
 `f11c9651fb0cebb01bf2cc7d6ef1be0a0093664dfacc4f193f90aab14bdbd6c7`.
 The first full hosted native suite correctly failed because that binding still
 named the pre-C3 file; the same failure was reproduced locally before correction.

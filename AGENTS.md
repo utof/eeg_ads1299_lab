@@ -2,6 +2,13 @@
 
 Read `docs/DEVELOPMENT.md`, `docs/LLM_HANDOFF.md`, and the Rev A hardware baseline before changing code.
 
+**Before any manual-setup handoff, complete the [hosted capability preflight](docs/REPOSITORY_PUBLICATION.md#hosted-capability-preflight).**
+Use the working connected GitHub/source-only publisher and separate read-only
+hosted KiCad/CI route when available. Missing local Git/gh/KiCad/pcbnew or DNS
+is not a reason to ask the user to install or download tools. Inspect current
+schemas, successful PR98 workflows and exact-head results; distinguish unavailable
+local tools from an explicit denial, which must never be bypassed.
+
 ## Practical engineering first — standing user preference
 
 Read [the bench-first decision](docs/REV_A_BENCH_FIRST.md) before choosing a slice.

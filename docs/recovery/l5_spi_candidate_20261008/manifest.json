@@ -1,0 +1,120 @@
+{
+  "repository": "utof/eeg_ads1299_lab",
+  "pr": 98,
+  "kind": "unapplied_source_candidate_not_active_engineering_tree",
+  "base_commit": "ff953c03c452f1572602b52aa62f42e80bfa9588",
+  "base_tree": "928e94437784b2249042555e1fa17316406dfc41",
+  "expected_full_tree_if_applied_to_exact_base": "2e50d2bdd9f25f6cc74e0294d8015a822dda50f2",
+  "isolated_patch_application_matches": true,
+  "candidate_files": {
+    "docs/HARDWARE_BASELINE_REV_A.md": {
+      "base_blob": "2389f76fa80bbf6f1fa8b2abda829a0e07d8bebb",
+      "candidate_blob": "894b6c96b627b9621e6824803103fc05bed20455",
+      "candidate_sha256": "bd6dfcbf8446c1dbfa4ac1657571af5a07747b278ab76cbfe25386a8e76dd0e8"
+    },
+    "hardware/rev_a/auxiliary.py": {
+      "base_blob": "0a34c228898108d469b86ef21fdbc4f900edec9a",
+      "candidate_blob": "82fb9a62c0edd0a35ab4ef6038fc1ebabb94a101",
+      "candidate_sha256": "552600765522f25cd6081ff8e2e29cbe67deb47e6923eafd14cc46df71115a04"
+    },
+    "hardware/rev_a/auxiliary/auxiliary.kicad_pcb": {
+      "base_blob": "4156b4892cbf49f3166260155a4fcaed179e6916",
+      "candidate_blob": "9e4a90c39d688eb45fc9088ec81668d0e512d5bf",
+      "candidate_sha256": "383efc973cce47250cf23cc9f6883710f8d957bec6c027a0ebd5053c1b3140c1"
+    },
+    "hardware/rev_a/auxiliary/bus.kicad_sch": {
+      "base_blob": "4dd8c579c54384b27b347cdd9460041dc9a243a5",
+      "candidate_blob": "432c514187f7562900ae46193d794eadde8e776f",
+      "candidate_sha256": "289492893d9fc777dc4cf8c39182eededb9debbd4a9813b317ba65262b79904a"
+    },
+    "hardware/rev_a/auxiliary/contract.json": {
+      "base_blob": "35f0f44b3d364879254680fb94916ba734e21092",
+      "candidate_blob": "a07b0f2f23e33e174e27d91a13348a1d27103213",
+      "candidate_sha256": "b0780c92066b864333f2b9d838c5d485b33a214899a7d8d218f32cd1471de482"
+    },
+    "hardware/rev_a/bom.json": {
+      "base_blob": "9d88410f568cce7a542aa667a0403e2da339a4ce",
+      "candidate_blob": "73620c97482224dfa5d744bf2bb6bdc48d8c3c38",
+      "candidate_sha256": "74dbfabd206e37806c7d6df877a3d226db7d5a141f637f9913d3eb1c5efc401c"
+    },
+    "hardware/rev_a/check_baseline.py": {
+      "base_blob": "b041ef1319835ce5f961f436eadd6e9825ea0b73",
+      "candidate_blob": "a44ace72fa249d9f4b8a16d7d099ff5962e264bf",
+      "candidate_sha256": "917a386e6a449d93d5654a50569a3419e9f3fc7bc43218346718efa122414c25"
+    },
+    "hardware/rev_a/check_schematic.py": {
+      "base_blob": "2ff24c01853946d10789d0425bb11fc2bc424022",
+      "candidate_blob": "158947d7ca00e149d840f0c6e67ec4a4fef5c85c",
+      "candidate_sha256": "fe0c4fe805e81168f62cf7017c8b2d61f7cd4c659ea9051d2eec5920656fad31"
+    },
+    "hardware/rev_a/kicad/digital.kicad_sch": {
+      "base_blob": "3c75b53e46b16ce8cea7c1affbeb46d0f327558c",
+      "candidate_blob": "42f741385fc2c51b1a73a64b09ee94af68e8ea95",
+      "candidate_sha256": "ce95df0462c7de7fcb00a4fa8218ff5de0a12ab70b665f81d53bfe4edd51d0cb"
+    },
+    "hardware/rev_a/layout/rev_a.kicad_pcb": {
+      "base_blob": "bf68ee6baf7f5a367c9592ca9e48ae82ce5ec01b",
+      "candidate_blob": "b32558bd5f1a8fff1e174f496b7bd848e84ddc2e",
+      "candidate_sha256": "405e7beee6ab4c2075bd6ac82940ba6fa120f00ad9c033e3ea6b2356f18a677f"
+    },
+    "tests/test_spi_series_population.py": {
+      "base_blob": null,
+      "candidate_blob": "73e8c969a2330b28c1eb6fe31e7c81e8b0b9aa42",
+      "candidate_sha256": "0789399f14c8ad14bd99abe47910ec0229bf540bda2dc319a2e3deb65529e69b"
+    }
+  },
+  "native_kicad": false,
+  "zone_refill": false,
+  "fresh_xml_fixtures": false,
+  "locked_gate_pass": false,
+  "firmware_modified": false,
+  "physical_work_or_power_authorized": false,
+  "source_leg_track_lengths_mm": {
+    "R117": 6.644372,
+    "R118": 7.925912,
+    "R119": 8.722967,
+    "R120": 5.29476,
+    "R24": 10.852549
+  },
+  "source_leg_lengths_are_not_electrical_qualification": true,
+  "encoding": "Concatenate patch.gz.01, .02, .03; gunzip to a standard Git binary patch. Data only, not automatically applied.",
+  "human_readable_patch_sha256": "a1e1058eae479c48672b2fa7f10e5d142303c0dde74fca9f64b025833bdf8fd8",
+  "human_readable_patch_bytes": 130317,
+  "patch_sha256": "e02e30f380146e5d131b9a63c78d9e80f5e2d165bf7e36d3fea0c4b61aeed776",
+  "patch_bytes": 17807,
+  "gzip_sha256": "e25c9afc67f986a25c8e2105b2ad9d492aee2d0e07979088386a6432328a45de",
+  "gzip_bytes": 13641,
+  "parts": [
+    {
+      "path": "patch.gz.01",
+      "bytes": 4548,
+      "blob": "0d040595b2127b8f6362b9c0478b2a3ed19abe59",
+      "sha256": "29a5ea6144ef25bc41cb51c7736e9f57ccceb272cd0a323055899738a4d555df"
+    },
+    {
+      "path": "patch.gz.02",
+      "bytes": 4548,
+      "blob": "5b3adf48c6b27196c0e502430b67d4422567ce01",
+      "sha256": "57e6e859c9070aee1fab6fcb8bacd7afaacb26a780088d236a0247e622d29fa9"
+    },
+    {
+      "path": "patch.gz.03",
+      "bytes": 4545,
+      "blob": "0c17bcb61be89f9390dd2e7c73101de95abb3fed",
+      "sha256": "ffcdb1506036416df85bcadbacf42d18033d9910eb318ce673fd8aa8e2adac99"
+    }
+  ],
+  "diagnostics": {
+    "locked_environment": false,
+    "installed_pytest_passes": 104,
+    "installed_pytest_passing_subtests": 7,
+    "static_cut_controls": 10,
+    "static_new_copper_conflicts_below_0_20_mm": 0,
+    "filled_zone_geometry_in_clearance_model": false,
+    "no_existing_footprint_moved": true,
+    "r114_receiver_side_preserved": true,
+    "r20_preserved": true,
+    "unaffected_schematic_partitions_and_other_net_copper_preserved": true,
+    "candidate_independent_review_complete": false
+  }
+}

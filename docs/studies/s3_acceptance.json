@@ -1,17 +1,17 @@
 {
   "schema": "S3-conditional-windows-v1",
   "scope": "conditional_signed_DC_intervals_not_a_release",
-  "source_commit": "319f685439fa5ed7c34eeabf44537d48fbddcd90",
-  "source_tree": "b17c00d67a95594ddfeda4d6973d78173dd5f4b5",
+  "source_commit": "7bc15dcb7a53d00677e7d9d67314287989b17dff",
+  "source_tree": "b0886ef1870d362d85d9b4552710a223c1e56594",
   "input_sha256": {
     "hardware/rev_a/board_profile.json": "5e2baa1b1928f3e922626bbd2312abc73fef3864ec5164dd89d74c3a860f9a8c",
-    "hardware/rev_a/bom.json": "514970772d5d3239b49b0ace9309fa83289497f88f18458b2cb802e684d1e4c9",
-    "hardware/rev_a/auxiliary/contract.json": "7d36ddabda0ab5ced7042850a3776b303c4a48a7666694c2a8b1cb6f623ebb75",
+    "hardware/rev_a/bom.json": "74dbfabd206e37806c7d6df877a3d226db7d5a141f637f9913d3eb1c5efc401c",
+    "hardware/rev_a/auxiliary/contract.json": "b0780c92066b864333f2b9d838c5d485b33a214899a7d8d218f32cd1471de482",
     "hardware/rev_a/service_c4.json": "ad445ed9b7db6fbedcdfd9a7c4c06438d799f2d79385d27d22e51a5888945dab",
-    "hardware/rev_a/layout/rev_a.kicad_pcb": "60097ff4acf8408d5a172930de74bcd36aa50a379dd30a831e4bc64d3841c8a6",
-    "hardware/rev_a/auxiliary/auxiliary.kicad_pcb": "d4eb4781cc3529c5371d6ce0e1976d48028391047c5824ca4f474992e6fb3ec8",
-    "docs/studies/s1_supply_paths.json": "74acae2ff356fd8b9f48ece15a417c74a46683e8e6a496bafa5cc66b5ebd473c",
-    "docs/studies/s2_current_return.json": "b745f1ff2643334ebf5d2b9cc6e8c836327593823f616d73604a49be859c45bb",
+    "hardware/rev_a/layout/rev_a.kicad_pcb": "7873928ea7118b9e39822c0c2b2a70f47df58b01c8b1696c16d343b2b7ec1b7a",
+    "hardware/rev_a/auxiliary/auxiliary.kicad_pcb": "7af81c7d445ff20ac35dc2cfbcc076e07f95d6b910bf6130b252056b158e2ff8",
+    "docs/studies/s1_supply_paths.json": "d27e45c078f457a20ccf6b64e99bdc13de38a3a2eaba17c18a3717c238c80911",
+    "docs/studies/s2_current_return.json": "712a928b89b9b5756f8bb0745f8ef88e173858c6fa78f9f68768938d3ced6601",
     "docs/REV_A_AUXILIARY_C3.md": "5d79d3b78772df714807b7811d7b457d41d4c1bc29452bceb5529b979a79359f"
   },
   "bounds_V": {
@@ -39,5 +39,7 @@
   },
   "physical_qualification": false,
   "evidence_status": "unreviewed_hypotheses_only",
-  "measurement_records": []
+  "measurement_records": [],
+  "spi_population_state": "OPEN_DNP",
+  "acquisition_possible_as_authored": false
 }

@@ -8,6 +8,8 @@ from pathlib import Path
 
 import pytest
 
+from hardware.rev_a import parse_auxiliary_contract
+
 ROOT = Path(__file__).resolve().parents[1]
 CAD = ROOT / "hardware/rev_a/auxiliary"
 BOARD = CAD / "auxiliary.kicad_pcb"
@@ -77,7 +79,13 @@ def test_auxiliary_native_placement_geometry(tmp_path: Path, mode: str) -> None:
     shutil.copytree(CAD, cad)
     result = _probe(cad, mode, tmp_path)
     assert result.returncode == 0, result.stdout + result.stderr
-    assert json.loads(result.stdout)["all_pads"] == 216
+    contract = parse_auxiliary_contract((cad / "contract.json").read_text())
+    series = {"R117", "R118", "R119", "R120"}
+    present = {part.reference for part in contract.parts.values()} & series
+    assert present in (set(), series), "partial series inventory"
+    assert len(contract.parts) == 48 + len(present)
+    assert sum(len(part.pins) for part in contract.parts.values()) == 212 + 2 * len(present)
+    assert json.loads(result.stdout)["all_pads"] == 216 + 2 * len(present)
 
 
 @pytest.mark.schematic

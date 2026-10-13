@@ -7,6 +7,12 @@ and root `AGENTS.md`. Publishing source, asking Codex for review, running CI and
 merging are separate operations; do not infer one from another or repeat a denied
 operation through a different route.
 
+For work requested in chat, use the [hosted capability preflight](REPOSITORY_PUBLICATION.md#hosted-capability-preflight)
+before handing setup to the user. Local tool absence does not disable connected
+GitHub publication or the pinned native tools on hosted runners. The setup
+instructions below apply to a local development environment, not a mandatory
+prerequisite for the assistant's authorized hosted work.
+
 ## Setup
 
 Work from the repository root. Python 3.11 is the minimum supported version; the normal development interpreter is 3.13. CI checks both. Install uv 0.12.18 using its [official standalone installation instructions](https://docs.astral.sh/uv/getting-started/installation/), then synchronize the locked project, development tools, and optional serial dependency:

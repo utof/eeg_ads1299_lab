@@ -1,0 +1,168 @@
+{
+  "scope": "K2 nominal allocation review published; new test defects remain; no full gate or release",
+  "source_commit": "2888cede92df9c80fb2b0d294951d6db127b12c8",
+  "source_tree": "4d708bd58651725ad8609f413d05d61bee8f7044",
+  "source_publication": {
+    "run": 38177417350,
+    "job": 114582623364,
+    "artifact": 11716381065,
+    "sha256": "727cfb823782a0777d0550ef2fcbd906040afa75730aed02ae67885160b02be4",
+    "verified_source_patch_sha256": "6e83b1b2ad75bf68f8b4521eb8d4702c9b8e7f59d902109355bd3593c6af3e17",
+    "source_only": true,
+    "independent_clone_and_full_tree_verified": true
+  },
+  "local_openscad": {
+    "version": "2021.01",
+    "locked": false,
+    "tests": 65,
+    "passed": 65,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "deselected_non_native": 18,
+    "junit_seconds": 99.781,
+    "command": "python -m pytest -q -m native tests/test_carrier_cad.py tests/test_carrier_l5.py tests/test_service_access.py",
+    "scope": "installed pytest plus real OpenSCAD; not full locked gate or native KiCad",
+    "junit_sha256": "c4dabf4d093f85a3ac03c0269e4e98da87d1fc430f224fd41c75b6af1604b7dd",
+    "source_test_blob": "a1d34fcb8bb44f4de00f7d506b35d0dfa86d4241"
+  },
+  "ordinary_gate": {
+    "run": 38177492156,
+    "artifact": 11716705513,
+    "sha256": "2017429b5ce5b80b90ce709667dbae84cedbfb0020888f05b7890b4b0da03fd3",
+    "passed": false,
+    "completed_stages": [],
+    "failure": "Ruff formatter requires one list-comprehension line wrap in tests/test_carrier_l5.py; no later checks executed"
+  },
+  "read_only_native_inspection": {
+    "workflow_commit": "6c986573aeb65b964f39f1b8bfa0fb6b8f782f6a",
+    "run": 38177782530,
+    "job": 114583722047,
+    "artifact": 11717180412,
+    "sha256": "c341484b08cab21034308be55e6d42ac525b04589cf3e21738f365deb7d66fa5",
+    "kicad": "9.0.2",
+    "uv": "0.12.18",
+    "locked": true,
+    "source_unchanged": true,
+    "tests": 3,
+    "passed": 2,
+    "failed": 1,
+    "errors": 0,
+    "skips": 0,
+    "passed_cases": [
+      "tests.test_carrier_cad::test_carrier_is_bound_to_reviewed_board",
+      "tests.test_service_access::test_service_native_footprint_has_actual_six_pad_placement"
+    ],
+    "failure": "tests.test_carrier_l5::test_r24_native_lands_and_courtyard_match_the_allocated_space: AttributeError: FOOTPRINT has no GetProperty",
+    "geometry_test_completed": false,
+    "native_export": {
+      "kicad": "9.0.2",
+      "native_dnp": true,
+      "fields": {
+        "Reference": "R24",
+        "Value": "NOT_SELECTED",
+        "Datasheet": "",
+        "Description": "",
+        "ContractRef": "R_MISO_SER",
+        "MPN": "NOT_SELECTED",
+        "BOM_ID": "spi_series",
+        "Population": "dnp"
+      },
+      "pads": [
+        {
+          "number": "1",
+          "position_nm": [
+            56175000,
+            29400000
+          ],
+          "size_nm": [
+            800000,
+            950000
+          ],
+          "net": "MISO_DRV"
+        },
+        {
+          "number": "2",
+          "position_nm": [
+            57825000,
+            29400000
+          ],
+          "size_nm": [
+            800000,
+            950000
+          ],
+          "net": "MISO"
+        }
+      ],
+      "courtyard": [
+        {
+          "start_nm": [
+            55520000,
+            28670000
+          ],
+          "end_nm": [
+            58480000,
+            28670000
+          ],
+          "width_nm": 50000
+        },
+        {
+          "start_nm": [
+            55520000,
+            30130000
+          ],
+          "end_nm": [
+            55520000,
+            28670000
+          ],
+          "width_nm": 50000
+        },
+        {
+          "start_nm": [
+            58480000,
+            28670000
+          ],
+          "end_nm": [
+            58480000,
+            30130000
+          ],
+          "width_nm": 50000
+        },
+        {
+          "start_nm": [
+            58480000,
+            30130000
+          ],
+          "end_nm": [
+            55520000,
+            30130000
+          ],
+          "width_nm": 50000
+        }
+      ],
+      "has_GetProperty": false,
+      "physical_qualification": false
+    },
+    "export_data_audit": "Recorded DNP/value/MPN, land positions/sizes/nets and courtyard bounds agree with the allocation; this is data inspection, NOT a pass of the failing native test"
+  },
+  "corrective_write": {
+    "action": "GitHub.create_blob",
+    "purpose": "formatter-only replacement of tests/test_carrier_l5.py",
+    "response": "This tool call was blocked by OpenAI safety checks",
+    "published": false,
+    "retried_or_bypassed": false,
+    "formatter_only_ast_equal_locally": true,
+    "note": "This explicit operation denial is not local missing-tool/DNS failure; read-only native workflow and ordinary documentation operations are separate. Do not retry through another route."
+  },
+  "introduced_test_defects": [
+    "one formatter line wrap",
+    "unsupported FOOTPRINT.GetProperty in the newly added native test"
+  ],
+  "independent_review_completed": false,
+  "last_historical_review_quota_comment": 6103095217,
+  "full_project_passed": false,
+  "fabrication_authorized": false,
+  "powering_authorized": false,
+  "body_connection_authorized": false,
+  "next": "Correct the new native field-access test and formatter only through a legitimately available authorized source-write operation, then run exact-head full gates and independent review. Do not repeat K2 geometry, supply reconciliation or source recovery; do not ask the user for local Git/KiCad setup."
+}

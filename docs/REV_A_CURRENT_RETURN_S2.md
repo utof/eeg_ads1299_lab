@@ -1,9 +1,34 @@
 # S2: separate mode-dependent loads from return-current assumptions
 
-Base main7325d659 (PR82), tree85b324a5445ca653afd16990311a04ccd9622ae5.
+Current input baseline `6e4a207ee2289ca4416ba1a3d230d35046471a7c`,
+tree `0c89cb59dd20d929f9539ac57246e8b675e3ddc7`. Original PR82 analysis remains in Git.
 Source inputs and their byte hashes are in `studies/s2_current_return.json`.
 **This is an accounting refinement, not current or power-fault qualification.**
 No PCB, circuit, component value, firmware, cable, dependency or gate changes.
+
+## L5: actual open circuit versus conditional operating arithmetic
+
+The five series sites R117-R120 (AUX) and R24 (AFE) are **DNP / NOT_SELECTED**.
+SCLK, MOSI and CS have one open series boundary each; the MISO path has two.
+R114 stays on the receiver side of R120. RESET, START, PWDN and CLKSEL retain
+physical connections, but their actual powered states are not established here.
+The distributed firmware still stops at its false review gate. Even changing
+that gate alone could not make this unpopulated topology acquire valid frames.
+
+The executable example now checks all five boundaries and DNP properties against
+the source-bound native netlists before doing arithmetic. Its `as_authored` record
+keeps acquisition impossible and total current unknown. Zero ideal conductive
+DC current THROUGH an absent series part is not zero input leakage, parasitic
+coupling, driver-side charging, internal current, or an electrical isolation claim.
+
+The quiet/acquisition numbers below are expressly **conditional fitted-path
+references**, not the consumption of the current open board. They assume the
+stated voltage AT the receiver load and completed charge transitions; they do
+not solve series voltage drop, settling, signal integrity or driver headroom.
+No resistance (including zero ohms) is selected or approved. A future population
+must be reviewed separately before this operating abstraction could apply.
+S1 was natively recaptured with identical supply geometry/accounting assumptions;
+that does not reconnect any of these signal paths. All missing bounds stay null.
 
 ## Decision
 
@@ -156,26 +181,99 @@ is an accounting record with qualification=false, not an operating permission.
 
 
 ```python
-import hashlib, json, re, subprocess
+import gzip, hashlib, json, subprocess
 from pathlib import Path
 from tools.dc_budget import switched_load, parallel_returns
+from hardware.rev_a import parse_schematic_xml
+
+
+def require(condition, message):
+    if not condition:
+        raise ValueError("S2 study: " + message)
+
 
 m = json.loads(Path("docs/studies/s2_current_return.json").read_text())
-assert m["qualification"] is False
-assert all(value is None for value in m["uncertainty"].values())
-assert re.fullmatch(r"[0-9a-f]{40}", m["source_commit"])
-assert (
+require(m["qualification"] is False, "no qualification path")
+require(all(value is None for value in m["uncertainty"].values()), "bounds remain unknown")
+require(m["source_commit"] == "6e4a207ee2289ca4416ba1a3d230d35046471a7c", "wrong input baseline")
+require(
     subprocess.check_output(
         ["git", "rev-parse", m["source_commit"] + "^{tree}"], text=True, timeout=5
     ).strip()
-    == m["source_tree"]
+    == m["source_tree"],
+    "source tree differs",
 )
+inputs = {
+    "firmware/esp32_ads1299_bench/esp32_ads1299_bench.ino",
+    "firmware/esp32_ads1299_bench/board_config_rev_a_s3.h",
+    "firmware/esp32_ads1299_bench/rev_a_startup.h",
+    "hardware/rev_a/board_profile.json",
+    "hardware/rev_a/bom.json",
+    "hardware/rev_a/auxiliary/contract.json",
+    "hardware/rev_a/service_c4.json",
+    "docs/studies/s1_supply_paths.json",
+    "tests/fixtures/rev_a_netlist.xml.gz",
+    "tests/fixtures/auxiliary_c3_netlist.xml.gz",
+}
+require(set(m["input_sha256"]) == inputs, "source input inventory differs")
 for name, digest in m["input_sha256"].items():
     current = Path(name).read_bytes()
     original = subprocess.check_output(["git", "show", m["source_commit"] + ":" + name], timeout=5)
-    assert current == original and hashlib.sha256(current).hexdigest() == digest, name
+    require(current == original and hashlib.sha256(current).hexdigest() == digest, name)
+# Actual source topology, not an ideal link silently fitted by this calculation.
+positions = {
+    "R117": ("auxiliary", ("U102", "13"), {("J101", "1")}),
+    "R118": ("auxiliary", ("U102", "12"), {("J101", "3")}),
+    "R119": ("auxiliary", ("U102", "11"), {("J101", "7")}),
+    "R120": ("auxiliary", ("U102", "5"), {("J102", "19"), ("R114", "1")}),
+    "R24": ("afe", ("U1", "43"), {("J1", "5"), ("MOD1", "GPIO13")}),
+}
+require(
+    m["spi_population"]
+    == {
+        "state": "OPEN_DNP",
+        "references": list(positions),
+        "resistance_ohm": None,
+        "acquisition_possible": False,
+    },
+    "unreviewed population or acquisition claim",
+)
+graphs = {
+    board: parse_schematic_xml(
+        gzip.decompress(Path("tests/fixtures/" + name).read_bytes()).decode()
+    )
+    for board, name in (
+        ("afe", "rev_a_netlist.xml.gz"),
+        ("auxiliary", "auxiliary_c3_netlist.xml.gz"),
+    )
+}
+
+
+def nodes(graph, ref, pin):
+    names = {part.native_ref: key for key, part in graph.parts.items()}
+    net = graph.nets[(names[ref], pin)]
+    return {
+        (graph.parts[key].native_ref, number)
+        for (key, number), code in graph.nets.items()
+        if code == net
+    }
+
+
+for ref, (board, driver, receivers) in positions.items():
+    graph = graphs[board]
+    part = next(part for part in graph.parts.values() if part.native_ref == ref)
+    require(
+        part.value == "NOT_SELECTED"
+        and part.properties["MPN"] == "NOT_SELECTED"
+        and part.properties["Population"] == "dnp"
+        and "dnp" in part.properties,
+        ref + " is not the reviewed open position",
+    )
+    require(nodes(graph, *driver) == {driver, (ref, "1")}, ref + " driver bypass")
+    require(nodes(graph, ref, "2") == receivers | {(ref, "2")}, ref + " receiver partition")
+
 f, output = m["firmware"], m["ideal_output"]
-assert f["channels"] == 4 and f["default_review_gate"] is False
+require(f["channels"] == 4 and f["default_review_gate"] is False, "firmware state differs")
 frame_bits = 8 * (f["status_bytes"] + f["bytes_per_channel"] * f["channels"])
 clock_rises = frame_bits * f["sps_nominal"]
 busy = clock_rises / f["spi_hz_nominal"]
@@ -205,6 +303,8 @@ for mode, duty, frequency in (
         for ref in ("U102", "U103", "U104")
     }
     rows[mode] = {
+        "population_basis": "conditional_fitted_receiver_waveforms",
+        "as_authored_operating_state": False,
         "pull_A": sum(p[0] for p in per_pin.values()),
         "external_charging_A": sum(p[1] for p in per_pin.values()),
         "by_buffer_external_only_A": per_buffer,
@@ -234,11 +334,18 @@ vin_in = local + feed_out
 ground_export = vin_in - feed_out + pull
 shift, branch_currents = parallel_returns(returns, ground_export)
 result = {
+    "as_authored": {
+        "population": m["spi_population"],
+        "ideal_dc_through_each_open_series_A": dict.fromkeys(positions, 0.0),
+        "total_operating_max_A": None,
+        "electrical_isolation_established": False,
+    },
     "frame_bytes": frame_bits // 8,
     "clock_rises_per_s": clock_rises,
     "spi_clock_busy_fraction": busy,
     "modes": rows,
     "return_example": {
+        "population_basis": "conditional_fitted_receiver_waveforms",
         "C4_each_ohm": c4,
         "AFE_5V_in_A": vin_in,
         "AFE_DVDD_export_A": feed_out,

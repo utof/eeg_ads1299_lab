@@ -63,9 +63,9 @@ def _contract() -> AuxiliaryContract:
 
 def test_native_auxiliary_frozen_graph_accounts_for_every_terminal() -> None:
     graph, contract = _fixture(), _contract()
-    assert len(graph.parts) == len(contract.parts) == 48
-    assert len(graph.nets) == sum(len(p.pins) for p in contract.parts.values()) == 212
-    assert sum(p.in_bom for p in contract.parts.values()) == 43
+    assert len(graph.parts) == len(contract.parts) == 52
+    assert len(graph.nets) == sum(len(p.pins) for p in contract.parts.values()) == 220
+    assert sum(p.in_bom for p in contract.parts.values()) == 47
     assert validate_auxiliary(graph, contract) == []
 
 

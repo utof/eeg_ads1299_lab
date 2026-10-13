@@ -106,9 +106,20 @@ def test_actual_study_keeps_the_four_channel_frame_and_port_kcl(tmp_path: Path) 
     assert result["clock_rises_per_s"] == 30000
     assert result["spi_clock_busy_fraction"] == pytest.approx(0.03)
     assert result["qualification"] is False
+    authored = read_object(result["as_authored"], "authored state")
+    population = read_object(authored["population"], "population")
+    assert population["acquisition_possible"] is False and population["resistance_ohm"] is None
+    assert authored["total_operating_max_A"] is None
+    assert authored["electrical_isolation_established"] is False
+    assert authored["ideal_dc_through_each_open_series_A"] == dict.fromkeys(
+        ["R117", "R118", "R119", "R120", "R24"], 0.0
+    )
     modes = read_object(result["modes"], "modes")
     active = read_object(modes["steady_acquisition"], "acquisition")
     quiet = read_object(modes["armed_quiet"], "quiet")
+    for row in (active, quiet):
+        assert row["population_basis"] == "conditional_fitted_receiver_waveforms"
+        assert row["as_authored_operating_state"] is False
     # Independent formula:3 static highs plus CS.97 and SCLK.015,3.6V/41.778kohm.
     expected_pull = 3.985 * 3.6 / 41778
     assert active["pull_A"] == pytest.approx(expected_pull)
@@ -134,7 +145,7 @@ def test_current_ledger_matches_both_schematic_sides_and_unchanged_firmware() ->
     profile, bom, _ = load_documents()
     assert not any(profile["gates"].values())
     assert m["qualification"] is False
-    assert m["source_commit"] == "7325d659aeedf2628cf2a4430854e90ef1277785"
+    assert m["source_commit"] == "6e4a207ee2289ca4416ba1a3d230d35046471a7c"
     uncertainty = read_object(m["uncertainty"], "uncertainty")
     assert len(uncertainty) == 8 and all(v is None for v in uncertainty.values())
     rows = read_object(m["forward_outputs"], "forward")
@@ -150,7 +161,12 @@ def test_current_ledger_matches_both_schematic_sides_and_unchanged_firmware() ->
         assert r["afe_pull"] in pulls["references"]
         ref, pad = r["buffer"], r["pad"]
         assert isinstance(ref, str) and isinstance(pad, str)
-        assert by_ref[ref].pins[pad].net == "AFE_" + name
+        series = {"SCLK": "R117", "MOSI": "R118", "CS": "R119"}.get(name)
+        driver_net = "AFE_" + name + ("_DRV" if series else "")
+        assert by_ref[ref].pins[pad].net == driver_net
+        if series:
+            assert by_ref[series].pins["1"].net == driver_net
+            assert by_ref[series].pins["2"].net == "AFE_" + name
         assert by_ref[ref].pins["14"].net == "AFE_DVDD"
     reverse = read_object(m["reverse_outputs"], "reverse")
     assert set(reverse) == {"MISO", "DRDY"}
@@ -158,7 +174,11 @@ def test_current_ledger_matches_both_schematic_sides_and_unchanged_firmware() ->
         r = read_object(raw, name)
         ref, pad, pull = r["buffer"], r["pad"], r["pull"]
         assert isinstance(ref, str) and isinstance(pad, str) and isinstance(pull, str)
-        assert by_ref[ref].pins[pad].net == "MCU_" + name
+        driver_net = "MCU_" + name + ("_DRV" if name == "MISO" else "")
+        assert by_ref[ref].pins[pad].net == driver_net
+        if name == "MISO":
+            assert by_ref["R120"].pins["1"].net == driver_net
+            assert by_ref["R120"].pins["2"].net == "MCU_MISO"
         assert by_ref[ref].pins["1"].net == "MCU_3V3"
         assert by_ref[pull].pins["1"].net == "MCU_" + name
     sketch = (ROOT / "firmware/esp32_ads1299_bench/esp32_ads1299_bench.ino").read_text()
@@ -178,7 +198,7 @@ def test_remote_load_cancels_but_signal_return_does_not(tmp_path: Path) -> None:
     clone.mkdir()
     (clone / "docs/studies").mkdir(parents=True)
     # A linked Git working directory is unnecessary: read the real source through symlinks.
-    for name in ("hardware", "firmware", ".git"):
+    for name in ("hardware", "firmware", "tests", ".git"):
         (clone / name).symlink_to(ROOT / name, target_is_directory=True)
     shutil.copyfile(
         ROOT / "docs/studies/s1_supply_paths.json", clone / "docs/studies/s1_supply_paths.json"
@@ -195,3 +215,46 @@ def test_remote_load_cancels_but_signal_return_does_not(tmp_path: Path) -> None:
     )
     assert ret["AFE_5V_in_A"] == pytest.approx(0.04240427647134856)
     assert ret["AFE_ground_export_A"] == pytest.approx(0.01239338647134856)
+
+
+def test_s2_declares_all_five_unpopulated_series_gaps() -> None:
+    import json
+
+    from lab.validation import read_object
+
+    m = read_object(json.loads((ROOT / "docs/studies/s2_current_return.json").read_text()), "S2")
+    assert m.get("spi_population") == {
+        "state": "OPEN_DNP",
+        "references": ["R117", "R118", "R119", "R120", "R24"],
+        "resistance_ohm": None,
+        "acquisition_possible": False,
+    }, "S2 must distinguish the five actual DNP gaps from conditional operating examples"
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [("state", "FIT"), ("resistance_ohm", 0.0), ("acquisition_possible", True)],
+)
+def test_s2_rejects_population_claims_without_source_change(
+    tmp_path: Path, field: str, value: object
+) -> None:
+    import json
+
+    from lab.validation import read_object
+
+    for name in ("hardware", "firmware", "tests", ".git"):
+        (tmp_path / name).symlink_to(ROOT / name, target_is_directory=True)
+    studies = tmp_path / "docs/studies"
+    studies.mkdir(parents=True)
+    (studies / "s1_supply_paths.json").write_bytes(
+        (ROOT / "docs/studies/s1_supply_paths.json").read_bytes()
+    )
+    model = read_object(
+        json.loads((ROOT / "docs/studies/s2_current_return.json").read_text()), "S2"
+    )
+    population = read_object(model["spi_population"], "population")
+    population[field] = value
+    model["spi_population"] = population
+    (studies / "s2_current_return.json").write_text(json.dumps(model))
+    with pytest.raises(AssertionError, match="unreviewed population"):
+        _run_study(tmp_path, tmp_path / "rejected.log")

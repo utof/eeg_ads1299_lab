@@ -1,18 +1,20 @@
 {
   "schema": "S2-current-return-v1",
-  "source_commit": "7325d659aeedf2628cf2a4430854e90ef1277785",
-  "source_tree": "85b324a5445ca653afd16990311a04ccd9622ae5",
+  "source_commit": "6e4a207ee2289ca4416ba1a3d230d35046471a7c",
+  "source_tree": "0c89cb59dd20d929f9539ac57246e8b675e3ddc7",
   "input_sha256": {
     "firmware/esp32_ads1299_bench/esp32_ads1299_bench.ino": "3932ad9b5c47e7fdf49cd66570d18682fb7c62b2af1a633641f0b7573b76417c",
     "firmware/esp32_ads1299_bench/board_config_rev_a_s3.h": "b5dd71640643a8f4e42a34154dc99e79714baa165658530b1256b82139f53f5e",
     "firmware/esp32_ads1299_bench/rev_a_startup.h": "f3ca49a5080612da45bd26cc38bf817e4815cb170707a2d13a198d2c3a4da9b9",
     "hardware/rev_a/board_profile.json": "5e2baa1b1928f3e922626bbd2312abc73fef3864ec5164dd89d74c3a860f9a8c",
-    "hardware/rev_a/bom.json": "514970772d5d3239b49b0ace9309fa83289497f88f18458b2cb802e684d1e4c9",
-    "hardware/rev_a/auxiliary/contract.json": "7d36ddabda0ab5ced7042850a3776b303c4a48a7666694c2a8b1cb6f623ebb75",
+    "hardware/rev_a/bom.json": "74dbfabd206e37806c7d6df877a3d226db7d5a141f637f9913d3eb1c5efc401c",
+    "hardware/rev_a/auxiliary/contract.json": "b0780c92066b864333f2b9d838c5d485b33a214899a7d8d218f32cd1471de482",
     "hardware/rev_a/service_c4.json": "ad445ed9b7db6fbedcdfd9a7c4c06438d799f2d79385d27d22e51a5888945dab",
-    "docs/studies/s1_supply_paths.json": "74acae2ff356fd8b9f48ece15a417c74a46683e8e6a496bafa5cc66b5ebd473c"
+    "docs/studies/s1_supply_paths.json": "d27e45c078f457a20ccf6b64e99bdc13de38a3a2eaba17c18a3717c238c80911",
+    "tests/fixtures/rev_a_netlist.xml.gz": "ff9858239a5887bf6217fd33c28b96a7f7c70f6c1f0f415a6f64f65fd3888d53",
+    "tests/fixtures/auxiliary_c3_netlist.xml.gz": "ee7e8ca79cac06d1832c0fa1a53102418c12a33de8d7473405069e69e1dea0ea"
   },
-  "scope": "Ideal-output mean-load and two-node DC hypotheses; not total current or physical qualification",
+  "scope": "Conditional fitted-path mean-load reference plus actual OPEN DNP topology; not total current or qualification",
   "firmware": {
     "channels": 4,
     "status_bytes": 3,
@@ -137,5 +139,18 @@
       ]
     }
   ],
-  "source_capture_run": 37232431015
+  "source_capture_run": 37232431015,
+  "spi_population": {
+    "state": "OPEN_DNP",
+    "references": [
+      "R117",
+      "R118",
+      "R119",
+      "R120",
+      "R24"
+    ],
+    "resistance_ohm": null,
+    "acquisition_possible": false
+  },
+  "conditional_example": "Ideal receiver voltage and completed transitions after separately reviewed population; no series value or drop is inferred"
 }

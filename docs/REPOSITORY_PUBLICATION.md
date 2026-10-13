@@ -4,6 +4,79 @@ This note records observed methods, not a grant of permissions or a script to
 execute automatically. First read live main/PR heads and the current handoff.
 Do not reconstruct already-published source because a chat turn failed.
 
+## Hosted capability preflight
+
+**Standing user instruction: do the repository work from this chat when an
+available authorized hosted route can do it. Do not transfer setup work to the
+user merely because this chat's local terminal lacks Git, gh, KiCad, OpenSCAD,
+network access or locked Python dependencies.** This is an execution decision,
+not a promise that every future tool is available. The assistant must inspect
+actual capabilities before declaring a blocker.
+
+Before telling the user to download, clone, install, run a helper, or configure a
+local/Codex environment, complete this preflight in the current session:
+
+| Needed operation | Check/use first | What is NOT a blocker for this route |
+|---|---|---|
+| Read or publish ordinary source | Discover connected GitHub actions; use real file contents or blob/tree/commit plus non-force expected-head ref update | Local git/gh DNS or authentication failure |
+| Publish large authored CAD or native output | Inspect the successful PR98 source-only publisher below; use a separately authorized, exact-SHA/hash/scope-bounded source job on a workbench branch | No local-file-upload action; inability to transcribe a large PCB into a text argument |
+| Run KiCad, native tests or target compilation | Inspect existing product CI and recent read-only workbench jobs; use the project's pinned environment on an exact source revision | No local kicad-cli, pcbnew or toolchain |
+| Resume after a failed chat/job | Read live PR/main refs, complete trees, original review threads and retained artifact receipts | A missing final answer or an artifact-export failure AFTER a successful push |
+
+A user request to continue normal engineering includes the ordinary scoped source
+and validation operations needed for that work; do not repeatedly ask the user to
+perform them instead. It does NOT grant permission to change repository settings,
+credentials, release gates, dependencies or main directly. An explicit tool denial
+applies to the denied operation: stop it and do not retry/bypass it. Distinguish it
+from a missing local executable, DNS error, obsolete job, or missing action. In
+PR98 the blocked runtime-packaging operation was not retried; separately scoped
+source-only publication and read-only native authoring were accepted and worked.
+
+### Proven route and verification order
+
+Read the actual files on `workbench/pr98-source-publication-20261010` via the
+connector; these are examples to inspect, NOT fixed jobs to blindly rerun:
+
+* `.github/workflows/pr98-source-publication.yml` and
+  `pr98-native-source-correction.yml`: immutable source/data checks, exact base and
+  expected output tree, temporary non-main destination, no project execution with
+  write privileges. The engineer then verifies the remote tree and advances only
+  the intended PR branch with an expected-head, non-force update.
+* `.github/workflows/pr98-native-authoring.yml` and
+  `pr98-full-native-diagnostic.yml`: separate contents:read, no persisted checkout
+  credentials, pinned KiCad 9.0.2/uv/lock, ignored output directories, bounded
+  commands, source-unchanged checks and retained native evidence. A diagnostic
+  selection is NOT a substitute for the full shared gate.
+* `.github/workflows/pr98-save-native-fill.yml`: source-only import of verified
+  native DATA. Its historical push succeeded before optional bundle creation
+  failed. Verify side effects before retrying; create a local named ref before
+  any future bundle export.
+
+For a new slice use fresh source/branch/artifact/hash guards matching the actual
+user-authorized change. Keep publisher and read-only execution separate; do not
+run unreviewed project/artifact code in the write-enabled job. Workbench workflows
+stay outside the engineering PR. Use existing native helpers and `tools.check`,
+not a new project runner. Preserve the 450 s CAD budget and all test selections.
+
+After publication, inspect actual exact-head CI; a GITHUB_TOKEN push can fail to
+trigger another workflow, and a successful publisher is not a test pass. Use the
+connected, guarded PR update and read the resulting runs. Download native evidence,
+verify its source identity, SHA256 and report content, then review the exact
+engineering head. Never borrow an old green result or count collection as execution.
+
+### When a manual handoff is justified
+
+Only after the relevant connected/hosted action actually fails or is unavailable
+under its discovered schema, record the exact action, source revision, returned
+error and remaining alternatives. Report source publication, native execution,
+review and physical work as separate states. Do not claim all GitHub work is
+blocked from one failed route, or repeat package/recovery searches without a
+changed capability. Ask for the smallest genuinely user-only action only when no
+available authorized route can complete it, or when the user explicitly requests
+local instructions. Never request credentials or a broad permissions increase.
+Physical inspection/measurement and release decisions remain separate and cannot
+be replaced by hosted execution. Update the current handoff before ending the turn.
+
 ## Fresh-agent decision path (start here)
 
 1. Read `AGENTS.md`, current `LLM_HANDOFF.md`, live main and open PRs. Inspect
@@ -108,3 +181,46 @@ inspect each original review thread and any new findings, then merge only when
 accepted. Preserve small durable receipts and current next-step instructions in
 the repository. Distinguish local/hosted checks, source review and physical tests.
 No publication or merge changes fabrication, purchasing, power or body-use gates.
+
+## PR98: source application and native validation worked on 2026-10-10
+
+The local terminal still lacked GitHub DNS and KiCad. That did not prevent actual
+source publication or native execution. Do not repeat the claim that the user
+must install tools to restore an already-working connector.
+
+Source-only workflow `.github/workflows/pr98-source-publication.yml` on branch
+`workbench/pr98-source-publication-20261010`, run38074447882, checked the existing
+L5 packet's immutable manifest/fragments/patch and exact historical candidate tree.
+It applied exactly11 verified files on08a8ddd0, preserving all later repairs, used
+`git commit-tree`, pushed only a new temporary branch, then independently cloned
+and checked it. The engineering commit27c6525d/treef8a8c4a5 contains no workbench
+workflow. Connector reconstruction of the full tree and a leased non-force PR
+update completed active-source publication. Artifact11677667993 retained a full
+source bundle; its ZIP/internal hashes and local clone/fsck were checked.
+
+`pr98-native-source-correction.yml`, run38075413943, later used immutable genuine
+native XML/CSV data and predetermined stdlib-only substitutions. It required the
+independently computed14-file treebd59a0c before publishingf5338e69. Neither source
+publisher imported or executed project/artifact code. Only the source job had
+contents:write; no credential or repository-setting changes were made.
+
+Separate `pr98-native-authoring.yml` used contents:read, persist-credentials:false,
+exact source SHA, existing pinned KiCad9.0.2/uv/lock and existing CAD helpers/tests.
+Runs38074668398 and38075526473 supplied real before/after native findings; the
+latter had both boards clean and all15new faults passing. Native outputs remained
+artifacts, not tool/runtime packages. A separate complete-native selection is a
+diagnostic, NOT a substitute for the full shared gate when ordinary tests fail.
+
+`pr98-save-native-fill.yml` successfully pushed3f98404f/tree79ac4f26 with one exact
+TARGET_GND cache from the native output; optional bundle export failed afterward
+because its raw commit had no local named ref. Remote commit/tree plus every
+source byte were independently checked against local objects. A post-push artifact
+failure is not evidence that the push failed. Do not rerun a completed source
+operation; use a local named ref for any future bundle export.
+
+These are scoped examples, not generic authorization or automatically reusable
+jobs: old SHA/branch/artifact guards intentionally reject other source states.
+Use fresh exact identities and user-authorized scope; never rerun fixed jobs on
+new input or bypass a denied operation. The previously blocked runtime-packaging
+workflow was not retried and is not made permissible by successful source moves.
+All product CI, firmware, frozen Q1,450sCAD/71%floor and physical gates are unchanged.
