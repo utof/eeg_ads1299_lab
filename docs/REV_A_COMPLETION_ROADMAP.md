@@ -1,4 +1,4 @@
-# Rev A roadmap - PR98 merged; close remaining pilot build decisions
+# Rev A roadmap - remaining-channel choice made; consolidate the fitted pilot
 
 Checked 2026-10-15: live main is `bab9f60f23c799c9da00fd531acd8a5b9ad1ecd7`,
 tree `96afda406d9b0d7715d4fae4b2afa50d3f64b4a2`, identical to accepted PR98
@@ -13,7 +13,7 @@ Do not repeat recovery, integration, supply, reference or K2 repairs.
 | K2 nominal allocation/access | 0 for nominal review; physical evidence later | Merged; assembled upper access obstructed | Actual fitting/tool/joint/workmanship checks |
 | PR98 acceptance and merge | 0 | Five required jobs and exact-head review passed; merge verified | Retain historical evidence |
 | Post-merge CAD execution | 0 for this retry | Main attempt2 passed310 cases in432.07s; first timeout retained | Preserve450s limit; a retry is not proof of stable timing margin |
-| Remaining digital channels | 1 decision plus evidence | MCU launches and DRDY/control remain open | L4 section3 bounded-pilot disposition |
+| Remaining digital channels | 0 for paper choice; physical evidence later | L6 retains current paths for restricted pilot with revision fallback | Accept revision/access conditions before fabrication; interlock evidence before ADC enable |
 | SPI population, components/manufacturing | 1-2 plus supplier/user decisions | Five sites OPEN_DNP; candidate and Q1 work retained | Fit values/MPNs, capacitor migration, stack, connector and assembly disposition |
 | Fabrication/purchase release | 1 after prerequisites | Not released | One accepted revision, restricted purpose and delivered quote |
 | Startup/internal capture | 1-2 planning turns plus assembly and measurements | B1-B3 plans exist; firmware gate false | Inspection, equipment, reviewed first-power conditions and capture |
@@ -22,7 +22,7 @@ Do not repeat recovery, integration, supply, reference or K2 repairs.
 | Body-connected use | Outside this Rev A pilot | Not approved | Separately scoped hardware/safety engineering |
 | Prices/RFQ | Paused pending user direction | Sole frozen unsent Q1 retained | No price campaign, duplicate packet, outreach or purchase |
 
-**Planning estimate: roughly 3-5 focused turns to a purchase/build-ready Rev A
+**Planning estimate: roughly 2-4 focused turns to a purchase/build-ready Rev A
 decision**, if remaining evidence can be obtained or explicitly dispositioned for
 the restricted pilot. This is not a completion-date promise or a percentage of
 safety. Rows overlap; supplier responses, delivery/manufacturing, measurements
@@ -42,5 +42,11 @@ Keep450sCAD/71%floor, all fault tests and frozen Q1 identities. No purchase,
 fabrication, physical rework/mating, power, external acquisition or person/animal
 use is authorized by this roadmap.
 
-**Next bounded engineering step:** L4 section3's remaining MCU-launch and
-DRDY/control-channel disposition, followed by the consolidated fitted build.
+The [L6 disposition in L4 section3a](REV_A_SPI_PROVISION_L4.md#3a-l6-retain-remaining-paths-for-a-restricted-pilot-revision-is-the-fallback)
+selects retained MCU/DRDY/control wiring with a reviewed revision as fallback.
+No additional series positions or promised under-body repairs are assumed.
+This closes a paper choice, not measured channel acceptance or a release gate.
+
+**Next bounded engineering step:** consolidate the five SPI fitted values/MPNs
+with capacitor, stack, connector and assembly decisions, carrying L6's access,
+commissioning and possible replacement-board conditions into one build decision.

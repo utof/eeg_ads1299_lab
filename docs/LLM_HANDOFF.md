@@ -1,4 +1,4 @@
-# Continue after merged PR98: remaining channels and pilot build decisions
+# Continue with the consolidated fitted pilot after the L6 channel decision
 
 Read root `AGENTS.md`, `REPOSITORY_PUBLICATION.md`, `DEVELOPMENT.md` and
 `REV_A_BENCH_FIRST.md`. Read live main, open PRs and original review threads.
@@ -92,17 +92,33 @@ run38652056137/job116153449588, re-read after the local failure. That hosted
 result does not turn the local timeout into a pass. Use the existing hosted
 route for complete native verification while local runtime remains unresolved.
 Pinned KiCad9.0.2 also remains hosted. No missing package or physical release
-follows from these results; the next engineering task remains L4 below.
+follows from these results; the L6 decision and next build task are below.
 
-## Next bounded engineering task
+## L6 channel decision and next bounded engineering task
 
-Complete **L4 section3**: disposition of the three MCU-launched SPI stages and
-separate DRDY/control channels for the restricted pilot, using applicable
-existing evidence or an explicit bounded-pilot disposition. The five new sites
-do not cover those stages. No generic replacement study or repeated K2 review.
+PR99 carries the [L6 disposition in L4 section3a](REV_A_SPI_PROVISION_L4.md#3a-l6-retain-remaining-paths-for-a-restricted-pilot-revision-is-the-fallback):
+retain the three MCU-launched SPI paths and separate DRDY/control wiring for
+the proposed INTERNAL-TEST-ONLY pilot. Add no further series sites in this slice;
+accept a reviewed fanout/board revision as the fallback, not promised trace
+surgery. The terminal map includes latch-local clock/clear, all three enables
+and separate MCU feedback. Before fabrication release, the consolidated build
+must explicitly accept possible replacement-board cost and establish supported
+measurement access/commissioning feasibility. Startup-critical assumptions and
+an independently bounded interlock commissioning arrangement remain before-power
+work; actual interlock evidence must precede ADC bus enable. B2 is the sole run
+card. No wiring, fitted part, firmware flag or release gate changed. This is a
+paper decision, not electrical qualification. Check live PR99 state before
+calling it merged; do not repeat the disposition or the earlier K2 review.
 
-Then resolve the five sites' fitted values/MPNs and the consolidated component,
-stackup, connector and assembly decisions. Every site is OPEN_DNP/NOT_SELECTED;
+The pre-change ordinary gate at `d90109890fab042eb74ca04d6a7245f568c9f8ea`
+passed1402 cases plus14 subtests in277.50s on the internal filesystem; branch
+coverage86.931079%. Later review/CI must identify the actual L6 head rather than
+borrowing this baseline pass. Source inspection included the actual C2/startup
+firmware and frozen endpoint graphs; no physical channel evidence was produced.
+
+**Next: resolve the five sites' fitted values/MPNs and the consolidated component,
+stackup, connector and assembly decisions**, carrying L6's explicit conditions.
+Every site is OPEN_DNP/NOT_SELECTED;
 even zero ohms is unselected. An open SPI path cannot produce the planned
 internal-test capture. Preserve the sole frozen unsent Q1 in `docs/quote/` and
 carry later source deltas explicitly rather than rewriting historical hashes.
@@ -155,7 +171,7 @@ Q1 changes are part of this API correction.
 L1-L4/B1-B3 and#45/#48 remain. Proposed first pilot is INTERNAL-TEST-ONLY with
 six upstream analog pairs retained; E1 performance and possible revision cost
 remain separate. Internal mux modes are not electrical isolation. MCU launch
-stages and other controls still need their separate limited-pilot disposition.
+stages and other controls retain L6's separate physical acceptance conditions.
 B1 uses J2; B2/B3 contact, insulation, restraint, earth and uncertainty requirements
 remain. Keep R -> fresh F1 arm -> wake/clock ->150ms -> VCAP1>1.1V -> reset, not
 raised VCAP1 while parked in PWDN. BOARD_PROFILE_REVIEWED staysfalse; both DevKit
