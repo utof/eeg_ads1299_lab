@@ -239,27 +239,24 @@ as an assumed reflection-free logic measurement path.
 
 ## 5. Original L4 implementation requirement (completed by PR98)
 
-Implement the five named positions as one scoped schematic/BOM/PCB/contracts
-change, preserving history and the already-authored layout elsewhere. Start
-with failing checks that require the new split driver nets and series paths.
-With the resistor absent, the driver and external receiver must not remain
-connected through copper; retain independent native connection/parity checks
-and the relevant cut-track faults on both sides. Retain the receiver pulldown
-branch and the false firmware/release gates. Existing connectivity contracts
-must be updated deliberately, not worked around with schematic exclusions.
+**Superseded as a work instruction:** PR98 completed the five-site source change.
+Do not implement it again. The original requirement was a coherent schematic,
+BOM, PCB and contract change, including split driver nets, real OPEN connections
+without copper bypasses, independent native parity/cut controls, the downstream
+receiver pulldown and unchanged false release gates. PR98's acceptance record
+and the current handoff identify the delivered source and its verification.
 
-Update actual MPN/population fields, source fixtures and preservation expectations
-for the exact edited scope; do not merely draw footprints on the PCB or refresh
-hashes until tests pass. Keep the old Q1 packet as a dated frozen snapshot, with
-any later approved parts/count delta made explicit rather than rewriting its
-historical source hashes. Re-evaluate local decoupling, ground fill, unchanged
-reference envelopes and K2/B3 access with the new source. No stock-library-wide
-edit, ADC driver rewrite, resistor sweep framework or extra test rig is needed.
+The original requirement also called for coordinated identity fields, frozen
+native fixtures, local decoupling/reference review and K2/B3 access review.
+Their delivered scope and remaining physical limits are recorded in the handoff;
+this historical list is not a claim of assembled access or qualification.
+The sole Q1 packet remains a dated snapshot, with later deltas carried separately.
 
-This five-site implementation is the next bounded source task. L3's internal-test
-pilot proposal and possible later external-input revision remain explicit. A
-series pad alone does not close component/stack/process, actual MCU/DRDY/control
-channels or first-power approval. No price research or supplier contact occurs.
+The current next source task is **the consolidated fitted-build decision in
+section3a**, not adding the five sites. L3's restricted pilot and possible later
+external-input revision remain explicit. Series pads alone do not close component,
+stack/process, physical channel acceptance or first-power approval. No price
+research or supplier contact occurs in this slice.
 
 ## Evidence and limits
 
