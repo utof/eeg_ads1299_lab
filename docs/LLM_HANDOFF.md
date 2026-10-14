@@ -46,9 +46,29 @@ after ordinary and 49 harness-console cases passed. Job115303238142 records the
 timeout; artifact11815710029 has SHA256
 `6c33342078241d1f4b897b9583102c78d22a2d1d1092a6210642103ef3f69423`.
 This does not establish a new board defect or erase the accepted PR result.
-One unchanged failed-job retry was requested on 2026-10-15; read its actual
-outcome before claiming a current pass. Do not substitute the pre-merge result
-for this separate execution.
+The unchanged retry on 2026-10-15 **passed**: attempt2/job116145559750 ran
+310 schematic cases in432.07s, within the same450s deadline. The job log records
+artifact ZIP SHA256 `a255eed0e096b0b26e990513b8565dd018c036318f32941fc92d003831eb5fe9`.
+This continuation inspected the job result/log, not every archived artifact hash.
+The first failure remains recorded; one retry does not establish timing margin.
+Do not substitute pre-merge execution for this separate post-merge result.
+
+## Returning local environment
+
+On2026-10-15, installed uv0.12.18, the locked Python3.13 environment with all
+extras, both Git hooks, hash-verified ArduinoCLI1.3.1 and ESP32 core3.3.12.
+The original checkout is on a FUSE filesystem. Its initial ordinary run and a
+second run with only the environment/output moved to the internal filesystem
+both exceeded the unchanged300s ordinary-test limit. The discovery case passed
+alone; the full local gate must not be described as green from that result.
+An app-managed copy of the same source on the internal Linux filesystem was
+prepared for full verification; inspect the attached workspace and PR99 results.
+Do not weaken timeouts or fault controls to accommodate the original mount.
+
+Local ngspice/OpenSCAD installation requires administrator authentication that
+the chat does not have. The requested terminal install is pending; Node and a
+C++ compiler are present. Pinned KiCad9.0.2 remains available through hosted CI.
+These local setup limits do not block source publication or hosted verification.
 
 ## Next bounded engineering task
 

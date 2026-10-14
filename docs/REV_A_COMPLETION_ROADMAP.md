@@ -11,7 +11,7 @@ Do not repeat recovery, integration, supply, reference or K2 repairs.
 | SPI provisions, reference and supply repairs | 0 | Merged in PR98 | Preserve accepted source |
 | K2 nominal allocation/access | 0 for nominal review; physical evidence later | Merged; assembled upper access obstructed | Actual fitting/tool/joint/workmanship checks |
 | PR98 acceptance and merge | 0 | Five required jobs and exact-head review passed; merge verified | Retain historical evidence |
-| Post-merge CAD execution | 0-1, result-dependent | Main's later run timed out at450s; unchanged retry requested | Read run38399520579; diagnose if timeout persists, preserve limits |
+| Post-merge CAD execution | 0 for this retry | Main attempt2 passed310 cases in432.07s; first timeout retained | Preserve450s limit; a retry is not proof of stable timing margin |
 | Remaining digital channels | 1 decision plus evidence | MCU launches and DRDY/control remain open | L4 section3 bounded-pilot disposition |
 | SPI population, components/manufacturing | 1-2 plus supplier/user decisions | Five sites OPEN_DNP; candidate and Q1 work retained | Fit values/MPNs, capacitor migration, stack, connector and assembly disposition |
 | Fabrication/purchase release | 1 after prerequisites | Not released | One accepted revision, restricted purpose and delivered quote |
