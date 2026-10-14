@@ -61,9 +61,17 @@ The original checkout is on a FUSE filesystem. Its initial ordinary run and a
 second run with only the environment/output moved to the internal filesystem
 both exceeded the unchanged300s ordinary-test limit. The discovery case passed
 alone; the full local gate must not be described as green from that result.
-An app-managed copy of the same source on the internal Linux filesystem was
-prepared for full verification; inspect the attached workspace and PR99 results.
-Do not weaken timeouts or fault controls to accommodate the original mount.
+The app-managed copy on the internal Linux filesystem passed the unchanged
+`uv run --locked python -m tools.check --firmware --out reports/setup` at
+`abcd1e43da57c6b747c2693e3b09f2c733554d6e`, tree
+`91cd7f3188e57e2dbbbfac02cacb19f276ae731d`: 1402 ordinary cases plus14 subtests
+passed in285.27s, branch coverage86.931079%, followed by an actual ESP32-S3
+compile with four fresh binary hashes. Total gate time was330.13s; the ordinary
+test stage stayed within300s. The tracked source remained clean. This is local
+ordinary/target-build evidence, not local native-simulator or KiCad execution.
+The later documentation-only receipt does not constitute another full run.
+Inspect the attached workspace and PR99; do not weaken timeouts or fault controls
+to accommodate the original mount. Neither local nor hosted passes qualify power.
 
 Local ngspice/OpenSCAD installation requires administrator authentication that
 the chat does not have. The requested terminal install is pending; Node and a
