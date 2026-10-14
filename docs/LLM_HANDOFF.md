@@ -73,10 +73,26 @@ The later documentation-only receipt does not constitute another full run.
 Inspect the attached workspace and PR99; do not weaken timeouts or fault controls
 to accommodate the original mount. Neither local nor hosted passes qualify power.
 
-Local ngspice/OpenSCAD installation requires administrator authentication that
-the chat does not have. The requested terminal install is pending; Node and a
-C++ compiler are present. Pinned KiCad9.0.2 remains available through hosted CI.
-These local setup limits do not block source publication or hosted verification.
+The user completed the system-package installation on2026-10-15. Package and
+executable probes confirm ngspice42+ds-3build1 and OpenSCAD2021.01-6build4;
+Node22.22.3 and g++13.3.0 are present. Do not ask for these packages again.
+
+The subsequent unchanged `tools.check --native --out reports/native-setup` at
+`d8c62936d32b6b6c41942e83f3015ee9f7f9f90a`, tree
+`b533aad111f3e1cb7a10def07159f8ccd5e1182d`, **failed locally**: 1402 ordinary
+cases plus14 subtests passed in293.77s, branch coverage86.931079%, and the
+power/supply simulation commands completed, but native-tests reached its300s
+deadline. Total gate time was598.82s; no complete native JUnit/pass is claimed.
+An active OpenSCAD R24-probe render was observed late in the run; this is not a
+complete performance diagnosis. Reports are retained in the internal worktree's
+ignored `reports/native-setup/`; tracked source stayed clean. Keep the timeout.
+
+The same `d8c62936` source has a successful hosted Native integration check,
+run38652056137/job116153449588, re-read after the local failure. That hosted
+result does not turn the local timeout into a pass. Use the existing hosted
+route for complete native verification while local runtime remains unresolved.
+Pinned KiCad9.0.2 also remains hosted. No missing package or physical release
+follows from these results; the next engineering task remains L4 below.
 
 ## Next bounded engineering task
 

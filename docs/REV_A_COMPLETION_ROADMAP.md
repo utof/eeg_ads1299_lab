@@ -8,6 +8,7 @@ Do not repeat recovery, integration, supply, reference or K2 repairs.
 
 | Category | Estimated remaining substantial chat turns | Done/status | Next slice or blocker |
 |---|---:|---|---|
+| Local development setup | 0 for package installation | Native tools installed; local full native run reaches300s limit | Hosted native check passes atd8c62936; local runtime remains unresolved |
 | SPI provisions, reference and supply repairs | 0 | Merged in PR98 | Preserve accepted source |
 | K2 nominal allocation/access | 0 for nominal review; physical evidence later | Merged; assembled upper access obstructed | Actual fitting/tool/joint/workmanship checks |
 | PR98 acceptance and merge | 0 | Five required jobs and exact-head review passed; merge verified | Retain historical evidence |
