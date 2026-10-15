@@ -192,3 +192,21 @@ handlers and threaded embeddings retain their caller-owned signal policy.
 The real SIGTERM/FIFO case failed before this change, then passed alongside
 SIGINT, timeout, retained-log and handler-restoration checks. This preserves the
 existing runner rather than adding a process supervisor or a dependency.
+
+A subsequent review of `44c16099445ce7407565a4cef276a7675497bfcf` identified the
+startup window before `Popen` returns. Both SIGINT and SIGTERM fault injections
+after a real child creation reproduced a surviving child. The scoped context is
+now `_step_signals`: it records cancellation during construction and activates
+exception delivery only inside the existing cleanup-protected block. It retains
+the first cancellation and defers further signals while that cleanup unwinds.
+This uses the documented main-thread handler semantics, without changing the
+process signal mask or adding a supervisor. Custom/ignored policies remain with
+their caller. Both startup cases and all 31 runner cases passed after correction.
+Final-head CI and review are still required; earlier green heads are historical.
+
+A separate local ordinary-test trial at that same `44c1609` head used the existing
+two-worker/loadfile options and isolated coverage output. Both the serial gate
+and this trial reached the unchanged 300 s deadline under concurrent host load.
+The trial did not produce a complete coverage/JUnit result, so ordinary execution
+remains serial. No performance guarantee, reduced selection or deadline increase
+was inferred from that failed comparison.

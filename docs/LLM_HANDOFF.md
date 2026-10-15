@@ -30,7 +30,11 @@ hosted review reproduced the default SIGTERM bypassing Python exception cleanup.
 A scoped standard-library signal context now routes default main-thread POSIX
 SIGTERM through that cleanup (shell status 143), restores the previous default,
 and preserves caller-installed signal policy. Its real-signal regression failed
-before correction. Final-head checks/review remain the acceptance authority;
+before correction. Review of 44c1609 then found cancellation during `Popen`
+construction, before cleanup was registered. Fail-first real-child injections
+reproduced both SIGINT and SIGTERM leaks; the scoped context now defers those
+default cancellations until the cleanup-protected block is entered. All 31
+runner cases pass locally. Final-head checks/review remain the acceptance authority;
 neither earlier green head verifies a later correction. The lockfile is included
 in the CAD source snapshot, with a focused changed-lock regression. Complete
 final-head CI/review remains required; this comparison is diagnostic evidence.
@@ -49,6 +53,12 @@ failure (`reports/cad-runtime-before/`). New focused runner and snapshot tests
 were observed failing before correction. See PR101 for the current exact-head
 full checks and review; do not borrow its earlier four passing jobs as acceptance
 of the new execution behavior.
+
+The independent local two-worker ordinary-test trial on 44c1609 also reached
+300 s under concurrent host load, without a completed coverage/JUnit receipt.
+It was not adopted: ordinary/native execution remains serial, with all tests
+and deadlines intact. Profiling did not establish a small validator correction
+that would resolve the whole timeout; no speculative validator cache was added.
 
 **Next bounded step:** if PR101 is still open, finish its exact-head
 verification/review and guarded merge. If it is already merged, do not repeat

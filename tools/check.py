@@ -15,13 +15,12 @@ import sysconfig
 import threading
 import time
 import tomllib
-from collections.abc import Generator, Sequence
+from collections.abc import Callable, Generator, Sequence
 from contextlib import contextmanager, suppress
 from dataclasses import asdict
 from pathlib import Path
 from tempfile import mkdtemp
 from types import FrameType
-from typing import NoReturn
 
 from hardware.rev_a import (
     auxiliary_source_snapshot,
@@ -84,24 +83,41 @@ def command_plan(out: Path) -> list[tuple[str, list[str]]]:
 
 
 @contextmanager
-def _step_sigterm() -> Generator[None]:
-    """Let default CLI termination unwind cleanup; preserve caller signal policy."""
-    if (
-        os.name != "posix"
-        or threading.current_thread() is not threading.main_thread()
-        or signal.getsignal(signal.SIGTERM) != signal.SIG_DFL
-    ):
-        yield
+def _step_signals() -> Generator[Callable[[], None]]:
+    """Defer CLI cancellation until the caller has registered child cleanup."""
+    active = False
+    pending: int | None = None
+
+    def cancel(signum: int, _frame: FrameType | None) -> None:
+        nonlocal active, pending
+        if pending is None:
+            pending = signum
+        if active:
+            # Further signals must not interrupt the cleanup already unwinding.
+            active = False
+            if pending == signal.SIGINT:
+                raise KeyboardInterrupt
+            raise SystemExit(128 + pending)
+
+    def activate() -> None:
+        nonlocal active
+        active = True
+        if pending is not None:
+            cancel(pending, None)
+
+    if os.name != "posix" or threading.current_thread() is not threading.main_thread():
+        yield activate
         return
 
-    def terminate(signum: int, _frame: FrameType | None) -> NoReturn:
-        raise SystemExit(128 + signum)
-
-    signal.signal(signal.SIGTERM, terminate)
+    defaults = ((signal.SIGINT, signal.default_int_handler), (signal.SIGTERM, signal.SIG_DFL))
+    owned = [(sig, handler) for sig, handler in defaults if signal.getsignal(sig) == handler]
     try:
-        yield
+        for sig, _handler in owned:
+            signal.signal(sig, cancel)
+        yield activate
     finally:
-        signal.signal(signal.SIGTERM, signal.SIG_DFL)
+        for sig, handler in owned:
+            signal.signal(sig, handler)
 
 
 def run_step(name: str, command: Sequence[str], out: Path, timeout: float = 300) -> None:
@@ -111,7 +127,7 @@ def run_step(name: str, command: Sequence[str], out: Path, timeout: float = 300)
     print(f"[{name}] {' '.join(command)}", flush=True)
     # A real file retains even partial output if the child times out.
     with (
-        _step_sigterm(),
+        _step_signals() as activate_cancellation,
         log.open("w", encoding="utf-8") as stream,
         subprocess.Popen(
             command,
@@ -123,6 +139,7 @@ def run_step(name: str, command: Sequence[str], out: Path, timeout: float = 300)
         ) as process,
     ):
         try:
+            activate_cancellation()
             returncode = process.wait(timeout=timeout)
         except BaseException as exc:
             # pytest workers/native tools share this session on POSIX. Killing

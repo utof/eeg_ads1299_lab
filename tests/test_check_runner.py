@@ -11,6 +11,7 @@ import sys
 from collections.abc import Sequence
 from contextlib import suppress
 from pathlib import Path
+from typing import TextIO
 
 import pytest
 
@@ -133,6 +134,56 @@ def test_cancellation_closes_the_isolated_child(
             if pid is not None:
                 with suppress(ProcessLookupError):
                     os.killpg(pid, signal.SIGKILL)
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX termination signal policy")
+@pytest.mark.parametrize("cancel_signal", [signal.SIGINT, signal.SIGTERM])
+def test_cancellation_during_process_creation_cleans_up(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, cancel_signal: signal.Signals
+) -> None:
+    # Inject the signal after a real fork but before Popen returns to run_step.
+    # The runner must register cleanup before propagating that cancellation.
+    original_popen = subprocess.Popen
+    child: subprocess.Popen[str] | None = None
+
+    def interrupted_start(
+        command: Sequence[str],
+        *,
+        cwd: Path,
+        stdout: TextIO,
+        stderr: int,
+        text: bool,
+        start_new_session: bool,
+    ) -> subprocess.Popen[str]:
+        nonlocal child
+        child = original_popen(
+            command,
+            cwd=cwd,
+            stdout=stdout,
+            stderr=stderr,
+            text=text,
+            start_new_session=start_new_session,
+        )
+        signal.raise_signal(cancel_signal)
+        return child
+
+    default = signal.default_int_handler if cancel_signal == signal.SIGINT else signal.SIG_DFL
+    previous = signal.signal(cancel_signal, default)
+    monkeypatch.setattr("tools.check.subprocess.Popen", interrupted_start)
+    try:
+        expected = KeyboardInterrupt if cancel_signal == signal.SIGINT else SystemExit
+        with pytest.raises(expected):
+            run_step(
+                "startup-cancel", [sys.executable, "-c", "import time; time.sleep(10)"], tmp_path
+            )
+        assert child is not None
+        assert child.poll() is not None, "child survived cancellation during Popen construction"
+        assert signal.getsignal(cancel_signal) == default
+    finally:
+        signal.signal(cancel_signal, previous)
+        if child is not None:
+            child.kill()
+            child.wait(timeout=5)
 
 
 @pytest.mark.skipif(os.name != "posix", reason="POSIX termination signal policy")
