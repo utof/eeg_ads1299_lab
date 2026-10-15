@@ -16,30 +16,35 @@ Keep PR34/40's do-not-merge experiments untouched. Read live PR101 state before
 continuing; the previous four preparation steps are published there, not yet
 established as main by this note.
 
-The demonstrated blocker was repeated450s CAD timeouts. The same-source hosted
-comparison in `DEVELOPMENT.md` timed out serially, but executed the identical310
-cases in251.031s with two pytest-xdist workers. The change uses that existing
+The demonstrated blocker was repeated 450 s CAD timeouts. The same-source hosted
+comparison in `DEVELOPMENT.md` timed out serially, but executed the identical 310
+cases in 251.031 s with two pytest-xdist workers. The change uses that existing
 library's file scheduling, isolated temporary directories and failure reporting.
-No fault selection, deadline or71%branch floor was weakened. A separate local
+No fault selection, deadline or 71% branch floor was weakened. A separate local
 failure probe demonstrated orphaned workers after a controller timeout; the
 existing runner now terminates its POSIX process group on timeout or cancellation.
-Independent review of592c18d found that initial timeout-only cleanup missed
+Independent review of 592c18d found that initial timeout-only cleanup missed
 Ctrl-C; a real-signal/FIFO regression reproduced it before correction. That
-head's five hosted jobs passed, but the cancellation correction needs fresh
-final-head checks and review. The lockfile is included
+head's five hosted jobs passed. The next head 5d00c79 also passed five jobs, but
+hosted review reproduced the default SIGTERM bypassing Python exception cleanup.
+A scoped standard-library signal context now routes default main-thread POSIX
+SIGTERM through that cleanup (shell status 143), restores the previous default,
+and preserves caller-installed signal policy. Its real-signal regression failed
+before correction. Final-head checks/review remain the acceptance authority;
+neither earlier green head verifies a later correction. The lockfile is included
 in the CAD source snapshot, with a focused changed-lock regression. Complete
 final-head CI/review remains required; this comparison is diagnostic evidence.
 
 `BREADBOARD_FIRST_STEPS.md` now has explicit row layouts, a polarity/discharge
 diagram, a labelled nominal charge curve and its single in-place measurement
 record. These prepare the two-AA exercise; no Rev A board connection is implied.
-The existing localhost capture rehearsal also ran:2248 accepted synthetic
+The existing localhost capture rehearsal also ran: 2248 accepted synthetic
 samples, two intentional omissions detected, one uninterrupted four-second
-spectrum window,10Hz peaks on all four channels. Capture implementation was
-unchanged from316ae0d; the record is software transport evidence, not measured
+spectrum window, 10 Hz peaks on all four channels. Capture implementation was
+unchanged from 316ae0d; the record is software transport evidence, not measured
 ADC data. No new capture subsystem or hardware guard change was needed.
 
-The ordinary local pre-change gate at316ae0d again exceeded300s; it remains a
+The ordinary local pre-change gate at 316ae0d again exceeded 300 s; it remains a
 failure (`reports/cad-runtime-before/`). New focused runner and snapshot tests
 were observed failing before correction. See PR101 for the current exact-head
 full checks and review; do not borrow its earlier four passing jobs as acceptance

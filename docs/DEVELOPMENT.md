@@ -181,3 +181,14 @@ initial Ctrl-C regression: the controller exited with SIGINT while its isolated
 child remained alive. The real-signal/FIFO regression failed before extending
 cleanup to cancellation. This correction requires fresh exact-head checks;
 that earlier head's five passing hosted jobs do not verify it.
+
+The next hosted review reproduced default SIGTERM bypassing exception cleanup
+at `5d00c794a6d194a2d904c407831a9a1f4d70a449`. The small `_step_sigterm` context
+uses Python's [signal API](https://docs.python.org/3.13/library/signal.html) to
+translate that default main-thread POSIX action into `SystemExit(143)` while a
+step runs, allowing the same cleanup to unwind. 143 is the conventional shell
+status 128 + SIGTERM. It restores the previous default afterward; ignored/custom
+handlers and threaded embeddings retain their caller-owned signal policy.
+The real SIGTERM/FIFO case failed before this change, then passed alongside
+SIGINT, timeout, retained-log and handler-restoration checks. This preserves the
+existing runner rather than adding a process supervisor or a dependency.

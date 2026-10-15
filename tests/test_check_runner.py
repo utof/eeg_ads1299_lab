@@ -89,7 +89,13 @@ def test_timeout_closes_descendant_processes(tmp_path: Path) -> None:
 
 
 @pytest.mark.skipif(os.name != "posix", reason="POSIX process-group and FIFO regression")
-def test_keyboard_interrupt_closes_the_isolated_child(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    "cancel_signal,expected_exit",
+    [(signal.SIGINT, -signal.SIGINT), (signal.SIGTERM, 128 + signal.SIGTERM)],
+)
+def test_cancellation_closes_the_isolated_child(
+    tmp_path: Path, cancel_signal: signal.Signals, expected_exit: int
+) -> None:
     fifo = tmp_path / "cancelled-child"
     os.mkfifo(fifo)
     reader = os.open(fifo, os.O_RDONLY | os.O_NONBLOCK)
@@ -111,11 +117,12 @@ def test_keyboard_interrupt_closes_the_isolated_child(tmp_path: Path) -> None:
             ready = os.read(reader, 64)
             assert ready, "cancellation must happen after the child starts"
             pid = int(ready)
-            os.killpg(controller.pid, signal.SIGINT)
-            assert controller.wait(timeout=5) == -signal.SIGINT
+            os.killpg(controller.pid, cancel_signal)
+            returncode = controller.wait(timeout=5)
             assert select.select([reader], [], [], 2)[0], "child survived controller cancellation"
             assert os.read(reader, 1) == b""
             pid = None
+            assert returncode == expected_exit
             assert "child started" in (tmp_path / "cancelled.log").read_text()
         finally:
             os.close(reader)
@@ -126,6 +133,17 @@ def test_keyboard_interrupt_closes_the_isolated_child(tmp_path: Path) -> None:
             if pid is not None:
                 with suppress(ProcessLookupError):
                     os.killpg(pid, signal.SIGKILL)
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX termination signal policy")
+@pytest.mark.parametrize("previous", [signal.SIG_DFL, signal.SIG_IGN])
+def test_step_restores_termination_handler(tmp_path: Path, previous: signal.Handlers) -> None:
+    original = signal.signal(signal.SIGTERM, previous)
+    try:
+        run_step("handler-restore", [sys.executable, "-c", "pass"], tmp_path, timeout=5)
+        assert signal.getsignal(signal.SIGTERM) == previous
+    finally:
+        signal.signal(signal.SIGTERM, original)
 
 
 @pytest.mark.parametrize("covered,total,passed", [(80, 100, True), (79, 100, False), (0, 0, False)])
