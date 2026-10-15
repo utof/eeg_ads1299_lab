@@ -159,54 +159,44 @@ The bounded comparison workflow is retained on
 it is separate from the engineering tree. The original serial failure remains
 a failure. Final acceptance requires the complete shared gates on the PR head.
 
-A local Python3.13.5 comparison also found that `subprocess.run(timeout=...)`
-left an xdist worker and its child alive after the controller was killed. The
-existing `run_step` now uses standard-library `Popen(start_new_session=True)` on
-POSIX, kills that process group on exceptional exit, and waits for its direct
-child. Ctrl-C cleanup re-raises the original cancellation; isolating the group
-must not leave it running when the controlling terminal is interrupted.
-Its file-backed partial log and failed status are retained. The FIFO regression
-first failed because a grandchild retained its open handle, then passed with
-group cleanup. Repeating the actual xdist probe with an8s deadline found both
-the worker and its Python child absent2s after the timeout. These APIs are
-available in the supported Python3.11/3.13
-[subprocess contract](https://docs.python.org/3.13/library/subprocess.html) and
-[POSIX process-group API](https://docs.python.org/3.13/library/os.html#os.killpg).
-This covers descendants that remain in the group; it is not containment of
-deliberately detached processes. Non-POSIX retains direct-child termination;
-the supported native CAD CI and this host use Linux.
+### Process lifetime and cancellation
 
-Independent review of `592c18d9b32464cc3164a691f6069f055ac24c4b` reproduced the
-initial Ctrl-C regression: the controller exited with SIGINT while its isolated
-child remained alive. The real-signal/FIFO regression failed before extending
-cleanup to cancellation. This correction requires fresh exact-head checks;
-that earlier head's five passing hosted jobs do not verify it.
+The supported Python 3.11/3.13 [subprocess contract](https://docs.python.org/3.13/library/subprocess.html)
+provides process creation, bounded waits and direct-child reaping. A local 3.13.5
+probe showed that the old `subprocess.run(timeout=...)` left an xdist worker and
+its child alive. The runner now creates a POSIX session, kills that process group
+on exceptional exit and reaps its direct child. File-backed partial logs remain.
+The actual xdist probe found both descendants absent two seconds after an
+8-second timeout. This covers descendants remaining in the group, not deliberately
+detached processes; non-POSIX retains direct-child termination.
 
-The next hosted review reproduced default SIGTERM bypassing exception cleanup
-at `5d00c794a6d194a2d904c407831a9a1f4d70a449`. The small `_step_sigterm` context
-uses Python's [signal API](https://docs.python.org/3.13/library/signal.html) to
-translate that default main-thread POSIX action into `SystemExit(143)` while a
-step runs, allowing the same cleanup to unwind. 143 is the conventional shell
-status 128 + SIGTERM. It restores the previous default afterward; ignored/custom
-handlers and threaded embeddings retain their caller-owned signal policy.
-The real SIGTERM/FIFO case failed before this change, then passed alongside
-SIGINT, timeout, retained-log and handler-restoration checks. This preserves the
-existing runner rather than adding a process supervisor or a dependency.
+Python's [signal API](https://docs.python.org/3.13/library/signal.html) permits
+main-thread handlers, but an exception from a handler can interrupt construction
+or cleanup. The small `_step_signals` context therefore owns the default POSIX
+SIGINT/SIGTERM policies only while a step runs. It records cancellation during
+construction, delivers it inside the cleanup-protected wait, and defers signals
+again on **every** exit from that wait. A pending late cancellation after a
+successful wait is delivered after the process/log contexts close. Existing
+failure handling retains priority; custom/ignored policies and threaded callers
+retain their own handlers. No signal mask, supervisor or new dependency is added.
+SIGINT preserves `KeyboardInterrupt`; default SIGTERM exits with status 143.
 
-A subsequent review of `44c16099445ce7407565a4cef276a7675497bfcf` identified the
-startup window before `Popen` returns. Both SIGINT and SIGTERM fault injections
-after a real child creation reproduced a surviving child. The scoped context is
-now `_step_signals`: it records cancellation during construction and activates
-exception delivery only inside the existing cleanup-protected block. It retains
-the first cancellation and defers further signals while that cleanup unwinds.
-This uses the documented main-thread handler semantics, without changing the
-process signal mask or adding a supervisor. Custom/ignored policies remain with
-their caller. Both startup cases and all 31 runner cases passed after correction.
-Final-head CI and review are still required; earlier green heads are historical.
+| Reviewed head | Demonstrated failure | Focused regression |
+|---|---|---|
+| 592c18d | Ctrl-C bypassed timeout-only cleanup | Real SIGINT with a FIFO lifetime witness |
+| 5d00c79 | Default SIGTERM bypassed Python exceptions | Real SIGTERM with the same witness |
+| 44c1609 | Signal during `Popen` construction preceded cleanup registration | SIGINT and SIGTERM after real child creation, before constructor return |
+| 32cad11 | SIGINT during timeout cleanup skipped termination and its log | Real sleeping child, timeout, then signal immediately before process-group kill |
 
-A separate local ordinary-test trial at that same `44c1609` head used the existing
-two-worker/loadfile options and isolated coverage output. Both the serial gate
-and this trial reached the unchanged 300 s deadline under concurrent host load.
-The trial did not produce a complete coverage/JUnit result, so ordinary execution
-remains serial. No performance guarantee, reduced selection or deadline increase
-was inferred from that failed comparison.
+Each regression failed before its correction. All 32 runner cases passed after
+the last correction, alongside strict type/lint/complexity checks. Earlier green
+hosted heads do not verify later fixes; acceptance requires complete CI and
+review on the final head. This scoped phase handling supplies the missing
+lifetime guarantee while reusing the existing runner and standard-library APIs.
+
+A separate local ordinary-test trial at `44c1609` used the existing two-worker/
+loadfile options and isolated coverage output. Both the serial gate and this
+trial reached the unchanged 300 s deadline under concurrent host load. The trial
+did not produce a complete coverage/JUnit result, so ordinary execution remains
+serial. No performance guarantee, reduced selection or deadline increase was
+inferred from that failed comparison.

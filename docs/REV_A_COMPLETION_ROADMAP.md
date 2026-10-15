@@ -10,7 +10,7 @@ Do not repeat recovery, integration, supply, reference or nominal K2 repairs.
 
 | Category | Estimated remaining substantial chat turns | Done/status | Next slice or blocker |
 |---|---:|---|---|
-| Local development setup / CAD runtime | 0 installation; 0-1 acceptance turn | Two-worker comparison passed310 cases in251.031s; serial timed out450s; timeout cleanup repaired | Check PR101's current acceptance/merge state; local ordinary timeout remains recorded |
+| Local development setup / CAD runtime | 0 installation; 0-1 acceptance turn | Two-worker comparison passed310 cases in251.031s; serial timed out450s; timeout/cancellation cleanup repaired | Check PR101's current acceptance/merge state; local ordinary timeout remains recorded |
 | SPI provisions, reference/supply repairs, K2 nominal review | 0 for source/design work | PR98 merged; physical access/fit unqualified | Actual fitting/tool/joint inspection later |
 | Remaining digital channels | 0 for paper choice | PR99 L6 retained paths with reviewed revision fallback | Before-fabrication access/revision-risk acceptance; interlock evidence before ADC enable |
 | Proposed fitted components/stack | 0 for selection | PR100 selects five33ohm parts, capacitor shortlist, common stack target | Active source still OPEN_DNP/legacy caps |

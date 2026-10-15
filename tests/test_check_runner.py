@@ -187,6 +187,45 @@ def test_cancellation_during_process_creation_cleans_up(
 
 
 @pytest.mark.skipif(os.name != "posix", reason="POSIX termination signal policy")
+def test_interrupt_during_timeout_cleanup_does_not_abandon_child(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    original_wait = subprocess.Popen.wait
+    original_killpg = os.killpg
+    child: subprocess.Popen[str] | None = None
+
+    def remember_child(process: subprocess.Popen[str], timeout: float | None = None) -> int:
+        nonlocal child
+        child = process
+        return original_wait(process, timeout=timeout)
+
+    def interrupt_cleanup(pgid: int, sig: int) -> None:
+        signal.raise_signal(signal.SIGINT)
+        original_killpg(pgid, sig)
+
+    previous = signal.signal(signal.SIGINT, signal.default_int_handler)
+    monkeypatch.setattr(subprocess.Popen, "wait", remember_child)
+    monkeypatch.setattr(os, "killpg", interrupt_cleanup)
+    try:
+        with pytest.raises((RuntimeError, KeyboardInterrupt)) as caught:
+            run_step(
+                "timeout-cancel",
+                [sys.executable, "-c", "import time; time.sleep(10)"],
+                tmp_path,
+                timeout=0.05,
+            )
+        assert child is not None
+        assert child.poll() is not None, "interrupt abandoned timeout cleanup"
+        assert isinstance(caught.value, RuntimeError)
+        assert "timed out" in (tmp_path / "timeout-cancel.log").read_text()
+    finally:
+        signal.signal(signal.SIGINT, previous)
+        if child is not None:
+            child.kill()
+            child.wait(timeout=5)
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX termination signal policy")
 @pytest.mark.parametrize("previous", [signal.SIG_DFL, signal.SIG_IGN])
 def test_step_restores_termination_handler(tmp_path: Path, previous: signal.Handlers) -> None:
     original = signal.signal(signal.SIGTERM, previous)

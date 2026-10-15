@@ -23,21 +23,16 @@ library's file scheduling, isolated temporary directories and failure reporting.
 No fault selection, deadline or 71% branch floor was weakened. A separate local
 failure probe demonstrated orphaned workers after a controller timeout; the
 existing runner now terminates its POSIX process group on timeout or cancellation.
-Independent review of 592c18d found that initial timeout-only cleanup missed
-Ctrl-C; a real-signal/FIFO regression reproduced it before correction. That
-head's five hosted jobs passed. The next head 5d00c79 also passed five jobs, but
-hosted review reproduced the default SIGTERM bypassing Python exception cleanup.
-A scoped standard-library signal context now routes default main-thread POSIX
-SIGTERM through that cleanup (shell status 143), restores the previous default,
-and preserves caller-installed signal policy. Its real-signal regression failed
-before correction. Review of 44c1609 then found cancellation during `Popen`
-construction, before cleanup was registered. Fail-first real-child injections
-reproduced both SIGINT and SIGTERM leaks; the scoped context now defers those
-default cancellations until the cleanup-protected block is entered. All 31
-runner cases pass locally. Final-head checks/review remain the acceptance authority;
-neither earlier green head verifies a later correction. The lockfile is included
-in the CAD source snapshot, with a focused changed-lock regression. Complete
-final-head CI/review remains required; this comparison is diagnostic evidence.
+Independent reviews then reproduced cancellation gaps during active waiting,
+process construction and timeout cleanup. Each was demonstrated failing before
+correction; `DEVELOPMENT.md` retains the reviewed-head/failure table. The final
+scoped standard-library signal context delivers default SIGINT/SIGTERM exceptions
+only inside the cleanup-protected wait and defers them during construction and
+cleanup. Custom/ignored handlers remain caller-owned. All 32 runner cases passed
+locally; final-head checks/review remain the acceptance authority. Earlier green
+heads do not verify later corrections. The lockfile is included in the CAD source
+snapshot, with a focused changed-lock regression. The runtime comparison remains
+diagnostic evidence, separate from final-head acceptance.
 
 `BREADBOARD_FIRST_STEPS.md` now has explicit row layouts, a polarity/discharge
 diagram, a labelled nominal charge curve and its single in-place measurement

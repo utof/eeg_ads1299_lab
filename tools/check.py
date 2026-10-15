@@ -15,8 +15,8 @@ import sysconfig
 import threading
 import time
 import tomllib
-from collections.abc import Callable, Generator, Sequence
-from contextlib import contextmanager, suppress
+from collections.abc import Generator, Sequence
+from contextlib import AbstractContextManager, contextmanager, suppress
 from dataclasses import asdict
 from pathlib import Path
 from tempfile import mkdtemp
@@ -83,10 +83,14 @@ def command_plan(out: Path) -> list[tuple[str, list[str]]]:
 
 
 @contextmanager
-def _step_signals() -> Generator[Callable[[], None]]:
-    """Defer CLI cancellation until the caller has registered child cleanup."""
+def _step_signals() -> Generator[AbstractContextManager[None]]:
+    """Deliver CLI cancellation only within the cleanup-protected wait phase."""
     active = False
     pending: int | None = None
+    cancellations: dict[int, BaseException] = {
+        signal.SIGINT: KeyboardInterrupt(),
+        signal.SIGTERM: SystemExit(128 + signal.SIGTERM),
+    }
 
     def cancel(signum: int, _frame: FrameType | None) -> None:
         nonlocal active, pending
@@ -95,18 +99,21 @@ def _step_signals() -> Generator[Callable[[], None]]:
         if active:
             # Further signals must not interrupt the cleanup already unwinding.
             active = False
-            if pending == signal.SIGINT:
-                raise KeyboardInterrupt
-            raise SystemExit(128 + pending)
+            raise cancellations[pending]
 
-    def activate() -> None:
+    @contextmanager
+    def cancellable_wait() -> Generator[None]:
         nonlocal active
-        active = True
-        if pending is not None:
-            cancel(pending, None)
+        try:
+            active = True
+            if pending is not None:
+                cancel(pending, None)
+            yield
+        finally:
+            active = False
 
     if os.name != "posix" or threading.current_thread() is not threading.main_thread():
-        yield activate
+        yield cancellable_wait()
         return
 
     defaults = ((signal.SIGINT, signal.default_int_handler), (signal.SIGTERM, signal.SIG_DFL))
@@ -114,10 +121,14 @@ def _step_signals() -> Generator[Callable[[], None]]:
     try:
         for sig, _handler in owned:
             signal.signal(sig, cancel)
-        yield activate
+        yield cancellable_wait()
     finally:
         for sig, handler in owned:
             signal.signal(sig, handler)
+    if pending is not None:
+        # A late cancellation after a successful wait still exits, once the
+        # process/log contexts have closed. An existing failure stays primary.
+        raise cancellations[pending]
 
 
 def run_step(name: str, command: Sequence[str], out: Path, timeout: float = 300) -> None:
@@ -127,7 +138,7 @@ def run_step(name: str, command: Sequence[str], out: Path, timeout: float = 300)
     print(f"[{name}] {' '.join(command)}", flush=True)
     # A real file retains even partial output if the child times out.
     with (
-        _step_signals() as activate_cancellation,
+        _step_signals() as cancellable_wait,
         log.open("w", encoding="utf-8") as stream,
         subprocess.Popen(
             command,
@@ -139,8 +150,8 @@ def run_step(name: str, command: Sequence[str], out: Path, timeout: float = 300)
         ) as process,
     ):
         try:
-            activate_cancellation()
-            returncode = process.wait(timeout=timeout)
+            with cancellable_wait:
+                returncode = process.wait(timeout=timeout)
         except BaseException as exc:
             # pytest workers/native tools share this session on POSIX. Killing
             # only pytest leaves their work running after timeout or Ctrl-C.
