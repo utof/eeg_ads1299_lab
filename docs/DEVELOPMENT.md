@@ -162,7 +162,9 @@ a failure. Final acceptance requires the complete shared gates on the PR head.
 A local Python3.13.5 comparison also found that `subprocess.run(timeout=...)`
 left an xdist worker and its child alive after the controller was killed. The
 existing `run_step` now uses standard-library `Popen(start_new_session=True)` on
-POSIX, kills that process group on timeout, and waits for its direct child.
+POSIX, kills that process group on exceptional exit, and waits for its direct
+child. Ctrl-C cleanup re-raises the original cancellation; isolating the group
+must not leave it running when the controlling terminal is interrupted.
 Its file-backed partial log and failed status are retained. The FIFO regression
 first failed because a grandchild retained its open handle, then passed with
 group cleanup. Repeating the actual xdist probe with an8s deadline found both
@@ -173,3 +175,9 @@ available in the supported Python3.11/3.13
 This covers descendants that remain in the group; it is not containment of
 deliberately detached processes. Non-POSIX retains direct-child termination;
 the supported native CAD CI and this host use Linux.
+
+Independent review of `592c18d9b32464cc3164a691f6069f055ac24c4b` reproduced the
+initial Ctrl-C regression: the controller exited with SIGINT while its isolated
+child remained alive. The real-signal/FIFO regression failed before extending
+cleanup to cancellation. This correction requires fresh exact-head checks;
+that earlier head's five passing hosted jobs do not verify it.

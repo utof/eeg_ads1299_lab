@@ -17,6 +17,15 @@ import pytest
 from tests.test_carrier_cad import _render
 from tools.check import check_branch_coverage, command_plan, main, require_native_tools, run_step
 
+_FIFO_WRITER = (
+    "import os, sys, time\n"
+    "with open(sys.argv[1], 'w') as stream:\n"
+    "    print('child started', flush=True)\n"
+    "    stream.write(str(os.getpid()))\n"
+    "    stream.flush()\n"
+    "    time.sleep(10)\n"
+)
+
 
 def test_plan_contains_all_checks(tmp_path: Path) -> None:
     names = [name for name, _command in command_plan(tmp_path)]
@@ -55,13 +64,6 @@ def test_timeout_closes_descendant_processes(tmp_path: Path) -> None:
     fifo = tmp_path / "descendant"
     os.mkfifo(fifo)
     reader = os.open(fifo, os.O_RDONLY | os.O_NONBLOCK)
-    writer = (
-        "import os, sys, time\n"
-        "with open(sys.argv[1], 'w') as stream:\n"
-        "    stream.write(str(os.getpid()))\n"
-        "    stream.flush()\n"
-        "    time.sleep(10)\n"
-    )
     parent = (
         "import subprocess, sys\n"
         "subprocess.run([sys.executable, '-c', sys.argv[1], sys.argv[2]], check=True)\n"
@@ -69,7 +71,9 @@ def test_timeout_closes_descendant_processes(tmp_path: Path) -> None:
     pid: int | None = None
     try:
         with pytest.raises(RuntimeError, match="timed out"):
-            run_step("descendants", [sys.executable, "-c", parent, writer, str(fifo)], tmp_path, 3)
+            run_step(
+                "descendants", [sys.executable, "-c", parent, _FIFO_WRITER, str(fifo)], tmp_path, 3
+            )
         ready = os.read(reader, 64)
         assert ready, "grandchild must start before the timeout to exercise cleanup"
         pid = int(ready)
@@ -82,6 +86,46 @@ def test_timeout_closes_descendant_processes(tmp_path: Path) -> None:
         if pid is not None:
             with suppress(ProcessLookupError):
                 os.kill(pid, signal.SIGKILL)
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX process-group and FIFO regression")
+def test_keyboard_interrupt_closes_the_isolated_child(tmp_path: Path) -> None:
+    fifo = tmp_path / "cancelled-child"
+    os.mkfifo(fifo)
+    reader = os.open(fifo, os.O_RDONLY | os.O_NONBLOCK)
+    driver = (
+        "import sys\nfrom pathlib import Path\nfrom tools.check import run_step\n"
+        "run_step('cancelled', [sys.executable, '-c', sys.argv[1], sys.argv[2]], "
+        "Path(sys.argv[3]), timeout=30)\n"
+    )
+    pid: int | None = None
+    with (tmp_path / "controller.log").open("w") as log:
+        controller = subprocess.Popen(
+            [sys.executable, "-c", driver, _FIFO_WRITER, str(fifo), str(tmp_path)],
+            stdout=log,
+            stderr=subprocess.STDOUT,
+            start_new_session=True,
+        )
+        try:
+            assert select.select([reader], [], [], 10)[0], "child never started"
+            ready = os.read(reader, 64)
+            assert ready, "cancellation must happen after the child starts"
+            pid = int(ready)
+            os.killpg(controller.pid, signal.SIGINT)
+            assert controller.wait(timeout=5) == -signal.SIGINT
+            assert select.select([reader], [], [], 2)[0], "child survived controller cancellation"
+            assert os.read(reader, 1) == b""
+            pid = None
+            assert "child started" in (tmp_path / "cancelled.log").read_text()
+        finally:
+            os.close(reader)
+            if controller.poll() is None:
+                with suppress(ProcessLookupError):
+                    os.killpg(controller.pid, signal.SIGKILL)
+            controller.wait(timeout=5)
+            if pid is not None:
+                with suppress(ProcessLookupError):
+                    os.killpg(pid, signal.SIGKILL)
 
 
 @pytest.mark.parametrize("covered,total,passed", [(80, 100, True), (79, 100, False), (0, 0, False)])

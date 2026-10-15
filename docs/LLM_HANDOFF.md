@@ -22,7 +22,11 @@ cases in251.031s with two pytest-xdist workers. The change uses that existing
 library's file scheduling, isolated temporary directories and failure reporting.
 No fault selection, deadline or71%branch floor was weakened. A separate local
 failure probe demonstrated orphaned workers after a controller timeout; the
-existing runner now terminates its POSIX process group. The lockfile is included
+existing runner now terminates its POSIX process group on timeout or cancellation.
+Independent review of592c18d found that initial timeout-only cleanup missed
+Ctrl-C; a real-signal/FIFO regression reproduced it before correction. That
+head's five hosted jobs passed, but the cancellation correction needs fresh
+final-head checks and review. The lockfile is included
 in the CAD source snapshot, with a focused changed-lock regression. Complete
 final-head CI/review remains required; this comparison is diagnostic evidence.
 

@@ -99,17 +99,20 @@ def run_step(name: str, command: Sequence[str], out: Path, timeout: float = 300)
     ):
         try:
             returncode = process.wait(timeout=timeout)
-        except subprocess.TimeoutExpired as exc:
+        except BaseException as exc:
             # pytest workers/native tools share this session on POSIX. Killing
-            # only pytest leaves their work running after the failed deadline.
+            # only pytest leaves their work running after timeout or Ctrl-C.
+            # Cleanup must also run for cancellation, then preserve its signal.
             with suppress(ProcessLookupError):
                 if os.name == "posix":
                     os.killpg(process.pid, signal.SIGKILL)
                 else:
                     process.kill()
             process.wait()
-            stream.write(f"\n{name} timed out after {timeout:g} s\n")
-            raise RuntimeError(f"{name} timed out; see {log}") from exc
+            if isinstance(exc, subprocess.TimeoutExpired):
+                stream.write(f"\n{name} timed out after {timeout:g} s\n")
+                raise RuntimeError(f"{name} timed out; see {log}") from exc
+            raise
     print(log.read_text(encoding="utf-8"), end="", flush=True)
     if returncode:
         raise RuntimeError(f"{name} failed with exit code {returncode}; see {log}")
