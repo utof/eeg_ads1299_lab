@@ -64,6 +64,12 @@ the final head and resolved review thread before merging; those earlier checks
 are not execution of this wording correction. The post-edit local ordinary run
 passed1402 cases plus14 subtests in263.16s/86.93%branch coverage during document
 editing; final-head hosted evidence remains the acceptance authority.
+The later local gate on `a47027557744ddd6109f1525a79dba0f63daf272` reached
+the unchanged300s ordinary-test deadline (`reports/four-step-final/`), so it is
+not a pass. A second hosted finding4278100520 required an explicit capacitor
+discharge before every breadboard run. That step, removal of the discharge
+resistor, and the nonzero-starting-voltage equation are now in the guide.
+Retain both corrections and verify the final PR head; do not weaken deadlines.
 
 The following repository/setup history is retained evidence, not the current
 next-task instruction. Publication/verification of this continuation must name

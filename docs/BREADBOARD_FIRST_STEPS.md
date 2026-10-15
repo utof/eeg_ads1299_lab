@@ -103,12 +103,21 @@ holder + -- B+ -- 1k -- P -- 100k -- OUT
 holder - -----------------------------G     meter black at G
 ```
 
+Before **every run, including a repeat or interrupted run**, leave the holder
+disconnected and the meter on DC volts. Discharge OUT to G through the separate
+10 kohm resistor until the meter reads below 0.1 V; never use a wire short.
+Remove that discharge resistor before connecting/enabling the holder, otherwise
+it changes both the final voltage and time constant. Record the starting voltage
+V0 immediately before switching on; repeat the discharge if it is >=0.1 V.
+
 Turn on and record Vout around 0, 10, 30 and 50 seconds, plus the eventual steady
 reading. A phone timer/video is sufficient; manual timing and meter refresh make
 this an approximate observation. With ideal nominal parts and a 10 Mohm meter,
 the time constant is `(101k || 10M)*100uF = 9.999 s` and the final voltage is
 0.990001*Vs. At one/three/five time constants the ideal voltage reaches about
-63.2% / 95.0% / 99.3% of its final value.
+63.2% / 95.0% / 99.3% of its final value when V0=0. With a small nonzero V0,
+use `V(t) = Vfinal + (V0 - Vfinal)*exp(-t/tau)`; those percentages then apply to
+the rise from V0 toward Vfinal. Do not treat a partly charged start as zero.
 
 The capacitor's tolerance, leakage and the meter alter the curve. These are
 predictions, not a pass/fail specification for an unknown electrolytic. A low
