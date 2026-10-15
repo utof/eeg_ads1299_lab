@@ -3,6 +3,12 @@
 2026-10-08. Inspected main `cc89a5b9cbdcdbd975109f75dd4a9d0587286384`,
 tree `a211a23296f9981429dd162cf1501dfe1c7b5968` (L3 / PR96).
 
+**2026-10-15 follow-through (L6):** PR98 implemented the five positions below;
+all remain OPEN_DNP/NOT_SELECTED. Sections1/2/4/5 retain the original L4 design
+basis, not instructions to repeat that implementation. Section3a now selects
+the disposition of the remaining channels. This is a pilot design decision,
+not an electrical pass or fabrication/first-power release.
+
 **Decision: include five accessible series-component positions in the next
 custom-board revision, rather than accepting cut-and-flywire rework as the SPI
 fallback.** Four are at U102 outputs on AUX, one at U1 DOUT on AFE. This is the
@@ -117,6 +123,103 @@ state that scoped change rather than quietly expanding this list or calling
 all digital interfaces qualified. Keep all K1 returns and C1 HOST/TARGET
 separation; the B3 high-impedance rail-sense leads are not digital signal jumpers.
 
+## 3a. L6: retain remaining paths for a restricted pilot; revision is the fallback
+
+Decision, 2026-10-15, against merged `bab9f60f23c799c9da00fd531acd8a5b9ad1ecd7`
+(tree `96afda406d9b0d7715d4fae4b2afa50d3f64b4a2`), with the same hardware and
+firmware in documentation head `d90109890fab042eb74ca04d6a7245f568c9f8ea`.
+**Retain the commercial DevKit, captive fanout and existing DRDY/control paths
+for the proposed INTERNAL-TEST-ONLY pilot. Add no further series sites in this
+slice.** The explicit fallback is a reviewed fanout or board revision, possibly
+including replacement fabrication; successful repair of an assembled board is
+not assumed. This closes the paper choice requested by section3. It does not
+close channel qualification, #45, or the user's later build-release decision.
+
+The alternatives were extra sites on every remaining custom-board launch, or
+an inline MCU adapter. Neither has a selected value, qualified attachment or
+demonstrated need here. Existing L5 sites cannot cover independent MCU launches.
+Retaining these paths avoids committing to an unreviewed adapter while making
+revision cost and possible loss of the first pilot explicit. No resistor at
+AUX J102 may be described as termination at the DevKit source. No under-body
+cut, lifted pin or unsupported jumper is the fallback for DRDY or controls.
+
+### Current terminal map and the evidence that matters
+
+DevKit J1.n maps to AUX J102.n under C1. AUX J101.n maps through K1 to AFE J1.n.
+These are electrical endpoints, **not approved probe attachment locations**.
+Each arrow across a buffer is a separate actively driven segment.
+
+| Path retained | Actual endpoints | Required receiver observation |
+|---|---|---|
+| MCU SCLK / MOSI / CS | GPIO12/11/10 -> J102.18/17/16 -> U102.2/3/4 | Both levels and single intended threshold transitions at U102; then L2's complete SCLK/data/CS setup AND hold checks downstream |
+| RESET | GPIO5 -> J102.5 -> U103.2; U103.13 -> J101.11 -> U1.36 | ADC-local reset pulse, release and startup order |
+| START | GPIO6 -> J102.6 -> U103.3; U103.12 -> J101.13 -> U1.38 | Remains low during command-started capture; no unintended transition |
+| PWDN | GPIO7 -> J102.7 -> U103.4; U103.11 -> J101.15 -> U1.35 | Parked low, deliberate wake, and fault-state discharge/level |
+| CLKSEL | GPIO8 -> J102.12 -> U104.2; U104.13 -> J101.19 -> U1.52 | Parked low and deliberate internal-clock selection, without glitches |
+| DRDY | U1.47 -> AFE J1.9 -> J101.9 -> U103.10; U103.5 -> J102.4 -> GPIO4 | Both receiver edges, no extra/missing conversion indications, and complete frame timing |
+| SESSION / ARM_REQ | GPIO14/9 -> J102.20/15 -> U109.3/U110.3 | Loaded levels/edges at the gates, including reset/boot and fault recovery |
+| Clear / READY | U109.4 -> U111.6 and J102.8 -> GPIO15 | Local clear pulse/release at latch AND separate MCU readback |
+| ARM clock | U110.4 -> U111.1 | Exactly the intended clock edge after valid clear release |
+| BUS_OE / ARMED | U111.5 -> U102.8/U103.8/U104.8 and J102.9 -> GPIO16 | Each enable endpoint AND MCU feedback; no automatic rearm |
+
+R115 remains a 42.2k shunt at MCU_DRDY, not a series position. U110's other
+logic input remains tied high; gating it with READY would create an arm edge
+on recovery when ARM_REQ was held high. The native contract and frozen netlists
+agree on these endpoint partitions. They establish connectivity, not waveforms.
+
+TXU0304 inputs are Schmitt inputs. Their hysteresis does not exclude repeated
+crossings from ringing, nor prove the unknown fanout's loading. Apply the
+manufacturer's thresholds for actual input supply and its stated output test
+conditions; do not extrapolate a single 3V threshold row across all rail states.
+The C3 conditional ADC-pulldown calculation does not cover these entire paths
+or the arming fanout. [TXU0304, sections7.3/7.5/10.2](https://www.ti.com/lit/ds/symlink/txu0304.pdf)
+
+U111's clock and clear inputs require particular attention. At 3.3V +/-0.3V,
+the SN74LVC2G74 specifies input transitions no slower than10ns/V; its
+-40..85C table requires clock and clear-low pulses >=2.7ns and inactive clear
+setup >=1.2ns before the clock. These component conditions are **not assembled
+margins**. Check loaded U109/U110 edges and latch-pin timing, with supply,
+temperature and measurement uncertainty recorded. [SN74LVC2G74, sections6.3/6.6](https://www.ti.com/lit/ds/symlink/sn74lvc2g74.pdf)
+
+F1 waits for sampled READY high for10us, then requests ARM high for10us.
+Firmware sampling cannot certify a glitch-free interval at U111. READY and
+ARMED use MCU internal pulldowns: include their actual loading together with
+R109 and all three OE inputs; do not reuse an unloaded logic-output claim.
+Keep the Schmitt conditioning provided by U109/U110 and assess their specified
+loaded outputs. [SN74LVC1G97, sections6/8](https://www.ti.com/lit/ds/symlink/sn74lvc1g97.pdf)
+
+DRDY is not merely a slow250Hz square wave. The ADC pulls it high on the first
+SCLK falling edge, including command traffic. Capture both ends together with
+SCLK; relate the firmware's falling-edge count to actual conversions and read
+completion. Count/overrun/status checks can miss electrical faults and are not
+a checksum. [ADS1299-x, sections9.4.4/9.5.2](https://www.ti.com/lit/ds/symlink/ads1299.pdf)
+
+### Keep decisions at the stage they actually block
+
+| Stage | Exit condition for these retained paths |
+|---|---|
+| Before fabrication release | Explicitly accept the restricted purpose and possible replacement-board cost in the consolidated build decision. Review actual fanout/return geometry, accessible supported measurement contacts and staged commissioning feasibility. If essential latch/receiver observations cannot be made, add designed access in a scoped revision before fabrication; a pin list is insufficient. Resolve the other manufacturing gates separately. |
+| Before approving any powered procedure | Close startup-critical loaded-level, edge, partial-rail and fault assumptions for that procedure, including MCU internal pulls and actual source/instrument limits. Define a bounded auxiliary/interlock commissioning arrangement that does not depend on an unqualified latch to protect the ADC. This note supplies no power wiring or fault-injection approval. |
+| Before first ADC bus enable | Obtain and review the actual interlock/feedback evidence from separately approved commissioning, including held-ARM recovery, SESSION/STOP clear, receiver parked levels and relevant rail trajectories. Follow B2's staged release; its H3 must not be the first test of an assumed-good interlock. No universal shutdown deadline follows from C2 or a passed software test. |
+| During approved ADC commissioning, before accepting capture | Use B2 to record the mapped receiver waveforms, local rails/returns, reset/wake timing, complete SPI/DRDY frame and fault response. Keep 1MHz/mode1 and F1's R -> fresh arm -> wake ->150ms -> measured VCAP1 -> reset order. Any failed/ambiguous requirement stops acceptance and triggers disposition/revision. |
+
+Use the **existing B2 run card**, with these endpoints in its contact map and
+raw waveform references in its evidence fields. No second worksheet, simulator,
+firmware API or test runner is needed. B3 sense tails are not logic probes.
+The five L5 sites still need a coherent fitted-value/MPN decision; OPEN paths
+cannot deliver the proposed capture. No resistance, including zero ohms, is
+selected here. Firmware/release gates, BOM, copper, K1 returns and C1 isolation
+remain unchanged. External-input performance and body use remain outside this
+pilot. **Next: the consolidated fitted-build decision**, including five SPI fits,
+capacitor migration, stack/connector/assembly disposition and these explicit
+revision/access conditions, while keeping the sole frozen Q1 packet intact.
+
+Source inspection for L6 used current auxiliary pin contracts, both frozen
+native netlists, `c2_interlock.h`, `rev_a_startup.h` and the sketch's call sites,
+interrupt and fault paths. Primary datasheet sections above were reread on
+2026-10-15. No assembled measurement, live KiCad export, electrical simulation
+or electrical qualification was performed for this decision.
+
 ## 4. Why a replaceable position is useful, but not a resistor selection
 
 Series source termination belongs near the relevant driver, with total source
@@ -134,29 +237,26 @@ replace these with a green packet counter. Use the existing B2 record and
 reviewed high-speed probe method; long B3 rail-observation wires are unsuitable
 as an assumed reflection-free logic measurement path.
 
-## 5. Next is implementation, not another provision study
+## 5. Original L4 implementation requirement (completed by PR98)
 
-Implement the five named positions as one scoped schematic/BOM/PCB/contracts
-change, preserving history and the already-authored layout elsewhere. Start
-with failing checks that require the new split driver nets and series paths.
-With the resistor absent, the driver and external receiver must not remain
-connected through copper; retain independent native connection/parity checks
-and the relevant cut-track faults on both sides. Retain the receiver pulldown
-branch and the false firmware/release gates. Existing connectivity contracts
-must be updated deliberately, not worked around with schematic exclusions.
+**Superseded as a work instruction:** PR98 completed the five-site source change.
+Do not implement it again. The original requirement was a coherent schematic,
+BOM, PCB and contract change, including split driver nets, real OPEN connections
+without copper bypasses, independent native parity/cut controls, the downstream
+receiver pulldown and unchanged false release gates. PR98's acceptance record
+and the current handoff identify the delivered source and its verification.
 
-Update actual MPN/population fields, source fixtures and preservation expectations
-for the exact edited scope; do not merely draw footprints on the PCB or refresh
-hashes until tests pass. Keep the old Q1 packet as a dated frozen snapshot, with
-any later approved parts/count delta made explicit rather than rewriting its
-historical source hashes. Re-evaluate local decoupling, ground fill, unchanged
-reference envelopes and K2/B3 access with the new source. No stock-library-wide
-edit, ADC driver rewrite, resistor sweep framework or extra test rig is needed.
+The original requirement also called for coordinated identity fields, frozen
+native fixtures, local decoupling/reference review and K2/B3 access review.
+Their delivered scope and remaining physical limits are recorded in the handoff;
+this historical list is not a claim of assembled access or qualification.
+The sole Q1 packet remains a dated snapshot, with later deltas carried separately.
 
-This five-site implementation is the next bounded source task. L3's internal-test
-pilot proposal and possible later external-input revision remain explicit. A
-series pad alone does not close component/stack/process, actual MCU/DRDY/control
-channels or first-power approval. No price research or supplier contact occurs.
+The current next source task is **the consolidated fitted-build decision in
+section3a**, not adding the five sites. L3's restricted pilot and possible later
+external-input revision remain explicit. Series pads alone do not close component,
+stack/process, physical channel acceptance or first-power approval. No price
+research or supplier contact occurs in this slice.
 
 ## Evidence and limits
 
