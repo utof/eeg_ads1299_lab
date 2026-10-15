@@ -30,6 +30,7 @@ dev = [
     "scipy-stubs==1.17.0.0",
     "types-pyserial==3.5.0.20260712",
     "typing-extensions==4.15.0",
+    "pytest-xdist==3.8.0",
 ]
 
 [tool.hatch.build]

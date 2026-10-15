@@ -127,3 +127,47 @@ regressions. It writes a source/artifact-hashed `SCHEMATIC_CHECK.json` only afte
 success, with hardware/release/body flags false. The ordinary and existing
 native simulation selections do not silently substitute for this CAD request.
 See `REV_A_SCHEMATIC.md` for source closure, fixture scope and remaining review.
+
+The CAD test stage uses the locked pytest-xdist3.8.0/execnet2.1.2 environment:
+exactly two workers, `--dist loadfile`, and `--max-worker-restart=0`. Keeping each
+file on one worker preserves its module-fixture reuse; pytest gives the workers
+separate temporary directories under the gate's output. The full `schematic`
+selection, fresh mutation/refill/DRC checks, combined JUnit report and450s deadline
+remain in force. Ordinary and non-CAD native selections remain serial. See the
+[upstream scheduling contract](https://pytest-xdist.readthedocs.io/en/stable/distribution.html)
+and [worker temporary-directory implementation](https://github.com/pytest-dev/pytest-xdist/blob/v3.8.0/src/xdist/workermanage.py).
+The CAD source receipt now also hashes `uv.lock`; changing it during a check
+invalidates the result. `CHECK_REPORT.json` records both added package versions.
+
+### Why this execution change was made
+
+The read-only [comparison run38671418286](https://github.com/utof/eeg_ads1299_lab/actions/runs/38671418286)
+used exact source `316ae0d4305c05f96cdf3c1bd793ace2bfbc057c`, tree
+`3dfc9799d209e3f2ec546f9981854682ab242ee2`, on the existing pinned KiCad9.0.2
+hosted environment. The serial selection reached450s and exited124 before
+completion. The two-worker selection executed all310 collected identities with
+no failures/errors/skips in251.031s JUnit time (252s whole command). Separate
+intentional assertion-failure and worker-crash probes both exited1. Both worker
+temporary directories were present, and tracked/untracked source checks passed.
+This is one measured comparison, not a guaranteed duration on every host or a
+complete `tools.check --schematic` acceptance run.
+
+Artifact11944890530 has verified ZIP SHA256
+`2cdfac4ddb82e930de62c99ed559ef8b256f6e63021f2753fd8574bcbc81f923`.
+The bounded comparison workflow is retained on
+`workbench/pr101-cad-runtime-20261015` at `ccd31b61a882acad4286129b8fc8a0d55e893884`;
+it is separate from the engineering tree. The original serial failure remains
+a failure. Final acceptance requires the complete shared gates on the PR head.
+
+A local Python3.13.5 comparison also found that `subprocess.run(timeout=...)`
+left an xdist worker and its child alive after the controller was killed. The
+existing `run_step` now uses standard-library `Popen(start_new_session=True)` on
+POSIX, kills that process group on timeout, and waits for its direct child.
+Its file-backed partial log and failed status are retained. The FIFO regression
+first failed because a grandchild retained its open handle, then passed with
+group cleanup. These APIs are available in the supported Python3.11/3.13
+[subprocess contract](https://docs.python.org/3.13/library/subprocess.html) and
+[POSIX process-group API](https://docs.python.org/3.13/library/os.html#os.killpg).
+This covers descendants that remain in the group; it is not containment of
+deliberately detached processes. Non-POSIX retains direct-child termination;
+the supported native CAD CI and this host use Linux.

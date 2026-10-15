@@ -8,12 +8,14 @@ import math
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import sysconfig
 import time
 import tomllib
 from collections.abc import Sequence
+from contextlib import suppress
 from dataclasses import asdict
 from pathlib import Path
 from tempfile import mkdtemp
@@ -84,23 +86,33 @@ def run_step(name: str, command: Sequence[str], out: Path, timeout: float = 300)
     log = out / f"{name}.log"
     print(f"[{name}] {' '.join(command)}", flush=True)
     # A real file retains even partial output if the child times out.
-    with log.open("w", encoding="utf-8") as stream:
+    with (
+        log.open("w", encoding="utf-8") as stream,
+        subprocess.Popen(
+            command,
+            cwd=ROOT,
+            stdout=stream,
+            stderr=subprocess.STDOUT,
+            text=True,
+            start_new_session=os.name == "posix",
+        ) as process,
+    ):
         try:
-            result = subprocess.run(
-                command,
-                cwd=ROOT,
-                stdout=stream,
-                stderr=subprocess.STDOUT,
-                text=True,
-                timeout=timeout,
-                check=False,
-            )
+            returncode = process.wait(timeout=timeout)
         except subprocess.TimeoutExpired as exc:
+            # pytest workers/native tools share this session on POSIX. Killing
+            # only pytest leaves their work running after the failed deadline.
+            with suppress(ProcessLookupError):
+                if os.name == "posix":
+                    os.killpg(process.pid, signal.SIGKILL)
+                else:
+                    process.kill()
+            process.wait()
             stream.write(f"\n{name} timed out after {timeout:g} s\n")
             raise RuntimeError(f"{name} timed out; see {log}") from exc
     print(log.read_text(encoding="utf-8"), end="", flush=True)
-    if result.returncode:
-        raise RuntimeError(f"{name} failed with exit code {result.returncode}; see {log}")
+    if returncode:
+        raise RuntimeError(f"{name} failed with exit code {returncode}; see {log}")
 
 
 def _mapping(value: object, label: str) -> dict[str, object]:
@@ -358,6 +370,7 @@ def _schematic_snapshot(cad: Path, footprints: Path) -> dict[str, str]:
     for name in (
         "firmware/toolchain.json",
         "pyproject.toml",
+        "uv.lock",
         "tests/test_firmware_sketch_startup.py",
         "tests/test_bench_harness.py",
         "tests/test_pcb_placement.py",
@@ -562,6 +575,11 @@ def _schematic(out: Path) -> None:
             "-q",
             "-m",
             "schematic",
+            "-n",
+            "2",
+            "--dist",
+            "loadfile",
+            "--max-worker-restart=0",
             f"--junitxml={out / 'schematic-pytest.xml'}",
             f"--basetemp={out / 'schematic-tests'}",
         ],
@@ -693,7 +711,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"ERROR: {failure}", file=sys.stderr)
     versions = {
         name: _installed_version(name)
-        for name in ("ruff", "pyrefly", "complexipy", "tach", "pytest", "numpy", "scipy")
+        for name in (
+            "ruff",
+            "pyrefly",
+            "complexipy",
+            "tach",
+            "pytest",
+            "pytest-xdist",
+            "execnet",
+            "numpy",
+            "scipy",
+        )
     }
     report = {
         "passed": failure is None,

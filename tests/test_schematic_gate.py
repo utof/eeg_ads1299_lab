@@ -28,6 +28,7 @@ def _fake_project(root: Path) -> Path:
     (root / "tools").mkdir()
     shutil.copyfile(ROOT / "tools/check.py", root / "tools/check.py")
     shutil.copyfile(ROOT / "pyproject.toml", root / "pyproject.toml")
+    shutil.copyfile(ROOT / "uv.lock", root / "uv.lock")
     (root / "docs/studies").mkdir(parents=True)
     shutil.copyfile(
         ROOT / "docs/studies/s1_supply_paths.json", root / "docs/studies/s1_supply_paths.json"
@@ -144,6 +145,7 @@ def _bom_output(fault: str) -> str:
 
 def _change_dependency(root: Path, fault: str) -> None:
     files = {
+        "change-lock": root / "uv.lock",
         "change-auxiliary": root / "hardware/rev_a/auxiliary/bus.kicad_sch",
         "change-aux-contract": root / "hardware/rev_a/auxiliary/contract.json",
         "change-aux-library": root
@@ -196,6 +198,7 @@ def _change_dependency(root: Path, fault: str) -> None:
     "fault",
     [
         "none",
+        "change-lock",
         "wrong-version",
         "bad-source",
         "no-erc",
@@ -282,6 +285,13 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
 
     def step(name: str, command: Sequence[str], out: Path, timeout: float = 300) -> None:
         assert timeout == (450 if name == "schematic-tests" else 300)
+        if name == "schematic-tests" and fault == "none":
+            assert command[command.index("-m", 3) + 1] == "schematic"
+            assert command[command.index("-n") + 1] == "2"
+            assert command[command.index("--dist") + 1] == "loadfile"
+            assert "--max-worker-restart=0" in command
+            assert f"--basetemp={out / 'schematic-tests'}" in command
+            assert f"--junitxml={out / 'schematic-pytest.xml'}" in command
         _fake_native_step(name, command, out, root, fault)
 
     monkeypatch.setattr("tools.check.ROOT", root)
@@ -313,7 +323,8 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
             "tests/test_carrier_l5.py",
         }
         assert l5_inputs <= hashes.keys()
-        assert len(hashes.keys() - l5_inputs) == 107
+        assert "uv.lock" in hashes
+        assert len(hashes.keys() - l5_inputs - {"uv.lock"}) == 107
         directory = out / str(report["artifact_directory"])
         harness = read_object(json.loads((directory / "harness.json").read_text()), "harness")
         assert harness["physical_wiring_approved"] is False

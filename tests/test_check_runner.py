@@ -3,9 +3,13 @@
 import importlib.metadata
 import io
 import json
+import os
+import select
+import signal
 import subprocess
 import sys
 from collections.abc import Sequence
+from contextlib import suppress
 from pathlib import Path
 
 import pytest
@@ -42,6 +46,42 @@ def test_timeout_fails(tmp_path: Path) -> None:
             "slow", [sys.executable, "-c", "import time; time.sleep(10)"], tmp_path, timeout=0.05
         )
     assert "timed out" in (tmp_path / "slow.log").read_text()
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX process-group and FIFO regression")
+def test_timeout_closes_descendant_processes(tmp_path: Path) -> None:
+    # A live grandchild keeps the FIFO open even after its parent is killed.
+    # EOF is an independent lifetime witness; no elapsed-time performance claim.
+    fifo = tmp_path / "descendant"
+    os.mkfifo(fifo)
+    reader = os.open(fifo, os.O_RDONLY | os.O_NONBLOCK)
+    writer = (
+        "import os, sys, time\n"
+        "with open(sys.argv[1], 'w') as stream:\n"
+        "    stream.write(str(os.getpid()))\n"
+        "    stream.flush()\n"
+        "    time.sleep(10)\n"
+    )
+    parent = (
+        "import subprocess, sys\n"
+        "subprocess.run([sys.executable, '-c', sys.argv[1], sys.argv[2]], check=True)\n"
+    )
+    pid: int | None = None
+    try:
+        with pytest.raises(RuntimeError, match="timed out"):
+            run_step("descendants", [sys.executable, "-c", parent, writer, str(fifo)], tmp_path, 3)
+        ready = os.read(reader, 64)
+        assert ready, "grandchild must start before the timeout to exercise cleanup"
+        pid = int(ready)
+        assert select.select([reader], [], [], 2)[0], "grandchild survived the timeout"
+        assert os.read(reader, 1) == b"", "grandchild still holds the pipe after timeout"
+        pid = None
+        assert "timed out" in (tmp_path / "descendants.log").read_text()
+    finally:
+        os.close(reader)
+        if pid is not None:
+            with suppress(ProcessLookupError):
+                os.kill(pid, signal.SIGKILL)
 
 
 @pytest.mark.parametrize("covered,total,passed", [(80, 100, True), (79, 100, False), (0, 0, False)])
