@@ -1,10 +1,63 @@
-# Continue with Q04 capacitor disposition before the coordinated fitted migration
+# Continue with manufacturing responses; the first breadboard kit is ready
 
 Read root `AGENTS.md`, `REPOSITORY_PUBLICATION.md`, `DEVELOPMENT.md` and
 `REV_A_BENCH_FIRST.md`. Read live main, open PRs and original review threads.
 Use the [hosted capability preflight](REPOSITORY_PUBLICATION.md#hosted-capability-preflight).
 Local tool absence does not disable connected publication or hosted execution;
 explicit denials must not be bypassed.
+
+## Four-step continuation, 2026-10-15
+
+Started clean from live main `e666fc0921197a857f1ea5c551d464ceb14358cb`, tree
+`7dfbbf4d77f7ad0763086295b38421ba7a3c3732`, the verified PR100 merge.
+PR100's accepted head was `fb7de0c580966068f0e8988b8f3dbf40f4d3043c`;
+its merge message retains the five successful checks, review and artifact
+identities, including failed attempts and independent hash-check limits.
+PR34/40 remain open do-not-merge experiments. This work uses branch
+`docs/pilot-four-step-disposition` in the attached internal-filesystem worktree.
+
+Four bounded preparation steps were carried through together:
+
+1. Q04 now has a node-specific conditional pilot design disposition in
+   `REV_A_PILOT_CAPACITOR_DISPOSITION.md`. Candidates retained; functional
+   uncertainty and replacement consequences are explicit. TI's EVM uses the
+   legacy25V1uF part and does not validate our16V proposal. Guaranteed effective
+   C/ESR/internal startup bounds remain unestablished; before-power review and
+   final build-risk acceptance remain required.
+2. The fitted-build record now selects outsourced PCB/TH/tail/crimp work and
+   assigns the physical inspection responsibilities. Q03's land/process response
+   remains a real migration hold. No active BOM/CAD edits were justified yet;
+   do not call the planned26-capacitor/five-resistor migration delivered.
+3. `BREADBOARD_FIRST_STEPS.md` provides the minimal standalone kit and divider/
+   slow-RC wiring, independent equations, fault predictions and a measurement
+   record. The user has no equipment at the current house and can buy. This
+   learning kit can be bought without a Rev A release; no purchase was made.
+4. Q1 now has a dated current addendum, and B2 records the actual equipment gap
+   and prior-interlock requirement. The frozen quote CSVs/manifest are unchanged;
+   no duplicate schedule, new calculator, software layer or tests-for-prose.
+
+**Next dependency:** actual Q03 land/process disposition plus applicable
+Q01/Q02/Q05-Q07 manufacturing responses. The user has not authorized supplier
+contact or selected a recipient. Prepare no duplicate RFQ and invent no answers.
+Once the migration conditions are disposed, apply the five SPI fits and26 AFE
+capacitor identities coherently across BOM/CAD/contracts/native fixtures and
+S1-S4 bindings, using focused failure-first checks and exact-head native review.
+Active source still has five OPEN_DNP/NOT_SELECTED sites and legacy AFE capacitors.
+
+Independent next user step: obtain the small breadboard kit, report the exact
+meter model, and perform the standalone divider measurement. Rev A power still
+requires the existing B1-B3/L6/Q04 conditions, source/probe selection, numeric
+limits and prior interlock evidence. Body use remains outside the pilot.
+
+The pre-change ordinary gate at `e666fc09` passed1402 cases plus14 subtests
+in244.30s, with86.93%branch coverage. Three existing entrypoint checks and
+changed-document local-link checks also passed. The unchanged frozen Q1 files
+and both authored board hashes were independently compared with the starting
+commit. Post-change/full hosted results must bind to the final source head.
+
+The following repository/setup history is retained evidence, not the current
+next-task instruction. Publication/verification of this continuation must name
+its actual final head; do not borrow PR100 checks as execution of these edits.
 
 ## Verified repository state, 2026-10-15
 
@@ -152,7 +205,7 @@ active source STILL has five OPEN_DNP/NOT_SELECTED sites and legacy AFE caps.
 No hardware, code, tests, firmware flags or Q1 schedules were changed by the
 proposal. Do not silently populate parts from mixed-stage files.
 
-**Next: close Q04's node-specific capacitor disposition**, using the existing
+**Historical PR100 next step (now superseded above):** Q04 disposition using the existing
 evidence for C8-C10 internal nodes, local LDO pairs and reference companions.
 State accepted limited-pilot uncertainty or the exact rejection; do not restart
 a generic part-family search. Q03 process/lands and the other applicable

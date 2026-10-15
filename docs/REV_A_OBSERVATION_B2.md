@@ -158,14 +158,34 @@ Attach this to B1's existing inspection sheet; no separate instrument database.
 | Raw rails/VCAP/current and R/READY/ARM/ARMED/V/reset event record | |
 | HOLD/fault reason, full-run invalidation and shutdown/discharge result | |
 
+## Equipment follow-through, 2026-10-15
+
+User inventory: **no equipment at the current house**, where they expect to stay
+for a while. Do not assume a supply, scope, probes, soldering tools or borrowed
+lab already exists. The separate [first breadboard kit](BREADBOARD_FIRST_STEPS.md)
+covers low-voltage passive learning; it does not fill this Rev A run card.
+
+For Rev A, plan outsourced PCB/harness assembly. Before buying an instrument
+bundle, use this existing card to identify the actual source and simultaneous
+observations: current/compliance/energy, local supply pairs, VCAP1, interlock
+signals and receiver waveforms. Select probes from their loading/common-mode/
+bandwidth and contact requirements, including L6's endpoints. A generic scope
+channel count or "1 MHz SPI" label is not that selection. An equipped lab is
+an alternative to buying everything for one pilot; no lab service is booked.
+
+Keep H0/H1 blank until actual equipment and limits are reviewed. Independently
+bounded AUX/interlock commissioning must produce the required evidence **before
+the first ADC bus enable**; H3 must not be the first test of an assumed-good
+interlock. Q04's internal-node and local LDO conditions must be included in the
+before-power review. No universal current limit or VCAP3 abort ceiling was added.
+
 ## Next finite decision and evidence scope
 
-Resolve **mandatory physical probe access**, starting with C6.1/C6.2 in the K2
-holder and the O3/O4 rail contacts: pick a supported probe/contact arrangement
-and confirm body, key, cable and mounting clearance. A net match alone is not
-that decision. Use the existing CAD and actual available probe dimensions; do
-not add a large universal fixture, new acquisition framework or blind test-pad
-reroute. Then fill H1 with the actual equipment/approved commissioning limits.
+Use B3's already-selected supported contact approach and the later K2/L6 access
+decisions; do not repeat their nominal geometry review. Confirm physical fitting,
+loading and restraint with the actual probes before use. Then fill H1 with the
+actual equipment/approved commissioning limits. Do not add a large universal
+fixture, new acquisition framework or blind test-pad reroute.
 An inaccessible essential point is a concrete fixture/CAD decision, not a reason
 to waive the V observation or keep writing generic power studies.
 

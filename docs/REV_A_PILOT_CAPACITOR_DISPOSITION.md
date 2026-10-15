@@ -1,5 +1,62 @@
 # Pilot capacitor disposition: one quotation list, no silent substitutions
 
+## Q04 follow-through, 2026-10-15: conditional design disposition
+
+Reviewed main `e666fc0921197a857f1ea5c551d464ceb14358cb`, tree
+`7dfbbf4d77f7ad0763086295b38421ba7a3c3732`. The earlier dated selection and
+evidence below remain intact. **Retain the three exact candidates for the
+restricted INTERNAL-TEST-ONLY pilot design.** Accept uncertain settling, ripple
+and capture performance as pilot development risks, with replacement/revision
+as the fallback. This is an engineering recommendation for the eventual fitted
+revision, not a guaranteed minimum-capacitance finding or fabrication approval.
+
+The following dispositions replace the generic request to study every capacitor
+again. They do not accept unknown electrical overstress or an unbounded first
+power experiment. Q04 is now a recorded conditional decision; its startup-critical
+conditions remain open, and Q03 still blocks the coordinated active migration.
+
+| Actual network | Design disposition and rationale | Remaining condition / failure consequence |
+|---|---|---|
+| C8 / VCAP2; C10 / VCAP4 | Keep GRM188R61C105KA12D at both 1 uF sites; retain their actual AVSS returns. Accept unqualified impedance/settling for the restricted pilot, without inventing a numerical minimum | Before powered commissioning, review internal-node operating/startup voltage and probe loading. Failure to settle or abnormal current means stop and review the component/network; no capacitance increase by guess |
+| C9 + C24 / VCAP3 | Keep the same 16 V 1 uF candidate and 50 V KEMET 100 nF companion. At the previously documented 7.15 V sensitivity point, 16/7.15 = 2.238 rated-voltage ratio; typical 1 uF retention is only about 0.75-0.85 uF near 6.9 V | Ratio is not a transient margin or qualification. The internal boost and small-signal impedance remain explicit before-power review items; expected 6.9 V is not an abort ceiling. Reject a 6.3 V substitute. Abnormal boost/settling can prevent capture or require replacement |
+| C11-C16 / AVDD, AVDD1; C17-C18 / DVDD | Keep all eight local 1 uF bypass positions and their returns; accept unmeasured noise/ripple performance for this pilot purpose | Do not merge same-net locations, credit remote bulk as a local bypass, or claim E1 noise acceptance. Review local rails during separately approved commissioning |
+| C19-C20 / LDO input | Keep the local pair. Its 1.8 uF initial-tolerance sum is 3.83 times the 0.47 uF effective-input recommendation; this is a comparison, not a retained-C guarantee | Actual source impedance/transient behavior and local effective C remain before-power conditions. Input ringing or droop can invalidate startup |
+| C21-C22 / LDO output | Keep the local pair, without counting C33 as a substitute. Typical bias data supports continuing with this candidate, while guaranteed combined C/ESR remains unknown | The local effective network must meet 0.47-200 uF and ESR <=0.1 ohm under the commissioning conditions. Do not waive LDO stability because internal-test mode is selected; obtain applicable evidence or approve a bounded component/network qualification before board power |
+| C30-C33 / rail bulk | Keep all four 10 uF candidates and their 1.35 mm body allowance. Accept possible extra ripple/load sensitivity for the restricted pilot | Use the retained typical 4-5.5 uF around 5 V only as sensitivity information. No guaranteed stored-charge or source/load-transient requirement is thereby satisfied |
+| C23-C29 / HF companions | Keep all seven KEMET proposals, including the companions at VCAP1, VCAP3 and reference | No individual 100 nF part is credited with meeting the whole network's minimum. The actual 22-site KEMET land/process deviation remains Q03 |
+| C6 + C23 / VCAP1; C7 + C25 / reference | Retain the 100 uF and 22 uF T491 identities, polarity, lands and HF companions. Do not apply the LDO ESR limit to either network | Retain measured VCAP1 >1.1 V plus F1 timing before reset; preserve reference >=10 uF. Initial tolerance alone is not an all-condition reference guarantee. Review bias, leakage, reversal, settling and loading before power |
+
+The independent frozen-netlist audit reconfirmed these native references,
+companion pairs and returns through the existing public hardware parser and
+validator. It is not a new KiCad run. No capacitor topology or nominal value is
+changed. The ADS1299 pin table specifies the nominal VCAP arrangements and the
+reference minimum; it does not supply a guaranteed effective-C/ESR envelope for
+each proposed exact MLCC [5]. TPS7A20's input recommendation and output stability
+conditions are distinct [6].
+
+A fresh check of TI's evaluation-board manual, SLAU443B, Table 10 p57, found the
+**legacy 25 V GRM188R61E105KA12D**, not our proposed 16 V part. Therefore the EVM
+cannot be cited as validation of this substitution. Its 10 uF and 100 nF entries
+also use the old identities. No EVM voltage or impedance qualification transfers
+to this board. [TI evaluation-board manual](https://www.ti.com/lit/ug/slau443b/slau443b.pdf)
+The table was read through the web text extraction; local PDF retrieval failed,
+so no new visual schematic/BOM inspection is claimed.
+
+**Release boundary:** a fabricated but unpowered pilot could lose its functional
+value or require a replacement PCB. That cost/revision risk needs explicit
+acceptance in the final build decision. Assembly qualification, exact-part supply,
+and the remaining Q01-Q10 conditions are not accepted by this electrical note.
+If the before-power conditions cannot be bounded, do not energize to discover
+their limits. Keep the existing B2 record for the eventual evidence; do not add
+a parallel qualification framework or another generic capacitor-family search.
+
+**Next dependency:** obtain Q03's actual land/process disposition and the other
+applicable manufacturing answers, then perform the one coordinated 26-capacitor
+and five-resistor migration. Until then active CAD/BOM remains unchanged. The
+[standalone breadboard exercise](BREADBOARD_FIRST_STEPS.md) can proceed separately.
+
+## Original quotation decision, 2026-10-07
+
 2026-10-07; reviewed source main `890f76b14867fa606f32202d6af58e9b8732d085`,
 tree `42817c22f687a3ed6c7245e09a865b4d546ea9aa`.
 
