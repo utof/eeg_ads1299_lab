@@ -1,20 +1,22 @@
-# Rev A roadmap - remaining-channel choice made; consolidate the fitted pilot
+# Rev A roadmap - fitted proposal selected; resolve capacitor migration conditions
 
-Checked 2026-10-15: live main is `bab9f60f23c799c9da00fd531acd8a5b9ad1ecd7`,
-tree `96afda406d9b0d7715d4fae4b2afa50d3f64b4a2`, identical to accepted PR98
-head `26d5ad903e1e48ce7fc435e3abef664a9812a9dd`. PR98 merged on October13.
+Checked 2026-10-15: live main is PR99 merge
+`cabe26473a26421704d93210a465a8a3d24021d8`, tree
+`ca2f1854abefb134e32a9258de7fc213fc34d2c1`, identical to accepted PR99
+head `23d62e268d54f3906e764a98395ecffb8ad61115`. PR98 remains merged.
 Read `LLM_HANDOFF.md` and the [hosted capability preflight](REPOSITORY_PUBLICATION.md#hosted-capability-preflight).
 Do not repeat recovery, integration, supply, reference or K2 repairs.
 
 | Category | Estimated remaining substantial chat turns | Done/status | Next slice or blocker |
 |---|---:|---|---|
-| Local development setup | 0 for package installation | Native tools installed; local full native run reaches300s limit | Hosted native check passes atd8c62936; local runtime remains unresolved |
+| Local development setup | 0 for package installation; runtime unresolved | Native tools installed; ordinary/native runs can hit300s | Preserve limits; exact-source hosted route remains available |
 | SPI provisions, reference and supply repairs | 0 | Merged in PR98 | Preserve accepted source |
 | K2 nominal allocation/access | 0 for nominal review; physical evidence later | Merged; assembled upper access obstructed | Actual fitting/tool/joint/workmanship checks |
 | PR98 acceptance and merge | 0 | Five required jobs and exact-head review passed; merge verified | Retain historical evidence |
-| Post-merge CAD execution | 0 for this retry | Main attempt2 passed310 cases in432.07s; first timeout retained | Preserve450s limit; a retry is not proof of stable timing margin |
+| Post-merge CAD execution | Runtime follow-through separate from build choices | PR99 head passed437.423s; merged-main run38658127664 timed out450s | Keep both results and the450s limit; do not claim stable timing margin |
 | Remaining digital channels | 0 for paper choice; physical evidence later | L6 retains current paths for restricted pilot with revision fallback | Accept revision/access conditions before fabrication; interlock evidence before ADC enable |
-| SPI population, components/manufacturing | 1-2 plus supplier/user decisions | Five sites OPEN_DNP; candidate and Q1 work retained | Fit values/MPNs, capacitor migration, stack, connector and assembly disposition |
+| Fitted component/build choices | 0 for proposal | Five33ohm parts selected; capacitor shortlist and common stack target retained | Proposal only; active source still OPEN_DNP/legacy capacitors |
+| Capacitor disposition and coherent migration | 1-2 plus supplier/user decisions | Q04 and process conditions open | Resolve node-specific risks, then update BOM/CAD/contracts/fixtures together |
 | Fabrication/purchase release | 1 after prerequisites | Not released | One accepted revision, restricted purpose and delivered quote |
 | Startup/internal capture | 1-2 planning turns plus assembly and measurements | B1-B3 plans exist; firmware gate false | Inspection, equipment, reviewed first-power conditions and capture |
 | Separate passive breadboard learning | 1 plan, equipment-dependent | Can be prepared independently | Inventory equipment; choose one passive R/C check |
@@ -34,8 +36,9 @@ The ADC is surface-mount in a two-board design, not a bare IC to plug into a
 solderless breadboard. A passive exercise does not validate ADC noise, digital
 channels, startup or body safety. Preserve the selected Rev A components.
 
-All five positions remain open; no resistor value, including zero ohms, is
-selected. R24's3.2x1.6x4mm allocation is not a part maximum. Both0.5mm upper
+All five active positions remain open. The [fitted proposal](REV_A_FITTED_PILOT_BUILD.md)
+selects33ohm RC0603FR-0733RL for later migration; it is not a qualified
+termination or an active fit. R24's3.2x1.6x4mm allocation is not a part maximum. Both0.5mm upper
 probes are blocked assembled and clear only in the specified upper-assembly-removed
 model; actual solder tools, joint access and physical disassembly are unqualified.
 Keep450sCAD/71%floor, all fault tests and frozen Q1 identities. No purchase,
@@ -47,6 +50,7 @@ selects retained MCU/DRDY/control wiring with a reviewed revision as fallback.
 No additional series positions or promised under-body repairs are assumed.
 This closes a paper choice, not measured channel acceptance or a release gate.
 
-**Next bounded engineering step:** consolidate the five SPI fitted values/MPNs
-with capacitor, stack, connector and assembly decisions, carrying L6's access,
-commissioning and possible replacement-board conditions into one build decision.
+**Next bounded engineering step:** Q04's internal-node/effective-capacitance
+disposition using the existing shortlist; then the coordinated fitted-source
+migration once its process conditions are resolved. Keep L6's access, commissioning
+and possible replacement-board conditions. Q1 remains the sole unsent quote packet.

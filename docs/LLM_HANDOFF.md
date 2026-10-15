@@ -1,4 +1,4 @@
-# Continue with the consolidated fitted pilot after the L6 channel decision
+# Continue with Q04 capacitor disposition before the coordinated fitted migration
 
 Read root `AGENTS.md`, `REPOSITORY_PUBLICATION.md`, `DEVELOPMENT.md` and
 `REV_A_BENCH_FIRST.md`. Read live main, open PRs and original review threads.
@@ -7,6 +7,29 @@ Local tool absence does not disable connected publication or hosted execution;
 explicit denials must not be bypassed.
 
 ## Verified repository state, 2026-10-15
+
+Live main and the clean starting checkout are now PR99 merge
+`cabe26473a26421704d93210a465a8a3d24021d8`, tree
+`ca2f1854abefb134e32a9258de7fc213fc34d2c1`, identical to accepted head
+`23d62e268d54f3906e764a98395ecffb8ad61115`. Its five hosted jobs passed:
+Quality38656735973 (both Python versions and190 native cases),
+Schematic38656736012 (49 harness and310 CAD cases,437.423s), and
+Firmware38656735869 (actual S3 build). Hosted review comment6181114357 found
+no major issues after the original stale-instruction thread was fixed/resolved.
+The merge commit retains artifact identities and independent-hash-check limits.
+PR99's ordinary local gate passed1402 cases plus14 subtests in231.76s.
+
+Separate post-merge main runs Quality38658127643 and Firmware38658127735 passed.
+Schematic38658127664 failed its unchanged450s schematic-tests deadline after
+1402 ordinary cases plus14 subtests and49 harness-console cases passed. The
+failed job log was inspected; this is not a new accepted main CAD run. Do not
+substitute PR99's pass for it. A new local pre-change ordinary run for the fitted
+proposal also hit300s; retain `reports/fitted-build-before/` in the attached
+internal-filesystem worktree. Do not weaken deadlines or characterize either
+timeout as physical evidence or an observed component defect.
+
+The PR98 state and setup receipts below are historical, not instructions to
+repeat their completed repairs. The current fitted proposal is described below.
 
 PR98 **merged on 2026-10-13**. Live main and the returning local checkout were
 both `bab9f60f23c799c9da00fd531acd8a5b9ad1ecd7`, complete tree
@@ -96,7 +119,7 @@ follows from these results; the L6 decision and next build task are below.
 
 ## L6 channel decision and next bounded engineering task
 
-PR99 carries the [L6 disposition in L4 section3a](REV_A_SPI_PROVISION_L4.md#3a-l6-retain-remaining-paths-for-a-restricted-pilot-revision-is-the-fallback):
+Merged PR99 carries the [L6 disposition in L4 section3a](REV_A_SPI_PROVISION_L4.md#3a-l6-retain-remaining-paths-for-a-restricted-pilot-revision-is-the-fallback):
 retain the three MCU-launched SPI paths and separate DRDY/control wiring for
 the proposed INTERNAL-TEST-ONLY pilot. Add no further series sites in this slice;
 accept a reviewed fanout/board revision as the fallback, not promised trace
@@ -107,8 +130,8 @@ measurement access/commissioning feasibility. Startup-critical assumptions and
 an independently bounded interlock commissioning arrangement remain before-power
 work; actual interlock evidence must precede ADC bus enable. B2 is the sole run
 card. No wiring, fitted part, firmware flag or release gate changed. This is a
-paper decision, not electrical qualification. Check live PR99 state before
-calling it merged; do not repeat the disposition or the earlier K2 review.
+paper decision, not electrical qualification. Do not repeat the disposition
+or the earlier K2 review.
 
 The pre-change ordinary gate at `d90109890fab042eb74ca04d6a7245f568c9f8ea`
 passed1402 cases plus14 subtests in277.50s on the internal filesystem; branch
@@ -116,16 +139,31 @@ coverage86.931079%. Later review/CI must identify the actual L6 head rather than
 borrowing this baseline pass. Source inspection included the actual C2/startup
 firmware and frozen endpoint graphs; no physical channel evidence was produced.
 
-**Next: resolve the five sites' fitted values/MPNs and the consolidated component,
-stackup, connector and assembly decisions**, carrying L6's explicit conditions.
-Every site is OPEN_DNP/NOT_SELECTED;
-even zero ohms is unselected. An open SPI path cannot produce the planned
-internal-test capture. Preserve the sole frozen unsent Q1 in `docs/quote/` and
-carry later source deltas explicitly rather than rewriting historical hashes.
-Before fabrication, accept one consistent build and its restricted purpose.
-Before power, require actual inspection/fitting, fixture and source/instrument
-checks, reviewed staged current limits and abort thresholds. Measurements are
-not prerequisites for every paper decision, but CI cannot replace them.
+The [fitted pilot proposal](REV_A_FITTED_PILOT_BUILD.md) selects33ohm
+RC0603FR-0733RL at R117-R120/R24 as a replaceable initial fit, retains the
+26-capacitor migration shortlist and targets JLC04161H-7628 for both boards.
+It retains the existing connector/assembly arrangement and records the delta
+from frozen Q1:109 proposed fitted board components, versus104 currently.
+It does not prove matched termination, timing or assembly acceptance. The
+active source STILL has five OPEN_DNP/NOT_SELECTED sites and legacy AFE caps.
+No hardware, code, tests, firmware flags or Q1 schedules were changed by the
+proposal. Do not silently populate parts from mixed-stage files.
+
+**Next: close Q04's node-specific capacitor disposition**, using the existing
+evidence for C8-C10 internal nodes, local LDO pairs and reference companions.
+State accepted limited-pilot uncertainty or the exact rejection; do not restart
+a generic part-family search. Q03 process/lands and the other applicable
+Q01-Q10 manufacturing conditions remain open. Once disposed, apply the five
+SPI fits and26 capacitor identities in one reviewed BOM/CAD/contracts/native-
+fixture change with focused failure-first checks and S1-S4 reconciliation.
+Keep source ownership simple; no new framework or parallel quote schedule.
+
+Preserve the sole frozen unsent Q1 in `docs/quote/`; later source deltas do not
+rewrite its historical hashes. Before fabrication, accept one consistent build,
+restricted purpose, possible revision cost and actual measurement access.
+Any powered procedure needs actual inspection/fitting, fixture/source/instrument
+checks and reviewed staged current/abort limits; interlock evidence precedes ADC
+bus enable. CI cannot replace those conditions. Supplier contact remains paused.
 
 The returning user wants practical breadboard learning too. A separate passive
 R/C check can be planned from their equipment inventory without waiting for
