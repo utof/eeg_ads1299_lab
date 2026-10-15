@@ -9,7 +9,7 @@ not depend on the Rev A PCB release. No purchase or supplier message was made.
 
 | Quantity | Buy / required specification | Purpose |
 |---:|---|---|
-| 1 | Battery-powered digital multimeter with test leads, DC volts, resistance and continuity; documented DC input >=10 Mohm on the selected range, at least 1 mV resolution around 3 V and DC accuracy about 1% or better including counts | The main reusable instrument; no computer connection needed |
+| 1 | Battery-powered digital multimeter with test leads and its own batteries, DC volts, resistance and continuity; documented nominal DC input 10 Mohm or higher on the selected range, at least 1 mV resolution around 3 V and DC accuracy about 1% or better including counts | The main reusable instrument; no computer connection needed |
 | 1 | Good solderless breadboard, 400 or 830 tie points, 2.54 mm pitch, marked rows | 400 points is enough; check split power rails with the meter |
 | 1 set | Pre-cut solid-core breadboard jumpers or male-to-male jumpers with breadboard-sized pins | Use ready-made lengths; no soldering or wire stripper required for this session |
 | 1 + 2 | Switched two-AA holder and two matching alkaline AA cells; holder leads with ready-made insulated connection to breadboard-sized pins | About 3 V; do not substitute lithium cells or a 9 V battery |
@@ -19,8 +19,8 @@ not depend on the Rev A PCB release. No purchase or supplier message was made.
 
 Choose a meter with a real manual specifying the selected DC range's impedance,
 resolution and accuracy. The [UNI-T UT139 series](https://meters.uni-trend.com/product/ut139-series)
-is one candidate family; its published DC accuracy is +/- (0.5% + 2 counts).
-Check the exact model/range manual before buying; no seller, local stock, price
+includes the UT139C example below. The advertised best DC accuracy does not apply
+to every range. Check the exact model/range manual before buying; no seller, local stock, price
 or authenticity has been verified. True RMS, Bluetooth, high current and transistor
 test features are unnecessary for these two exercises. Prefer a legitimate
 seller and included intact leads over a large anonymous accessory bundle.
@@ -30,6 +30,32 @@ station or PCB order is needed for this session. Later Rev A commissioning needs
 the source/probes and simultaneous observations specified in B2; this meter alone
 cannot qualify startup transients. Obtain that equipment after the actual test
 setup is chosen, or use a suitably equipped lab/assembly service.
+
+### Concrete meter example: UT139C
+
+This is a checked example, not confirmation of the user's ordered model.
+UNI-T's [manual P/N 110401104199 (manufacturer-authored distributor copy)](https://elexbrno.cz/dldfile.php?id=7423),
+printed pages 7-9 and 16, specifies:
+
+| Setting or specification | For these two exercises |
+|---|---|
+| Leads | Black in COM; red in V/ohm/Hz |
+| Voltage mode | V position; SELECT if needed until the display indicates DC |
+| Range | Short RANGE presses select manual 6 V; confirm V units, three decimal places and no Auto Range indicator |
+| Reading modes | HOLD, REL and MAX/MIN off |
+| Selected-range specification | 1 mV resolution; nominal 10 Mohm input; +/- (0.7% of reading + 3 counts) |
+| Meter power | Two AA cells, separate from the holder's two cells |
+
+Keep the manual 6 V range throughout charging; range changes otherwise complicate
+comparison. At a displayed 1.428 V, the listed meter-only accuracy is about
+13 mV, under the manual's one-year, 23 +/- 5 C, below-75%-RH conditions. This
+excludes resistor/source uncertainty and is not a circuit pass band or calibration.
+Confirm the actual unit's manual; other models/ranges can differ.
+
+Source checked 2026-10-15; PDF SHA256
+`81d4d00e65b2e138a664982ea67171aa07b27c6ae128859e4378e5dccf6911f4`.
+The manufacturer's [download page](https://meters.uni-trend.com/download/ut139a-b-c-user-manual/)
+is the current manual entry point; its PDF endpoint was unavailable during this check.
 
 ## Before inserting the batteries
 
@@ -57,11 +83,11 @@ holder before rewiring; keep the two cells out until the first circuit is checke
 
 ![Example divider layout with the three resistors and meter contacts on four separate breadboard rows.](figures/breadboard-divider.svg)
 
-The drawing uses the **a–e half** of rows5,10,15,20 as B+,P,OUT,G. Only those
+The drawing uses the **a–e half** of rows 5, 10, 15, 20 as B+, P, OUT, G. Only those
 rows are drawn; the intervening rows still exist on your board. Verify each
 five-hole strip and its separation from the other rows before using this example.
 The opposite half and power rails are unused. Connect holder+ to a5, holder− to
-a20, the guard from b5 to b10, the top10kohm from d10 to d15 and the bottom10kohm
+a20, the guard from b5 to b10, the top 10 kohm from d10 to d15 and the bottom 10 kohm
 from b15 to b20. Meter contacts go to e15 and e20 using suitable jumper pins and
 insulated grabbers. Do not insert oversized probes directly into the holes.
 
@@ -107,8 +133,8 @@ between P and OUT, and the 100 uF capacitor between OUT and G: **positive at OUT
 marked negative at G**. Check polarity from the part marking/datasheet rather
 than lead length alone. Keep the 1 kohm guard and DC meter in place.
 
-In the example, the100kohm spans d10–d15. Put capacitor+ in c15 and its marked
-negative lead in c17 for5.08mm lead spacing, then add a jumper b17–b20. For2.54mm
+In the example, the 100 kohm spans d10–d15. Put capacitor+ in c15 and its marked
+negative lead in c17 for 5.08 mm lead spacing, then add a jumper b17–b20. For 2.54 mm
 spacing, use c16 and jumper b16–b20 instead. This spare negative-lead row avoids
 stretching a small capacitor across five rows. Both leads must occupy different
 electrical strips; the negative row reaches G through the jumper. Use the actual
