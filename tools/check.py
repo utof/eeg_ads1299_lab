@@ -8,15 +8,19 @@ import math
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import sysconfig
+import threading
 import time
 import tomllib
-from collections.abc import Sequence
+from collections.abc import Generator, Sequence
+from contextlib import AbstractContextManager, contextmanager, suppress
 from dataclasses import asdict
 from pathlib import Path
 from tempfile import mkdtemp
+from types import FrameType
 
 from hardware.rev_a import (
     auxiliary_source_snapshot,
@@ -78,29 +82,93 @@ def command_plan(out: Path) -> list[tuple[str, list[str]]]:
     ]
 
 
+@contextmanager
+def _step_signals() -> Generator[AbstractContextManager[None]]:
+    """Deliver CLI cancellation only within the cleanup-protected wait phase."""
+    active = False
+    pending: int | None = None
+    cancellations: dict[int, BaseException] = {
+        signal.SIGINT: KeyboardInterrupt(),
+        signal.SIGTERM: SystemExit(128 + signal.SIGTERM),
+    }
+
+    def cancel(signum: int, _frame: FrameType | None) -> None:
+        nonlocal active, pending
+        if pending is None:
+            pending = signum
+        if active:
+            # Further signals must not interrupt the cleanup already unwinding.
+            active = False
+            raise cancellations[pending]
+
+    @contextmanager
+    def cancellable_wait() -> Generator[None]:
+        nonlocal active
+        try:
+            active = True
+            if pending is not None:
+                cancel(pending, None)
+            yield
+        finally:
+            active = False
+
+    if os.name != "posix" or threading.current_thread() is not threading.main_thread():
+        yield cancellable_wait()
+        return
+
+    defaults = ((signal.SIGINT, signal.default_int_handler), (signal.SIGTERM, signal.SIG_DFL))
+    owned = [(sig, handler) for sig, handler in defaults if signal.getsignal(sig) == handler]
+    try:
+        for sig, _handler in owned:
+            signal.signal(sig, cancel)
+        yield cancellable_wait()
+    finally:
+        for sig, handler in owned:
+            signal.signal(sig, handler)
+    if pending is not None:
+        # A late cancellation after a successful wait still exits, once the
+        # process/log contexts have closed. An existing failure stays primary.
+        raise cancellations[pending]
+
+
 def run_step(name: str, command: Sequence[str], out: Path, timeout: float = 300) -> None:
     """Every subprocess is bounded; a timeout or nonzero exit is a failure."""
     out.mkdir(parents=True, exist_ok=True)
     log = out / f"{name}.log"
     print(f"[{name}] {' '.join(command)}", flush=True)
     # A real file retains even partial output if the child times out.
-    with log.open("w", encoding="utf-8") as stream:
+    with (
+        _step_signals() as cancellable_wait,
+        log.open("w", encoding="utf-8") as stream,
+        subprocess.Popen(
+            command,
+            cwd=ROOT,
+            stdout=stream,
+            stderr=subprocess.STDOUT,
+            text=True,
+            start_new_session=os.name == "posix",
+        ) as process,
+    ):
         try:
-            result = subprocess.run(
-                command,
-                cwd=ROOT,
-                stdout=stream,
-                stderr=subprocess.STDOUT,
-                text=True,
-                timeout=timeout,
-                check=False,
-            )
-        except subprocess.TimeoutExpired as exc:
-            stream.write(f"\n{name} timed out after {timeout:g} s\n")
-            raise RuntimeError(f"{name} timed out; see {log}") from exc
+            with cancellable_wait:
+                returncode = process.wait(timeout=timeout)
+        except BaseException as exc:
+            # pytest workers/native tools share this session on POSIX. Killing
+            # only pytest leaves their work running after timeout or Ctrl-C.
+            # Cleanup must also run for cancellation, then preserve its signal.
+            with suppress(ProcessLookupError):
+                if os.name == "posix":
+                    os.killpg(process.pid, signal.SIGKILL)
+                else:
+                    process.kill()
+            process.wait()
+            if isinstance(exc, subprocess.TimeoutExpired):
+                stream.write(f"\n{name} timed out after {timeout:g} s\n")
+                raise RuntimeError(f"{name} timed out; see {log}") from exc
+            raise
     print(log.read_text(encoding="utf-8"), end="", flush=True)
-    if result.returncode:
-        raise RuntimeError(f"{name} failed with exit code {result.returncode}; see {log}")
+    if returncode:
+        raise RuntimeError(f"{name} failed with exit code {returncode}; see {log}")
 
 
 def _mapping(value: object, label: str) -> dict[str, object]:
@@ -358,6 +426,7 @@ def _schematic_snapshot(cad: Path, footprints: Path) -> dict[str, str]:
     for name in (
         "firmware/toolchain.json",
         "pyproject.toml",
+        "uv.lock",
         "tests/test_firmware_sketch_startup.py",
         "tests/test_bench_harness.py",
         "tests/test_pcb_placement.py",
@@ -562,6 +631,11 @@ def _schematic(out: Path) -> None:
             "-q",
             "-m",
             "schematic",
+            "-n",
+            "2",
+            "--dist",
+            "loadfile",
+            "--max-worker-restart=0",
             f"--junitxml={out / 'schematic-pytest.xml'}",
             f"--basetemp={out / 'schematic-tests'}",
         ],
@@ -693,7 +767,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"ERROR: {failure}", file=sys.stderr)
     versions = {
         name: _installed_version(name)
-        for name in ("ruff", "pyrefly", "complexipy", "tach", "pytest", "numpy", "scipy")
+        for name in (
+            "ruff",
+            "pyrefly",
+            "complexipy",
+            "tach",
+            "pytest",
+            "pytest-xdist",
+            "execnet",
+            "numpy",
+            "scipy",
+        )
     }
     report = {
         "passed": failure is None,

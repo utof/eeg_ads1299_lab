@@ -127,3 +127,76 @@ regressions. It writes a source/artifact-hashed `SCHEMATIC_CHECK.json` only afte
 success, with hardware/release/body flags false. The ordinary and existing
 native simulation selections do not silently substitute for this CAD request.
 See `REV_A_SCHEMATIC.md` for source closure, fixture scope and remaining review.
+
+The CAD test stage uses the locked pytest-xdist3.8.0/execnet2.1.2 environment:
+exactly two workers, `--dist loadfile`, and `--max-worker-restart=0`. Keeping each
+file on one worker preserves its module-fixture reuse; pytest gives the workers
+separate temporary directories under the gate's output. The full `schematic`
+selection, fresh mutation/refill/DRC checks, combined JUnit report and450s deadline
+remain in force. Ordinary and non-CAD native selections remain serial. See the
+[upstream scheduling contract](https://pytest-xdist.readthedocs.io/en/stable/distribution.html)
+and [worker temporary-directory implementation](https://github.com/pytest-dev/pytest-xdist/blob/v3.8.0/src/xdist/workermanage.py).
+The CAD source receipt now also hashes `uv.lock`; changing it during a check
+invalidates the result. `CHECK_REPORT.json` records both added package versions.
+
+### Why this execution change was made
+
+The read-only [comparison run38671418286](https://github.com/utof/eeg_ads1299_lab/actions/runs/38671418286)
+used exact source `316ae0d4305c05f96cdf3c1bd793ace2bfbc057c`, tree
+`3dfc9799d209e3f2ec546f9981854682ab242ee2`, on the existing pinned KiCad9.0.2
+hosted environment. The serial selection reached450s and exited124 before
+completion. The two-worker selection executed all310 collected identities with
+no failures/errors/skips in251.031s JUnit time (252s whole command). Separate
+intentional assertion-failure and worker-crash probes both exited1. Both worker
+temporary directories were present, and tracked/untracked source checks passed.
+This is one measured comparison, not a guaranteed duration on every host or a
+complete `tools.check --schematic` acceptance run.
+
+Artifact11944890530 has verified ZIP SHA256
+`2cdfac4ddb82e930de62c99ed559ef8b256f6e63021f2753fd8574bcbc81f923`.
+The bounded comparison workflow is retained on
+`workbench/pr101-cad-runtime-20261015` at `ccd31b61a882acad4286129b8fc8a0d55e893884`;
+it is separate from the engineering tree. The original serial failure remains
+a failure. Final acceptance requires the complete shared gates on the PR head.
+
+### Process lifetime and cancellation
+
+The supported Python 3.11/3.13 [subprocess contract](https://docs.python.org/3.13/library/subprocess.html)
+provides process creation, bounded waits and direct-child reaping. A local 3.13.5
+probe showed that the old `subprocess.run(timeout=...)` left an xdist worker and
+its child alive. The runner now creates a POSIX session, kills that process group
+on exceptional exit and reaps its direct child. File-backed partial logs remain.
+The actual xdist probe found both descendants absent two seconds after an
+8-second timeout. This covers descendants remaining in the group, not deliberately
+detached processes; non-POSIX retains direct-child termination.
+
+Python's [signal API](https://docs.python.org/3.13/library/signal.html) permits
+main-thread handlers, but an exception from a handler can interrupt construction
+or cleanup. The small `_step_signals` context therefore owns the default POSIX
+SIGINT/SIGTERM policies only while a step runs. It records cancellation during
+construction, delivers it inside the cleanup-protected wait, and defers signals
+again on **every** exit from that wait. A pending late cancellation after a
+successful wait is delivered after the process/log contexts close. Existing
+failure handling retains priority; custom/ignored policies and threaded callers
+retain their own handlers. No signal mask, supervisor or new dependency is added.
+SIGINT preserves `KeyboardInterrupt`; default SIGTERM exits with status 143.
+
+| Reviewed head | Demonstrated failure | Focused regression |
+|---|---|---|
+| 592c18d | Ctrl-C bypassed timeout-only cleanup | Real SIGINT with a FIFO lifetime witness |
+| 5d00c79 | Default SIGTERM bypassed Python exceptions | Real SIGTERM with the same witness |
+| 44c1609 | Signal during `Popen` construction preceded cleanup registration | SIGINT and SIGTERM after real child creation, before constructor return |
+| 32cad11 | SIGINT during timeout cleanup skipped termination and its log | Real sleeping child, timeout, then signal immediately before process-group kill |
+
+Each regression failed before its correction. All 32 runner cases passed after
+the last correction, alongside strict type/lint/complexity checks. Earlier green
+hosted heads do not verify later fixes; acceptance requires complete CI and
+review on the final head. This scoped phase handling supplies the missing
+lifetime guarantee while reusing the existing runner and standard-library APIs.
+
+A separate local ordinary-test trial at `44c1609` used the existing two-worker/
+loadfile options and isolated coverage output. Both the serial gate and this
+trial reached the unchanged 300 s deadline under concurrent host load. The trial
+did not produce a complete coverage/JUnit result, so ordinary execution remains
+serial. No performance guarantee, reduced selection or deadline increase was
+inferred from that failed comparison.

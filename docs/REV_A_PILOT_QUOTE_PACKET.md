@@ -2,6 +2,46 @@
 
 **UNSENT - REQUEST FOR QUOTATION / DFM ONLY - NOT FOR MANUFACTURE OR POWER**
 
+## Current addendum, 2026-10-15
+
+The Q1 snapshot/schedules below remain frozen at their original revision. This
+addendum is part of the same packet, not a second BOM or a vendor response.
+Current engineering baseline: PR100 merge
+`e666fc0921197a857f1ea5c551d464ceb14358cb`, tree
+`7dfbbf4d77f7ad0763086295b38421ba7a3c3732`.
+
+For a later authorized RFQ, supply this addendum and the
+[fitted-build delta](REV_A_FITTED_PILOT_BUILD.md#4-exact-delta-from-frozen-q1-do-not-build-from-the-old-schedule)
+with the frozen schedules, and identify the exact current CAD revision. **Do
+not send the frozen schedules alone as the current populated assembly.** Current
+CAD has 70 AFE and 56 AUX footprints (126 total), versus Q1's 69+52. The five
+added series sites remain DNP/NOT_SELECTED in active source. Proposed fitting
+adds five RC0603FR-0733RL, one at AFE R24 and four at AUX R117-R120. Thus current
+fitted board quantity remains 104; proposed quantity becomes 109 (62+47).
+The 26 AFE capacitor identity changes are already in Q1's quote column and do
+not add fitted quantity. MOD1 is still counted once as an off-board module.
+
+| Question | Current follow-through / exact next response |
+|---|---|
+| Q01 | Same JLC04161H-7628 design target now selected for both boards. Actual job drawings/material/drill/registration acceptance remain open |
+| Q02 | Exact proposals retained; no fresh full-suffix supply/lot/MOQ/price answer |
+| Q03 | HOLD: actual 22 KEMET and 19 Murata land/process review remains necessary; no speculative footprint resize or assembler acceptance invented |
+| Q04 | [Conditional node-specific pilot decision recorded](REV_A_PILOT_CAPACITOR_DISPOSITION.md#q04-follow-through-2026-10-15-conditional-design-disposition); no guaranteed C/ESR/transient bounds. Remaining startup-critical conditions must be resolved before power, and final build risk acceptance remains required |
+| Q05-Q07 | [Outsource assembly/harness work](REV_A_FITTED_PILOT_BUILD.md#5-assembly-ownership-decision-2026-10-15); keep current connectors/fixtures. Process, hole, material, tooling and detached-test responses remain open |
+| Q08 | L1/L3/L6 pilot dispositions exist; preserve their access, revision-risk and prior-interlock conditions. No measured SI/return acceptance |
+| Q09 | No equipment currently at the user's house. Standalone breadboard kit is separate; B2 still requires the actual Rev A source/probes and numeric commissioning limits |
+| Q10 | No delivered quotation or recipient; Moscow is only the planning-location assumption, not a verified delivery address |
+
+This addendum supersedes old next-step wording and the blanket "all ten OPEN"
+statement only to the limited extent shown above. It does not record a supplier
+answer or authorize contact/order. Before sending, confirm recipient, destination,
+currency, 1/5-set scope and permission; retain the current/proposed distinction.
+Before fabrication, finish one coherent source migration and the applicable
+manufacturing/release decisions. The quote CSVs and source manifest keep their
+original identities and prices remain unknown.
+
+## Frozen Q1 snapshot, 2026-10-07
+
 Prepared 2026-10-07 from source commit
 `399677407a159ad10c766b4575b65aabc8bd3057`, tree
 `a3306419b36226e6b233a42ca6a08a59664e872f`. Q1 adds documentation and quote

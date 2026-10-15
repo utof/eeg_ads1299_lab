@@ -3,15 +3,29 @@
 import importlib.metadata
 import io
 import json
+import os
+import select
+import signal
 import subprocess
 import sys
 from collections.abc import Sequence
+from contextlib import suppress
 from pathlib import Path
+from typing import TextIO
 
 import pytest
 
 from tests.test_carrier_cad import _render
 from tools.check import check_branch_coverage, command_plan, main, require_native_tools, run_step
+
+_FIFO_WRITER = (
+    "import os, sys, time\n"
+    "with open(sys.argv[1], 'w') as stream:\n"
+    "    print('child started', flush=True)\n"
+    "    stream.write(str(os.getpid()))\n"
+    "    stream.flush()\n"
+    "    time.sleep(10)\n"
+)
 
 
 def test_plan_contains_all_checks(tmp_path: Path) -> None:
@@ -42,6 +56,184 @@ def test_timeout_fails(tmp_path: Path) -> None:
             "slow", [sys.executable, "-c", "import time; time.sleep(10)"], tmp_path, timeout=0.05
         )
     assert "timed out" in (tmp_path / "slow.log").read_text()
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX process-group and FIFO regression")
+def test_timeout_closes_descendant_processes(tmp_path: Path) -> None:
+    # A live grandchild keeps the FIFO open even after its parent is killed.
+    # EOF is an independent lifetime witness; no elapsed-time performance claim.
+    fifo = tmp_path / "descendant"
+    os.mkfifo(fifo)
+    reader = os.open(fifo, os.O_RDONLY | os.O_NONBLOCK)
+    parent = (
+        "import subprocess, sys\n"
+        "subprocess.run([sys.executable, '-c', sys.argv[1], sys.argv[2]], check=True)\n"
+    )
+    pid: int | None = None
+    try:
+        with pytest.raises(RuntimeError, match="timed out"):
+            run_step(
+                "descendants", [sys.executable, "-c", parent, _FIFO_WRITER, str(fifo)], tmp_path, 3
+            )
+        ready = os.read(reader, 64)
+        assert ready, "grandchild must start before the timeout to exercise cleanup"
+        pid = int(ready)
+        assert select.select([reader], [], [], 2)[0], "grandchild survived the timeout"
+        assert os.read(reader, 1) == b"", "grandchild still holds the pipe after timeout"
+        pid = None
+        assert "timed out" in (tmp_path / "descendants.log").read_text()
+    finally:
+        os.close(reader)
+        if pid is not None:
+            with suppress(ProcessLookupError):
+                os.kill(pid, signal.SIGKILL)
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX process-group and FIFO regression")
+@pytest.mark.parametrize(
+    "cancel_signal,expected_exit",
+    [(signal.SIGINT, -signal.SIGINT), (signal.SIGTERM, 128 + signal.SIGTERM)],
+)
+def test_cancellation_closes_the_isolated_child(
+    tmp_path: Path, cancel_signal: signal.Signals, expected_exit: int
+) -> None:
+    fifo = tmp_path / "cancelled-child"
+    os.mkfifo(fifo)
+    reader = os.open(fifo, os.O_RDONLY | os.O_NONBLOCK)
+    driver = (
+        "import sys\nfrom pathlib import Path\nfrom tools.check import run_step\n"
+        "run_step('cancelled', [sys.executable, '-c', sys.argv[1], sys.argv[2]], "
+        "Path(sys.argv[3]), timeout=30)\n"
+    )
+    pid: int | None = None
+    with (tmp_path / "controller.log").open("w") as log:
+        controller = subprocess.Popen(
+            [sys.executable, "-c", driver, _FIFO_WRITER, str(fifo), str(tmp_path)],
+            stdout=log,
+            stderr=subprocess.STDOUT,
+            start_new_session=True,
+        )
+        try:
+            assert select.select([reader], [], [], 10)[0], "child never started"
+            ready = os.read(reader, 64)
+            assert ready, "cancellation must happen after the child starts"
+            pid = int(ready)
+            os.killpg(controller.pid, cancel_signal)
+            returncode = controller.wait(timeout=5)
+            assert select.select([reader], [], [], 2)[0], "child survived controller cancellation"
+            assert os.read(reader, 1) == b""
+            pid = None
+            assert returncode == expected_exit
+            assert "child started" in (tmp_path / "cancelled.log").read_text()
+        finally:
+            os.close(reader)
+            if controller.poll() is None:
+                with suppress(ProcessLookupError):
+                    os.killpg(controller.pid, signal.SIGKILL)
+            controller.wait(timeout=5)
+            if pid is not None:
+                with suppress(ProcessLookupError):
+                    os.killpg(pid, signal.SIGKILL)
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX termination signal policy")
+@pytest.mark.parametrize("cancel_signal", [signal.SIGINT, signal.SIGTERM])
+def test_cancellation_during_process_creation_cleans_up(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, cancel_signal: signal.Signals
+) -> None:
+    # Inject the signal after a real fork but before Popen returns to run_step.
+    # The runner must register cleanup before propagating that cancellation.
+    original_popen = subprocess.Popen
+    child: subprocess.Popen[str] | None = None
+
+    def interrupted_start(
+        command: Sequence[str],
+        *,
+        cwd: Path,
+        stdout: TextIO,
+        stderr: int,
+        text: bool,
+        start_new_session: bool,
+    ) -> subprocess.Popen[str]:
+        nonlocal child
+        child = original_popen(
+            command,
+            cwd=cwd,
+            stdout=stdout,
+            stderr=stderr,
+            text=text,
+            start_new_session=start_new_session,
+        )
+        signal.raise_signal(cancel_signal)
+        return child
+
+    default = signal.default_int_handler if cancel_signal == signal.SIGINT else signal.SIG_DFL
+    previous = signal.signal(cancel_signal, default)
+    monkeypatch.setattr("tools.check.subprocess.Popen", interrupted_start)
+    try:
+        expected = KeyboardInterrupt if cancel_signal == signal.SIGINT else SystemExit
+        with pytest.raises(expected):
+            run_step(
+                "startup-cancel", [sys.executable, "-c", "import time; time.sleep(10)"], tmp_path
+            )
+        assert child is not None
+        assert child.poll() is not None, "child survived cancellation during Popen construction"
+        assert signal.getsignal(cancel_signal) == default
+    finally:
+        signal.signal(cancel_signal, previous)
+        if child is not None:
+            child.kill()
+            child.wait(timeout=5)
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX termination signal policy")
+def test_interrupt_during_timeout_cleanup_does_not_abandon_child(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    original_wait = subprocess.Popen.wait
+    original_killpg = os.killpg
+    child: subprocess.Popen[str] | None = None
+
+    def remember_child(process: subprocess.Popen[str], timeout: float | None = None) -> int:
+        nonlocal child
+        child = process
+        return original_wait(process, timeout=timeout)
+
+    def interrupt_cleanup(pgid: int, sig: int) -> None:
+        signal.raise_signal(signal.SIGINT)
+        original_killpg(pgid, sig)
+
+    previous = signal.signal(signal.SIGINT, signal.default_int_handler)
+    monkeypatch.setattr(subprocess.Popen, "wait", remember_child)
+    monkeypatch.setattr(os, "killpg", interrupt_cleanup)
+    try:
+        with pytest.raises((RuntimeError, KeyboardInterrupt)) as caught:
+            run_step(
+                "timeout-cancel",
+                [sys.executable, "-c", "import time; time.sleep(10)"],
+                tmp_path,
+                timeout=0.05,
+            )
+        assert child is not None
+        assert child.poll() is not None, "interrupt abandoned timeout cleanup"
+        assert isinstance(caught.value, RuntimeError)
+        assert "timed out" in (tmp_path / "timeout-cancel.log").read_text()
+    finally:
+        signal.signal(signal.SIGINT, previous)
+        if child is not None:
+            child.kill()
+            child.wait(timeout=5)
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX termination signal policy")
+@pytest.mark.parametrize("previous", [signal.SIG_DFL, signal.SIG_IGN])
+def test_step_restores_termination_handler(tmp_path: Path, previous: signal.Handlers) -> None:
+    original = signal.signal(signal.SIGTERM, previous)
+    try:
+        run_step("handler-restore", [sys.executable, "-c", "pass"], tmp_path, timeout=5)
+        assert signal.getsignal(signal.SIGTERM) == previous
+    finally:
+        signal.signal(signal.SIGTERM, original)
 
 
 @pytest.mark.parametrize("covered,total,passed", [(80, 100, True), (79, 100, False), (0, 0, False)])

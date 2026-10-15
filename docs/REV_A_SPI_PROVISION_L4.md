@@ -259,8 +259,8 @@ this historical list is not a claim of assembled access or qualification.
 The sole Q1 packet remains a dated snapshot, with later deltas carried separately.
 
 The five-site source implementation is complete. The current follow-through is
-the [fitted proposal's migration conditions](REV_A_FITTED_PILOT_BUILD.md#5-the-next-bounded-action-and-who-can-close-it),
-starting with Q04 capacitor disposition. L3's restricted pilot and possible later
+the [fitted proposal's migration conditions](REV_A_FITTED_PILOT_BUILD.md#6-the-next-bounded-action-and-who-can-close-it),
+starting with Q03/process responses after the conditional Q04 disposition. L3's restricted pilot and possible later
 external-input revision remain explicit. Series pads alone do not close component,
 stack/process, physical channel acceptance or first-power approval. No price
 research or supplier contact occurs in this slice.

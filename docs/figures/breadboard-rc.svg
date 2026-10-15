@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="760" viewBox="0 0 1000 760" role="img" aria-labelledby="title desc">
+  <title id="title">Slow capacitor exercise: charge layout and separate discharge step</title>
+  <desc id="desc">Retain the disconnected two-AA holder at a5 and a20 and the 1 kilohm guard from b5 to b10. Replace the divider with 100 kilohms from d10 to d15. Put the capacitor positive lead in c15 and its marked negative lead in c17 for 5.08 millimetre pitch, or c16 for 2.54 millimetre pitch. Join that negative lead's row to G with a jumper, for example b17 to b20. The meter remains red at e15, black at e20. Before each run, disconnect the holder and discharge OUT to G through a separate 10 kilohm resistor to below 0.1 volts. Remove that discharge resistor before charging. Nominal tau is about ten seconds with a ten megohm meter.</desc>
+  <style>
+    text {font-family:system-ui,sans-serif;fill:#172b3a;font-size:19px}
+    .small {font-size:16px;fill:#465b69}
+    .title {font-size:27px;font-weight:600}
+    .label {font-weight:600}
+    .wire {fill:none;stroke:#304d5c;stroke-width:4;stroke-linejoin:round}
+    .positive {stroke:#b64034}
+    .negative {stroke:#243b4a}
+    .resistor {fill:#fff1ce;stroke:#71572b;stroke-width:2}
+    .strip {fill:#dce7ea}
+    .hole {fill:#fff;stroke:#8da1ac;stroke-width:2}
+  </style>
+  <rect width="1000" height="760" fill="#fff"/>
+  <text class="title" x="32" y="45">2 · Watch a slow capacitor charge</text>
+  <text class="small" x="32" y="77">Example a–e layout · selected rows only · spacing enlarged for clarity · power rails unused</text>
+  <rect x="205" y="110" width="310" height="435" rx="16" fill="#f3f6f7" stroke="#b7c6ce"/>
+  <text class="small" x="250" y="140">a</text><text class="small" x="300" y="140">b</text>
+  <text class="small" x="350" y="140">c</text><text class="small" x="400" y="140">d</text><text class="small" x="450" y="140">e</text>
+  <g class="strip">
+    <rect x="235" y="163" width="240" height="24" rx="12"/>
+    <rect x="235" y="263" width="240" height="24" rx="12"/>
+    <rect x="235" y="363" width="240" height="24" rx="12"/>
+    <rect x="235" y="433" width="240" height="24" rx="12"/>
+    <rect x="235" y="503" width="240" height="24" rx="12"/>
+  </g>
+  <g class="hole">
+    <circle cx="255" cy="175" r="6"/><circle cx="305" cy="175" r="6"/><circle cx="355" cy="175" r="6"/><circle cx="405" cy="175" r="6"/><circle cx="455" cy="175" r="6"/>
+    <circle cx="255" cy="275" r="6"/><circle cx="305" cy="275" r="6"/><circle cx="355" cy="275" r="6"/><circle cx="405" cy="275" r="6"/><circle cx="455" cy="275" r="6"/>
+    <circle cx="255" cy="375" r="6"/><circle cx="305" cy="375" r="6"/><circle cx="355" cy="375" r="6"/><circle cx="405" cy="375" r="6"/><circle cx="455" cy="375" r="6"/>
+    <circle cx="255" cy="445" r="6"/><circle cx="305" cy="445" r="6"/><circle cx="355" cy="445" r="6"/><circle cx="405" cy="445" r="6"/><circle cx="455" cy="445" r="6"/>
+    <circle cx="255" cy="515" r="6"/><circle cx="305" cy="515" r="6"/><circle cx="355" cy="515" r="6"/><circle cx="405" cy="515" r="6"/><circle cx="455" cy="515" r="6"/>
+  </g>
+  <g class="label">
+    <text x="155" y="181">5 B+</text><text x="151" y="281">10 P</text>
+    <text x="123" y="381">15 OUT</text><text x="161" y="451">17</text><text x="151" y="521">20 G</text>
+  </g>
+  <path class="wire" d="M305 175V275 M405 275V375"/>
+  <rect class="resistor" x="293" y="201" width="24" height="48" rx="4"/>
+  <rect class="resistor" x="393" y="301" width="24" height="48" rx="4"/>
+  <text x="328" y="231">1 kΩ guard</text><text x="265" y="331">100 kΩ</text>
+  <path class="wire negative" d="M305 445V515"/>
+  <text class="small" x="325" y="490">jumper</text>
+  <path class="wire" d="M355 375V397 M355 423V445"/>
+  <rect x="334" y="395" width="42" height="30" rx="5" fill="#2b6572"/>
+  <rect x="334" y="417" width="42" height="8" fill="#dce7ea"/>
+  <text x="380" y="405">+ 100 µF</text><text class="small" x="380" y="433">− stripe</text>
+  <rect x="32" y="235" width="94" height="125" rx="10" fill="#eef2f3" stroke="#8da1ac"/>
+  <text class="label" x="48" y="275">2 × AA</text>
+  <text class="small" x="49" y="304">holder</text><text class="small" x="43" y="333">switched</text>
+  <path class="wire positive" d="M60 235V155H255V175"/>
+  <path class="wire negative" d="M60 360V540H255V515"/>
+  <text x="42" y="210">+</text><text x="40" y="395">−</text>
+  <path class="wire positive" d="M455 375H570V175H625"/>
+  <path class="wire negative" d="M455 515H595V215H625"/>
+  <text class="label" x="640" y="181">Meter red: V / Ω</text>
+  <text class="label" x="640" y="221">Meter black: COM</text>
+  <text class="small" x="640" y="254">Select DC volts. Keep both attached.</text>
+  <text class="label" x="640" y="305">Capacitor mounting</text>
+  <text class="small" x="640" y="336">Positive → c15 / OUT</text>
+  <text class="small" x="640" y="363">Marked negative → c17 (5.08 mm)</text>
+  <text class="small" x="640" y="390">For 2.54 mm leads: use c16,</text>
+  <text class="small" x="640" y="414">and move jumper start to b16.</text>
+  <text class="small" x="640" y="451">Read the part's polarity markings.</text>
+  <text class="small" x="640" y="475">Do not identify polarity by length alone.</text>
+  <path d="M32 575H968" stroke="#b7c6ce"/>
+  <text class="label" x="32" y="610">Before EVERY run: disconnect holder → discharge → remove discharge resistor</text>
+  <path class="wire" d="M65 660H120 M190 660H245"/>
+  <rect class="resistor" x="120" y="648" width="70" height="24" rx="4"/>
+  <text class="small" x="32" y="696">OUT / row 15</text><text class="small" x="124" y="633">10 kΩ</text><text class="small" x="218" y="696">G / row 20</text>
+  <text x="360" y="651">Wait until meter reads below 0.1 V.</text>
+  <text class="small" x="360" y="680">Remove this resistor before charging; record starting V0.</text>
+  <text class="small" x="32" y="735">Nominal prediction: τ ≈ 10 s; plateau ≈ 0.990 × Vs with a 10 MΩ meter. Discharge again after use.</text>
+</svg>

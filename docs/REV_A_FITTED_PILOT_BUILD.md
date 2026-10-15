@@ -96,11 +96,10 @@ two T491 parts, including all original node-specific companions. D1-D8 remain
 DNP. No alternative part family or larger capacitance is selected here.
 
 **Do not apply the 26 substitutions yet.** Q1 Q03 still requires acceptance of
-actual lands/paste/mask/process; Q04 still requires explicit C8-C10 internal-node
-and effective-capacitance/impedance disposition, separately from local LDO and
-reference roles. Typical curves, rated voltage and body clearance do not close
-these conditions. A limited-pilot decision must identify the actual uncertain
-node and consequence; the label INTERNAL-TEST-ONLY does not waive them.
+actual lands/paste/mask/process. The 2026-10-15 Q04 follow-through in the capacitor
+disposition records node-specific pilot risks and remaining startup-critical
+conditions. It retains the candidates without establishing joint minimum C,
+impedance or transient bounds. The label INTERNAL-TEST-ONLY waives no condition.
 
 ## 3. Construction and assembly choices carried into the proposed build
 
@@ -152,12 +151,38 @@ silently send old CAD with this new fit. An eventual authorized quotation update
 must identify the current source and these deltas explicitly in the same packet;
 no recipient, message, order or current stock/price claim is created here.
 
-## 5. The next bounded action and who can close it
+## 5. Assembly ownership decision, 2026-10-15
 
-The next engineering slice is **Q04's node-specific capacitor disposition**:
-use the existing shortlist/evidence to resolve internal C8-C10, local LDO and
-reference requirements, stating accepted limited-pilot uncertainty or the exact
-rejection. Do not start another family search or repeat nominal geometry studies.
+The user has no equipment at the current house. **Plan to outsource both PCB
+assemblies, their through-hole/tail work and the C4 crimps to a capable assembler.**
+Do not make purchase of a reflow oven, microscope, WSON soldering tools or a
+specialized crimper a prerequisite for their first breadboard exercise. This is
+a make/buy planning decision; no assembler is selected or contacted.
+
+Retain the actual copper lands for the feasibility review. Do not enlarge all
+0603 footprints speculatively. The assembler must answer Q03 with the actual
+22-site KEMET deviation, 19 Murata sites, paste/mask/placement/reflow assumptions
+and mounted envelope. If rejected, change only the affected footprints in the
+coordinated revision and re-run native geometry/return checks. A nominal fit or
+green DRC is not an assembly-process answer.
+
+| Work package | Selected planning owner / next physical check |
+|---|---|
+| PCB SMT, then approved TH/tail process | Assembler: inspect polarity and orientation, T491 joints, WSON exposed-pad process and HTSW/XH finished-hole compatibility. Propose inspection coverage and report exclusions; no populated-board power/programming is included |
+| K1/B1 cable work and C4 crimp assembly | Harness assembler: retain pre-join contact mapping, specified exact contacts/tooling, insulation and independent strain relief. Detached continuity uses the existing B1/C4 acceptance plans and an identified instrument |
+| K2 and AUX/module supports | Mechanical supplier: quote the current complete source assembly and actual material/tolerances. User later performs documented unpowered fit inspection after fabrication approval; no printer purchase assumed |
+| User's first electronics learning | Standalone AA-powered passive breadboard and DMM checks in BREADBOARD_FIRST_STEPS.md; no Rev A connection or fabrication needed |
+
+The build handoff must supply one coherent final revision, placement/population
+identities, process answers and inspection scope. Current mixed-stage Q1 is for
+quotation only. Neither outsourced labour nor this ownership choice closes Q03,
+Q05-Q07, or the possible replacement-board/access decision in L6.
+
+## 6. The next bounded action and who can close it
+
+The node-specific **Q04 design disposition is recorded**, with its remaining
+startup-critical conditions. Do not repeat that review or present it as measured
+acceptance. The next dependency is the actual manufacturing/process response.
 Q03/Q05/Q06/Q07 need the relevant process/assembly evidence and remain open.
 Q01 needs the actual job stack/DFM drawing; Q02/Q10 need sourcing/delivered scope.
 Supplier contact remains paused until explicitly authorized.
