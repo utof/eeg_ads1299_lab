@@ -1,0 +1,112 @@
+name: PR101 CAD runtime comparison
+on:
+  push:
+    branches: [workbench/pr101-cad-runtime-20261015]
+    paths: [.github/workflows/pr101-cad-runtime.yml]
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    container: debian:trixie@sha256:9cc080028c43b27d2074d63a5f9caf7166d731494965616c1a6d2827a004585c
+    timeout-minutes: 25
+    env:
+      UV_PYTHON_DOWNLOADS: never
+      KICAD9_FOOTPRINT_DIR: /usr/share/kicad/footprints
+    steps:
+      - name: Install the existing pinned native CAD environment
+        run: |
+          apt-get update -qq
+          apt-get install --yes --no-install-recommends ca-certificates git g++ python3 python3-pip python3-venv kicad=9.0.2+dfsg-1 kicad-symbols=9.0.2-1 kicad-footprints=9.0.2-1 > /tmp/cad-install.log 2>&1 || { tail -60 /tmp/cad-install.log; exit 1; }
+          python3 -m pip install --break-system-packages uv==0.12.18
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 316ae0d4305c05f96cdf3c1bd793ace2bfbc057c
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Record exact source and comparison environment
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          uv sync --locked --all-extras
+          mkdir -p reports/cad-runtime
+          git rev-parse HEAD HEAD^{tree} > reports/cad-runtime/identity.txt
+          test "$(git rev-parse HEAD)" = 316ae0d4305c05f96cdf3c1bd793ace2bfbc057c
+          test "$(git rev-parse HEAD^{tree})" = 3dfc9799d209e3f2ec546f9981854682ab242ee2
+          kicad-cli version > reports/cad-runtime/kicad-version.txt
+          cat /proc/cpuinfo > reports/cad-runtime/cpu.txt
+          cat /proc/meminfo > reports/cad-runtime/memory.txt
+          uv run --locked --with pytest-xdist==3.8.0 --with execnet==2.1.2 python -c 'import importlib.metadata as m; print({p: m.version(p) for p in ("pytest", "pytest-xdist", "execnet")}); assert m.version("pytest") == "9.0.2"' > reports/cad-runtime/versions.txt
+          timeout 90s uv run --locked python -m pytest --collect-only -q -m schematic > reports/cad-runtime/collection.txt 2>&1
+      - name: Execute serial baseline with unchanged 450 second deadline
+        run: |
+          set +e
+          start=$(date +%s)
+          timeout --kill-after=10s 450s uv run --locked python -m pytest -v --tb=short -m schematic --junitxml=reports/cad-runtime/serial.xml --basetemp=reports/cad-runtime/serial-tests > reports/cad-runtime/serial.log 2>&1
+          result=$?
+          printf '%s\n' "$result" > reports/cad-runtime/serial-exit.txt
+          printf '%s\n' "$(($(date +%s) - start))" > reports/cad-runtime/serial-seconds.txt
+          tail -12 reports/cad-runtime/serial.log
+          exit 0
+      - name: Execute identical selection in two workers with unchanged deadline
+        run: |
+          set +e
+          start=$(date +%s)
+          timeout --kill-after=10s 450s uv run --locked --with pytest-xdist==3.8.0 --with execnet==2.1.2 python -m pytest -v --tb=short -m schematic -n 2 --dist loadfile --max-worker-restart=0 --junitxml=reports/cad-runtime/parallel.xml --basetemp=reports/cad-runtime/parallel-tests > reports/cad-runtime/parallel.log 2>&1
+          result=$?
+          printf '%s\n' "$result" > reports/cad-runtime/parallel-exit.txt
+          printf '%s\n' "$(($(date +%s) - start))" > reports/cad-runtime/parallel-seconds.txt
+          tail -12 reports/cad-runtime/parallel.log
+          exit "$result"
+      - name: Check complete inventory and failure propagation
+        run: |
+          uv run --locked python - <<'PY'
+          from collections import Counter
+          from pathlib import Path
+          import json
+          import xml.etree.ElementTree as ET
+          p = Path("reports/cad-runtime")
+          expected = Counter()
+          for line in (p / "collection.txt").read_text().splitlines():
+              if line.startswith("tests/") and "::" in line:
+                  filename, name = line.split("::", 1)
+                  expected[(filename[:-3].replace("/", "."), name)] += 1
+          assert sum(expected.values()) == 310, expected
+          outcomes = {}
+          for mode in ("serial", "parallel"):
+              code = int((p / f"{mode}-exit.txt").read_text())
+              outcomes[mode] = {"exit": code, "seconds": int((p / f"{mode}-seconds.txt").read_text())}
+              if code != 0:
+                  assert mode == "serial", outcomes
+                  continue
+              cases = list(ET.parse(p / f"{mode}.xml").iter("testcase"))
+              actual = Counter((c.attrib["classname"], c.attrib["name"]) for c in cases)
+              assert actual == expected, (mode, expected - actual, actual - expected)
+              assert all(not list(c) for c in cases), "nonpassing test outcome"
+              outcomes[mode]["executed_cases"] = len(cases)
+          workers = sorted(x.name for x in (p / "parallel-tests").glob("popen-gw*"))
+          assert workers == ["popen-gw0", "popen-gw1"], workers
+          (p / "comparison.json").write_text(json.dumps({"runs": outcomes, "workers": workers}, indent=2) + "\n")
+          print((p / "comparison.json").read_text())
+          (p / "test_fail_probe.py").write_text("def test_intentional_failure():\n    assert False, 'intentional diagnostic failure'\n")
+          (p / "test_crash_probe.py").write_text("import os\ndef test_intentional_crash():\n    os._exit(7)\n")
+          PY
+          for probe in fail crash; do
+            set +e
+            timeout --kill-after=5s 60s uv run --locked --with pytest-xdist==3.8.0 --with execnet==2.1.2 python -m pytest -q -n 2 --dist loadfile --max-worker-restart=0 "reports/cad-runtime/test_${probe}_probe.py" --basetemp="reports/cad-runtime/${probe}-tests" --junitxml="reports/cad-runtime/${probe}.xml" > "reports/cad-runtime/${probe}.log" 2>&1
+            result=$?
+            set -e
+            printf '%s\n' "$result" > "reports/cad-runtime/${probe}-exit.txt"
+            test "$result" -eq 1
+          done
+      - name: Verify engineering source unchanged
+        if: always()
+        run: |
+          git diff --exit-code
+          test -z "$(git ls-files --others --exclude-standard)"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: pr101-cad-runtime-comparison
+          path: reports/cad-runtime/
+          retention-days: 14
+          if-no-files-found: error
