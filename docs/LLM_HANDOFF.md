@@ -1,4 +1,4 @@
-# Continue from PR101: CAD runtime repair and visual breadboard preparation
+# Continue with the standalone breadboard measurement
 
 Read root `AGENTS.md`, `REPOSITORY_PUBLICATION.md`, `DEVELOPMENT.md` and
 `REV_A_BENCH_FIRST.md`. Read live main, open PRs and original review threads.
@@ -6,7 +6,39 @@ Use the [hosted capability preflight](REPOSITORY_PUBLICATION.md#hosted-capabilit
 Local tool absence does not disable connected publication or hosted execution;
 explicit denials must not be bypassed.
 
-## Shipping-window continuation, 2026-10-15
+## Current accepted source and meter follow-up, 2026-10-15
+
+PR101 is merged. Live main was read back at
+`9d2fc299a348fd5b9c011f9493feab9d21f04658`, tree
+`fa56722c1868d3624220a256450e717c40e13d2c`, identical to accepted head
+`79606a49595077593f3e5fb49f379aaef8351839`. Its merge commit preserves full
+verification/review receipts and artifact hashes. All five jobs passed:
+Quality 38679107604 (1,411 cases plus 14 subtests on both Python versions,
+86.954% branch coverage, 190 native cases), Schematic 38679107597
+(49 harness-console and 310 CAD cases, 250.896 s), and actual S3 target
+Firmware 38679107616. Hosted review 6184143883 found no major issues; all five
+original threads were resolved. Do not repeat this completed acceptance work.
+
+The user checkout was fast-forwarded cleanly and its locked environment/hooks
+refreshed. The local full gate still reaches its unchanged 300 s ordinary-test
+limit under concurrent host load; the failed two-worker ordinary trial was not
+adopted. Complete hosted results are distinct from this local limitation.
+
+This small documentation follow-up adds a checked UT139C manual-range example
+to the existing breadboard guide, including its selected-range accuracy, lead
+sockets and separate meter batteries. It is not the user's confirmed equipment.
+The actual model/manual still needs checking on receipt; the manufacturer's
+current PDF endpoint was unavailable, so the guide names and hashes the
+manufacturer-authored distributor copy inspected. No new worksheet or code.
+
+**Next bounded step:** receive the standalone kit, identify the actual meter,
+and record the divider readings in `BREADBOARD_FIRST_STEPS.md`. Rev A still
+needs the actual Q03 land/process answer and applicable manufacturing decisions
+before coordinated BOM/CAD migration. Q1 is unsent; recipient/contact
+authorization is absent. No fabrication, power or body-use gate changed.
+
+## Shipping-window background accepted by PR101, 2026-10-15
+
 
 The user authorized further bounded improvements while parts ship, with a
 five-hour working window and a preference for visual results. This continuation
@@ -55,13 +87,9 @@ It was not adopted: ordinary/native execution remains serial, with all tests
 and deadlines intact. Profiling did not establish a small validator correction
 that would resolve the whole timeout; no speculative validator cache was added.
 
-**Next bounded step:** if PR101 is still open, finish its exact-head
-verification/review and guarded merge. If it is already merged, do not repeat
-that completed work. After source acceptance, the independent practical
-step is the breadboard meter/first readings. Rev A migration still requires the
-actual Q03 land/process answer and applicable manufacturing decisions. The sole
-Q1 packet remains unsent; no recipient/contact authorization has been supplied.
-Do not invent a supplier response or reopen the completed paper probe study.
+The acceptance/merge step above supersedes this continuation's former open-PR
+instruction. Preserve the recorded failures and corrections; continue from the
+current physical dependency rather than reopening the completed paper probe study.
 
 ## Four-step continuation, 2026-10-15
 
