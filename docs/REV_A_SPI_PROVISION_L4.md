@@ -9,6 +9,12 @@ basis, not instructions to repeat that implementation. Section3a now selects
 the disposition of the remaining channels. This is a pilot design decision,
 not an electrical pass or fabrication/first-power release.
 
+**Later fitted proposal:** [the consolidated build decision](REV_A_FITTED_PILOT_BUILD.md)
+selects33ohm RC0603FR-0733RL as an initial fit at all five sites, conditional on
+the coordinated migration and its release conditions. Active source remains
+OPEN_DNP/NOT_SELECTED. Earlier statements below about no selected value describe
+the L4/L6 decisions; they do not supersede that later proposal.
+
 **Decision: include five accessible series-component positions in the next
 custom-board revision, rather than accepting cut-and-flywire rework as the SPI
 fallback.** Four are at U102 outputs on AUX, one at U1 DOUT on AFE. This is the
@@ -210,9 +216,9 @@ The five L5 sites still need a coherent fitted-value/MPN decision; OPEN paths
 cannot deliver the proposed capture. No resistance, including zero ohms, is
 selected here. Firmware/release gates, BOM, copper, K1 returns and C1 isolation
 remain unchanged. External-input performance and body use remain outside this
-pilot. **Next: the consolidated fitted-build decision**, including five SPI fits,
-capacitor migration, stack/connector/assembly disposition and these explicit
-revision/access conditions, while keeping the sole frozen Q1 packet intact.
+pilot. The [later fitted-build proposal](REV_A_FITTED_PILOT_BUILD.md) now carries
+the five SPI fits, capacitor migration, stack/connector/assembly choices and
+these revision/access conditions. It keeps the sole frozen Q1 packet intact.
 
 Source inspection for L6 used current auxiliary pin contracts, both frozen
 native netlists, `c2_interlock.h`, `rev_a_startup.h` and the sketch's call sites,
@@ -252,8 +258,9 @@ Their delivered scope and remaining physical limits are recorded in the handoff;
 this historical list is not a claim of assembled access or qualification.
 The sole Q1 packet remains a dated snapshot, with later deltas carried separately.
 
-The current next source task is **the consolidated fitted-build decision in
-section3a**, not adding the five sites. L3's restricted pilot and possible later
+The five-site source implementation is complete. The current follow-through is
+the [fitted proposal's migration conditions](REV_A_FITTED_PILOT_BUILD.md#5-the-next-bounded-action-and-who-can-close-it),
+starting with Q04 capacitor disposition. L3's restricted pilot and possible later
 external-input revision remain explicit. Series pads alone do not close component,
 stack/process, physical channel acceptance or first-power approval. No price
 research or supplier contact occurs in this slice.
