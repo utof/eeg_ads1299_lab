@@ -26,7 +26,10 @@ failed job log was inspected; this is not a new accepted main CAD run. Do not
 substitute PR99's pass for it. A new local pre-change ordinary run for the fitted
 proposal also hit300s; retain `reports/fitted-build-before/` in the attached
 internal-filesystem worktree. Do not weaken deadlines or characterize either
-timeout as physical evidence or an observed component defect.
+timeout as physical evidence or an observed component defect. The post-change
+ordinary run at `0c48845884508faa05f1d1b21985407b8469854f` also reached300s;
+its evidence is in `reports/fitted-build-after/`. Fresh hosted results must bind
+to the actual final proposal head; neither local timeout is a pass.
 
 The PR98 state and setup receipts below are historical, not instructions to
 repeat their completed repairs. The current fitted proposal is described below.
@@ -199,7 +202,8 @@ S2-S4 distinguish OPEN_DNP/NOT_SELECTED from conditional fitted receiver-wavefor
 examples. R114 remains receiver-side; logical MOD1.GPIO13 remains downstream of
 R24. Keep unknown current/voltage bounds and qualification=false. Preserve real
 input history throughbcff4880, including S1 input6e4a207e and S2 input7bc15dcb.
-No resistance, including zero ohms, is selected; all five positions remain open.
+All five active positions remain OPEN_DNP/NOT_SELECTED; the later fitted
+proposal selects33ohm for coordinated migration. No active fit is implied.
 
 Retain all39 prior terminal cuts,15 SPI cut/short cases,15 bypass corridors and
 reference/domain/mounting controls. MISO/MISO_DRV retain combined whole-channel
