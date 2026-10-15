@@ -1,10 +1,53 @@
-# Continue with manufacturing responses; the first breadboard kit is ready
+# Continue from PR101: CAD runtime repair and visual breadboard preparation
 
 Read root `AGENTS.md`, `REPOSITORY_PUBLICATION.md`, `DEVELOPMENT.md` and
 `REV_A_BENCH_FIRST.md`. Read live main, open PRs and original review threads.
 Use the [hosted capability preflight](REPOSITORY_PUBLICATION.md#hosted-capability-preflight).
 Local tool absence does not disable connected publication or hosted execution;
 explicit denials must not be bypassed.
+
+## Shipping-window continuation, 2026-10-15
+
+The user authorized further bounded improvements while parts ship, with a
+five-hour working window and a preference for visual results. This continuation
+started from clean PR101 head `316ae0d4305c05f96cdf3c1bd793ace2bfbc057c`, tree
+`3dfc9799d209e3f2ec546f9981854682ab242ee2`; main was still `e666fc0921197a857f1ea5c551d464ceb14358cb`.
+Keep PR34/40's do-not-merge experiments untouched. Read live PR101 state before
+continuing; the previous four preparation steps are published there, not yet
+established as main by this note.
+
+The demonstrated blocker was repeated450s CAD timeouts. The same-source hosted
+comparison in `DEVELOPMENT.md` timed out serially, but executed the identical310
+cases in251.031s with two pytest-xdist workers. The change uses that existing
+library's file scheduling, isolated temporary directories and failure reporting.
+No fault selection, deadline or71%branch floor was weakened. A separate local
+failure probe demonstrated orphaned workers after a controller timeout; the
+existing runner now terminates its POSIX process group. The lockfile is included
+in the CAD source snapshot, with a focused changed-lock regression. Complete
+final-head CI/review remains required; this comparison is diagnostic evidence.
+
+`BREADBOARD_FIRST_STEPS.md` now has explicit row layouts, a polarity/discharge
+diagram, a labelled nominal charge curve and its single in-place measurement
+record. These prepare the two-AA exercise; no Rev A board connection is implied.
+The existing localhost capture rehearsal also ran:2248 accepted synthetic
+samples, two intentional omissions detected, one uninterrupted four-second
+spectrum window,10Hz peaks on all four channels. Capture implementation was
+unchanged from316ae0d; the record is software transport evidence, not measured
+ADC data. No new capture subsystem or hardware guard change was needed.
+
+The ordinary local pre-change gate at316ae0d again exceeded300s; it remains a
+failure (`reports/cad-runtime-before/`). New focused runner and snapshot tests
+were observed failing before correction. See PR101 for the current exact-head
+full checks and review; do not borrow its earlier four passing jobs as acceptance
+of the new execution behavior.
+
+**Next bounded step:** if PR101 is still open, finish its exact-head
+verification/review and guarded merge. If it is already merged, do not repeat
+that completed work. After source acceptance, the independent practical
+step is the breadboard meter/first readings. Rev A migration still requires the
+actual Q03 land/process answer and applicable manufacturing decisions. The sole
+Q1 packet remains unsent; no recipient/contact authorization has been supplied.
+Do not invent a supplier response or reopen the completed paper probe study.
 
 ## Four-step continuation, 2026-10-15
 

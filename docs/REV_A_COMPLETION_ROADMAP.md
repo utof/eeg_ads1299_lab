@@ -1,4 +1,4 @@
-# Rev A roadmap - breadboard kit ready; manufacturing responses block migration
+# Rev A roadmap - visual breadboard guide and bounded CAD runtime repair
 
 Checked 2026-10-15: this continuation started from clean live main PR100 merge
 `e666fc0921197a857f1ea5c551d464ceb14358cb`, tree
@@ -10,7 +10,7 @@ Do not repeat recovery, integration, supply, reference or nominal K2 repairs.
 
 | Category | Estimated remaining substantial chat turns | Done/status | Next slice or blocker |
 |---|---:|---|---|
-| Local development setup | 0 installation; runtime unresolved | Locked environment/native packages installed | Retain300s/450s deadlines; hosted route available |
+| Local development setup / CAD runtime | 0 installation; 0-1 acceptance turn | Two-worker comparison passed310 cases in251.031s; serial timed out450s; timeout cleanup repaired | Check PR101's current acceptance/merge state; local ordinary timeout remains recorded |
 | SPI provisions, reference/supply repairs, K2 nominal review | 0 for source/design work | PR98 merged; physical access/fit unqualified | Actual fitting/tool/joint inspection later |
 | Remaining digital channels | 0 for paper choice | PR99 L6 retained paths with reviewed revision fallback | Before-fabrication access/revision-risk acceptance; interlock evidence before ADC enable |
 | Proposed fitted components/stack | 0 for selection | PR100 selects five33ohm parts, capacitor shortlist, common stack target | Active source still OPEN_DNP/legacy caps |
@@ -18,7 +18,8 @@ Do not repeat recovery, integration, supply, reference or nominal K2 repairs.
 | Assembly ownership | 0 for make/buy choice | Outsource boards/TH/tails/crimps; no specialist tool purchase assumed | Actual supplier/process/hole/fixture responses |
 | Coordinated BOM/CAD migration | 1-2 after conditions are disposed | NOT performed | Q03 land/process answer and applicable manufacturing decisions; preserve one coherent update |
 | Fabrication/purchase release | 1 after prerequisites | Not released | Accepted revision, exact-part supply, restricted purpose and delivered quote |
-| Standalone breadboard learning | 0 planning; 1 optional measurement follow-up | Kit, divider and slow-RC guide ready; user currently owns no equipment here | Buy/borrow listed basics, identify meter and record first readings |
+| Standalone breadboard learning | 0 planning; 1 optional measurement follow-up | Kit, row layouts, polarity/discharge diagram and nominal charge curve ready | Receive the kit, identify meter and record first readings |
+| Laptop capture rehearsal | 0 for this rehearsal | Existing real localhost path:2248 synthetic samples, two intended gaps detected,10Hz peaks on four channels | Actual ADC capture waits for assembled-board commissioning |
 | Rev A startup/internal capture | 1-2 planning turns plus assembly/measurements | B1-B3 plans exist; B2 equipment gap explicit; firmware gate false | Actual source/probes, numeric commissioning limits and prior interlock evidence |
 | External-input characterization | Later, measurement-dependent | Unqualified; revision may be needed | Existing E1 requirements |
 | Body-connected use | Outside this pilot | Not approved | Separately scoped hardware/safety engineering |
@@ -36,10 +37,12 @@ responses, delivery/manufacturing, user decisions and physical measurements are
 excluded. No date promise or percentage of safety is implied. Another planning
 turn alone cannot create supplier acceptance or measured results.
 
-Four preparation steps in this continuation: node-specific Q04 disposition;
+Four earlier preparation steps: node-specific Q04 disposition;
 outsourced assembly ownership; the first breadboard kit/experiments; and current
 Q1/B2 reconciliation. No BOM/CAD migration, new production code, framework,
-physical measurement or supplier message occurred. All existing Rev A gates
+physical measurement or supplier message occurred in those steps. The shipping
+continuation adds a bounded CAD execution repair, three breadboard figures and
+an existing-tool capture rehearsal. All existing Rev A gates
 remain closed, and a software check is not hardware qualification.
 
 Keep the full ordinary/native/CAD/firmware selections and71%branch floor.

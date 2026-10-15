@@ -165,7 +165,9 @@ existing `run_step` now uses standard-library `Popen(start_new_session=True)` on
 POSIX, kills that process group on timeout, and waits for its direct child.
 Its file-backed partial log and failed status are retained. The FIFO regression
 first failed because a grandchild retained its open handle, then passed with
-group cleanup. These APIs are available in the supported Python3.11/3.13
+group cleanup. Repeating the actual xdist probe with an8s deadline found both
+the worker and its Python child absent2s after the timeout. These APIs are
+available in the supported Python3.11/3.13
 [subprocess contract](https://docs.python.org/3.13/library/subprocess.html) and
 [POSIX process-group API](https://docs.python.org/3.13/library/os.html#os.killpg).
 This covers descendants that remain in the group; it is not containment of

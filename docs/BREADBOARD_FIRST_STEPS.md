@@ -55,6 +55,16 @@ holder before rewiring; keep the two cells out until the first circuit is checke
 
 ## Exercise 1: predict and measure a voltage divider
 
+![Example divider layout with the three resistors and meter contacts on four separate breadboard rows.](figures/breadboard-divider.svg)
+
+The drawing uses the **a–e half** of rows5,10,15,20 as B+,P,OUT,G. Only those
+rows are drawn; the intervening rows still exist on your board. Verify each
+five-hole strip and its separation from the other rows before using this example.
+The opposite half and power rails are unused. Connect holder+ to a5, holder− to
+a20, the guard from b5 to b10, the top10kohm from d10 to d15 and the bottom10kohm
+from b15 to b20. Meter contacts go to e15 and e20 using suitable jumper pins and
+insulated grabbers. Do not insert oversized probes directly into the holes.
+
 Wire this circuit, with the two leads of each resistor in different rows:
 
 ```text
@@ -90,10 +100,19 @@ not adjust the formula. Do not call this calibration of the meter.
 
 ## Exercise 2: watch a slow charge and discharge
 
+![Example slow-RC layout showing capacitor polarity, the negative-lead jumper, and a separate power-disconnected discharge step.](figures/breadboard-rc.svg)
+
 Disconnect the holder. Remove both 10 kohm divider resistors. Put 100 kohm
 between P and OUT, and the 100 uF capacitor between OUT and G: **positive at OUT,
 marked negative at G**. Check polarity from the part marking/datasheet rather
 than lead length alone. Keep the 1 kohm guard and DC meter in place.
+
+In the example, the100kohm spans d10–d15. Put capacitor+ in c15 and its marked
+negative lead in c17 for5.08mm lead spacing, then add a jumper b17–b20. For2.54mm
+spacing, use c16 and jumper b16–b20 instead. This spare negative-lead row avoids
+stretching a small capacitor across five rows. Both leads must occupy different
+electrical strips; the negative row reaches G through the jumper. Use the actual
+part's lead spacing without forcing its leads or body.
 
 ```text
 holder + -- B+ -- 1k -- P -- 100k -- OUT
@@ -119,6 +138,8 @@ the time constant is `(101k || 10M)*100uF = 9.999 s` and the final voltage is
 use `V(t) = Vfinal + (V0 - Vfinal)*exp(-t/tau)`; those percentages then apply to
 the rise from V0 toward Vfinal. Do not treat a partly charged start as zero.
 
+![Nominal slow-charge prediction for a 3.000 V source and zero initial voltage, with 10, 30 and 50 second readings marked.](figures/breadboard-rc-curve.svg)
+
 The capacitor's tolerance, leakage and the meter alter the curve. These are
 predictions, not a pass/fail specification for an unknown electrolytic. A low
 plateau does not by itself prove a faulty part. Do not use this experiment to
@@ -130,8 +151,20 @@ the reading is below 0.1 V before handling or rewiring. Never discharge by a
 wire short. If anything warms, smells unusual or is wired with reversed polarity,
 disconnect the holder and investigate before another attempt.
 
-Keep one small record: component values, meter/range, supply voltage, divider
-prediction/reading, charge readings and discharge result. Send that record and
-the exact meter model for the next comparison with theory. The first practical
+Use this small record in the same guide; leave unknown or unmeasured entries
+blank. The graph above is an example, not a replacement for your actual readings.
+
+| What to record | Your result |
+|---|---|
+| Meter model; DC range; manual input impedance/accuracy | |
+| Loose resistor readings: guard / top / bottom / charging resistor | |
+| Capacitor marking, tolerance and polarity identification | |
+| Actual Vs: B+ to G | |
+| Divider: predicted / measured OUT to G | |
+| Before charge: discharged below0.1V; discharge resistor removed | |
+| Starting V0; readings at10s / 30s / 50s / eventual plateau | |
+| After use: holder disconnected; final discharge reading | |
+
+Send that record for the next comparison with theory. The first practical
 milestone is seeing these two passive circuits behave as predicted; EEG hardware
 assembly and its existing safety/release gates remain separate.

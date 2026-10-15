@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="650" viewBox="0 0 1000 650" role="img" aria-labelledby="title desc">
+  <title id="title">Two-AA voltage divider: example breadboard rows</title>
+  <desc id="desc">Only selected rows of the a-to-e half are shown. Verify continuity first. Battery positive connects to a5, negative to a20. The 1 kilohm guard spans b5 to b10. A 10 kilohm resistor spans d10 to d15, and another spans b15 to b20. Meter red connects to e15 and black to e20, using V-ohm and COM sockets. No power rails or second half are used. At exactly 3 volts, nominal resistors and a 10 megohm meter predict 1.4278 volts.</desc>
+  <style>
+    text {font-family:system-ui,sans-serif;fill:#172b3a;font-size:19px}
+    .small {font-size:16px;fill:#465b69}
+    .title {font-size:27px;font-weight:600}
+    .label {font-weight:600}
+    .wire {fill:none;stroke:#304d5c;stroke-width:4;stroke-linejoin:round}
+    .positive {stroke:#b64034}
+    .negative {stroke:#243b4a}
+    .resistor {fill:#fff1ce;stroke:#71572b;stroke-width:2}
+    .strip {fill:#dce7ea}
+    .hole {fill:#fff;stroke:#8da1ac;stroke-width:2}
+    .contact {fill:#304d5c}
+  </style>
+  <rect width="1000" height="650" fill="#fff"/>
+  <text class="title" x="32" y="45">1 · Build the voltage divider</text>
+  <text class="small" x="32" y="77">Example layout · selected rows only · verify a–e continuity · power rails unused</text>
+  <rect x="205" y="110" width="310" height="415" rx="16" fill="#f3f6f7" stroke="#b7c6ce"/>
+  <text class="small" x="250" y="140">a</text><text class="small" x="300" y="140">b</text>
+  <text class="small" x="350" y="140">c</text><text class="small" x="400" y="140">d</text><text class="small" x="450" y="140">e</text>
+  <g class="strip">
+    <rect x="235" y="163" width="240" height="24" rx="12"/>
+    <rect x="235" y="263" width="240" height="24" rx="12"/>
+    <rect x="235" y="363" width="240" height="24" rx="12"/>
+    <rect x="235" y="463" width="240" height="24" rx="12"/>
+  </g>
+  <g class="hole">
+    <circle cx="255" cy="175" r="6"/><circle cx="305" cy="175" r="6"/><circle cx="355" cy="175" r="6"/><circle cx="405" cy="175" r="6"/><circle cx="455" cy="175" r="6"/>
+    <circle cx="255" cy="275" r="6"/><circle cx="305" cy="275" r="6"/><circle cx="355" cy="275" r="6"/><circle cx="405" cy="275" r="6"/><circle cx="455" cy="275" r="6"/>
+    <circle cx="255" cy="375" r="6"/><circle cx="305" cy="375" r="6"/><circle cx="355" cy="375" r="6"/><circle cx="405" cy="375" r="6"/><circle cx="455" cy="375" r="6"/>
+    <circle cx="255" cy="475" r="6"/><circle cx="305" cy="475" r="6"/><circle cx="355" cy="475" r="6"/><circle cx="405" cy="475" r="6"/><circle cx="455" cy="475" r="6"/>
+  </g>
+  <g class="label">
+    <text x="155" y="181">5 B+</text><text x="151" y="281">10 P</text>
+    <text x="123" y="381">15 OUT</text><text x="151" y="481">20 G</text>
+  </g>
+  <path class="wire" d="M305 175V275 M405 275V375 M305 375V475"/>
+  <rect class="resistor" x="293" y="201" width="24" height="48" rx="4"/>
+  <rect class="resistor" x="393" y="301" width="24" height="48" rx="4"/>
+  <rect class="resistor" x="293" y="401" width="24" height="48" rx="4"/>
+  <text x="328" y="231">1 kΩ guard</text>
+  <text x="280" y="331">10 kΩ</text><text x="328" y="431">10 kΩ</text>
+  <rect x="32" y="235" width="94" height="125" rx="10" fill="#eef2f3" stroke="#8da1ac"/>
+  <text class="label" x="48" y="275">2 × AA</text>
+  <text class="small" x="49" y="304">holder</text><text class="small" x="43" y="333">switched</text>
+  <path class="wire positive" d="M60 235V155H255V175"/>
+  <path class="wire negative" d="M60 360V500H255V475"/>
+  <text x="42" y="210">+</text><text x="40" y="395">−</text>
+  <path class="wire positive" d="M455 375H585V240H650"/>
+  <path class="wire negative" d="M455 475H610V325H650"/>
+  <rect x="650" y="150" width="290" height="220" rx="18" fill="#f3f6f7" stroke="#8da1ac"/>
+  <text class="label" x="674" y="185">Meter: DC volts</text>
+  <rect x="673" y="201" width="244" height="67" rx="6" fill="#dce7ea"/>
+  <text x="698" y="246" style="font-size:32px">≈ 1.428 V</text>
+  <circle cx="690" cy="310" r="9" fill="#b64034"/><circle cx="835" cy="310" r="9" fill="#243b4a"/>
+  <text class="small" x="674" y="346">V / Ω</text><text class="small" x="850" y="316">COM</text>
+  <path class="wire positive" d="M650 240H660V310H690"/>
+  <path class="wire negative" d="M650 325H640V395H835V319"/>
+  <text class="small" x="650" y="437">Red → e15 / OUT</text><text class="small" x="650" y="464">Black → e20 / G</text>
+  <text class="small" x="650" y="491">No lead in a current socket.</text>
+  <text class="label" x="32" y="562">Power disconnected while wiring.</text>
+  <text x="32" y="594">Measure B+ to G first: use two AA cells, and stop if above 3.3 V.</text>
+  <text class="small" x="32" y="625">Prediction shown: Vs = 3.000 V, nominal resistors, meter input = 10 MΩ. Actual reading will vary.</text>
+</svg>
