@@ -180,7 +180,10 @@ is still needed. PR87's KEMET density-B deviation applies to all 22 100 nF sites
 
 ## 5. One finite quotation/DFM request and stage-specific disposition
 
-Unsent request, for feasibility and a quote only:
+Historical 2026-10-07 request and stage table, now superseded by the Q04
+follow-through above and the existing Q1 packet/current addendum. They are
+retained as the origin of those questions, not instructions to make or send
+another packet. No request has been sent:
 
 > Quote the exact capacitor schedule above for one AFE plus one auxiliary board,
 > stating minimum order/spares, traceable lot and current applicable part status.
@@ -195,18 +198,17 @@ Unsent request, for feasibility and a quote only:
 
 | Stage | What this decision closes | Required follow-through |
 |---|---|---|
-| Quote preparation, now | One preferred capacitor schedule and existing geometry to assess | Assemble the complete two-board quote/DFM packet; keep active/proposed identities visibly separate |
+| Quote preparation, completed in Q1 | One preferred capacitor schedule and existing geometry to assess | Use the existing Q1 packet and its current addendum; keep active/proposed identities visibly separate |
 | Before coordinated active migration / populated fabrication | No existing gate is waived | Record supplier/process responses or an explicitly reviewed limited-pilot disposition; identify each unresolved internal-node/effective-C risk, then update BOM/CAD/contracts and necessary regressions together |
 | Before first power | No power procedure is released | Actual source/fixture, assembly/land inspection and bounded startup/current/abort review, including the changed capacitor networks |
 | Later characterization | No final performance claim | Confirm settling, rail/ripple behavior and external dummy-source performance on the separately approved assembly |
 
-**Next: prepare the single unsent, complete two-board pilot quote/DFM packet,**
-using this capacitor schedule, the actual boards/stackup and existing connector/
-carrier decisions. Include exact unresolved questions and total delivered-cost
-items. Do not repeat capacitor selection, create a new acceptance framework or
-perform an unreviewed BOM-string migration. Once the required conditions are
-disposed, apply one synchronized engineering change. Asking permission to send
-that finite packet is more useful than another generic capacitor study.
+**Completed follow-through:** the single [Q1 packet](REV_A_PILOT_QUOTE_PACKET.md)
+already contains the capacitor schedule, two-board scope and cost questions;
+its current addendum carries later changes. Do not recreate it. The next
+dependency is Q03's actual land/process response and the other applicable
+manufacturing answers, using that same packet after recipient/contact approval.
+Then perform the one synchronized migration when its conditions are disposed.
 
 ## References and evidence scope
 

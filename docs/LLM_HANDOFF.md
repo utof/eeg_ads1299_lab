@@ -55,6 +55,16 @@ changed-document local-link checks also passed. The unchanged frozen Q1 files
 and both authored board hashes were independently compared with the starting
 commit. Post-change/full hosted results must bind to the final source head.
 
+Continuation is published as [PR101](https://github.com/utof/eeg_ads1299_lab/pull/101).
+Its first reviewed head `f11088e1f33bf3880c1da9090a9501101bbee9b2` passed all
+five hosted jobs (Quality38664887092, Firmware38664887015, Schematic38664887062).
+Hosted review4278061190 identified an obsolete quote-preparation instruction;
+that paragraph and its historical table are now explicitly superseded. Recheck
+the final head and resolved review thread before merging; those earlier checks
+are not execution of this wording correction. The post-edit local ordinary run
+passed1402 cases plus14 subtests in263.16s/86.93%branch coverage during document
+editing; final-head hosted evidence remains the acceptance authority.
+
 The following repository/setup history is retained evidence, not the current
 next-task instruction. Publication/verification of this continuation must name
 its actual final head; do not borrow PR100 checks as execution of these edits.
