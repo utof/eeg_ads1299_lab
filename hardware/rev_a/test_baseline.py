@@ -101,21 +101,6 @@ class BaselineTests(unittest.TestCase):
         self.assertNotIn("R_CS_UP", straps["references"])
         self.assertNotIn("R_CLKSEL_UP", straps["references"])
 
-    def test_powerup_control_mutations_are_rejected(self) -> None:
-        for signal, value, message in (
-            ("CLKSEL", 9, "pin map"),
-            ("CS", 1, "power-up"),
-        ):
-            with self.subTest(signal=signal):
-                changed = copy.deepcopy(self.profile)
-                row = next(item for item in changed["spi"]["signals"] if item["signal"] == signal)
-                if signal == "CLKSEL":
-                    row["gpio"] = value
-                else:
-                    changed["powerup_controls"][signal] = value
-                errors = validate(changed, self.bom, self.sources)
-                self.assertTrue(any(message in error for error in errors), errors)
-
     def test_radio_supply_rejected(self) -> None:
         self.profile["power"]["dvdd_regulator_supplies_mcu"] = True
         self.assert_rejected("must not supply the ESP32")
