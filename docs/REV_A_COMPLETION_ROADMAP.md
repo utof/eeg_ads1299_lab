@@ -23,7 +23,7 @@ Do not repeat recovery, integration, supply, reference or nominal K2 repairs.
 | Rev A startup/internal capture | 1-2 planning turns plus assembly/measurements | B1-B3 plans exist; B2 equipment gap explicit; firmware gate false | Actual source/probes, numeric commissioning limits and prior interlock evidence |
 | External-input characterization | Later, measurement-dependent | Unqualified; revision may be needed | Existing E1 requirements |
 | Body-connected use | Outside this pilot | Not approved | Separately scoped hardware/safety engineering |
-| Quote packet/outreach | 0 packet reconciliation; user/supplier dependent | Q1 current addendum added; frozen CSVs/manifest unchanged; unsent | Recipient/destination/currency/contact authorization and Q01-Q10 responses |
+| Quote packet/outreach | 0 packet reconciliation; user/supplier dependent | Q1 current addendum added; frozen CSVs/manifest unchanged; unsent | Paused for budget (see current todo); then recipient/contact authorization and Q01-Q10 responses |
 
 **Two separate practical paths:** the [breadboard kit](BREADBOARD_FIRST_STEPS.md)
 is ready to obtain for the standalone passive exercises. It needs neither an
@@ -50,7 +50,44 @@ Local and hosted timing failures remain failures even if an unchanged retry
 passes. Exact-head verification of this continuation is recorded in its PR;
 previous accepted-head or main runs are not a substitute.
 
-**Next bounded step:** obtain the breadboard kit and report the meter model/first
-divider readings. In parallel, the next Rev A dependency is the actual Q03 and
-related manufacturing response through the sole Q1 packet; send only when the
-user supplies the recipient details and explicitly authorizes contact.
+## Current todo, 2026-11-01: fabrication paused for budget
+
+The user has no budget for fabrication yet. Quote outreach is paused (quotes
+expire; send only when purchase is near and the user authorizes contact).
+Domestic candidates noted: Rezonit (Moscow) and Elektrokonnekt (pselectro.ru).
+Elektrokonnekt's public calculator (price list 25.09.2026, incl. 22% VAT), 4
+layers, 35 um foil, ENIG, 5 boards each, offered 1.5 mm, not 1.6 mm: AFE
+6060 RUB and AUX 7150 RUB standard (~20 days). ENIG is "non-standard" there
+with a 6 dm2 minimum (13 AFE / 9 AUX boards), so real cost is higher. Bare
+boards only; parts and assembly are unpriced. JLCPCB remains an option.
+
+Two independent read-only reviews of main `652193d` (2026-11-01) found
+computer-side work still blocking fabrication or first power. Unverified
+review output until each item is fixed with a failing-first check:
+
+1. **Defect, before fab:** AUX J102.1 is TARGET_GND
+   (`auxiliary/contract.json`, schematic, PCB pad), but it mates one-to-one
+   with DevKit J1.1 = 3V3 (`harness.py` `_DEVKIT_J1`). As documented, tail 1
+   shorts the DevKit 3V3 rail. Make J102.1 no-connect, keep ground on J102.22,
+   re-point B2 O6/F1 to J102.22, and add a contract-vs-`_DEVKIT_J1` test.
+2. **Before fab:** apply the coordinated BOM/CAD migration (five SPI fits,
+   26 capacitor identities) now; the reviews judge Q03 not blocking because
+   the same KEMET part/land is already active on AUX. Fold item 1 in.
+3. **Before fab:** add a reproducible hosted fabrication export (Gerber,
+   drill, placement, designator BOM, fab notes) and the release marking
+   that replaces the DO-NOT-FABRICATE silkscreen.
+4. **Before power:** numeric B2 H1 limits from datasheets and load
+   allocations, including supply setpoint versus TPS3703 window margin.
+5. **Before power:** a console-selected firmware hold (C2 armed, ADC parked)
+   for interlock evidence before ADC bus enable, plus late-ARMED and
+   lost-READY test scenarios (two C2 guards survive deletion today).
+6. Rough total budget estimate from public prices; no supplier contact.
+7. Optional while saving: standalone breadboard kit (`BREADBOARD_FIRST_STEPS.md`).
+8. When budget exists: choose fab, confirm 1.5 mm (K2 carrier hard-codes
+   1.6 mm), prepare the Russian-language request.
+
+Reviews found nothing critical in firmware register/timing settings or the
+capture/recording decode path. Review coverage, finding IDs and evidence are
+tracked by path in [`reviews/`](reviews/README.md); continue reviews there.
+
+**Next bounded step:** items 1-2 as one reviewed revision.

@@ -6,6 +6,16 @@ Use the [hosted capability preflight](REPOSITORY_PUBLICATION.md#hosted-capabilit
 Local tool absence does not disable connected publication or hosted execution;
 explicit denials must not be bypassed.
 
+## Budget pause and path reviews, 2026-11-01
+
+Fabrication is paused: the user has no budget yet. Two read-only reviews of
+`652193d` found computer-side blockers, including a confirmed J102.1 ground /
+DevKit 3V3 short (WIRE-01). The ordered todo is in
+[the roadmap](REV_A_COMPLETION_ROADMAP.md#current-todo-2026-11-01-fabrication-paused-for-budget);
+review coverage and findings are tracked per path in [`reviews/`](reviews/README.md).
+**Next bounded step:** fix WIRE-01 with the FAB-01 BOM/CAD migration as one
+reviewed revision, or continue path reviews (`never`/stale first).
+
 ## Current accepted source and meter follow-up, 2026-10-15
 
 PR101 is merged. Live main was read back at
