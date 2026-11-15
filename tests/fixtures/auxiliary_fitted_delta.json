@@ -1,0 +1,38 @@
+{
+  "scope": "Exact 2026-11-15 fitted-revision AUX footprint delta for legacy comparisons only; not native or electrical approval",
+  "base_commit": "f4c4294c51baabafdd1d0af1549823f67054919e",
+  "changed_existing_footprints": {
+    "J102": "WIRE-01: pad 1 leaves TARGET_GND (no-connect, DevKit 3V3); pad 22 pin type becomes power_out",
+    "U109": "WIRE-04: pad 1/3 pin function names IN1/IN0 per TI SCES416N; nets unchanged",
+    "U110": "WIRE-04: pad 1/3 pin function names IN1/IN0 per TI SCES416N; nets unchanged"
+  },
+  "unhashed_changes": "In1 P2_TARGET_GND_REFERENCE refill around J102.1 only (0.685 mm2 removed)",
+  "before": {
+    "04f3b1e4-4c85-5c28-9a8e-b5ec16e8070e": {
+      "type": "footprint",
+      "sha256": "2c456795105a1bd018d7590976f5444ce4c3a2afcc23a59c47ab1a300afa76d1"
+    },
+    "56dd88a4-04b1-5a6e-9cf8-5cb682280f4c": {
+      "type": "footprint",
+      "sha256": "aeb201b55277488af071b00d0c9ba75ef224e85d3893447522678e3bdb5b6e54"
+    },
+    "599e4134-1f80-513b-813b-89d548b42a45": {
+      "type": "footprint",
+      "sha256": "ebcec9e78e0c1adbf6831335fc8f5616be736410e130b8759e2816f7cfb92dbc"
+    }
+  },
+  "after": {
+    "04f3b1e4-4c85-5c28-9a8e-b5ec16e8070e": {
+      "type": "footprint",
+      "sha256": "50b7de1fadcf45ce3da8fb5b855139d71fecb298cefeeeec8d224b781c206ab6"
+    },
+    "56dd88a4-04b1-5a6e-9cf8-5cb682280f4c": {
+      "type": "footprint",
+      "sha256": "6d097b7141fc70c38af53eb3f67015ce4c18cc0cccc0c218a4b45aeb39c626f0"
+    },
+    "599e4134-1f80-513b-813b-89d548b42a45": {
+      "type": "footprint",
+      "sha256": "e8cf5c783fe1eb4fdcfeaa21134ee52a84587c942006f7b014e4c546bade5c49"
+    }
+  }
+}

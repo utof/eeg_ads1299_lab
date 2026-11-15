@@ -1,4 +1,4 @@
-"""Map only the exact L5 delta for legacy hash checks; never edit PCB source."""
+"""Map only the exact L5 and fitted deltas for legacy hash checks; never edit PCB source."""
 
 import hashlib
 import json
@@ -8,6 +8,8 @@ from pathlib import Path
 from tests.test_pcb_power import _form_end
 
 DELTA = Path(__file__).parent / "fixtures/auxiliary_l5_delta.json"
+FITTED = Path(__file__).parent / "fixtures/auxiliary_fitted_delta.json"
+FITTED_COUNT = 3
 
 
 def copper_records(text: str, excluded_net: str | None = None) -> dict[str, dict[str, str]]:
@@ -42,13 +44,36 @@ def _records(value: object) -> dict[str, dict[str, str]]:
     return result
 
 
+def prefitted_auxiliary_records(actual: dict[str, dict[str, str]]) -> dict[str, dict[str, str]]:
+    """Undo the complete exact 2026-11-15 fitted delta, never a partial one.
+
+    Every fitted object present must carry its pre-fitted hash (an older board
+    lacks the L5-added resistors) or all of them their reviewed fitted hash.
+    """
+    raw: object = json.loads(FITTED.read_text())
+    assert isinstance(raw, dict), "invalid fitted delta root"
+    before_raw: object = raw["before"]
+    after_raw: object = raw["after"]
+    before, after = _records(before_raw), _records(after_raw)
+    assert before.keys() == after.keys() and len(before) == FITTED_COUNT
+    assert all(row["type"] == "footprint" for row in after.values()), "fitted delta is footprints"
+    observed = {ident: actual[ident] for ident in before.keys() & actual.keys()}
+    if all(before[ident] == row for ident, row in observed.items()):
+        return dict(actual)
+    assert observed == after, "unreviewed or partial fitted source delta"
+    result = dict(actual)
+    result.update(before)
+    return result
+
+
 def legacy_auxiliary_records(actual: dict[str, dict[str, str]]) -> dict[str, dict[str, str]]:
-    """Accept the old objects OR the complete exact L5 delta, never a mixture.
+    """Accept the old objects OR each complete exact delta (fitted, then L5), never a mixture.
 
     Only hash-comparison records are mapped. Original P2/clock fixtures, actual
     routing, native DRC and electrical checks are untouched. An unrelated object
     survives this mapping and must still satisfy the original caller's guard.
     """
+    actual = prefitted_auxiliary_records(actual)
     raw: object = json.loads(DELTA.read_text())
     assert isinstance(raw, dict), "invalid L5 delta root"
     before_raw: object = raw["before"]

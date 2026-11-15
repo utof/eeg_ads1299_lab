@@ -22,3 +22,15 @@ The prior 2026-09-27 T491-land export (XML ca9ccef463e1ab31426ae3afdc9744bd085a6
 CSV 87460b3c87d06f3ad077e5521f7b06665c0a19cd4e16f3d25169e1603e2c3c22)
 and earlier PR43 captures remain in Git history. Their historical facts are not
 rewritten. Current fixtures are not physical capacitance, fit or process tests.
+
+## 2026-11-15 fitted-revision captures
+
+Re-exported with native KiCad 9.0.2 `kicad-cli sch export netlist --format kicadxml`
+from a neutral `/tmp` copy of the checked-out source; gzip level 9, mtime 0.
+
+`auxiliary_c3_netlist.xml.gz` after WIRE-01/WIRE-04: only J102.1 (GND
+`power_out` -> UNUSED `no_connect`, now isolated), J102.22 (`passive` ->
+`power_out`, the sole TARGET_GND source) and the U109/U110 pin 1/3 names
+(IN1/IN0 per TI SCES416N) differ. Every other part, pin and net partition is
+identical; native ERC reports zero violations on all four sheets.
+Uncompressed XML SHA256: `4b7f353e2c288f5523669ff0bcc6881d878d483a408a3693328dca8a07358c1a`.

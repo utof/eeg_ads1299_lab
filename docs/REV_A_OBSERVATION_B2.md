@@ -44,11 +44,11 @@ or GPIO labels. Never identify a tantalum terminal by left/right alone.
 | O3b | AFE C32.1 / C32.2 | Separate physical AVDD1 bypass landmark; same net name as O3a does not eliminate local drop/transients |
 | O4 | AFE C33.1 / C33.2 | Local DVDD bulk-pair landmark; U2.5/2 and U1.48/49,50/51 remain distinct endpoints |
 | O5 | AFE C6.1 / C6.2 | VCAP1 versus its local return, related to U1.28; required observation at the later V boundary |
-| O6 | AUX J102.2 / J102.1 | MCU_3V3 arriving from DevKit; not proof at the DevKit module itself or every auxiliary IC |
+| O6 | AUX J102.2 / J102.22 | MCU_3V3 arriving from DevKit; not proof at the DevKit module itself or every auxiliary IC. J102.1 mates DevKit 3V3 and is deliberately no-connect (WIRE-01) |
 | O7a/b/c | AUX C104.1/2, C106.1/2, C108.1/2 | Three separate AFE_DVDD bypass pairs for U102/U103/U104; receiver pin14/pin7 drops remain to be accounted for |
 | D1/D2 | AUX J104.3 / J104.1; J104.4 / J104.1 | Remote DVDD/AVDD sense-line diagnostics, referenced to AUX return; not replacements for O3/O4 or monitor-pin measurements |
 | G1/G2 | AFE C31.2 / AUX J105.2; AFE C33.2 / AUX J105.2 | Signed local ground offsets, measured as VOLTAGES, never by joining the points with ground clips |
-| F1 | AUX J102.20,15,8,9 each versus J102.1 | SESSION, ARM_REQ, CLR_N (READY feedback), BUS_OE (ARMED feedback), respectively; observed levels are not an independent rail measurement |
+| F1 | AUX J102.20,15,8,9 each versus J102.22 | SESSION, ARM_REQ, CLR_N (READY feedback), BUS_OE (ARMED feedback), respectively; observed levels are not an independent rail measurement |
 
 Capacitor notation C104.1/2 means positive on pad 1, negative on pad 2, not a
 connection joining the pads. Optional post-configuration reference observation
