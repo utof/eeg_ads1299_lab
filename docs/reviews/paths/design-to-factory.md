@@ -8,12 +8,18 @@ reviewed_at: 79d0c9f
 reviewed_on: 2026-11-15
 scope:
   - hardware/rev_a/bom.json
+  - hardware/rev_a/sources.json
   - hardware/rev_a/kicad
   - hardware/rev_a/layout/rev_a.kicad_pcb
   - hardware/rev_a/auxiliary
   - hardware/rev_a/schematic_bom.py
   - hardware/rev_a/check_schematic.py
   - hardware/rev_a/check_baseline.py
+  - hardware/rev_a/auxiliary.py
+  - tests/fixtures/rev_a_bom.csv
+  - tests/fixtures/rev_a_netlist.xml.gz
+  - tests/fixtures/auxiliary_c3_netlist.xml.gz
+  - docs/HARDWARE_BASELINE_REV_A.md
   - docs/quote
   - docs/REV_A_FITTED_PILOT_BUILD.md
   - docs/REV_A_PILOT_QUOTE_PACKET.md
@@ -32,8 +38,8 @@ drill, placement, assembler BOM, fab notes) and the release marking.
 
 | ID | Status | Summary | Where (at 652193d) |
 |---|---|---|---|
-| FAB-01 | open (known) | Five SPI series sites are DNP / NOT_SELECTED (AFE R24; AUX R117-R120), so a board built from current files can't do any SPI transfer. Apply the chosen fit (proposed 33 ohm RC0603FR-0733RL) with the 26 capacitor identities in one coordinated revision; fold WIRE-01 in. Reviews judge Q03 not blocking (same KEMET part/land already active on AUX C101-C115) | `layout/rev_a.kicad_pcb:2803`; `auxiliary/auxiliary.kicad_pcb:17316,17321,17330,17337`; `kicad/digital.kicad_sch:593-604`; `docs/REV_A_FITTED_PILOT_BUILD.md:10,38` |
-| FAB-02 | open | Active BOM still lists discontinued GRM219R61A106KE44D and planned-stop GRM188R61E105KA12D (part of FAB-01's migration) | `bom.json:225,294,436` |
+| FAB-01 | fixed 33ef3fa | Five SPI series sites are DNP / NOT_SELECTED (AFE R24; AUX R117-R120), so a board built from current files can't do any SPI transfer. Apply the chosen fit (proposed 33 ohm RC0603FR-0733RL) with the 26 capacitor identities in one coordinated revision; fold WIRE-01 in. Reviews judge Q03 not blocking (same KEMET part/land already active on AUX C101-C115) | `layout/rev_a.kicad_pcb:2803`; `auxiliary/auxiliary.kicad_pcb:17316,17321,17330,17337`; `kicad/digital.kicad_sch:593-604`; `docs/REV_A_FITTED_PILOT_BUILD.md:10,38` |
+| FAB-02 | fixed 33ef3fa | Active BOM still lists discontinued GRM219R61A106KE44D and planned-stop GRM188R61E105KA12D (part of FAB-01's migration) | `bom.json:225,294,436` |
 | FAB-03 | open | No fabrication outputs exist and nothing generates them: no Gerber/drill/placement/designator BOM, no `kicad-cli` export in `tools/check.py` or CI. Needs a hosted export job (KiCad 9.0.2 is already in CI), a BOM with manufacturer/MPN from `bom.json` + contract, and one page of fab notes (layer order, 1.5 or 1.6 mm, ENIG, finished-hole drills, AUX copper-free strip x20.5-23.5) | `docs/REV_A_PILOT_QUOTE_PACKET.md:116` |
 | FAB-04 | open | Both boards print DO-NOT-FABRICATE text, pinned by tests; replace with a release marking at release | `layout/rev_a.kicad_pcb:4,137`; `auxiliary/auxiliary.kicad_pcb:11,14006`; `tests/test_pcb_placement.py:26`; `tests/test_auxiliary_placement.py:20` |
 | FAB-05 | suspected | Vias partly overlap fitted 0603 pads (C12.1, C15.1, C15.2, C20.2) by 0.025-0.125 mm; solder-wicking risk. Confirm via fab DFM or specify via tenting/plugging | `layout/rev_a.kicad_pcb` |
@@ -73,3 +79,16 @@ drill, placement, assembler BOM, fab notes) and the release marking.
   0.6/0.3, hole-to-hole >= 0.3, copper-to-edge >= 0.5, outlines closed, all
   SMD pads have paste and mask, committed fills short no nets and connect
   all. ti.com unreachable: TI facts from mirrors/search extracts.
+- 2026-11-15, f4c4294, fixes (not a re-review; path now stale until re-read).
+  FAB-01/FAB-02 `33ef3fa`: R24 and AUX R117-R120 fitted with 33 ohm
+  RC0603FR-0733RL; C8-C22 -> GRM188R61C105KA12D, C23-C29 -> C0603C104K5RACTU,
+  C30-C33 -> GRM21BR61C106KE15L in `bom.json`, AFE sheets and PCB properties,
+  AUX contract/sheet/PCB (Value/MPN/Population/native DNP only; lands, nets and
+  copper unchanged, word-diff checked). Validators now require these identities
+  (`check_baseline.py`, `auxiliary.py`); `tests/test_fitted_pilot_population.py`
+  failed first, then confirms 62/47/109 fitted, 8 DNP clamps, 48 capacitors.
+  Native fixtures re-exported (ERC 0 on all sheets; only those 31 part records
+  differ). FAB-04 markings kept (release item). FAB-06 now concerns the 16 V
+  GRM188R61C105KA12D (same Q04 conditions), still suspected. FAB-08: the AUX In1
+  fill was refilled with pcbnew 9.0.2 and spliced (HOST_GND fill reproduced
+  byte-identically); export notes are still FAB-03. Frozen Q1 packet untouched.

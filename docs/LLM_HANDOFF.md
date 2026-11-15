@@ -6,6 +6,21 @@ Use the [hosted capability preflight](REPOSITORY_PUBLICATION.md#hosted-capabilit
 Local tool absence does not disable connected publication or hosted execution;
 explicit denials must not be bypassed.
 
+## Reviewed fixes and fitted revision, 2026-11-15 (unpublished)
+
+Branch `fix/rev-a-review-fixes` from `f4c4294` (local, not pushed, no PR, no
+hosted CI yet): `8644eea` binds S1-S4 to their historical source commits;
+`d2f185f` makes AUX J102.1 no-connect (WIRE-01 DevKit 3V3 short) and fixes the
+LVC1G97 pin names (WIRE-04); `52c42d8` adds J105 "+5V"/"GND" and tail pin-1
+silk (WIRE-03); `33ef3fa` fits the five 33 ohm SPI series parts and migrates
+the 26 AFE capacitor identities (FAB-01/02). Local native ERC/DRC were clean in
+the pinned KiCad 9.0.2 container; see the path records and the commit messages.
+`test_spi_series_native.py::...[short-2-R24]` is flaky already at `f4c4294`
+(DRC sometimes reports the crossing/mask-bridge item, not `shorting_items`).
+Gates, BOARD_PROFILE_REVIEWED=false, DO-NOT-FABRICATE marking and the frozen Q1
+packet are unchanged. **Next:** publish to a PR and pass hosted CI, then roadmap
+todo item 3 (hosted fabrication export and release marking).
+
 ## Budget pause and path reviews, 2026-11-01
 
 Fabrication is paused: the user has no budget yet. Two read-only reviews of

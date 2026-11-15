@@ -13,11 +13,11 @@ Do not repeat recovery, integration, supply, reference or nominal K2 repairs.
 | Local development setup / CAD runtime | 0 installation/acceptance | PR101 merged; full CAD passed 310 cases in 250.896 s; cancellation cleanup reviewed | Local ordinary timeout remains recorded; no ordinary parallel speedup adopted |
 | SPI provisions, reference/supply repairs, K2 nominal review | 0 for source/design work | PR98 merged; physical access/fit unqualified | Actual fitting/tool/joint inspection later |
 | Remaining digital channels | 0 for paper choice | PR99 L6 retained paths with reviewed revision fallback | Before-fabrication access/revision-risk acceptance; interlock evidence before ADC enable |
-| Proposed fitted components/stack | 0 for selection | PR100 selects five33ohm parts, capacitor shortlist, common stack target | Active source still OPEN_DNP/legacy caps |
+| Proposed fitted components/stack | 0 for selection | PR100 selects five33ohm parts, capacitor shortlist, common stack target | Applied to active source 2026-11-15 (see migration row) |
 | Q04 capacitor design disposition | 0 for this bounded review | Conditional pilot decision recorded; EVM does not validate16V substitution | Internal-node/startup and local LDO C/ESR conditions before power; final build-risk acceptance |
 | Assembly ownership | 0 for make/buy choice | Outsource boards/TH/tails/crimps; no specialist tool purchase assumed | Actual supplier/process/hole/fixture responses |
-| Coordinated BOM/CAD migration | 1-2 after conditions are disposed | NOT performed | Q03 land/process answer and applicable manufacturing decisions; preserve one coherent update |
-| Fabrication/purchase release | 1 after prerequisites | Not released | Accepted revision, exact-part supply, restricted purpose and delivered quote |
+| Coordinated BOM/CAD migration | 0 | Done 2026-11-15 on branch `fix/rev-a-review-fixes`, unpublished: five 33 ohm fits, 26 AFE capacitor identities, J102.1 no-connect, J105/tail silk, LVC1G97 names (commits 8644eea, d2f185f, 52c42d8, 33ef3fa) | Publish to a PR and pass hosted CI; Q03 assembler answer still open |
+| Fabrication/purchase release | 1-2 after prerequisites | Not released; DO-NOT-FABRICATE marking kept | Todo item 3: hosted fabrication export and release marking; then accepted revision, exact-part supply and delivered quote |
 | Standalone breadboard learning | 0 planning; 1 optional measurement follow-up | Kit, row layouts, charge curve and checked UT139C setup example ready | Receive the kit, identify meter and record first readings |
 | Laptop capture rehearsal | 0 for this rehearsal | Existing real localhost path:2248 synthetic samples, two intended gaps detected,10Hz peaks on four channels | Actual ADC capture waits for assembled-board commissioning |
 | Rev A startup/internal capture | 1-2 planning turns plus assembly/measurements | B1-B3 plans exist; B2 equipment gap explicit; firmware gate false | Actual source/probes, numeric commissioning limits and prior interlock evidence |
@@ -65,15 +65,20 @@ Two independent read-only reviews of main `652193d` (2026-11-01) found
 computer-side work still blocking fabrication or first power. Unverified
 review output until each item is fixed with a failing-first check:
 
-1. **Defect, before fab:** AUX J102.1 is TARGET_GND
+Items 1-2 and WIRE-03/WIRE-04 were **done 2026-11-15** (base `f4c4294`,
+commits `8644eea` S1-S4 rebinding, `d2f185f` WIRE-01/04, `52c42d8` WIRE-03,
+`33ef3fa` FAB-01/02) on branch `fix/rev-a-review-fixes`, not yet published or
+hosted-verified. Findings are recorded as fixed in `reviews/paths/`.
+
+1. **Done 2026-11-15. Defect, before fab:** AUX J102.1 is TARGET_GND
    (`auxiliary/contract.json`, schematic, PCB pad), but it mates one-to-one
    with DevKit J1.1 = 3V3 (`harness.py` `_DEVKIT_J1`). As documented, tail 1
    shorts the DevKit 3V3 rail. Make J102.1 no-connect, keep ground on J102.22,
    re-point B2 O6/F1 to J102.22, and add a contract-vs-`_DEVKIT_J1` test.
-2. **Before fab:** apply the coordinated BOM/CAD migration (five SPI fits,
+2. **Done 2026-11-15. Before fab:** apply the coordinated BOM/CAD migration (five SPI fits,
    26 capacitor identities) now; the reviews judge Q03 not blocking because
    the same KEMET part/land is already active on AUX. Fold item 1 in.
-3. **Before fab:** add a reproducible hosted fabrication export (Gerber,
+3. **Next. Before fab:** add a reproducible hosted fabrication export (Gerber,
    drill, placement, designator BOM, fab notes) and the release marking
    that replaces the DO-NOT-FABRICATE silkscreen.
 4. **Before power:** numeric B2 H1 limits from datasheets and load
@@ -90,7 +95,7 @@ Path reviews of 2026-11-15 (`79d0c9f`) added: **MECH-02**, the K2
 cartridge cable window is closed so the ribbon socket cannot be loaded (fix
 before the carrier is printed or quoted, item A05); MECH-05 suspected, the J1
 ribbon may not reach AUX J101 (paper mock-up); WIRE-03, add "+5V / GND" and
-pin silk on J105/J102 together with item 1; ANALOG-02, the BIAS loop needs a
+pin silk on J105/J102 together with item 1 (done 2026-11-15, `52c42d8`); ANALOG-02, the BIAS loop needs a
 firmware rule of at most 2 sense inputs before BIAS is enabled (no hardware
 change). Footprints, pinouts, polarity and analog values all matched the
 datasheets. The PiEEG-8 comparison adopts nothing before fab (see
@@ -100,4 +105,7 @@ Reviews found nothing critical in firmware register/timing settings or the
 capture/recording decode path. Review coverage, finding IDs and evidence are
 tracked by path in [`reviews/`](reviews/README.md); continue reviews there.
 
-**Next bounded step:** items 1-2 as one reviewed revision.
+**Next bounded step:** publish the 2026-11-15 revision to a PR and pass hosted
+CI, then item 3: a reproducible hosted fabrication export (Gerber, drill,
+placement, designator BOM with MPNs, fab notes incl. FAB-08 fills/holes) and the
+release marking that replaces the DO-NOT-FABRICATE silkscreen (FAB-03/04).
