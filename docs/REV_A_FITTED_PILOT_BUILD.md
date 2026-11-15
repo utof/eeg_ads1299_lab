@@ -11,6 +11,19 @@ matched termination. The active BOM/CAD still has five OPEN_DNP/NOT_SELECTED sit
 and the legacy AFE capacitor identities. This note is not an instruction to
 populate from mismatched files, release manufacture, buy parts or apply power.
 
+**Applied 2026-11-15 (user-authorized reviewed revision, base `f4c4294`).** The
+five 33 ohm fits and the 26 AFE capacitor identities in sections 1-2 are now in the
+active BOM, AFE schematics/PCB, AUX contract/schematic/PCB and the regenerated
+native fixtures (commit 33ef3fa), together with the WIRE-01 J102.1 no-connect,
+WIRE-03 silkscreen and WIRE-04 pin-name fixes. Section 4's "proposed" column is
+now the current source (62 / 47 fitted, 109 total). Lands, nets and copper are
+unchanged apart from J102.1 and its plane refill. Q03's actual assembler
+land/process answer is still open; the path reviews judged it not blocking because
+the same KEMET part and land were already active on AUX. Nothing here releases
+manufacture, purchase, power or body use; the DO-NOT-FABRICATE markings and every
+gate stay. The paragraph above and sections 2, 4 and 6 keep the original proposal
+wording as history.
+
 Use this record for the current proposal and its delta from the sole frozen,
 unsent [Q1 packet](REV_A_PILOT_QUOTE_PACKET.md). Do not create another quotation
 CSV or replace Q1's historical hashes. Q1 remains the question/cost schedule;
@@ -95,8 +108,10 @@ AUX C101-C115 already use the selected KEMET identity. Retain the five C0G and
 two T491 parts, including all original node-specific companions. D1-D8 remain
 DNP. No alternative part family or larger capacitance is selected here.
 
-**Do not apply the 26 substitutions yet.** Q1 Q03 still requires acceptance of
-actual lands/paste/mask/process. The 2026-10-15 Q04 follow-through in the capacitor
+**Status 2026-11-15: the 26 substitutions are applied** (commit 33ef3fa), on the
+user's authorization after the path reviews judged Q03 not blocking. The original
+2026-10-15 instruction was "do not apply the 26 substitutions yet". Q1 Q03 still
+requires acceptance of actual lands/paste/mask/process. The 2026-10-15 Q04 follow-through in the capacitor
 disposition records node-specific pilot risks and remaining startup-critical
 conditions. It retains the candidates without establishing joint minimum C,
 impedance or transient bounds. The label INTERNAL-TEST-ONLY waives no condition.
@@ -130,14 +145,17 @@ be accepted before release; this proposal does not commit the user's money.
 
 ## 4. Exact delta from frozen Q1; do not build from the old schedule
 
-| Inventory per two-board set | Frozen Q1 | Current source | Proposed fitted revision |
+| Inventory per two-board set | Frozen Q1 | Source before 2026-11-15 | Fitted revision (current source) |
 |---|---:|---:|---:|
 | Fitted AFE / AUX components | 61 / 43 | 61 / 43 | 62 / 47 |
 | Total fitted board components | 104 | 104 | **109** |
 | Physical footprint groups, AFE / AUX | 69 / 52 | 70 / 56 | 70 / 56 |
 | Fitted capacitors, included above | 48 | 48 | 48, with 26 AFE identities migrated |
 | DNP diode sites | 8 | 8 | 8 |
-| Added SPI sites with no fit | 0 | 5 | 0, if the proposed fit is applied |
+| Added SPI sites with no fit | 0 | 5 | 0 |
+
+`tests/test_fitted_pilot_population.py` checks the 62 / 47 / 109, 8 and 48 counts
+and the exact identities against the active BOM and AUX contract.
 
 The current five positions were added by PR98 after Q1. Physical totals include
 copper landings/mechanical holes; these are not additional purchased connectors
@@ -187,8 +205,9 @@ Q03/Q05/Q06/Q07 need the relevant process/assembly evidence and remain open.
 Q01 needs the actual job stack/DFM drawing; Q02/Q10 need sourcing/delivered scope.
 Supplier contact remains paused until explicitly authorized.
 
-After the migration conditions are resolved, make **one synchronized source
-change** for the five SPI fits and 26 capacitor identities: AFE BOM/schematics/
+**Done 2026-11-15 (commit 33ef3fa), before Q03's answer, on user authorization.**
+The original instruction read: after the migration conditions are resolved, make
+**one synchronized source change** for the five SPI fits and 26 capacitor identities: AFE BOM/schematics/
 PCB, AUX contract/schematic/PCB, validated native fixtures and affected validators.
 Start with focused failing population/identity checks; preserve the independent
 terminal, copper-cut/bypass, reference and geometry controls. Reconcile the existing
@@ -196,6 +215,10 @@ S1-S4 source bindings and distinguish new fitted behavior from their historical
 open-state evidence. Keep numerical assumptions unknown where still unknown.
 Use existing public hardware interfaces and `tools.check`; do not add a second
 manifest framework or duplicate the canonical quote schedule to make this easier.
+As applied: S1-S4 verify their revised inputs at their own source commits and
+every other input against the current checkout (commit `8644eea`); their
+`OPEN_DNP` records stay historical and no fitted-state S2/S3 result is computed.
+S1's supply copper is re-measured on the current boards and is unchanged.
 
 Only then assess one coherent revision for manufacturing/purchase release with
 actual process answers, measurement access and delivered cost. Any powered

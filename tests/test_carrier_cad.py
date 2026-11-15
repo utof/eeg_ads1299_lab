@@ -205,6 +205,27 @@ def test_socket_capture_and_exit_orientation(tmp_path: Path) -> None:
     assert _overlap(tmp_path, "plug(0);", "rotate([0,0,180]) cable_envelope();") > 0.1
 
 
+def _vertical_sweep(part: str, top: float) -> str:
+    # One convex box on one straight vertical path: the hull of its end poses IS
+    # the swept volume, so every intermediate lift is checked, not a few samples.
+    # (A non-convex envelope would only grow the hull: conservative, never a pass.)
+    # Start 1 um above the end ledges, the same skin as the socket capture test.
+    return f"hull() {{ translate([0,0,0.001]) {part}(); translate([0,0,{top}]) {part}(); }}"
+
+
+@pytest.mark.parametrize("port", [0, 1])
+def test_socket_with_factory_ribbon_loads_into_uncovered_cartridge(
+    tmp_path: Path, port: int
+) -> None:
+    # Assembly order: the socket and its factory ribbon are lowered into the bare
+    # cartridge from above, continuity-checked, and only then is the cover fitted.
+    # Lift from seated until the socket bottom clears the 14.3-mm cartridge top.
+    socket, ribbon = (_vertical_sweep(part, 14.4) for part in ("socket_envelope", "cable_envelope"))
+    assert abs(_overlap(tmp_path, f"cartridge({port});", f"union() {{ {socket} {ribbon} }}")) < 1e-4
+    # Control: the fitted cover closes the same ribbon path, so the sweep reaches it.
+    assert _overlap(tmp_path, "cap();", ribbon) > 0.1
+
+
 def test_release_strain_bar_before_withdrawal(tmp_path: Path) -> None:
     cable = "translate([-25,-12.7,10.74]) cube([22.46,25.4,1.6]);"
     assert _overlap(tmp_path, "translate([-16,0,0]) strain_bar();", cable) > 0.1
@@ -216,7 +237,7 @@ def test_carrier_is_bound_to_reviewed_board() -> None:
     # One strict whole-file binding; neither part fitting nor rework is approved.
     board = ROOT / "hardware/rev_a/layout/rev_a.kicad_pcb"
     assert hashlib.sha256(board.read_bytes()).hexdigest() == (
-        "7873928ea7118b9e39822c0c2b2a70f47df58b01c8b1696c16d343b2b7ec1b7a"
+        "207a0441659eecd04aec61f61d9ca6e83fd5ffaf092cac497752bd9cd68ed482"
     )
 
 

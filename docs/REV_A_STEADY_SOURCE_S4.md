@@ -26,6 +26,13 @@ condition, unverified current/temperature/load bound and empty measurement field
 The hypothetical serial setup is still not a measured or reachable operating
 state of this unpopulated board. Rail accuracy arithmetic cannot qualify it.
 
+**2026-11-15 fitted revision.** The reviewed source revision later fitted all five
+series positions with 33 ohm parts. The record's BOM/AUX-contract digests and the
+S3 worksheet digest are now verified at their binding commit `e2c4be7` only; the
+firmware inputs must still equal the current checkout. The `OPEN_DNP` state above
+is that historical source. Fitting the resistors does not enable acquisition: the
+firmware review gate, commissioning reviews and every open condition are unchanged.
+
 ## One named setup, not every possible operating mode
 
 `rev_a_f1_serial_internal_250` names the HYPOTHETICAL acquisition branch: selected

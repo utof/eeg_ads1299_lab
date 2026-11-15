@@ -31,6 +31,9 @@ module receiver(port=0, closed_cable_wall=false, rib=true) {
     }
 }
 
+// Cover rivet holes: +X pair on the ear; end pair on lugs beyond the cable slot.
+function rivets() = [[4.8,-11], [4.8,11], [0,-15.1], [0,15.1]];
+
 // Socket datum is its mating face. The end ledges are OUTSIDE the male body,
 // never a washer between mating faces. Accepted socket dimensions are inspection
 // requirements: width <=5.30 (REF is not a maximum), length 26.77..27.28,
@@ -41,16 +44,19 @@ module cartridge(port=0, groove=true) {
             box([-4,-14.3,-0.6],[4,14.3,12.8]);
             // Fastening ears are above the guide even after 0.56 axial travel.
             box([-6,-14.3,12.8],[6,14.3,14.3]);
+            box([-2,-16.3,12.8],[2,16.3,14.3]); // end rivet lugs
         }
         box([-2.75,-13.7,0],[2.75,13.7,14.31]);
         box([-2.75,-12.9,-0.61],[2.75,12.9,0.01]);
-        // Ribbon leaves the SOCKET laterally; preserve it throughout insertion.
-        box([-6.01,-12.8,6.1],[-2.74,12.8,10.1]);
+        // Ribbon leaves the SOCKET laterally. The slot is open to the top so the
+        // socket and its factory ribbon load from above; the cover then closes it.
+        box([-6.01,-12.8,6.1],[-2.74,12.8,14.31]);
         if (groove) box([3.2,code_y(port)-1.2,-0.61],[4.01,code_y(port)+1.2,12.81]);
-        for (x=[-4.8,4.8], y=[-11,11]) hole_at(x,y,12.79,14.31,1.5);
+        for (r=rivets()) hole_at(r[0],r[1],12.79,14.31,1.5);
     }
 }
 
+// Fitted AFTER the socket is loaded: it closes the top of the cable slot.
 // Removable only by destroying/replacing four mechanically upset plastic rivets.
 // Rivet geometry/material/process not qualified. Continuity and cable exit must
 // be inspected BEFORE capture; this is not a self-verifying factory assembly.
@@ -58,10 +64,11 @@ module cap() {
     difference() {
         union() {
             box([-6,-14.3,14.3],[6,14.3,15.8]);
+            box([-2,-16.3,14.3],[2,16.3,15.8]); // over the end rivet lugs
             for (y=[-13.0,13.0])
                 box([-2.65,y-0.5,9.7],[2.65,y+0.5,14.31]);
         }
-        for (x=[-4.8,4.8], y=[-11,11]) hole_at(x,y,14.29,15.81,1.5);
+        for (r=rivets()) hole_at(r[0],r[1],14.29,15.81,1.5);
     }
 }
 module plug(port=0) { cartridge(port); cap(); }

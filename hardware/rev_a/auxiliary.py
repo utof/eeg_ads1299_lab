@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .check_schematic import SchematicNetlist
+from .harness import _DEVKIT_J1
 from .schematic_sources import _strings, read_schematic_file
 from .schematic_symbols import _children, _Form, _name, _parse, validate_symbol_caches
 
@@ -167,19 +168,51 @@ _SERIES_POSITIONS = {
 }
 
 
+# Reviewed 2026-11-15 fitted revision: the same starting part as AFE R24.
+_SERIES_FIT = ("33", "RC0603FR-0733RL")
+
+
 def _population(ref: str, part: AuxiliaryPart) -> None:
-    expected = "dnp" if ref in _SERIES_POSITIONS else "fit"
-    if part.population != expected:
-        raise ValueError("C3 population must retain fitted devices and unpopulated SPI positions")
-    if expected == "dnp" and not (
+    if part.population != "fit":
+        raise ValueError("C3 population must fit every device, including the SPI positions")
+    if ref in _SERIES_POSITIONS and not (
         part.reference == _SERIES_POSITIONS[ref]
         and part.symbol == "R"
-        and part.value == part.mpn == "NOT_SELECTED"
+        and (part.value, part.mpn) == _SERIES_FIT
         and part.footprint == "Resistor_SMD:R_0603_1608Metric"
         and part.in_bom
         and part.sheet == "bus.kicad_sch"
     ):
-        raise ValueError("C3 SPI position must remain an unselected in-BOM 0603 resistor")
+        raise ValueError("C3 SPI position must be the reviewed 33 ohm in-BOM 0603 resistor")
+
+
+# J102 tail n is soldered one-to-one to DevKit J1 pad n (L4 numbered tails).
+_DEVKIT_SUPPLIES = {"3V3": "MCU_3V3", "5V": "TARGET_VIN5", "GND": "TARGET_GND"}
+_SUPPLY_NETS = frozenset(_DEVKIT_SUPPLIES.values()) | {"HOST_3V3", "HOST_GND", "AFE_DVDD"}
+
+
+def _devkit_pad_mates(devkit: str, pin: AuxiliaryPin) -> bool:
+    if pin.net is None:
+        return pin.kind == "no_connect"
+    if devkit in _DEVKIT_SUPPLIES:
+        return pin.net == _DEVKIT_SUPPLIES[devkit]
+    # EN and any other non-GPIO pad stay open; a GPIO carries only its own signal.
+    return (
+        devkit.startswith("GPIO")
+        and pin.function.startswith(devkit + "_")
+        and pin.net not in _SUPPLY_NETS
+    )
+
+
+def _devkit_tails(parts: dict[str, AuxiliaryPart]) -> None:
+    """A supply or signal on the wrong DevKit pad is a short, not a label error."""
+    tails = parts.get("MCU_TAILS")
+    numbers = {str(n) for n in range(1, len(_DEVKIT_J1) + 1)}
+    if tails is None or tails.reference != "J102" or set(tails.pins) != numbers:
+        raise ValueError("C3 MCU tails must number every DevKit J1 pad")
+    for n, devkit in enumerate(_DEVKIT_J1, start=1):
+        if not _devkit_pad_mates(devkit, tails.pins[str(n)]):
+            raise ValueError(f"C3 J102.{n} does not mate DevKit J1.{n} ({devkit})")
 
 
 def parse_auxiliary_contract(content: str) -> AuxiliaryContract:
@@ -206,6 +239,7 @@ def parse_auxiliary_contract(content: str) -> AuxiliaryContract:
         _population(ref, part)
         references.add(part.reference)
         parts[ref] = part
+    _devkit_tails(parts)
     return AuxiliaryContract(parts)
 
 

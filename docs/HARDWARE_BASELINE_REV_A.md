@@ -35,9 +35,9 @@ The machine-readable source of truth is [`hardware/rev_a/bom.json`](../hardware/
 | `GRM1885C1H152JA01D` | 1 | FIT | $0.35 |
 | `T491D107K016AT` | 1 | FIT | $2.00 |
 | `T491B226K016AT` | 1 | FIT | $1.20 |
-| `GRM188R61E105KA12D` | 15 | FIT | $2.25 |
-| `GRM188R71H104KA93D` | 7 | FIT | $0.70 |
-| `GRM219R61A106KE44D` | 4 | FIT | $1.40 |
+| `GRM188R61C105KA12D` | 15 | FIT | $2.25 |
+| `C0603C104K5RACTU` | 7 | FIT | $0.70 |
+| `GRM21BR61C106KE15L` | 4 | FIT | $1.40 |
 | `RC0603FR-0710RL` | 1 | FIT | $0.08 |
 | `RC0603FR-0710KL` | 5 | FIT | $0.30 |
 | `RC0603FR-0742K2L` | 7 | FIT | $0.42 |
@@ -45,17 +45,20 @@ The machine-readable source of truth is [`hardware/rev_a/bom.json`](../hardware/
 | `B6B-XH-A(LF)(SN)` | 1 | FIT | $0.50 |
 | `BAV199,215` | 8 | DNP | $2.40 |
 
-L5 adds an explicitly **unpopulated** series footprint on the AFE; no resistor MPN,
-resistance (including zero ohms), first-power fit or fitted-part cost is selected.
-The placeholder below contributes zero because nothing is fitted, not because a
-resistor or assembly is free. AUX R117-R120 have the same unselected DNP state.
+L5 added one series footprint on the AFE (R24) and four on AUX (R117-R120).
+The reviewed 2026-11-15 fitted revision fits all five with the PR100 33 ohm
+`RC0603FR-0733RL` starting part and migrates the 26 AFE capacitor identities
+above (legacy `GRM188R61E105KA12D`, `GRM188R71H104KA93D`, `GRM219R61A106KE44D`;
+see `REV_A_FITTED_PILOT_BUILD.md`). The R24 allowance reuses the sibling
+RC0603 $0.06 planning figure; it is not a quote. The resistor is a replaceable
+starting fit, not a proven matched termination.
 
-| L5 position | MPN status | Quantity | Population | Fitted allowance |
+| L5 position | MPN | Quantity | Population | Fitted allowance |
 | --- | --- | ---: | --- | ---: |
-| R24 / R_MISO_SER | `NOT_SELECTED` | 1 | DNP | $0.00 |
+| R24 / R_MISO_SER | `RC0603FR-0733RL` | 1 | FIT | $0.06 |
 
 
-Fitted components: **$76.84**. Bare-PCB reserve: **$15.00**. Harness/mating reserve: **$3.00**. **Planning subtotal: $94.84**. Optional BAV199 population adds $2.40. Shipping, tax/VAT/import charges, assembly/stencil/setup, tools, bench instrumentation, battery/charger, enclosure, and any patient-safety hardware are excluded. The $3.00 historical harness reserve is not evidence that the newly identified IDC assemblies and coded carrier fit that allowance. Obtain one delivered basket/assembly quote before purchasing; $94.84 is not a delivered total or a demonstration that the $100 objective is met.
+Fitted components: **$76.90**. Bare-PCB reserve: **$15.00**. Harness/mating reserve: **$3.00**. **Planning subtotal: $94.90**. Optional BAV199 population adds $2.40. Shipping, tax/VAT/import charges, assembly/stencil/setup, tools, bench instrumentation, battery/charger, enclosure, and any patient-safety hardware are excluded. The $3.00 historical harness reserve is not evidence that the newly identified IDC assemblies and coded carrier fit that allowance. Obtain one delivered basket/assembly quote before purchasing; $94.90 is not a delivered total or a demonstration that the $100 objective is met.
 
 C4 adds a dedicated six-way J3 service connector for the auxiliary circuit:
 return, actual DVDD feed OUT, separate DVDD sense, AVDD sense, return, NC.

@@ -128,6 +128,20 @@
       "title": "JST XH official series, six-way connector/housing/contact drawings",
       "url": "https://www.jst-mfg.com/product/pdf/eng/eXH.pdf",
       "verification": "Public target catalog and drawings inspected; job-specific hole, crimp and assembly qualification remains pending."
+    },
+    {
+      "id": "YAGEO_RC0603FR_0733RL",
+      "title": "Yageo RC0603FR-0733RL exact-part sheet",
+      "url": "https://www.yageogroup.com/component-documentation/download/specsheet/RC0603FR-0733RL",
+      "sections": "33 ohm, 1%, 0603, 0.1 W at 70 C, +/-100 ppm/C; maximum body 1.70 x 0.90 x 0.55 mm",
+      "verification": "2026-10-15 PR100 identity/dimension read; no stock, price, lot or installed-resistance measurement"
+    },
+    {
+      "id": "KEMET_C1002_X7R",
+      "title": "KEMET C1002_X7R_SMD, revision 2025-02-20",
+      "url": "https://content.kemet.com/datasheets/KEM_C1002_X7R_SMD.pdf",
+      "sections": "Ordering p2, dimensions p3, land table p12; C0603C104K5RACTU = 100 nF, 10%, 50 V, X7R",
+      "verification": "PR87 identity/land comparison; the authored land is not KEMET density B and process acceptance is pending"
     }
   ],
   "limitations": [

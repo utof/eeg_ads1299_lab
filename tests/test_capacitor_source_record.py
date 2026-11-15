@@ -18,6 +18,13 @@ EXPECTED = [
     ("decap_100n", "GRM188R71H104KA93", "C", 7),
     ("bulk_10u", "GRM219R61A106KE44", "D", 4),
 ]
+# The reviewed 2026-11-15 fitted revision replaced these captured identities; the
+# dated snapshot stays the historical record of the BOM it was taken from.
+MIGRATED = {
+    "decap_1u": "GRM188R61C105KA12D",
+    "decap_100n": "C0603C104K5RACTU",
+    "bulk_10u": "GRM21BR61C106KE15L",
+}
 
 
 def _record() -> dict[str, object]:
@@ -31,8 +38,8 @@ def test_exact_bom_parts_have_dated_manufacturer_rows(
     _, bom, _ = load_documents()
     line = next(line for line in bom["line_items"] if line["id"] == role)
     parts = read_object(_record()["selected_parts"], "selected parts")
-    row = read_object(parts[line["mpn"]], "manufacturer row")
-    assert line["mpn"] == core + "D"
+    row = read_object(parts[core + "D"], "manufacturer row")
+    assert line["mpn"] == MIGRATED.get(role, core + "D")
     assert line["quantity"] == len(line["references"]) == quantity
     assert row["part_number"] == core and row["public_part_number"] == core + "#"
     assert [row["production_status_" + lang] for lang in ("ja", "en-us", "zh-cn")] == [status] * 3
@@ -45,10 +52,15 @@ def test_exact_bom_parts_have_dated_manufacturer_rows(
 
 def test_snapshot_covers_selected_murata_inventory_without_becoming_a_new_bom() -> None:
     _, bom, _ = load_documents()
-    selected = {line["mpn"] for line in bom["line_items"] if line["manufacturer"] == "Murata"}
-    assert set(read_object(_record()["selected_parts"], "parts")) == selected
-    assert len(selected) == 5
+    captured = {core + "D" for _, core, _, _ in EXPECTED}
+    assert set(read_object(_record()["selected_parts"], "parts")) == captured
+    assert len(captured) == 5
     assert sum(quantity for _, _, _, quantity in EXPECTED) == 31
+    # Current Murata lines: the two unchanged C0G parts plus two migrated identities
+    # that this historical snapshot does not cover (100 nF moved to KEMET).
+    current = {line["mpn"] for line in bom["line_items"] if line["manufacturer"] == "Murata"}
+    assert current - captured == {MIGRATED["decap_1u"], MIGRATED["bulk_10u"]}
+    assert captured - current == {core + "D" for role, core, _, _ in EXPECTED if role in MIGRATED}
 
 
 def test_planned_discontinuation_is_not_relabelled_as_stopped_production() -> None:

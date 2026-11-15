@@ -1,4 +1,4 @@
-"""The newly resolved suffix is a documented target, never a silent BOM substitution."""
+"""The resolved suffix was a documented target, applied only by the reviewed migration."""
 
 import json
 from pathlib import Path
@@ -62,7 +62,8 @@ def test_identity_evidence_neither_rewrites_the_snapshot_nor_approves_hardware()
     )
     assert previous["preferred_for_qualification"] == CORE
     assert previous["replacement_orderable_mpn"] is None  # Historical result remains historical.
+    # The reviewed 2026-11-15 fitted revision applied exactly this orderable
+    # identity; the addendum itself stays a dated evidence record.
     _, bom, _ = load_documents()
-    assert next(row for row in bom["line_items"] if row["id"] == "bulk_10u")["mpn"] == (
-        "GRM219R61A106KE44D"
-    )
+    fitted = next(row for row in bom["line_items"] if row["id"] == "bulk_10u")
+    assert fitted["mpn"] == data["orderable_for_qualification"]

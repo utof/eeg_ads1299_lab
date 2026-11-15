@@ -26,7 +26,8 @@ the B3 access overlay are byte-identical. SPI tracks/vias DID change elsewhere;
 this is not a claim that all electrical copper is unchanged. Existing native
 support, service, reference and fault checks must still pass on current source.
 
-R24 is the unpopulated 0603 footprint at(57.0,29.4), rotation0 on F.Cu.
+R24 is the 0603 footprint at(57.0,29.4), rotation0 on F.Cu, fitted with the
+33 ohm RC0603FR-0733RL since the 2026-11-15 fitted revision (`33ef3fa`).
 Its pad centres are(56.175,29.4) and(57.825,29.4). A proposed allocation
 x=55.4..58.6, y=28.6..30.2, z=0..4 mm contains its complete courtyard including
 line width and fits wholly within K2's existing blanket component allocation.
@@ -114,7 +115,9 @@ cable ends are not invented purchased/qualified components of this CAD.
 **A closed guide wall obstructs the cable.** The actual IDSD drawing shows a
 side-exiting ribbon, not a cable that emerges vertically through the lid [1,2].
 K2 opens the -X receiver wall over the middle 25.6 mm, retaining corner-return
-tabs and the +X coded rib. The cartridge has a corresponding side window.
+tabs and the +X coded rib. The cartridge has a corresponding side slot, open
+to its top so the socket and its factory ribbon can be loaded from above; the
+cover closes it (MECH-02, see "Cable travel" below).
 The previously checked closed rectangular K1 cross-section must NOT be used as
 proof of this slotted 3D guide. K2 has its own native collision tests.
 
@@ -158,10 +161,11 @@ from a mirrored mating-face view or wire color.
 | Coded rib | x=3.4..4.2, y=code +/-1; code J1=+7, J2=-7 mm |
 | Cartridge guide section | 8.0 x 28.6 mm; groove x=3.2..4.0,y=code +/-1.2 |
 | Socket pocket | 5.5 x 27.4 mm; full aperture through the top before lid fitting |
+| Cartridge cable slot | -X side, y=-12.8..12.8, from z=6.1 open through the z=14.3 top; the socket and factory ribbon load from above, then the cover closes it |
 | Mating opening | 5.5 x 25.8 mm; end retaining ledges only, z=-0.6..0 relative to socket face |
-| Guide body / ears | Body up to z=12.8; 12-mm-wide fastening ears z=12.8..14.3 |
-| Cover / axial stop | Cover z=14.3..15.8; two internal end bosses stop at z=9.70 |
-| Cover attachment | Four 1.5-mm holes at x=+/-4.8,y=+/-11; mechanically upset nonconductive rivet concept, NOT a qualified rivet/process |
+| Guide body / ears | Body up to z=12.8; 12-mm-wide fastening ears z=12.8..14.3, cut on -X by the cable slot; 4-mm-wide end rivet lugs x=-2..2 out to y=+/-16.3 |
+| Cover / axial stop | Cover z=14.3..15.8, 12 x 28.6 mm plus matching end lugs to y=+/-16.3; closes the slot top; two internal end bosses stop at z=9.70 |
+| Cover attachment | Four 1.5-mm holes: x=4.8,y=+/-11 on the +X ear and x=0,y=+/-15.1 on the end lugs, all outside the cable slot; mechanically upset nonconductive rivet concept, NOT a qualified rivet/process |
 | Cable saddle | Center x=-16 from each port, 8 x 32 mm; floor z=8.5; bar underside z=10.7 |
 | Cable bar fastening | Two 2.2-mm holes at y=+/-14.8; liners/shims and accepted pull load still required |
 | Working space | 21 mm above PCB plus 10 mm axial removal allocation; supersedes K1's 17/8-mm planning values |
@@ -196,7 +200,7 @@ non-swappable assembly, the four nonconductive rivets must be permanently upset
 and require destructive replacement for disassembly. Adhesive alone or a loose
 removable sleeve is not accepted. Rivet selection, setting force, material and
 retention load remain OPEN; a CAD hole is not a validated rivet. The one-sided
-cable window rejects the modeled opposite cable exit, but **does not prove the
+cable slot rejects the modeled opposite cable exit, but **does not prove the
 factory wire-to-contact mapping**. Before permanently closing a cartridge,
 verify all 20 contact/conductor identities, pin1 orientation and port label by
 unpowered continuity. Incorrect factory or cartridge assembly is not magically
@@ -207,8 +211,19 @@ corrected by the external key. Do not omit contacts to create a polarizing key.
 The model reserves a 25.4-mm-wide, 1.6-mm-high cable envelope at z=6.2..7.8
 relative to the socket face, encompassing the drawing's height variation with
 an explicitly chosen allowance. It is not a maximum cable specification. The
-cartridge window spans z=6.1..10.1. A nominal-only first model clipped the larger
-envelope; the window and saddle/bar heights were corrected in the solids.
+cartridge cable slot starts at z=6.1 and is open to the cartridge top. A
+nominal-only first model clipped the larger envelope; the slot and saddle/bar
+heights were corrected in the solids.
+
+**MECH-02 (2026-11-15):** the slot used to be a closed window (z=6.1..10.1).
+The seated ribbon fitted, but the socket loads from the top with only 0.1 mm
+side gap, so its ribbon had to pass through the wall and -X ears above the
+window: 3.2/22/98 mm3 of solid at 2.4/3/6 mm lift, 204 mm3 over the whole
+vertical path. The slot now runs to the top, and the two -X cover rivets that
+sat in its span moved to end lugs at x=0,y=+/-15.1. The cover closes the slot
+after loading; the +X wall, rib/groove, pocket, ledges, cover bosses and all
+seated dimensions are unchanged. The open -X side leaves two 1.5-mm end posts
+above z=6.1 until the cover is riveted: handle the uncovered cartridge gently.
 
 The separate saddle connects to the carrier, not the socket. **Remove/release
 the bar before withdrawing the cartridge.** A rigid lifted-ribbon control
@@ -228,11 +243,16 @@ Assembly/inspection order (all unpowered, no person attached):
 2. Fit both retainers on each side, then the correctly indexed bridge to each
    rail with BOTH fasteners. Confirm component and PCB clearance. A missing or
    loose bridge fastener, damaged key or bare socket bypasses the intended system.
-3. Assemble/continuity-check and permanently capture the correctly oriented
-   socket. Seat it axially without using the cover to force a resistant plug.
-   Verify full socket seating and contact engagement, then fit the independent
-   cable bar with its reviewed liner/shims. Insulate all unused free conductors.
-4. For disconnection, release cable restraint before axial withdrawal. For PCB
+3. Build each plug off the board. Lower the correctly oriented socket with its
+   factory ribbon into the UNCOVERED cartridge from above, the ribbon dropping
+   down the -X slot, until the socket rests on the end ledges. Continuity-check
+   it (see "Socket capture"), then fit the cover over pocket and slot and
+   permanently upset its four rivets.
+4. Seat the closed plug axially through its coded receiver without using the
+   cover to force a resistant plug. Verify full socket seating and contact
+   engagement, then fit the independent cable bar with its reviewed liner/shims.
+   Insulate all unused free conductors.
+5. For disconnection, release cable restraint before axial withdrawal. For PCB
    removal, remove guide bridges before the retainers and PCB. No hot plugging.
 
 These are prototype design requirements, not permission to begin fabrication,
@@ -250,11 +270,16 @@ warning, missing file or timeout is never interpreted as empty space.
 Tests cover both correct seated ports; wrong port/reversal/quarter-turn/pitch
 shifts/missing groove; sixteen first-contact tilt probes on J1 (+/-5,+/-15 degrees
 about either horizontal axis, correct and wrong cartridges); cable travel with
-released clamp, including both ports against the complete frame and edge retainers; socket retention and exit direction; board installation; and
+released clamp, including both ports against the complete frame and edge retainers; socket retention and exit direction; socket-and-ribbon loading
+into each uncovered cartridge (assembly step 3); board installation; and
 closed part meshes. A removed rib makes the wrong-port control pass, so the
 key's presence matters to the actual solid test. The closed-wall cable control
-collides. These are **sampled rigid-solid checks, not a continuous collision-free
-trajectory, arbitrary-angle proof, force simulation or physical qualification**.
+collides. The loading check sweeps the rigid socket and ribbon envelopes
+continuously along one straight vertical path (hull of the start and end poses
+of each convex box), from seated until the socket clears the cartridge top; the
+fitted cover must block the same ribbon path. Everything else is a **sampled
+rigid-solid check; none is a tilted or flexible-cable trajectory, arbitrary-angle
+proof, force simulation or physical qualification**.
 In particular, combined-axis tilt, deformed/undersized plastic, partially
 assembled guides, incomplete rivets, bare plugs and intentional forcing remain
 outside the claimed result. Small correctly aligned insertion and full seating

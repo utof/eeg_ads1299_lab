@@ -278,6 +278,108 @@ def test_iso7721d_pin_functions_and_uart_directions_match_manufacturer(source: s
         } == {n: (v[0], v[1]) for n, v in expected.items()}
 
 
+# Independent ESP32-S3-DevKitC-1 V1.1 J1 table (schematic sheet 2, J1.1/J1.2 =
+# ESP_3V3; user guide J1). Index n-1 is physical pad n. Deliberately not read
+# from hardware/rev_a/harness.py, whose lookup table the parser uses.
+DEVKIT_J1 = (
+    "3V3",
+    "3V3",
+    "EN",
+    *(f"GPIO{n}" for n in (4, 5, 6, 7, 15, 16, 17, 18, 8, 3, 46, 9, 10, 11, 12, 13, 14)),
+    "5V",
+    "GND",
+)
+DEVKIT_SUPPLY = {"3V3": "MCU_3V3", "5V": "TARGET_VIN5", "GND": "TARGET_GND"}
+
+
+def test_mcu_tails_mate_devkit_j1_one_to_one() -> None:
+    """J102 pad n is soldered to DevKit J1 pad n: a wrong supply there is a short."""
+    pins = _contract().parts["MCU_TAILS"].pins
+    assert len(DEVKIT_J1) == 22 and set(pins) == {str(n) for n in range(1, 23)}
+    for n, devkit in enumerate(DEVKIT_J1, start=1):
+        pin = pins[str(n)]
+        if pin.net is None:
+            assert pin.kind == "no_connect", n
+        elif devkit in DEVKIT_SUPPLY:
+            assert pin.net == DEVKIT_SUPPLY[devkit], f"J102.{n} on DevKit {devkit}"
+        else:
+            assert devkit.startswith("GPIO"), f"J102.{n} must not connect DevKit {devkit}"
+            assert pin.function.startswith(devkit + "_"), f"J102.{n} is not {devkit}"
+            assert pin.net not in DEVKIT_SUPPLY.values(), f"J102.{n} supply on {devkit}"
+    # Pad 1 is DevKit 3V3: left open, ground moves to pad 22 (DevKit GND) only.
+    assert pins["1"].net is None and pins["22"].net == "TARGET_GND"
+    assert pins["22"].kind == "power_out" and pins["2"].net == "MCU_3V3"
+
+
+def _tails_text(change: dict[str, object] | None, remove: str | None = None) -> str:
+    data: object = json.loads((ROOT / "hardware/rev_a/auxiliary/contract.json").read_text())
+    assert isinstance(data, dict)
+    root: dict[object, object] = data
+    rows: object = root["parts"]
+    assert isinstance(rows, list)
+    items: list[object] = rows
+    tails: dict[object, object] | None = None
+    for item in items:
+        assert isinstance(item, dict)
+        row: dict[object, object] = item
+        if row["contract_ref"] == "MCU_TAILS":
+            tails = row
+    assert tails is not None
+    raw: object = tails["pins"]
+    assert isinstance(raw, dict)
+    pins: dict[object, object] = raw
+    if remove is not None:
+        del pins[remove]
+    for number, pin in (change or {}).items():
+        pins[number] = pin
+    return json.dumps(root)
+
+
+@pytest.mark.parametrize(
+    "number,net,function,kind",
+    [
+        ("1", "TARGET_GND", "GND", "power_out"),  # WIRE-01: ground on DevKit 3V3
+        ("22", "MCU_3V3", "GND", "power_out"),
+        ("21", "TARGET_GND", "VIN5_TO_DEVKIT", "power_in"),
+        ("2", "TARGET_VIN5", "MCU_3V3_FROM_J1_2", "power_out"),
+        ("4", "MCU_DRDY", "GPIO5_DRDY", "input"),
+        ("12", "TARGET_VIN5", "GPIO8_CLKSEL", "output"),
+        ("3", "MCU_RESET", "EN_RESET", "output"),
+    ],
+)
+def test_contract_rejects_a_tail_that_does_not_mate_its_devkit_pad(
+    number: str, net: str, function: str, kind: str
+) -> None:
+    text = _tails_text({number: {"net": net, "function": function, "type": kind}})
+    with pytest.raises(ValueError, match="DevKit"):
+        parse_auxiliary_contract(text)
+
+
+def test_contract_requires_every_devkit_tail_number() -> None:
+    with pytest.raises(ValueError, match="DevKit"):
+        parse_auxiliary_contract(_tails_text(None, remove="13"))
+
+
+# TI SCES416N pin configuration (DBV): 1 = In1, 2 = GND, 3 = In0, 4 = Y,
+# 5 = VCC, 6 = In2. Wiring by pin number was already correct; names were swapped.
+@pytest.mark.parametrize("source", ["manifest", "native-export", "symbol"])
+@pytest.mark.parametrize("ref", ["CLEAR_AND", "ARM_BUFFER"])
+def test_sn74lvc1g97_pin_names_match_manufacturer(source: str, ref: str) -> None:
+    expected = {"1": "IN1", "2": "GND", "3": "IN0", "4": "Y", "5": "VCC", "6": "IN2"}
+    if source == "manifest":
+        assert {n: p.function for n, p in _contract().parts[ref].pins.items()} == expected
+    elif source == "native-export":
+        graph = _fixture()
+        assert {n: graph.pin_functions[(ref, n)] for n in expected} == expected
+    else:
+        import re
+
+        text = (ROOT / "hardware/rev_a/auxiliary/RevA.kicad_sym").read_text()
+        body = text.split('(symbol "SN74LVC1G97DBV"', 1)[1].split("\n)\n", 1)[0]
+        pins = re.findall(r'\(name "([^"]+)".*?\(number "(\d+)"', body)
+        assert {number: name for name, number in pins} == expected
+
+
 @pytest.fixture
 def auxiliary_sources(tmp_path: Path) -> tuple[Path, Path]:
     cad, libraries = tmp_path / "auxiliary", tmp_path / "installed"

@@ -105,6 +105,9 @@ Annotate functions and tests. Validate JSON, NPZ arrays, and other untrusted inp
 
 Ruff uses safe fixes only. Pyrefly is strict and fails on warnings as well as errors. Cognitive complexity must be at most 15 (aim for 10). Do not add blanket suppressions, ignored modules, hidden complexity baselines, or lower coverage thresholds to bypass failures. Any narrowly justified exception requires an explicit rationale and review.
 
+Code reviews are tracked by end-to-end path, not file, in `docs/reviews/`;
+follow its protocol and update the path file when you review or fix a finding.
+
 Run the same `tools.check` entry point locally and in CI. Keep subprocesses bounded and retain failure output. Never accept stale simulator output as a fresh successful run. CI evidence belongs in ignored `reports/`; do not overwrite committed `results/`, `VALIDATION.json`, or historical validation records during routine quality checks.
 
 Treat `pyproject.toml` and `uv.lock` as the dependency source of truth. Regenerate requirements exports using the commands in the development guide. `requirements-tested.txt` is a historical record, not a second dependency input. Keep feature changes separate from broad formatting or dependency upgrades.

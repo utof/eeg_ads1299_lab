@@ -66,6 +66,11 @@ def inventory(board, active, requests):
      return {'net':net,'from':start,'to':end,'centerline_mm_excludes_vertical_via_length':d,'via_transitions':sum(k=='via' for k,*_ in h),'segments_traversed':len({x[1]for x in h if x[0]=='segment'}),'front_mm':sum(x[2]for x in h if x[0]=='segment'and x[3][2]==k.F_Cu),'In2_mm':sum(x[2]for x in h if x[0]=='segment'and x[3][2]==k.In2_Cu),'minimum_track_width_mm':min(widths),'front_resistance_squares':sum(x[2]/(byid[x[1]].GetWidth()/1e6) for x in h if x[0]=='segment'and x[3][2]==k.F_Cu),'inner_resistance_squares':sum(x[2]/(byid[x[1]].GetWidth()/1e6) for x in h if x[0]=='segment'and x[3][2]==k.In2_Cu),'sections':[{'kind':kind,'id':ident,'length_mm':dist,'from':list(a),'to':list(z),'width_mm':byid[ident].GetWidth()/1e6 if kind=='segment' else None} for kind,ident,dist,a,z in h], 'trace_UUIDs':sorted({x[1]for x in h if x[0]=='segment'})}
     return [route(a,b) for a,b in requests]
 ROOT=Path(sys.argv[1])
+# 'source' reproduces the record from its exact boards. 'current-geometry' measures
+# the checked-out boards with NO source identity, so it can never relabel them.
+MODE=sys.argv[2] if len(sys.argv)>2 else 'source'
+if MODE not in ('source','current-geometry'):
+    raise RuntimeError('unknown S1 probe mode: '+MODE)
 SOURCE_COMMIT='3519b21e335584244771c73c5c87b70d66037a7e'
 SOURCE_TREE='9475d027c1a0ba1c3cf9c35c2da9e0a1be07888c'
 BOARD_PATHS=['hardware/rev_a/layout/rev_a.kicad_pcb',
@@ -87,7 +92,7 @@ if commit_result.returncode or not commit_result.stdout.startswith(('tree '+SOUR
 BOARD_HASHES={}
 for path in BOARD_PATHS:
     data=(ROOT/path).read_bytes()
-    if data != git_object(SOURCE_COMMIT+':'+path):
+    if MODE=='source' and data != git_object(SOURCE_COMMIT+':'+path):
         raise RuntimeError('S1 source identity differs from the recorded geometry baseline: '+path)
     BOARD_HASHES[path]=hashlib.sha256(data).hexdigest()
 aux=inventory(ROOT/"hardware/rev_a/auxiliary/auxiliary.kicad_pcb", (k.F_Cu,k.In2_Cu), [('J104.2','U102.14'),('J104.2','U103.14'),('J104.2','U104.14'),('J104.2','R116.1'),('J105.1','J101.17'),('J105.1','J102.21'),('J104.3','U106.1'),('J104.4','U107.1'),('J105.1','U108.1'),('J105.1','R108.1')])
@@ -128,7 +133,7 @@ rows=[]
 for board,ps in [('AUX',aux),('AFE',afe)]:
  for p in ps:
   rows.append({'board':board,'from':p['from'],'to':p['to'],'mm':round(p['centerline_mm_excludes_vertical_via_length'],9),'vias':p['via_transitions'],'PTH':sum(s['kind']=='PTH'for s in p['sections']),'F_squares':round(sum(s['length_mm']/s['width_mm']for s in p['sections']if s['kind']=='segment'and s['from'][2]==0),9),'other_squares':round(sum(s['length_mm']/s['width_mm']for s in p['sections']if s['kind']=='segment'and s['from'][2]!=0),9),'other_layer':'In2.Cu'if board=='AUX'else'B.Cu'})
-model={'schema':1,'scope':'selected centerline-tree DC sensitivity; NOT parasitic extraction or qualification','source_commit':SOURCE_COMMIT,'source_tree':SOURCE_TREE,'boards':BOARD_HASHES,'geometry':rows,'dvdd':dvdd,'vin5_aux':vin,'assumed':{'rho20_ohm_mm2_per_m':.0175,'alpha_per_C':.00393,'temperature_C':30.,'F_mm':.035,'In2_mm':.018,'B_mm':.035,'wire_area_mm2':.205,'via_length_mm':1.6,'via_bore_mm':.3,'via_plating_mm':.020,'contact_pair_ohm':.020,'PTH_extra_ohm':.005},'scope_limits':['ADC/local DVDD load lumped at C33, not die extraction','centerline arborescence excludes parallel copper/pad spreading','ground network NOT represented by ideal zero-ohm reference','mode currents, crimp, material and return impedances unqualified','steady sensitivity, no inrush, ringing, regulator thermal or fault deadline'],'qualified':False}
+model={'schema':1,'scope':'selected centerline-tree DC sensitivity; NOT parasitic extraction or qualification','source_commit':SOURCE_COMMIT if MODE=='source' else None,'source_tree':SOURCE_TREE if MODE=='source' else None,'boards':BOARD_HASHES,'geometry':rows,'dvdd':dvdd,'vin5_aux':vin,'assumed':{'rho20_ohm_mm2_per_m':.0175,'alpha_per_C':.00393,'temperature_C':30.,'F_mm':.035,'In2_mm':.018,'B_mm':.035,'wire_area_mm2':.205,'via_length_mm':1.6,'via_bore_mm':.3,'via_plating_mm':.020,'contact_pair_ohm':.020,'PTH_extra_ohm':.005},'scope_limits':['ADC/local DVDD load lumped at C33, not die extraction','centerline arborescence excludes parallel copper/pad spreading','ground network NOT represented by ideal zero-ohm reference','mode currents, crimp, material and return impedances unqualified','steady sensitivity, no inrush, ringing, regulator thermal or fault deadline'],'qualified':False}
 for path,digest in BOARD_HASHES.items():
     if hashlib.sha256((ROOT/path).read_bytes()).hexdigest()!=digest:
         raise RuntimeError('S1 source identity changed during capture: '+path)

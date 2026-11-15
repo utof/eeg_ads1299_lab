@@ -1,16 +1,22 @@
-"""L5 exceptions cannot hide unrelated edits or partial/corrupted local changes."""
+"""L5/fitted exceptions cannot hide unrelated edits or partial/corrupted local changes."""
 
 import copy
 import json
 
 import pytest
 
-from tests.auxiliary_preservation import DELTA, copper_records, legacy_auxiliary_records
+from tests.auxiliary_preservation import (
+    DELTA,
+    FITTED,
+    copper_records,
+    legacy_auxiliary_records,
+    prefitted_auxiliary_records,
+)
 from tests.test_auxiliary_placement import BOARD
 
 
 def _candidate_records() -> tuple[dict[str, dict[str, str]], dict[str, dict[str, str]]]:
-    actual = copper_records(BOARD.read_text())
+    actual = prefitted_auxiliary_records(copper_records(BOARD.read_text()))
     raw: object = json.loads(DELTA.read_text())
     assert isinstance(raw, dict)
     old: object = raw["before"]
@@ -86,3 +92,47 @@ def test_duplicate_source_ids_are_not_collapsed_by_the_hash_reader() -> None:
     duplicate = '(segment (net 1) (uuid "duplicate"))'
     with pytest.raises(AssertionError, match="duplicate source UUID"):
         copper_records(duplicate + duplicate)
+
+
+def _fitted() -> tuple[dict[str, dict[str, str]], dict[str, dict[str, str]]]:
+    raw: object = json.loads(FITTED.read_text())
+    assert isinstance(raw, dict)
+    states = []
+    for key in ("before", "after"):
+        value: object = raw[key]
+        assert isinstance(value, dict)
+        items: dict[object, object] = value
+        state: dict[str, dict[str, str]] = {}
+        for ident, record in items.items():
+            assert isinstance(ident, str) and isinstance(record, dict)
+            kind: object = record["type"]
+            digest: object = record["sha256"]
+            assert isinstance(kind, str) and isinstance(digest, str)
+            state[ident] = {"type": kind, "sha256": digest}
+        states.append(state)
+    return states[0], states[1]
+
+
+def test_current_board_is_exactly_the_fitted_delta_over_the_prefitted_records() -> None:
+    before, after = _fitted()
+    actual = copper_records(BOARD.read_text())
+    assert {ident: actual[ident] for ident in after} == after
+    prefitted = prefitted_auxiliary_records(actual)
+    assert {ident: prefitted[ident] for ident in before} == before
+    assert {k: v for k, v in prefitted.items() if k not in before} == {
+        k: v for k, v in actual.items() if k not in before
+    }
+
+
+@pytest.mark.parametrize("mode", ["partial", "corrupt"])
+def test_fitted_mapping_rejects_partial_or_altered_application(mode: str) -> None:
+    _, after = _fitted()
+    candidate = prefitted_auxiliary_records(copper_records(BOARD.read_text()))
+    first = next(iter(after))
+    if mode == "partial":
+        candidate[first] = after[first]  # one fitted object, the rest pre-fitted
+    else:
+        candidate.update(after)
+        candidate[first] = {"type": "footprint", "sha256": "0" * 64}
+    with pytest.raises(AssertionError, match="unreviewed or partial"):
+        legacy_auxiliary_records(candidate)

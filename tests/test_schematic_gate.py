@@ -323,8 +323,11 @@ def test_schematic_gate_rejects_stale_partial_or_mismatched_evidence(
             "tests/test_carrier_l5.py",
         }
         assert l5_inputs <= hashes.keys()
+        # The exact 2026-11-15 fitted-revision delta is bound the same way.
+        fitted_inputs = {"tests/fixtures/auxiliary_fitted_delta.json"}
+        assert fitted_inputs <= hashes.keys()
         assert "uv.lock" in hashes
-        assert len(hashes.keys() - l5_inputs - {"uv.lock"}) == 107
+        assert len(hashes.keys() - l5_inputs - fitted_inputs - {"uv.lock"}) == 107
         directory = out / str(report["artifact_directory"])
         harness = read_object(json.loads((directory / "harness.json").read_text()), "harness")
         assert harness["physical_wiring_approved"] is False

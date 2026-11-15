@@ -22,3 +22,28 @@ The prior 2026-09-27 T491-land export (XML ca9ccef463e1ab31426ae3afdc9744bd085a6
 CSV 87460b3c87d06f3ad077e5521f7b06665c0a19cd4e16f3d25169e1603e2c3c22)
 and earlier PR43 captures remain in Git history. Their historical facts are not
 rewritten. Current fixtures are not physical capacitance, fit or process tests.
+
+## 2026-11-15 fitted-revision captures
+
+Re-exported with native KiCad 9.0.2 `kicad-cli sch export netlist --format kicadxml`
+from a neutral `/tmp` copy of the checked-out source; gzip level 9, mtime 0.
+
+`auxiliary_c3_netlist.xml.gz` after WIRE-01/WIRE-04: only J102.1 (GND
+`power_out` -> UNUSED `no_connect`, now isolated), J102.22 (`passive` ->
+`power_out`, the sole TARGET_GND source) and the U109/U110 pin 1/3 names
+(IN1/IN0 per TI SCES416N) differ. Every other part, pin and net partition is
+identical; native ERC reports zero violations on all four sheets.
+Uncompressed XML SHA256: `4b7f353e2c288f5523669ff0bcc6881d878d483a408a3693328dca8a07358c1a`.
+
+After the FAB-01/FAB-02 migration both netlists were exported again the same way.
+`auxiliary_c3_netlist.xml.gz`: only R117-R120 differ (Value/MPN `33` /
+`RC0603FR-0733RL`, Population fit, native DNP flag removed); uncompressed XML
+SHA256 `73d2d45cb408845fb15db1995e14d5948dc290a1a8903c42a7d8022428a828c1`.
+`rev_a_netlist.xml.gz`: only C8-C33 MPNs (GRM188R61C105KA12D, C0603C104K5RACTU,
+GRM21BR61C106KE15L) and R24 (33 ohm RC0603FR-0733RL, fit, Tolerance 0.01)
+differ; no pin or net changes. Uncompressed XML SHA256
+`47e169dc660790bcbc730cb2bdb772e8b11f7a562f8dabecd9a9d2143ea7995f`.
+`rev_a_bom.csv` (same field list as the CAD gate): 71 rows, exactly those 27
+rows changed, only D1-D8 DNP. SHA256
+`69d54c18c491f2ae95d4a053de3a2f50e316b493ef426f4feff05bc6a0c73f96`.
+Native ERC is clean on every AFE and AUX sheet. The K1 hashes above are history.
