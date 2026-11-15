@@ -13,8 +13,9 @@ is not fabrication permission.
 
 The base has no fasteners through the PCB. Remove the raised bridges for board
 installation. J1/J2 bridge fastener spacings differ (30/36 mm). Socket cartridges
-have different ribs/grooves, side cable windows and permanently captured cover
-concepts. Remove/release the independent cable clamp BEFORE withdrawal. Real
+have different ribs/grooves, side cable slots open to the top (the socket and
+its ribbon load from above, then the cover closes the slot) and permanently
+captured cover concepts. Remove/release the independent cable clamp BEFORE withdrawal. Real
 socket orientation, printed dimensions, capture strength and mating behavior
 are not verified by a picture or finite collision samples.
 
