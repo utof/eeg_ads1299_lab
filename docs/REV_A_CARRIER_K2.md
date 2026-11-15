@@ -26,7 +26,8 @@ the B3 access overlay are byte-identical. SPI tracks/vias DID change elsewhere;
 this is not a claim that all electrical copper is unchanged. Existing native
 support, service, reference and fault checks must still pass on current source.
 
-R24 is the unpopulated 0603 footprint at(57.0,29.4), rotation0 on F.Cu.
+R24 is the 0603 footprint at(57.0,29.4), rotation0 on F.Cu, fitted with the
+33 ohm RC0603FR-0733RL since the 2026-11-15 fitted revision (`33ef3fa`).
 Its pad centres are(56.175,29.4) and(57.825,29.4). A proposed allocation
 x=55.4..58.6, y=28.6..30.2, z=0..4 mm contains its complete courtyard including
 line width and fits wholly within K2's existing blanket component allocation.

@@ -92,8 +92,9 @@ hosted-verified. Findings are recorded as fixed in `reviews/paths/`.
    1.6 mm), prepare the Russian-language request.
 
 Path reviews of 2026-11-15 (`79d0c9f`) added: **MECH-02**, the K2
-cartridge cable window is closed so the ribbon socket cannot be loaded (fix
-before the carrier is printed or quoted, item A05); MECH-05 suspected, the J1
+cartridge cable window is closed so the ribbon socket cannot be loaded (fixed
+2026-11-15, `87f81ef`: open-topped slot closed by the cover; quote item A05
+must cite the new source); MECH-05 suspected, the J1
 ribbon may not reach AUX J101 (paper mock-up); WIRE-03, add "+5V / GND" and
 pin silk on J105/J102 together with item 1 (done 2026-11-15, `52c42d8`); ANALOG-02, the BIAS loop needs a
 firmware rule of at most 2 sense inputs before BIAS is enabled (no hardware
