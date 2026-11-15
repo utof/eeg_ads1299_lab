@@ -93,7 +93,9 @@ def test_compile_profile_target_guards(
         assert "error:" in result.stderr
 
 
-@pytest.mark.parametrize("fault", ["none", "cli_version", "core_version", "no_binary"])
+@pytest.mark.parametrize(
+    "fault", ["none", "cli_version", "core_version", "no_binary", "no_breadboard_binary"]
+)
 def test_firmware_gate_checks_versions_and_fresh_artifacts(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fault: str
 ) -> None:
@@ -122,6 +124,15 @@ def test_firmware_gate_checks_versions_and_fresh_artifacts(
             assert folder.is_dir() and not list(folder.iterdir())
             if fault != "no_binary":
                 (folder / "fixture.bin").write_bytes(b"not an actual firmware image")
+        elif name == "breadboard-s3-compile":
+            # The separate breadboard target compiles into its own fresh directory.
+            assert timeout == 600
+            assert "compiler.cpp.extra_flags=-DEEGLAB_BREADBOARD_S3" in command
+            assert "-DEEGLAB_REV_A_S3" not in " ".join(command)
+            folder = Path(command[command.index("--output-dir") + 1])
+            assert folder.is_dir() and not list(folder.iterdir())
+            if fault != "no_breadboard_binary":
+                (folder / "breadboard.bin").write_bytes(b"not an actual firmware image")
         (out / f"{name}.log").write_text(text)
 
     monkeypatch.setattr("tools.check.command_plan", no_commands)
@@ -136,6 +147,11 @@ def test_firmware_gate_checks_versions_and_fresh_artifacts(
         assert report["source_commit"] == "a" * 40
         assert report["physical_hardware_tested"] is False
         assert report["body_connection_authorized"] is False
+        breadboard = read_object(report["breadboard_s3"], "breadboard")
+        assert breadboard["cpp_flags"] == "-DEEGLAB_BREADBOARD_S3"
+        assert breadboard["wiring_checked"] is False
+        assert list(read_object(breadboard["sha256"], "sha256")) == ["breadboard.bin"]
+        assert breadboard["artifact_directory"] != report["artifact_directory"]
     else:
         assert not marker.exists()
 
