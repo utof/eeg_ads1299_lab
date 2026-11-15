@@ -1,5 +1,7 @@
 # Continue with the standalone breadboard measurement
 
+**2026-11-16 (unpublished, branch `feat/breadboard-s3-target`):** separate breadboard ESP32-S3 firmware build (`-DEEGLAB_BREADBOARD_S3`) and [BREADBOARD_S3_BRINGUP.md](BREADBOARD_S3_BRINGUP.md) added, Rev A build unchanged; next: publish to a PR, then the user's build steps 0-10; the electrode mode awaits the user's decision.
+
 Read root `AGENTS.md`, `REPOSITORY_PUBLICATION.md`, `DEVELOPMENT.md` and
 `REV_A_BENCH_FIRST.md`. Read live main, open PRs and original review threads.
 Use the [hosted capability preflight](REPOSITORY_PUBLICATION.md#hosted-capability-preflight).

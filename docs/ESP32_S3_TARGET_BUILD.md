@@ -75,6 +75,15 @@ all physical/review/body-use flags false. It is written only after success.
 A new firmware request invalidates the old marker before even the ordinary
 quality checks; an earlier failure cannot leave an old build looking current.
 
+## Breadboard target (separate)
+
+`tools.check --firmware` also compiles the same sketch with
+`breadboard_cpp_flags` (`-DEEGLAB_BREADBOARD_S3`) into its own fresh directory,
+recorded under `breadboard_s3` in `FIRMWARE_BUILD.json`. That build is for a
+hand-wired DevKit + ADS1299-4/ADS1299 with no Rev A supervisor; see
+[BREADBOARD_S3_BRINGUP.md](BREADBOARD_S3_BRINGUP.md). The Rev A build above is
+unchanged by it.
+
 ## Evidence and limits
 
 The test-only commit precedes implementation and preserves the missing-profile

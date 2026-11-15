@@ -43,3 +43,12 @@ route-defining firmware, these test/oracle inputs and stub headers are included
 in its before/after snapshot. This closes the gap between declared constants
 and the route the tested sketch actually calls. Actual S3 target compilation
 and electrical interface qualification remain separate.
+
+## Breadboard build
+
+`test_firmware_breadboard.py` reuses these unchanged doubles for the separate
+`EEGLAB_BREADBOARD_S3` build: `native_breadboard_sketch_test.cpp` adds a small
+register-file model of the chip and runs `setup()` plus one `loop()`. Twelve
+scenarios and eight compiling mutants check the closed gate, fresh R/V/mode
+answers, ID 0x3C/0x3E only, the register writes, lead-off off, RDATAC/START
+order and packet length. Still software traces only, not chip or MCU emulation.
