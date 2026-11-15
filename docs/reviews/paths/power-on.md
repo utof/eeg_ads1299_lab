@@ -38,6 +38,7 @@ belong here.
 |---|---|---|---|
 | PWR-01 | open | B2 H1 numeric limits are blank, so the board can't be powered (by design). Derive staged current limits, rail windows and abort criteria from datasheets and S1 load allocations (AFE ~27 mA; DevKit 100-500 mA dominates) | `docs/REV_A_OBSERVATION_B2.md:124` |
 | PWR-02 | suspected | TPS3703A5500 undervoltage (~4.75 V) watches AVDD after 10 ohm R11, leaving tens of mV margin at a 4.95 V source; the board may never arm (safe but unusable). Confirm with the supply setpoint vs threshold tolerance, then measure at AFE C32 | `docs/REV_A_SUPPLY_RETURN_S1.md:168-170`, `docs/REV_A_BENCH_FIRST.md` section 2 |
+| PWR-03 | suspected (low) | AVDD rises through a fast RC (~0.1 ms) while DVDD follows the TPS7A2033 soft-start, so AVDD - DVDD may briefly exceed the 3.6 V recommended maximum (SBAS499C p.8; recommended, not absolute). No doc addresses it; check the sequence at first power or from TPS7A20 timing (from the 2026-11-15 analog review) | `hardware/rev_a/bom.json` `analog_feed`, `dvdd_ldo`; `docs/REV_A_SUPPLY_TIMING.md` |
 
 ## Not yet covered
 

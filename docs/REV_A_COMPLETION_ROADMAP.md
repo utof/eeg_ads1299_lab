@@ -90,9 +90,11 @@ Path reviews of 2026-11-15 (`79d0c9f`) added: **MECH-02**, the K2
 cartridge cable window is closed so the ribbon socket cannot be loaded (fix
 before the carrier is printed or quoted, item A05); MECH-05 suspected, the J1
 ribbon may not reach AUX J101 (paper mock-up); WIRE-03, add "+5V / GND" and
-pin silk on J105/J102 together with item 1; ANALOG-01 suspected, AVDD shares
-the ESP32 5 V bus through a 10 ohm RC with no local regulator (PiEEG-8 uses
-LT3042/LT3094); decide before fab. No other new board-wiring defect.
+pin silk on J105/J102 together with item 1; ANALOG-02, the BIAS loop needs a
+firmware rule of at most 2 sense inputs before BIAS is enabled (no hardware
+change). Footprints, pinouts, polarity and analog values all matched the
+datasheets. The PiEEG-8 comparison adopts nothing before fab (see
+`reviews/paths/analog-quality.md`).
 
 Reviews found nothing critical in firmware register/timing settings or the
 capture/recording decode path. Review coverage, finding IDs and evidence are
