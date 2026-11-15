@@ -22,6 +22,68 @@ def test_auxiliary_placement_is_present_and_explicitly_unreleased() -> None:
     assert "(segment " in text and "(via " in text
 
 
+def _pad_center(text: str, reference: str, number: str) -> tuple[float, float]:
+    """Board position from the footprint origin/rotation and the local pad offset."""
+    import math
+    import re
+
+    from tests.test_pcb_power import _form_end
+
+    marker = text.index(f'(property "Reference" "{reference}"')
+    start = text.rindex("(footprint ", 0, marker)
+    form = text[start : _form_end(text, start)]
+    origin = re.search(
+        r"\(footprint \"[^\"]+\"[\s\S]*?\(at ([-\d.]+) ([-\d.]+)(?: ([-\d.]+))?\)", form
+    )
+    pad = re.search(rf'\(pad "{number}" [^\n]*\n?\s*\(at ([-\d.]+) ([-\d.]+)', form)
+    assert origin is not None and pad is not None, (reference, number)
+    x0, y0 = float(origin[1]), float(origin[2])
+    angle = math.radians(float(origin[3] or 0))
+    x, y = float(pad[1]), float(pad[2])
+    # KiCad: y grows downward and a positive orientation rotates counterclockwise.
+    return (
+        x0 + x * math.cos(angle) + y * math.sin(angle),
+        y0 - x * math.sin(angle) + y * math.cos(angle),
+    )
+
+
+def _front_silk(text: str) -> list[tuple[str, float, float]]:
+    import re
+
+    pattern = r'\(gr_text "([^"]*)"\s*\(at ([-\d.]+) ([-\d.]+)[^)]*\)\s*\(layer "F\.SilkS"\)'
+    return [(m[1], float(m[2]), float(m[3])) for m in re.finditer(pattern, text)]
+
+
+@pytest.mark.parametrize(
+    "label,reference,number,other",
+    [
+        ("+5V", "J105", "1", "2"),  # WIRE-03: no reverse-polarity part behind J105
+        ("GND", "J105", "2", "1"),
+        ("1", "J102", "1", "22"),
+        ("22", "J102", "22", "1"),
+        ("1", "J101", "1", "20"),
+        ("1", "J103", "1", "4"),
+        ("4", "J103", "4", "1"),
+        ("1", "J106", "1", "2"),
+    ],
+)
+def test_solder_tail_lands_carry_pin_and_polarity_silk(
+    label: str, reference: str, number: str, other: str
+) -> None:
+    import math
+
+    text = BOARD.read_text()
+    pad, far = _pad_center(text, reference, number), _pad_center(text, reference, other)
+    near = [
+        (math.dist(pad, (x, y)), math.dist(far, (x, y)))
+        for text_label, x, y in _front_silk(text)
+        if text_label == label
+    ]
+    # One label within 3.5 mm of its own pad and clearly closer to it than to
+    # the opposite end of the same tail group, so the marking is unambiguous.
+    assert any(own <= 3.5 and own < opposite for own, opposite in near), (label, reference)
+
+
 @pytest.mark.schematic
 def test_auxiliary_placement_native_schematic_parity(tmp_path: Path) -> None:
     """Native engine must agree with actual schematic; unconnected is not clean DRC."""

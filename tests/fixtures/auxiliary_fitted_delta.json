@@ -6,7 +6,7 @@
     "U109": "WIRE-04: pad 1/3 pin function names IN1/IN0 per TI SCES416N; nets unchanged",
     "U110": "WIRE-04: pad 1/3 pin function names IN1/IN0 per TI SCES416N; nets unchanged"
   },
-  "unhashed_changes": "In1 P2_TARGET_GND_REFERENCE refill around J102.1 only (0.685 mm2 removed)",
+  "unhashed_changes": "In1 P2_TARGET_GND_REFERENCE refill around J102.1 only (0.685 mm2 removed); WIRE-03 board-level F.SilkS labels at J105, J103 and J106",
   "before": {
     "04f3b1e4-4c85-5c28-9a8e-b5ec16e8070e": {
       "type": "footprint",
