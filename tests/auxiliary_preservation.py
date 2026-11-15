@@ -9,7 +9,7 @@ from tests.test_pcb_power import _form_end
 
 DELTA = Path(__file__).parent / "fixtures/auxiliary_l5_delta.json"
 FITTED = Path(__file__).parent / "fixtures/auxiliary_fitted_delta.json"
-FITTED_COUNT = 3
+FITTED_COUNT = 7
 
 
 def copper_records(text: str, excluded_net: str | None = None) -> dict[str, dict[str, str]]:

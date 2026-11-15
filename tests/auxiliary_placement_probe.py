@@ -45,18 +45,18 @@ libraries=Path(os.environ['KICAD9_FOOTPRINT_DIR']);courts={}
 for row in contract['parts']:
     ref=row['reference'];f=fs[ref]
     assert f.GetValue()==row['value'] and f.GetFPID().GetLibItemName()==row['footprint'].split(':')[1]
-    # Only L4's four named positions may be unpopulated. Do not equate DNP
-    # with BOM exclusion or trust a custom Population field over the native bit.
+    # Every AUX device is fitted; L4's four series positions carry the reviewed
+    # 33 ohm part. Do not equate DNP with BOM exclusion or trust a custom
+    # Population field over the native bit.
     series=ref in ('R117','R118','R119','R120')
-    population='dnp' if series else 'fit'
-    assert row.get('population','fit')==population,ref+' declared population'
-    assert f.GetFieldText('Population')==population,ref+' Population field'
-    assert f.IsDNP()==series,ref+' native DNP'
+    assert row.get('population','fit')=='fit',ref+' declared population'
+    assert f.GetFieldText('Population')=='fit',ref+' Population field'
+    assert not f.IsDNP(),ref+' native DNP'
     assert f.IsExcludedFromBOM()==(not row['in_bom']),ref+' BOM exclusion'
     assert f.GetFieldText('MPN')==row['mpn'],ref+' MPN field'
     if series:
         assert row['in_bom'] is True,ref+' series must remain in BOM'
-        assert row['mpn']==row['value']=='NOT_SELECTED',ref+' unselected series'
+        assert (row['value'],row['mpn'])==('33','RC0603FR-0733RL'),ref+' reviewed series fit'
     assert f.GetLayer()==p.F_Cu,'front-side only'
     pads={z.GetNumber():z for z in f.Pads()};assert set(pads)==set(row['pins'])
     lib,name=row['footprint'].split(':')

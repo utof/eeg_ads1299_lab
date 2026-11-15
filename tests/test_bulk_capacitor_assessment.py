@@ -69,7 +69,10 @@ def test_all_four_bulk_instances_are_on_their_actual_distinct_nodes() -> None:
     profile, bom, _ = load_documents()
     row = next(row for row in bom["line_items"] if row["id"] == "bulk_10u")
     baseline = read_object(_record()["baseline"], "baseline")
-    assert baseline["mpn"] == row["mpn"] == "GRM219R61A106KE44D"
+    # The screen's baseline is the historical legacy part; the reviewed 2026-11-15
+    # revision fitted the preferred core with its dated orderable L suffix.
+    assert baseline["mpn"] == "GRM219R61A106KE44D"
+    assert row["mpn"] == str(_record()["preferred_for_qualification"]) + "L"
     assert baseline["quantity"] == row["quantity"] == 4
     assert baseline["nominal_capacitance_f"] == row["spec"]["capacitance_f"] == 10e-6
     fixture = gzip.decompress((ROOT / "tests/fixtures/rev_a_netlist.xml.gz").read_bytes()).decode()

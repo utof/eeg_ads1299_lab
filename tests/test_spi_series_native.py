@@ -1,4 +1,4 @@
-"""Native L5 pad cuts and copper bypasses. No resistor fit or hardware approval."""
+"""Native L5 pad cuts and copper bypasses on the fitted sites; no hardware approval."""
 
 import json
 import os
@@ -37,9 +37,9 @@ b = p.LoadBoard(path)
 b.BuildConnectivity()
 f = b.FindFootprintByReference(spec['reference'])
 assert f is not None, 'L5 native series position missing: ' + spec['reference']
-assert f.IsDNP() and not f.IsExcludedFromBOM(), 'series population/BOM flags'
-assert f.GetFieldText('Population') == 'dnp', 'series Population field'
-assert f.GetValue() == f.GetFieldText('MPN') == 'NOT_SELECTED', 'no fitted value selected'
+assert not f.IsDNP() and not f.IsExcludedFromBOM(), 'series population/BOM flags'
+assert f.GetFieldText('Population') == 'fit', 'series Population field'
+assert (f.GetValue(), f.GetFieldText('MPN')) == ('33', 'RC0603FR-0733RL'), 'reviewed series fit'
 pads = {a.GetNumber(): a for a in f.Pads()}
 assert set(pads) == {'1', '2'}
 a, z = pads['1'], pads['2']

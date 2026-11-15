@@ -56,10 +56,10 @@ def test_r24_native_lands_and_courtyard_match_the_allocated_space(tmp_path: Path
 import pcbnew as p, sys
 assert p.Version() == '9.0.2'
 b = p.LoadBoard(sys.argv[1]); f = b.FindFootprintByReference('R24')
-assert f is not None and f.IsDNP()
+assert f is not None and not f.IsDNP()
 fields = {field.GetName(): field.GetText() for field in f.GetFields()}
-assert fields['Population'] == 'dnp'
-assert f.GetValue() == 'NOT_SELECTED' and fields['MPN'] == 'NOT_SELECTED'
+assert fields['Population'] == 'fit'
+assert f.GetValue() == '33' and fields['MPN'] == 'RC0603FR-0733RL'
 assert f.GetLayer() == p.F_Cu and f.GetOrientationDegrees() == 0
 assert (f.GetPosition().x, f.GetPosition().y) == (57000000, 29400000)
 pads = {a.GetNumber(): a for a in f.Pads()}
@@ -77,7 +77,7 @@ for edge in edges:
         # Include half the courtyard line width, without inventing a part maximum.
         assert 55400000 <= point.x - 25000 <= point.x + 25000 <= 58600000
         assert 28600000 <= point.y - 25000 <= point.y + 25000 <= 30200000
-print('R24: two native SMD lands and full courtyard inside 3.2 x 1.6 mm allocation; DNP.')
+print('R24: two native SMD lands and full courtyard inside 3.2 x 1.6 mm allocation; fitted 33 ohm.')
 """
     result = subprocess.run(
         [

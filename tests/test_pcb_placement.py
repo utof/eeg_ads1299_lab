@@ -47,7 +47,8 @@ def _population_inventory(text: str, bom: BillOfMaterials) -> None:
     references = re.findall(r'\(property\s+"Reference"\s+"([^"]+)"', text)
     assert len(references) == len(set(references)) and set(references) == expected, "AFE inventory"
     assert text.count('(pad "') == 251 + 2 * int(series)
-    unpopulated = {f"D{n}" for n in range(1, 9)} | ({"R24"} if series else set())
+    # Only the optional clamps stay DNP; R24 is fitted by the 2026-11-15 revision.
+    unpopulated = {f"D{n}" for n in range(1, 9)}
     contracts = []
     for reference in references:
         part = _footprint_block(text, reference)
@@ -72,8 +73,10 @@ def _check_population_part(
     assert _population_field(part, "BOM_ID") == row["id"], reference
     if reference == "R24":
         assert contract == "R_MISO_SER" and row["id"] == "spi_series"
-        assert row["mpn"] == _population_field(part, "Value") == "NOT_SELECTED"
-        assert row["spec"] == {}, "no series resistance selected"
+        assert (row["mpn"], _population_field(part, "Value")) == ("RC0603FR-0733RL", "33")
+        assert _population_field(part, "Tolerance") == "0.01"
+        spec = row["spec"]
+        assert isinstance(spec, dict) and spec["resistance_ohm"] == 33, "reviewed series fit"
 
 
 def _population_field(part: str, name: str) -> str:

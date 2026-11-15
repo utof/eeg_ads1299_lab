@@ -11,9 +11,14 @@ not an electrical pass or fabrication/first-power release.
 
 **Later fitted proposal:** [the consolidated build decision](REV_A_FITTED_PILOT_BUILD.md)
 selects33ohm RC0603FR-0733RL as an initial fit at all five sites, conditional on
-the coordinated migration and its release conditions. Active source remains
-OPEN_DNP/NOT_SELECTED. Earlier statements below about no selected value describe
-the L4/L6 decisions; they do not supersede that later proposal.
+the coordinated migration and its release conditions. Earlier statements below
+about no selected value describe the L4/L6 decisions; they do not supersede that
+later proposal.
+
+**2026-11-15 fitted revision:** the reviewed source revision now fits all five
+positions (AFE R24, AUX R117-R120) with 33 ohm RC0603FR-0733RL in the BOM,
+schematics, contract and both PCBs. Lands, nets and copper are unchanged. This is
+a replaceable starting fit, not an SI, fabrication or first-power release.
 
 **Decision: include five accessible series-component positions in the next
 custom-board revision, rather than accepting cut-and-flywire rework as the SPI

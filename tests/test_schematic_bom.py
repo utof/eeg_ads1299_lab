@@ -33,7 +33,10 @@ def test_native_bom_fixture_matches_validated_xml_and_json() -> None:
     assert validate_schematic(NETLIST, profile, bom) == []
     rows = list(csv.DictReader(io.StringIO(BOM_CSV)))
     assert len(rows) == 71
-    assert sum(row["DNP"] == "DNP" for row in rows) == 9
+    # Only the eight optional BAV199 packages; R24 is fitted since 2026-11-15.
+    assert [row["Reference"] for row in rows if row["DNP"] == "DNP"] == [
+        f"D{n}" for n in range(1, 9)
+    ]
     assert [row["Reference"] for row in rows if row["OffBoard"]] == ["MOD1"]
     validate_schematic_bom(BOM_CSV, NETLIST)
 

@@ -41,8 +41,10 @@ class BaselineTests(unittest.TestCase):
 
     def test_costs_and_optional_exclusion(self) -> None:
         result = totals(self.bom)
-        self.assertEqual(result["fitted"], Decimal("76.84"))
-        self.assertEqual(result["planning_total"], Decimal("94.84"))
+        # 76.84 before the fitted revision + one $0.06 R24 allowance; capacitor
+        # allowances are unchanged by the identity migration.
+        self.assertEqual(result["fitted"], Decimal("76.84") + Decimal("0.06"))
+        self.assertEqual(result["planning_total"], Decimal("94.84") + Decimal("0.06"))
         self.assertEqual(result["dnp_options"], Decimal("2.40"))
 
     def test_every_gate_is_fail_closed(self) -> None:

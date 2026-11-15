@@ -216,7 +216,7 @@ def test_carrier_is_bound_to_reviewed_board() -> None:
     # One strict whole-file binding; neither part fitting nor rework is approved.
     board = ROOT / "hardware/rev_a/layout/rev_a.kicad_pcb"
     assert hashlib.sha256(board.read_bytes()).hexdigest() == (
-        "7873928ea7118b9e39822c0c2b2a70f47df58b01c8b1696c16d343b2b7ec1b7a"
+        "207a0441659eecd04aec61f61d9ca6e83fd5ffaf092cac497752bd9cd68ed482"
     )
 
 

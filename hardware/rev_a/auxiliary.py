@@ -168,19 +168,22 @@ _SERIES_POSITIONS = {
 }
 
 
+# Reviewed 2026-11-15 fitted revision: the same starting part as AFE R24.
+_SERIES_FIT = ("33", "RC0603FR-0733RL")
+
+
 def _population(ref: str, part: AuxiliaryPart) -> None:
-    expected = "dnp" if ref in _SERIES_POSITIONS else "fit"
-    if part.population != expected:
-        raise ValueError("C3 population must retain fitted devices and unpopulated SPI positions")
-    if expected == "dnp" and not (
+    if part.population != "fit":
+        raise ValueError("C3 population must fit every device, including the SPI positions")
+    if ref in _SERIES_POSITIONS and not (
         part.reference == _SERIES_POSITIONS[ref]
         and part.symbol == "R"
-        and part.value == part.mpn == "NOT_SELECTED"
+        and (part.value, part.mpn) == _SERIES_FIT
         and part.footprint == "Resistor_SMD:R_0603_1608Metric"
         and part.in_bom
         and part.sheet == "bus.kicad_sch"
     ):
-        raise ValueError("C3 SPI position must remain an unselected in-BOM 0603 resistor")
+        raise ValueError("C3 SPI position must be the reviewed 33 ohm in-BOM 0603 resistor")
 
 
 # J102 tail n is soldered one-to-one to DevKit J1 pad n (L4 numbered tails).

@@ -1690,8 +1690,8 @@
       "reference": "R117",
       "contract_ref": "R_AFE_SCLK_SER",
       "symbol": "R",
-      "value": "NOT_SELECTED",
-      "mpn": "NOT_SELECTED",
+      "value": "33",
+      "mpn": "RC0603FR-0733RL",
       "footprint": "Resistor_SMD:R_0603_1608Metric",
       "in_bom": true,
       "pins": {
@@ -1707,14 +1707,14 @@
         }
       },
       "sheet": "bus.kicad_sch",
-      "population": "dnp"
+      "population": "fit"
     },
     {
       "reference": "R118",
       "contract_ref": "R_AFE_MOSI_SER",
       "symbol": "R",
-      "value": "NOT_SELECTED",
-      "mpn": "NOT_SELECTED",
+      "value": "33",
+      "mpn": "RC0603FR-0733RL",
       "footprint": "Resistor_SMD:R_0603_1608Metric",
       "in_bom": true,
       "pins": {
@@ -1730,14 +1730,14 @@
         }
       },
       "sheet": "bus.kicad_sch",
-      "population": "dnp"
+      "population": "fit"
     },
     {
       "reference": "R119",
       "contract_ref": "R_AFE_CS_SER",
       "symbol": "R",
-      "value": "NOT_SELECTED",
-      "mpn": "NOT_SELECTED",
+      "value": "33",
+      "mpn": "RC0603FR-0733RL",
       "footprint": "Resistor_SMD:R_0603_1608Metric",
       "in_bom": true,
       "pins": {
@@ -1753,14 +1753,14 @@
         }
       },
       "sheet": "bus.kicad_sch",
-      "population": "dnp"
+      "population": "fit"
     },
     {
       "reference": "R120",
       "contract_ref": "R_MCU_MISO_SER",
       "symbol": "R",
-      "value": "NOT_SELECTED",
-      "mpn": "NOT_SELECTED",
+      "value": "33",
+      "mpn": "RC0603FR-0733RL",
       "footprint": "Resistor_SMD:R_0603_1608Metric",
       "in_bom": true,
       "pins": {
@@ -1776,7 +1776,7 @@
         }
       },
       "sheet": "bus.kicad_sch",
-      "population": "dnp"
+      "population": "fit"
     }
   ],
   "external_assumptions": [

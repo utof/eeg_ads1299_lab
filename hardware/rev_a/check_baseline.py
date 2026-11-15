@@ -465,6 +465,7 @@ def validate(profile: BoardProfile, bom: BillOfMaterials, sources: SourcesDocume
         )
 
         _validate_spi_series(parts, require)
+        _validate_capacitor_identities(parts, require)
         _validate_service(profile, parts, require)
         _validate_clock_input(profile, parts, require)
         _validate_afe(profile, parts, require)
@@ -476,23 +477,42 @@ def validate(profile: BoardProfile, bom: BillOfMaterials, sources: SourcesDocume
     return errors
 
 
+# Reviewed 2026-11-15 fitted revision (REV_A_FITTED_PILOT_BUILD.md sections 1-2).
+_SPI_SERIES_FIT = {"resistance_ohm": 33, "tolerance_fraction": 0.01, "rated_power_w": 0.1}
+_CAPACITOR_IDENTITIES = {
+    "decap_1u": ("GRM188R61C105KA12D", "Murata", "X5R", 16),
+    "decap_100n": ("C0603C104K5RACTU", "KEMET", "X7R", 50),
+    "bulk_10u": ("GRM21BR61C106KE15L", "Murata", "X5R", 16),
+}
+
+
 def _validate_spi_series(parts: dict[str, BomItem], require: Callable[[bool, str], None]) -> None:
     row = parts["spi_series"]
     require(
         row["references"] == ["R_MISO_SER"]
         and row["quantity"] == 1
-        and row["population"] == "dnp"
+        and row["population"] == "fit"
         and row["package"] == "0603",
-        "SPI series position must remain the single unpopulated 0603 R_MISO_SER",
+        "SPI series position must be the single fitted 0603 R_MISO_SER",
     )
     require(
-        row["mpn"] == "NOT_SELECTED" and row["spec"] == {},
-        "SPI series position has no selected MPN or resistance, including zero ohms",
+        (row["mpn"], row["manufacturer"]) == ("RC0603FR-0733RL", "Yageo")
+        and row["spec"] == _SPI_SERIES_FIT,
+        "SPI series fit must be the reviewed 33 ohm RC0603FR-0733RL, not open or zero ohms",
     )
-    require(
-        money(row["planning_unit_usd"]) == 0,
-        "SPI series unpopulated placeholder is not a quoted fitted-part cost",
-    )
+
+
+def _validate_capacitor_identities(
+    parts: dict[str, BomItem], require: Callable[[bool, str], None]
+) -> None:
+    for item, (mpn, manufacturer, dielectric, volts) in _CAPACITOR_IDENTITIES.items():
+        row = parts[item]
+        require(
+            (row["mpn"], row["manufacturer"], row["population"]) == (mpn, manufacturer, "fit")
+            and row["spec"]["dielectric"] == dielectric
+            and row["spec"]["rated_voltage_v"] == volts,
+            f"{item}: decoupling identity must be the reviewed fitted-pilot capacitor",
+        )
 
 
 def _validate_service(
