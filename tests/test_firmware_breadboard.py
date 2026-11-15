@@ -34,6 +34,14 @@ BREADBOARD_GPIO = {
     "CLKSEL": 8,
 }
 DEVKIT_J1_PIN = {12: 18, 11: 17, 13: 19, 10: 16, 4: 4, 5: 5, 6: 6, 7: 7, 8: 12}
+# Study records S2 (6e4a207) and S4 (e2c4be7) bind the sketch's bytes. The
+# breadboard branches changed those bytes, so its Rev A meaning is bound here.
+STUDY_COMMITS = (
+    "6e4a207ee2289ca4416ba1a3d230d35046471a7c",
+    "e2c4be7486ab5859ee71fbf429e75802b3cd429c",
+)
+REV_A_FLAGS = ["-DCONFIG_IDF_TARGET_ESP32S3=1", "-DEEGLAB_REV_A_S3"]
+LEGACY_FLAGS = ["-DCONFIG_IDF_TARGET_ESP32=1"]
 SCENARIOS = (
     "guard",
     "no-input",
@@ -270,7 +278,7 @@ def test_actual_breadboard_sketch(tmp_path: Path, scenario: str) -> None:
             "gpio-failure",
             "esp32_ads1299_bench.ino",
             'if(status!=ESP_OK)fail("GPIO',
-            'if(false)fail("GPIO',
+            'if(status==9999)fail("GPIO',
         ),
     ],
     ids=[
@@ -290,3 +298,62 @@ def test_breadboard_sketch_mutations_fail(
     result = _run_sketch(tmp_path, scenario, (filename, before, after))
     assert result.returncode != 0, result.stdout + result.stderr
     assert "BREADBOARD_ASSERTION:" in result.stderr
+
+
+def _preprocess(directory: Path, flags: list[str]) -> str:
+    sketch = directory / "esp32_ads1299_bench.ino"
+    args = [_compiler(), "-std=c++17", "-E", "-P", "-x", "c++", *flags, "-I", str(directory)]
+    result = subprocess.run(
+        [*args, "-I", str(STUBS), str(sketch)], capture_output=True, text=True, timeout=30
+    )
+    assert result.returncode == 0, result.stderr
+    return result.stdout
+
+
+def _firmware_at(commit: str, directory: Path) -> None:
+    def git(*args: str) -> bytes:
+        return subprocess.run(
+            ["git", "-C", str(ROOT), *args], capture_output=True, timeout=10, check=True
+        ).stdout
+
+    listing = git("ls-tree", "--name-only", commit, "firmware/esp32_ads1299_bench/")
+    names = listing.decode().split()
+    assert "firmware/esp32_ads1299_bench/esp32_ads1299_bench.ino" in names
+    for name in names:
+        (directory / Path(name).name).write_bytes(git("show", f"{commit}:{name}"))
+
+
+@pytest.mark.native
+@pytest.mark.parametrize("commit", STUDY_COMMITS)
+@pytest.mark.parametrize("flags", [REV_A_FLAGS, LEGACY_FLAGS], ids=["rev-a", "legacy"])
+def test_rev_a_and_legacy_sketch_preprocess_as_at_the_study_commits(
+    tmp_path: Path, commit: str, flags: list[str]
+) -> None:
+    _firmware_at(commit, tmp_path)
+    assert _preprocess(FIRMWARE, flags) == _preprocess(tmp_path, flags)
+
+
+@pytest.mark.native
+@pytest.mark.parametrize(
+    ("before", "after", "rev_a_changed"),
+    [
+        ("checkedReg(0x01,0x96); // 250 SPS", "checkedReg(0x01,0x95); // 250 SPS", True),
+        ("then type V. This firmware does not sense voltages.", "then type V.", False),
+    ],
+    ids=["rev-a-register-edit-detected", "breadboard-only-edit-ignored"],
+)
+def test_preprocess_binding_separates_rev_a_from_breadboard_edits(
+    tmp_path: Path, before: str, after: str, rev_a_changed: bool
+) -> None:
+    study, edited = tmp_path / "study", tmp_path / "edited"
+    study.mkdir()
+    edited.mkdir()
+    _firmware_at(STUDY_COMMITS[1], study)
+    for path in FIRMWARE.iterdir():
+        if path.suffix in {".h", ".ino"}:
+            shutil.copyfile(path, edited / path.name)
+    sketch = edited / "esp32_ads1299_bench.ino"
+    source = sketch.read_text()
+    assert source.count(before) == 1
+    sketch.write_text(source.replace(before, after))
+    assert (_preprocess(edited, REV_A_FLAGS) != _preprocess(study, REV_A_FLAGS)) is rev_a_changed

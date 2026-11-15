@@ -64,7 +64,8 @@ void keys() {
     expect(eeglab::breadboardKey('V', "R") == 0 && eeglab::breadboardKey(-1, "R") == 0, "wrong key accepted");
     expect(eeglab::breadboardKey('t', eeglab::BREADBOARD_MODE_KEYS) == 'T', "t key");
     expect(eeglab::breadboardKey('N', eeglab::BREADBOARD_MODE_KEYS) == 'N', "N key");
-    for (int raw : {'\r', '\n', 'x', 'R', 0})
+    const int junk[] = {'\r', '\n', 'x', 'R', 0};
+    for (int raw : junk)
         expect(eeglab::breadboardKey(raw, eeglab::BREADBOARD_MODE_KEYS) == 0, "junk accepted as a mode");
     expect(eeglab::breadboardModeFromKey('T') == BreadboardMode::TestSignal, "T is the test signal");
     expect(eeglab::breadboardModeFromKey('N') == BreadboardMode::ShortedInputs, "N is shorted inputs");

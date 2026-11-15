@@ -168,7 +168,12 @@ void check(bool finished) {
         require(!has("mode", 12, OUTPUT) && !has("mode", 8, OUTPUT), "GPIO failure enabled an output");
         return;
     }
-    if (s == "six-channel" || s == "bad-id" || s == "readback-fault") { checkHalted(); return; }
+    if (s == "six-channel" || s == "bad-id" || s == "readback-fault") {
+        checkHalted();
+        // A refused chip stops right after its ID, before any mode or register write.
+        if (s != "readback-fault") require(!has("prompt", -1, 'M'), "refused chip reached the mode prompt");
+        return;
+    }
     if (s == "no-input" || s == "queued" || s == "only-R") { require(!finished, "setup finished"); checkWaiting(); return; }
     require(finished && !hostbench::halted, "good breadboard scenario did not stream");
     checkParked();
