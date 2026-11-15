@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -11,6 +12,19 @@ from tests.test_supply_acceptance_s3 import MODEL, ROOT, _run
 
 RECORD = ROOT / "docs/studies/s4_serial_evidence.json"
 DOCUMENT = ROOT / "docs/REV_A_STEADY_SOURCE_S4.md"
+# The commit that bound this record's digests. The reviewed 2026-11-15 fitted
+# revision later changed the two hardware inputs below and rebound the S3
+# worksheet to its own source commit; these three are verified there only.
+# Every other input must still equal the current checkout.
+SOURCE_COMMIT = "e2c4be7486ab5859ee71fbf429e75802b3cd429c"
+HISTORY = Path(__file__).resolve().parents[1]
+REVISED = frozenset(
+    {
+        "hardware/rev_a/bom.json",
+        "hardware/rev_a/auxiliary/contract.json",
+        "docs/REV_A_SUPPLY_ACCEPTANCE_S3.md",
+    }
+)
 
 
 def _record() -> dict[str, object]:
@@ -53,7 +67,16 @@ def test_evidence_is_bound_to_current_sources_and_existing_worksheet() -> None:
         "docs/REV_A_SUPPLY_ACCEPTANCE_S3.md",
     }
     for name, digest in hashes.items():
-        assert hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == digest, name
+        if name in REVISED:
+            data = subprocess.run(
+                ["git", "-C", str(HISTORY), "show", SOURCE_COMMIT + ":" + name],
+                capture_output=True,
+                timeout=10,
+                check=True,
+            ).stdout
+        else:
+            data = (ROOT / name).read_bytes()
+        assert hashlib.sha256(data).hexdigest() == digest, name
     s2 = read_object(json.loads((ROOT / "docs/studies/s2_current_return.json").read_text()), "S2")
     assert read_object(m["setup"], "setup")["spi_population"] == s2["spi_population"]
     assert DOCUMENT.is_file(), "missing evidence-to-worksheet explanation"

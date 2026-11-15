@@ -170,6 +170,14 @@ labelled hypothetical scenarios. Input-source hashes and fixed circuit recipes
 still apply. It neither runs native CAD nor accesses instruments. The executable
 block and its JSON/tests are bound into the existing schematic-gate snapshot.
 
+**2026-11-15 fitted revision.** The reviewed source revision later fitted the five
+SPI series positions (33 ohm), migrated 26 AFE capacitor identities, made AUX
+J102.1 no-connect and added AUX silkscreen labels. Its four changed inputs (BOM,
+AUX contract and both PCBs) are verified and read at `7bc15dc` only; every other
+input must still equal the current checkout. `OPEN_DNP` and
+`acquisition_possible_as_authored=false` describe that historical source, not the
+fitted revision. No fitted-state window is computed here.
+
 ```python
 import hashlib
 import json
@@ -212,16 +220,24 @@ inputs = {
     "docs/REV_A_AUXILIARY_C3.md",
 }
 require(set(m["input_sha256"]) == inputs, "input file inventory differs")
+# The reviewed 2026-11-15 fitted revision changed these inputs after this study.
+# They are verified and read at the source commit; every other input must still
+# equal its recorded bytes in the current checkout.
+revised = {
+    "hardware/rev_a/bom.json",
+    "hardware/rev_a/auxiliary/contract.json",
+    "hardware/rev_a/layout/rev_a.kicad_pcb",
+    "hardware/rev_a/auxiliary/auxiliary.kicad_pcb",
+}
+source = {}
 for name, digest in m["input_sha256"].items():
-    current = Path(name).read_bytes()
     original = subprocess.check_output(["git", "show", m["source_commit"] + ":" + name], timeout=5)
-    require(
-        current == original and hashlib.sha256(current).hexdigest() == digest,
-        "input bytes: " + name,
-    )
+    require(hashlib.sha256(original).hexdigest() == digest, "input bytes: " + name)
+    require(name in revised or Path(name).read_bytes() == original, "current input: " + name)
+    source[name] = original
 require(m["spi_population_state"] == "OPEN_DNP", "SPI population is not approved")
 require(m["acquisition_possible_as_authored"] is False, "no acquisition approval path")
-s2 = json.loads(Path("docs/studies/s2_current_return.json").read_text())
+s2 = json.loads(source["docs/studies/s2_current_return.json"])
 require(
     s2["spi_population"]
     == {
@@ -232,7 +248,7 @@ require(
     },
     "upstream population record differs",
 )
-p = json.loads(Path("hardware/rev_a/board_profile.json").read_text())
+p = json.loads(source["hardware/rev_a/board_profile.json"])
 require(
     not any(p["gates"].values()) and not p["afe"]["external_dummy_mode_enabled"],
     "review gates changed",
@@ -300,7 +316,7 @@ def window(base, terms, required):
 
 
 # An independently stated sensitivity, NOT a new bound or substitution into the ledger.
-bom = json.loads(Path("hardware/rev_a/bom.json").read_text())
+bom = json.loads(source["hardware/rev_a/bom.json"])
 r = next(row["spec"] for row in bom["line_items"] if row["id"] == "analog_feed")
 rmax = r["resistance_ohm"] * (1 + r["tolerance_fraction"])  # initial tolerance ONLY
 remaining = source_target[0] - avdd_required[0] - 0.010 * rmax

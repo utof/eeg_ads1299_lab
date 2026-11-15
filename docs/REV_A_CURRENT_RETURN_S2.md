@@ -176,8 +176,17 @@ do not close it or justify reallocating C3's24mV disabled-low margin.
 ## 4. Reproduce the source-bound example
 
 Run this one block from the locked checkout root with its Git history. It checks
-current bytes against the original committed input bytes and recorded hashes; no CAD, instrument or hardware is accessed. The output
+the original committed input bytes against the recorded hashes and reads them from
+the source commit; no CAD, instrument or hardware is accessed. The output
 is an accounting record with qualification=false, not an operating permission.
+
+**2026-11-15 fitted revision.** The reviewed source revision later fitted the five
+SPI series positions (33 ohm) and migrated 26 AFE capacitor identities. Its four
+changed inputs (BOM, AUX contract and both frozen netlists) are therefore verified
+at `6e4a207` only; every other input must still equal the current checkout. This
+record and its `OPEN_DNP` state describe that historical open source. It is not
+re-run against, and gives no current-mode or acquisition result for, the fitted
+revision.
 
 
 ```python
@@ -216,10 +225,21 @@ inputs = {
     "tests/fixtures/auxiliary_c3_netlist.xml.gz",
 }
 require(set(m["input_sha256"]) == inputs, "source input inventory differs")
+# The reviewed 2026-11-15 fitted revision changed these inputs after this study.
+# They are verified and read at the source commit; every other input must still
+# equal its recorded bytes in the current checkout.
+revised = {
+    "hardware/rev_a/bom.json",
+    "hardware/rev_a/auxiliary/contract.json",
+    "tests/fixtures/rev_a_netlist.xml.gz",
+    "tests/fixtures/auxiliary_c3_netlist.xml.gz",
+}
+source = {}
 for name, digest in m["input_sha256"].items():
-    current = Path(name).read_bytes()
     original = subprocess.check_output(["git", "show", m["source_commit"] + ":" + name], timeout=5)
-    require(current == original and hashlib.sha256(current).hexdigest() == digest, name)
+    require(hashlib.sha256(original).hexdigest() == digest, name)
+    require(name in revised or Path(name).read_bytes() == original, "current input: " + name)
+    source[name] = original
 # Actual source topology, not an ideal link silently fitted by this calculation.
 positions = {
     "R117": ("auxiliary", ("U102", "13"), {("J101", "1")}),
@@ -239,9 +259,7 @@ require(
     "unreviewed population or acquisition claim",
 )
 graphs = {
-    board: parse_schematic_xml(
-        gzip.decompress(Path("tests/fixtures/" + name).read_bytes()).decode()
-    )
+    board: parse_schematic_xml(gzip.decompress(source["tests/fixtures/" + name]).decode())
     for board, name in (
         ("afe", "rev_a_netlist.xml.gz"),
         ("auxiliary", "auxiliary_c3_netlist.xml.gz"),
@@ -311,7 +329,7 @@ for mode, duty, frequency in (
         "total_operating_max_A": None,
     }
 # Quiescent supply-current maxima do not turn the above switching model into a max.
-a = json.loads(Path("docs/studies/s1_supply_paths.json").read_text())["assumed"]
+a = json.loads(source["docs/studies/s1_supply_paths.json"])["assumed"]
 h = m["return_example"]
 rho = a["rho20_ohm_mm2_per_m"] * (1 + a["alpha_per_C"] * (a["temperature_C"] - 20))
 c4 = (

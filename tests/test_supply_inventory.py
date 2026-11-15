@@ -8,26 +8,76 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
+# The S1 geometry baseline. The reviewed 2026-11-15 fitted revision later edited
+# both boards (pad nets, population fields, fills, silkscreen), so the exact record
+# is reproduced from this commit and current copper is compared separately.
+SOURCE_COMMIT = "3519b21e335584244771c73c5c87b70d66037a7e"
+IDENTITY = ("source_commit", "source_tree", "boards")
 
 
-@pytest.mark.schematic
-def test_supply_inventory_matches_current_native_geometry(tmp_path: Path) -> None:
+def _source_checkout(tmp_path: Path) -> Path:
+    clone = tmp_path / "repo"
+    for command in (
+        ["git", "clone", "--shared", "--no-checkout", str(ROOT), str(clone)],
+        ["git", "-C", str(clone), "checkout", "--detach", SOURCE_COMMIT],
+    ):
+        subprocess.run(command, capture_output=True, text=True, timeout=30, check=True)
+    return clone
+
+
+def _inventory(root: Path, log: Path, *mode: str) -> dict[str, object]:
     from tests.supply_inventory_probe import SCRIPT
 
     result = subprocess.run(
-        [os.environ.get("KICAD_PYTHON", "/usr/bin/python3"), "-c", SCRIPT, str(ROOT)],
+        [os.environ.get("KICAD_PYTHON", "/usr/bin/python3"), "-c", SCRIPT, str(root), *mode],
         capture_output=True,
         text=True,
         timeout=45,
         check=False,
     )
-    (tmp_path / "supply-inventory.log").write_text(result.stdout + result.stderr)
+    log.write_text(result.stdout + result.stderr)
     assert result.returncode == 0, result.stdout + result.stderr
     actual: object = json.loads(result.stdout)
+    assert isinstance(actual, dict) and all(isinstance(key, str) for key in actual)
+    validated: dict[str, object] = actual
+    return validated
+
+
+def _record() -> dict[str, object]:
     expected: object = json.loads((ROOT / "docs/studies/s1_supply_paths.json").read_text())
-    assert actual == expected, (
+    assert isinstance(expected, dict) and all(isinstance(key, str) for key in expected)
+    validated: dict[str, object] = expected
+    return validated
+
+
+@pytest.mark.schematic
+def test_supply_inventory_reproduces_its_exact_source_geometry(tmp_path: Path) -> None:
+    actual = _inventory(_source_checkout(tmp_path), tmp_path / "supply-inventory.log")
+    assert actual == _record(), (
         "native paths/assumptions changed; redo S1 review, not just its hashes"
     )
+
+
+@pytest.mark.schematic
+def test_current_boards_keep_the_s1_supply_geometry(tmp_path: Path) -> None:
+    """Current copper keeps every S1 path; the record's identity stays historical."""
+    import hashlib
+
+    actual = _inventory(ROOT, tmp_path / "current-geometry.log", "current-geometry")
+    expected = _record()
+    paths = (
+        "hardware/rev_a/layout/rev_a.kicad_pcb",
+        "hardware/rev_a/auxiliary/auxiliary.kicad_pcb",
+    )
+    boards: object = expected["boards"]
+    assert isinstance(boards, dict) and set(boards) == set(paths)
+    assert actual["source_commit"] is None and actual["source_tree"] is None
+    assert actual["boards"] == {
+        path: hashlib.sha256((ROOT / path).read_bytes()).hexdigest() for path in paths
+    }
+    assert {k: v for k, v in actual.items() if k not in IDENTITY} == {
+        k: v for k, v in expected.items() if k not in IDENTITY
+    }, "current supply copper differs from S1; redo S1 review"
 
 
 def _run_documented_accounting(cwd: Path, log_dir: Path) -> dict[str, object]:
@@ -86,21 +136,8 @@ def test_changed_board_cannot_regenerate_old_source_identity(tmp_path: Path, boa
     """Real Git/native copies: even a geometry-neutral edit invalidates exact provenance."""
     from tests.supply_inventory_probe import SCRIPT
 
-    clone = tmp_path / "repo"
-    subprocess.run(
-        ["git", "clone", "--shared", "--no-checkout", str(ROOT), str(clone)],
-        capture_output=True,
-        text=True,
-        timeout=15,
-        check=True,
-    )
-    subprocess.run(
-        ["git", "-C", str(clone), "checkout", "--detach", "HEAD"],
-        capture_output=True,
-        text=True,
-        timeout=15,
-        check=True,
-    )
+    # Start from the exact source so the appended byte is the only difference.
+    clone = _source_checkout(tmp_path)
     name = "rev_a.kicad_pcb" if board == "layout" else "auxiliary.kicad_pcb"
     target = clone / "hardware/rev_a" / board / name
     target.write_bytes(target.read_bytes() + b"\n")
