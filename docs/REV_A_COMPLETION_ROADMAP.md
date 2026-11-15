@@ -86,6 +86,14 @@ review output until each item is fixed with a failing-first check:
 8. When budget exists: choose fab, confirm 1.5 mm (K2 carrier hard-codes
    1.6 mm), prepare the Russian-language request.
 
+Path reviews of 2026-11-15 (`79d0c9f`) added: **MECH-02**, the K2
+cartridge cable window is closed so the ribbon socket cannot be loaded (fix
+before the carrier is printed or quoted, item A05); MECH-05 suspected, the J1
+ribbon may not reach AUX J101 (paper mock-up); WIRE-03, add "+5V / GND" and
+pin silk on J105/J102 together with item 1; ANALOG-01 suspected, AVDD shares
+the ESP32 5 V bus through a 10 ohm RC with no local regulator (PiEEG-8 uses
+LT3042/LT3094); decide before fab. No other new board-wiring defect.
+
 Reviews found nothing critical in firmware register/timing settings or the
 capture/recording decode path. Review coverage, finding IDs and evidence are
 tracked by path in [`reviews/`](reviews/README.md); continue reviews there.

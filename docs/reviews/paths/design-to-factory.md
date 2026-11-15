@@ -55,3 +55,8 @@ drill, placement, assembler BOM, fab notes) and the release marking.
   0.6/0.3 mm, >= 0.5 mm copper to edge). AUX: schematic/contract/PCB
   agreement; ISO7721, TXU0304, TPS3703, LVC1G97, LVC2G74 pinouts. Confirmed by
   grep that no export exists.
+- 2026-11-15: Opus review started at 79d0c9f (first Fable attempt hit the
+  usage limit): IC footprint pad vs symbol pin numbering, tantalum/diode
+  polarity, land patterns vs manufacturer drawings, design rules vs a
+  Russian 4-layer standard class. If no later entry exists, the run was
+  lost: re-run it.
