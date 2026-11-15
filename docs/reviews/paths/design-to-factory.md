@@ -4,8 +4,8 @@ code: FAB
 title: Design to factory files
 status: partial
 stage: before-fab
-reviewed_at: 652193d
-reviewed_on: 2026-11-01
+reviewed_at: 79d0c9f
+reviewed_on: 2026-11-15
 scope:
   - hardware/rev_a/bom.json
   - hardware/rev_a/kicad
@@ -39,11 +39,18 @@ drill, placement, assembler BOM, fab notes) and the release marking.
 | FAB-05 | suspected | Vias partly overlap fitted 0603 pads (C12.1, C15.1, C15.2, C20.2) by 0.025-0.125 mm; solder-wicking risk. Confirm via fab DFM or specify via tenting/plugging | `layout/rev_a.kicad_pcb` |
 | FAB-06 | suspected | 1 uF X5R 0603 (GRM188R61E105KA12D) loses capacitance at 5 V bias on AVDD/VCAP pins; confirm with Murata DC-bias curves (overlaps Q04 disposition) | `bom.json` |
 | FAB-07 | open (not critical) | Silkscreen shows almost no reference designators (AFE 1 of 70, AUX 0 of 56); generate an assembly drawing from F.Fab for inspection and rework | both PCBs |
+| FAB-08 | open (fold into FAB-03) | Export/fab notes must keep or refill the In1 GND fills (GND on both boards is carried by them; without the AFE fill GND splits into 55 islands) and state finished hole sizes (vias 0.3 mm, JST 0.95 mm) | both PCBs, In1 zones (at 79d0c9f) |
+| FAB-09 | open (low) | U111 (SN74LVC2G74 DCU) pads are 0.15 mm apart with no mask expansion, leaving a 0.15 mm mask web a fab may drop: solder-bridge risk, not a dead board. Ask the fab or note it | `auxiliary/auxiliary.kicad_dru` U111 rule (at 79d0c9f) |
 
 ## Not yet covered
 
-- Real KiCad ERC/DRC locally (`kicad-cli` absent; hosted CI only).
-- Land patterns against vendor tables / assembler DFM.
+- Real KiCad ERC/DRC locally (`kicad-cli` absent; hosted CI only), incl.
+  courtyard overlap; stencil/paste design; current capacity.
+- TI's own recommended lands for TQFP-64 PAG, SOT-23-5 DBV, WSON-6 DSE,
+  VSSOP-8 DCU (KiCad IPC-7351 library lands used); KEMET primary B-case
+  table; Murata 0603/0805 table; Samtec HTSW print.
+- Current Rezonit/Elektrokonnekt rule pages (Rezonit page 404; compared with
+  general 4-layer standard class).
 - No fiducials: ask the assembler (rails), not a design blocker.
 
 ## Log
@@ -55,8 +62,14 @@ drill, placement, assembler BOM, fab notes) and the release marking.
   0.6/0.3 mm, >= 0.5 mm copper to edge). AUX: schematic/contract/PCB
   agreement; ISO7721, TXU0304, TPS3703, LVC1G97, LVC2G74 pinouts. Confirmed by
   grep that no export exists.
-- 2026-11-15: Opus review started at 79d0c9f (first Fable attempt hit the
-  usage limit): IC footprint pad vs symbol pin numbering, tantalum/diode
-  polarity, land patterns vs manufacturer drawings, design rules vs a
-  Russian 4-layer standard class. If no later entry exists, the run was
-  lost: re-run it.
+- 2026-11-15, 79d0c9f, one Opus review (no hardware change since 652193d).
+  No new critical defect. Pad = datasheet pin = symbol pin for U1 ADS1299-4
+  (pin 1 top-left, CCW; spot-checked supplies/VCAP/GPIO/DOUT/DRDY), U2
+  TPS7A2033, U105-U108 TPS3703 DSE, U109/U110 SN74LVC1G97 (logic correct,
+  names swapped: WIRE-04), U111 SN74LVC2G74, D1-D8 BAV199 (DNP). C6 T491D and
+  C7 T491B: pad 1 = "+" in footprint and symbol, on VCAP1/VREFP. T491D land
+  matches KEMET density-B; JST XH 0.95 mm hole within spec. Own rule scan:
+  tracks 0.15 AFE / 0.20 AUX, spacing 0.20 (0.15 at U111 by DRU rule), vias
+  0.6/0.3, hole-to-hole >= 0.3, copper-to-edge >= 0.5, outlines closed, all
+  SMD pads have paste and mask, committed fills short no nets and connect
+  all. ti.com unreachable: TI facts from mirrors/search extracts.
