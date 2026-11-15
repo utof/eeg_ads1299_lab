@@ -321,7 +321,14 @@ def _native(out: Path) -> None:
 def _firmware_config() -> dict[str, str]:
     raw = _mapping(json.loads((ROOT / "firmware/toolchain.json").read_text()), "firmware")
     result: dict[str, str] = {}
-    for name in ("cli_version", "core", "core_version", "fqbn", "cpp_flags"):
+    for name in (
+        "cli_version",
+        "core",
+        "core_version",
+        "fqbn",
+        "cpp_flags",
+        "breadboard_cpp_flags",
+    ):
         value = raw.get(name)
         if not isinstance(value, str) or not value:
             raise ValueError(f"firmware {name} must be a nonempty string")
@@ -329,8 +336,38 @@ def _firmware_config() -> dict[str, str]:
     return result
 
 
+def _compile_target(
+    cli: str, config: dict[str, str], name: str, flags: str, out: Path
+) -> tuple[str, dict[str, str]]:
+    """One fresh output directory per target; a zero exit without binaries fails."""
+    build = Path(mkdtemp(prefix=f"{name}-", dir=out))
+    run_step(
+        f"{name}-compile",
+        [
+            cli,
+            "compile",
+            "--fqbn",
+            config["fqbn"],
+            "--build-property",
+            "compiler.cpp.extra_flags=" + flags,
+            "--output-dir",
+            str(build),
+            "firmware/esp32_ads1299_bench",
+        ],
+        out,
+        timeout=600,
+    )
+    binaries = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in build.glob("*.bin")}
+    if not binaries:
+        raise RuntimeError(f"{name} compilation returned without fresh binary artifacts")
+    return build.name, binaries
+
+
 def _firmware(out: Path) -> None:
-    """Compile the complete guarded sketch, never upload or enable its hardware gate."""
+    """Compile the complete guarded sketch for the Rev A and breadboard targets.
+
+    Never uploads or enables either hardware gate.
+    """
     marker = out / "FIRMWARE_BUILD.json"
     cli = shutil.which("arduino-cli")
     if cli is None:
@@ -354,26 +391,9 @@ def _firmware(out: Path) -> None:
     run_step(
         "s3-board", [cli, "board", "details", "--fqbn", config["fqbn"], "--format", "json"], out
     )
-    build = Path(mkdtemp(prefix="s3-", dir=out))
-    run_step(
-        "s3-compile",
-        [
-            cli,
-            "compile",
-            "--fqbn",
-            config["fqbn"],
-            "--build-property",
-            "compiler.cpp.extra_flags=" + config["cpp_flags"],
-            "--output-dir",
-            str(build),
-            "firmware/esp32_ads1299_bench",
-        ],
-        out,
-        timeout=600,
-    )
-    binaries = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in build.glob("*.bin")}
-    if not binaries:
-        raise RuntimeError("S3 compilation returned without fresh binary artifacts")
+    build, binaries = _compile_target(cli, config, "s3", config["cpp_flags"], out)
+    breadboard_flags = config["breadboard_cpp_flags"]
+    breadboard = _compile_target(cli, config, "breadboard-s3", breadboard_flags, out)
     marker.write_text(
         json.dumps(
             {
@@ -385,8 +405,14 @@ def _firmware(out: Path) -> None:
                     if p.is_file()
                 },
                 "toolchain": config,
-                "artifact_directory": build.name,
+                "artifact_directory": build,
                 "sha256": binaries,
+                "breadboard_s3": {
+                    "cpp_flags": breadboard_flags,
+                    "artifact_directory": breadboard[0],
+                    "sha256": breadboard[1],
+                    "wiring_checked": False,
+                },
                 "physical_hardware_tested": False,
                 "board_profile_reviewed": False,
                 "body_connection_authorized": False,
