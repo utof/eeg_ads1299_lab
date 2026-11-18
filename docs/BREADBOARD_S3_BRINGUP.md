@@ -1,7 +1,8 @@
 # Breadboard ADS1299 + ESP32-S3: bring-up card
 
 A step-by-step card for a hand-soldered **ADS1299-4** (TQFP-64) on an adapter,
-wired on a breadboard to an **ESP32-S3-DevKitC-1-N8R8**, powered only from a
+wired on a breadboard to an **ESP32-S3-DevKitC-1** (N8R8 or N16R8: same
+build command), powered only from a
 battery power bank. It reuses this repository's firmware (the separate
 breadboard build) and laptop tools. It comes from a review of the original build
 guide against the TI ADS1299 datasheet (SBAS499C) and Espressif's DevKitC-1 v1.1
@@ -34,6 +35,9 @@ and DC volts). You need the meter's beeper and DC volts here all the time.
    "trigger"/"decoy" board (they can give 9-20 V; the chip dies above 5.5 V).
    Measure the 5 V every session before you connect the chip: it must read
    **positive** (a minus sign means the plug board is in back to front: stop).
+   On a manual-range meter take this reading on a range above 6 V (for example
+   60 V). An over-range display (`OL`, or a lone `1`) on a 6 V range means more
+   than 6 V: unplug at once.
 3. **Never pull out the chip's 3V3 (DVDD) or ground wire while the DevKit is
    on:** the ESP32 would push 3.3 V into an unpowered chip. Unplugging the bank
    (the AFE 5 V) is the normal way to switch off. Order: bank out, then DevKit
@@ -121,7 +125,7 @@ DevKit 3V3 (J1.1) --> DVDD legs 48, 50.        DevKit 5V (J1.21) --> NOTHING.
   minus sign means stop): VBUS at the plug board +4.85 to +5.25 V; AVDD at the
   legs +4.75 to +5.25 V (with the 100 ohm of steps 6-7 about 4.4-4.6 V after `R`
   is expected); 3V3 about +3.3 V; VCAP1 (leg 28) above 1.1 V before `V`; after
-  `T` or `N`, VREFP (24 to 25) about 4.5 V.
+  `T` or `N`, VREFP (24 to 25) 4.45 to 4.55 V and steady.
 - If the power bank switches the AFE port off (the chip draws only about 5 mA),
   use the bank's low-current mode if it has one, or feed the plug board from a
   second USB port of the laptop on battery. Measure again.
@@ -140,19 +144,35 @@ Sleeve every lead that crosses another pin (heat-shrink or PTFE wire).
 | 55 (VCAP3) | 1 uF + 0.1 uF | ground (leads cross 54/56: sleeve them) |
 | 26 (VCAP4) | 1 uF | 25 (VREFN) |
 | 30 (VCAP2) | 1 uF | 31 (RESV1) |
-| 28 (VCAP1) | 100 uF tantalum 16 V (low-leakage electrolytic acceptable), + on 28 | ground (sleeve) |
-| 24 (VREFP) | 22 uF tantalum 16 V, + on 24, plus 0.1 uF | 25 (VREFN) |
+| 28 (VCAP1) | 100 uF, 16 V or more: tantalum or an ordinary aluminium electrolytic, + on 28 | ground (sleeve) |
+| 24 (VREFP) | 22 uF, 16 V or more: aluminium electrolytic or tantalum, + on 24, plus 0.1 uF (and, recommended, 1 uF X7R) | 25 (VREFN) |
 | 61 to 63 | 1.5 nF C0G in parallel with 1 Mohm | (bias feedback) |
 | 16, 14, 12, 10 (optional) | 4.7 nF C0G each | 17 (SRB1), **not** ground |
 
-That is 11 x 1 uF and 9 x 0.1 uF per adapter. On the power rails add 10 uF + 100 uF
+That is 11 x 1 uF (12 with the recommended one on VREFP) and 9 x 0.1 uF per
+adapter. On the power rails add 10 uF + 100 uF
 after the 10 ohm (AVDD) and 10 uF on 3V3 (electrolytic stripe = minus, to ground).
 
 **Polarity marks are opposite.** On a leaded tantalum the mark (a "+", or a
 stripe or bar) and the longer lead are **plus**; on an electrolytic the stripe
-marks **minus**. So the 22 uF tantalum's marked lead goes to leg 24. A 100 uF
+marks **minus**. So on legs 24-25 a 22 uF electrolytic goes stripe (minus) to
+leg 25, and a 22 uF tantalum goes marked lead (plus) to leg 24. A 100 uF
 electrolytic on leg 28 goes stripe to ground; a 100 uF tantalum goes "+" to
-leg 28. A reversed tantalum can short or burn.
+leg 28. A reversed tantalum can short or burn; a reversed electrolytic can
+read correctly at first and fail slowly, so check by eye before power.
+
+**Why an electrolytic is accepted on VREFP and VCAP1.** The datasheet asks only
+for "a minimum 10-uF capacitor" from VREFP to VREFN and 100 uF on VCAP1
+(SBAS499C p.7, Figure 77); it gives no capacitor type and no series-resistance
+limit. TI's evaluation board uses ceramics on both (SLAU443B p.50), so an
+electrolytic or a tantalum is a departure that this card accepts on a
+condition: VREFP reads 4.45-4.55 V and steady in step 8. The 1 uF X7R across
+24-25 gives the reference buffer a low-resistance capacitor close to the legs;
+it is a recommendation of this card's review, not a datasheet requirement.
+Leakage in the VCAP1 capacitor lowers VREFP (about 37 mV per 1 uA, inferred
+from Figure 25): a low or creeping VREFP points at that 100 uF. The internal
+test signal and the shorted-input test are nearly blind to reference noise, so
+a clean capture does not prove the reference is quiet.
 
 ## 5. Firmware: build, upload, console keys
 
@@ -203,6 +223,16 @@ upload again. Never commit that change.
 uv run --locked python -m serial.tools.miniterm /dev/ttyUSB0 460800
 ```
 
+**Empty console?** Each message is printed once, when the DevKit starts. If
+the screen stays empty, press the DevKit's RST button (AFE 5 V off): the banner
+`ADS1299 learning lab. BENCH ONLY ...` and the next message appear. Note which
+happened in step 4, because it decides the capture route in section 6:
+
+- You had to press RST: opening the port does not restart your DevKit. The
+  serial capture works.
+- The banner appeared by itself: opening the port restarts your DevKit, so a
+  serial capture would restart it too. Use the Wi-Fi route.
+
 | The console says | You do | Then |
 |---|---|---|
 | `BREADBOARD: ADS control lines parked low. ... then type R.` | Switch on the AFE 5 V, measure AVDD and 3V3, type `R` | The chip wakes (PWDN, CLKSEL, CS, RESET high) |
@@ -215,7 +245,9 @@ the console fills with binary data: that is normal. To change mode or start
 again: AFE 5 V off, press the DevKit's RST button, wait for the `R` prompt, AFE
 5 V on within a few seconds. A line starting `HALTED` means the firmware stopped
 and parked every line low; its reason names what to check (ID or readback: SPI
-wires, DVDD, CLKSEL; "No valid data": DRDY wire and CLKSEL).
+wires, DVDD, CLKSEL; "No valid data": DRDY wire and CLKSEL; "Invalid native
+status prefix": SCLK and DOUT wires and their length; "Wi-Fi timeout" or
+"Invalid UDP_HOST": the Wi-Fi settings).
 
 The ID check uses only the low five bits (bits 7:5 are a revision number that
 TI may change). A chip of another revision prints a different first digit, for
@@ -244,9 +276,11 @@ Wi-Fi route.
 private network's `WIFI_SSID`/`WIFI_PASSWORD` and `UDP_HOST` = the laptop's
 address on that network (`ip addr` on Linux, `ipconfig` on Windows), then upload
 (the DevKit restarts). Never commit that file. Open miniterm; at the `R` prompt
-plug in the bank, type `R`, wait for VCAP1 above 1.1 V, `V`, then `N`. Start
-`receive` once the console shows the mode was accepted; the console stays open
-and the data arrives by UDP:
+plug in the bank, type `R`, wait for VCAP1 above 1.1 V, `V`, then `N`. Wait
+about 20 s: when it works nothing new is printed (the firmware joins Wi-Fi and
+starts sending); a `HALTED` line (`Wi-Fi timeout`, `Invalid UDP_HOST`) means it
+did not. Then start `receive`; the console stays open and the data arrives by
+UDP:
 
 ```bash
 uv run --locked python run_lab.py receive --host 0.0.0.0 --port 9000 --seconds 30 \
@@ -266,14 +300,14 @@ and the strongest frequency (`peak_0p5_40_Hz_by_channel`) per channel.
 | Step | What you do | Pass |
 |---|---|---|
 | 0 | Practice soldering: practice kit, then a 48-leg practice chip on an adapter | No bridges |
-| 1 | Solder the ADS1299-4 (wrist strap on). Beep-map every leg to its header pin. | Each leg beeps to exactly one pin; neighbours never give a steady beep. A 400-800 diode reading with no beep, often in one probe direction only, is the chip's protection diode, not a bridge. 21-22 and 57-58 share a name and are joined by a bus in step 2 anyway |
-| 2 | Fit the capacitors (section 4) and the adapter's ground and 5 V buses | No steady beep 5V-GND, 3V3-GND, 5V-3V3, 55-54, 55-56, 28-26, 28-30, 24-25, nor from each of 24, 26, 28, 30, 55 to ground (a short chirp that stops is a capacitor charging). Polarity: 22 uF tantalum marked lead on 24; 100 uF plus on 28 |
+| 1 | Solder the ADS1299-4 (wrist strap on). Beep-map every leg to its header pin. | Each leg beeps to exactly one pin; neighbours never give a steady beep. A diode-test reading with no beep (about 0.5-0.8 V, shown as 500-800 on some meters; or `OL`), often in one probe direction only, is the chip's protection diode, not a bridge. 21-22 and 57-58 share a name and are joined by a bus in step 2 anyway |
+| 2 | Fit the capacitors (section 4) and the adapter's ground and 5 V buses | No steady beep 5V-GND, 3V3-GND, 5V-3V3, 55-54, 55-56, 28-26, 28-30, 24-25, nor from each of 24, 26, 28, 30, 55 to ground (a short chirp that stops is a capacitor charging). Polarity: 22 uF plus on 24 (electrolytic: stripe on the leg-25 side; tantalum: mark on 24); 100 uF plus on 28 (electrolytic: stripe to ground) |
 | 3 | Wire the breadboard. Nothing powered; DevKit **not** wired to the adapter. | 25, 31, 41 beep to ground. 37, 42, 44, 45, 46 read about 10 kohm to ground. RESET/PWDN/START/CLKSEL and DIN/CS/SCLK (34, 39, 40) legs read about 47 kohm to ground. Legs 1-9, 11, 13, 15 on 5 V; legs 10, 12, 14, 16, 17 **not** on 5 V. Only capacitors on 24, 26, 28, 30, 55 |
-| 4 | Upload to the DevKit **alone** (USB to the laptop on battery). Gate still false. Then set the gate true and upload again. | Console prints the gate message; after the second upload it shows the `R` prompt and GPIO 5, 6, 7, 8 read 0 V |
+| 4 | Upload to the DevKit **alone** (USB to the laptop on battery). Gate still false. Then set the gate true and upload again. | Console prints the gate message (press RST if the console is empty, and note whether you had to: section 5); after the second upload it shows the `R` prompt and GPIO 5, 6, 7, 8 read 0 V |
 | 5 | Power without the chip: plug board, 10 ohm, AVDD rail. Wire J1.1/J1.22 to the rails with USB unplugged, then DevKit on USB | +4.85 to +5.25 V before the 10 ohm, at least +4.75 V after it; 3V3 +3.2 to +3.4 V. A minus sign: plug board reversed, stop |
 | 6 | **Current-limited first power:** 100 ohm in AVDD and in DVDD, all wires in. **Unpowered rig check** (below) first. DevKit on (prompt `R`): AVDD rail and the DVDD 100 ohm about 0 V. Then, within seconds, AFE 5 V. Type `R`. | Before `R`: AVDD at leg 19 +4.85 to +5.25 V, DVDD at leg 48 +3.2 to +3.4 V (above 3.6 V or a minus sign: unplug the bank at once); about 0 V across both 100 ohm, nothing warm. After `R`: about 0.2-0.5 V (AVDD, up to about 4 mA) and 0.05 V (DVDD); AVDD at the legs about 4.4-4.6 V, expected with the 100 ohm only. Over 1 V: switch off and look for a bridge |
 | 7 | Wait for VCAP1 (usually 3-10 s), type `V` | Leg 28 above 1.1 V. Console: ID ending in `c` with `4 physical channels` (low five bits 1 1100; usually `ID=0x3c`). Stop at the mode prompt: AFE 5 V off, then the DevKit right after |
-| 8 | Change to 10 ohm (AVDD) and a plain wire (DVDD). Repeat the unpowered rig check (now 0 ohm on DVDD). Power up, `R`, `V`, then `T`. | No `HALTED` (all register readbacks match). AVDD at the legs 4.75-5.25 V. VREFP (24 to 25) about 4.5 V |
+| 8 | Change to 10 ohm (AVDD) and a plain wire (DVDD). Repeat the unpowered rig check (now 0 ohm on DVDD). Power up, `R`, `V`, then `T`. | No `HALTED` (all register readbacks match). AVDD at the legs 4.75-5.25 V. VREFP (24 to 25) 4.45-4.55 V and steady; measure at the 22 uF's plus lead against the ground bus, so the probe cannot bridge legs 24-25 |
 | 9 | Capture the internal test signal (`T`, already streaming from step 8) with section 6 | Square wave, period about 1.02 s (0.98 Hz), about 3.75 mV peak-to-peak: 3,500-4,000 uV in `raw_peak_to_peak_uV_by_channel`, within 2 % across channels. About 1,900 uV (half) is **not** a pass: stop and ask. Strongest frequency about 1 Hz; mode `internal_test` |
 | 10 | Restart and type `N`: shorted-input noise. Capture by serial (Wi-Fi idle), then by Wi-Fi (streaming) | A few uV peak-to-peak (datasheet 0.98 uVpp typical; a breadboard is worse); `rms_0p5_40_Hz_uV_by_channel` well under 1 uV (datasheet about 0.14 uVrms); no big difference between the two; mode `internal_short` |
 | 11 | **Dummy head, no person:** fit the electrode resistors (4.7 kohm signal and reference, 1 Mohm bias) and join every lead through about 10 kohm to one node | Unpowered: check the resistor values. The powered test needs the electrode mode (TODO below). Pass then: node about 2.5 V, channels near 0, under 0.1 V across the 1 Mohm, no oscillation with BIAS_SENSP 0x03 |
