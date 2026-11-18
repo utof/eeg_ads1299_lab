@@ -7,6 +7,9 @@
   Validation scopes: portable helper tests, target compilation and physical
   measurements are separate. See docs/ESP32_S3_TARGET_BUILD.md for exact build
   evidence. No "passed tests" claim authorizes GPIO or human connection.
+
+  Separate breadboard build (-DEEGLAB_BREADBOARD_S3, hand-wired ESP32-S3 +
+  ADS1299-4/ADS1299, no Rev A supervisor): docs/BREADBOARD_S3_BRINGUP.md.
 */
 #include <Arduino.h>
 #include <SPI.h>
@@ -18,6 +21,11 @@
 #include <driver/gpio.h>
 #include "rev_a_startup.h"
 #include "c2_interlock.h"
+#elif defined(EEGLAB_BREADBOARD_S3)
+// Breadboard build: same startup sequence, no C2 interlock (no supervisor).
+#include <driver/gpio.h>
+#include "rev_a_startup.h"
+#include "breadboard_modes.h"
 #endif
 
 // Target guards live with the explicit profile selection in board_config.h.
@@ -33,6 +41,9 @@ bool spiOpened=false,transactionOpen=false;
 #if defined(EEGLAB_REV_A_S3)
 eeglab::C2Interlock interlock;
 bool controlsConfigured=false;
+#elif defined(EEGLAB_BREADBOARD_S3)
+bool breadboardStarted=false,controlsConfigured=false;
+uint8_t breadboardFlags=0; // packet mode bits for the console-selected mode
 #endif
 void requireBus();
 [[noreturn]] void fail(const char* why);
@@ -53,6 +64,7 @@ void snapshot(uint32_t &count,uint32_t &tick) {
     portEXIT_CRITICAL(&irqMux);
 }
 [[noreturn]] void fail(const char* why) {
+#if defined(EEGLAB_REV_A_S3) || defined(EEGLAB_BREADBOARD_S3)
 #if defined(EEGLAB_REV_A_S3)
     // Drop SESSION BEFORE potentially blocking console or peripheral teardown.
     // Best-effort GPIO cleanup is not protection against a failed MCU/rail.
@@ -60,6 +72,10 @@ void snapshot(uint32_t &count,uint32_t &tick) {
         interlock.invalidate();
         gpio_set_level(static_cast<gpio_num_t>(eeglab::C2_SESSION),0);
         gpio_set_level(static_cast<gpio_num_t>(eeglab::C2_ARM_REQ),0);
+#else
+    // Breadboard: no C2 lines exist; park the same ADS controls (PWDN low).
+    if(breadboardStarted) {
+#endif
         detachInterrupt(digitalPinToInterrupt(PIN_DRDY));
         if(transactionOpen){SPI.endTransaction();transactionOpen=false;}
         if(spiOpened){SPI.end();spiOpened=false;}
@@ -160,6 +176,45 @@ struct RevAStartupIo {
         awaitBenchKey('V',"BENCH: measure VCAP1 > 1.1 V with ADS rails still stable; then type V. This firmware does not sense those voltages.");
     }
 };
+#elif defined(EEGLAB_BREADBOARD_S3)
+// Answers are operator confirmations, NOT voltage sensing or safety gates.
+char awaitBreadboardKey(const char* accepted,const char* message) {
+    while(Serial.available()>0)Serial.read(); // each answer must follow its own prompt
+    Serial.println(message);
+    while(true) {
+        const char key=Serial.available()>0 ? eeglab::breadboardKey(Serial.read(),accepted) : 0;
+        if(key)return key;
+        delay(10);
+    }
+}
+struct BreadboardStartupIo {
+    void level(int pin, int value) {
+        // Latch before pinMode enables the output, as the Rev A adapter does.
+        const auto status=gpio_set_level(static_cast<gpio_num_t>(pin),value);
+        if(status!=ESP_OK)fail("GPIO latch operation failed.");
+    }
+    void output(int pin) { pinMode(pin,OUTPUT); }
+    void waitMs(unsigned ms) { delay(ms); }
+    void waitUs(unsigned us) { delayMicroseconds(us); }
+    void confirmRailsAndInputs() {
+        controlsConfigured=true;
+        awaitBreadboardKey("R","BREADBOARD: ADS control lines parked low. Switch on the AFE 5 V, measure AVDD at the chip legs (4.75-5.25 V) and 3V3; then type R.");
+    }
+    void confirmVcap1() {
+        awaitBreadboardKey("V","BREADBOARD: chip awake. Measure VCAP1 (leg 28 to ground) above 1.1 V; then type V. This firmware does not sense voltages.");
+    }
+};
+// Called after the ID read; registers are written only after this answer.
+eeglab::BreadboardMode selectBreadboardMode() {
+    const char key=awaitBreadboardKey(eeglab::BREADBOARD_MODE_KEYS,"BREADBOARD: type T for the internal test signal or N for shorted inputs (noise). There is no electrode mode.");
+    return eeglab::breadboardModeFromKey(key);
+}
+void writeBreadboardRegisters(eeglab::BreadboardMode mode) {
+    eeglab::RegisterWrite plan[eeglab::MAX_BREADBOARD_WRITES];
+    const auto count=eeglab::breadboardRegisterPlan(mode,channels,plan,eeglab::MAX_BREADBOARD_WRITES);
+    if(count==0)fail("Breadboard register plan refused this channel count.");
+    for(std::size_t i=0;i<count;++i)checkedReg(plan[i].address,plan[i].value,plan[i].mask);
+}
 #endif
 void setup() {
 #if defined(EEGLAB_REV_A_S3)
@@ -175,15 +230,27 @@ void setup() {
 #endif
     delay(500);
     Serial.println("ADS1299 learning lab. BENCH ONLY; remove ALL body electrodes.");
+#if defined(EEGLAB_BREADBOARD_S3)
+    if(!BREADBOARD_WIRING_CHECKED) {
+        // No ADS control pin is configured until this separate gate is acknowledged.
+        Serial.println("Breadboard build: set BREADBOARD_WIRING_CHECKED only after the unpowered checks in docs/BREADBOARD_S3_BRINGUP.md pass.");
+        while(true)delay(1000);
+    }
+#else
     if(!BOARD_PROFILE_REVIEWED) {
         // No ADS control pin is configured until this gate is acknowledged.
         Serial.println("Set BOARD_PROFILE_REVIEWED only after reviewing your exact board and power rails.");
         while(true)delay(1000);
     }
+#endif
 #if defined(EEGLAB_REV_A_S3)
     if(!interlock.prepare(c2io))fail("C2 did not clear while SESSION was low.");
     RevAStartupIo startup;
     eeglab::startRevA(startup);
+#elif defined(EEGLAB_BREADBOARD_S3)
+    breadboardStarted=true;
+    BreadboardStartupIo breadboard;
+    eeglab::startRevA(breadboard);
 #else
     pinMode(PIN_CS,OUTPUT);digitalWrite(PIN_CS,HIGH);
     pinMode(PIN_START,OUTPUT);digitalWrite(PIN_START,LOW);
@@ -195,7 +262,7 @@ void setup() {
     SPI.begin(PIN_SCLK,PIN_MISO,PIN_MOSI,PIN_CS);
     spiOpened=true;
     requireBus();
-#if !defined(EEGLAB_REV_A_S3)
+#if !defined(EEGLAB_REV_A_S3) && !defined(EEGLAB_BREADBOARD_S3)
     delay(500);digitalWrite(PIN_RESET,HIGH);delay(500);
 #endif
     command(0x11); // SDATAC: stop read-data-continuous before register access
@@ -205,8 +272,15 @@ void setup() {
     channels=4+2*(id&3);
 #if defined(EEGLAB_REV_A_S3)
     if(channels!=EXPECTED_ADS_CHANNELS)fail("Selected Rev A profile requires ADS1299-4.");
+#elif defined(EEGLAB_BREADBOARD_S3)
+    if(channels!=eeglab::breadboardChannels(id))fail("Breadboard build accepts only ADS1299-4 (ID 0x3C) or ADS1299 (0x3E).");
 #endif
     Serial.printf("ID=0x%02x; %u physical channels; 250 SPS; gain 24\n",id,channels);
+#if defined(EEGLAB_BREADBOARD_S3)
+    const auto mode=selectBreadboardMode();
+    breadboardFlags=eeglab::breadboardFlags(mode);
+    writeBreadboardRegisters(mode);
+#else
     checkedReg(0x01,0x96); // 250 SPS at 2.048-MHz clock, clock output disabled
     checkedReg(0x02,USE_INTERNAL_TEST?0xd0:0xc0); // ~0.9765625-Hz internal test, or test off
     checkedReg(0x03,0xe0,0xfe); // internal reference ON; bias driver OFF; ignore read-only BIAS_STAT
@@ -215,6 +289,7 @@ void setup() {
     for(uint8_t addr=0x0d;addr<=0x11;++addr)checkedReg(addr,0); // bias and lead-off sense OFF
     checkedReg(0x15,0); // SRB1 OFF
     checkedReg(0x17,0); // continuous conversions, lead-off comparator OFF
+#endif
     waitBenchMs(500); // reference settling; verify actual reference capacitors/voltage on bench
     if(USE_WIFI_UDP) {
         if(!host.fromString(UDP_HOST))fail("Invalid UDP_HOST");
@@ -248,7 +323,11 @@ void loop() {
     if(after!=seq){++overruns;return;} // conversion changed while reading: discard candidate
     if((frame[0]&0xf0)!=0xc0)fail("Invalid native status prefix; SPI frame alignment failed.");
     uint8_t wire[eeglab::MAX_PACKET_SIZE];
+#if defined(EEGLAB_BREADBOARD_S3)
+    const uint8_t flags=breadboardFlags|(overruns?8:0);
+#else
     const uint8_t flags=(USE_INTERNAL_TEST?1:2)|(overruns?8:0);
+#endif
     const std::size_t size=eeglab::packet(wire,sizeof(wire),frame,channels,24,250,flags,seq,tick,overruns);
     if(size==0)fail("Packet encoding failed");
     requireBus();

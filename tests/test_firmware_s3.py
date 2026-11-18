@@ -93,7 +93,28 @@ def test_compile_profile_target_guards(
         assert "error:" in result.stderr
 
 
-@pytest.mark.parametrize("fault", ["none", "cli_version", "core_version", "no_binary"])
+def _fake_compile(command: list[str], timeout: float, define: str, binary: str | None) -> None:
+    """Software-only compile double: one target, one fresh and empty output directory."""
+    assert timeout == 600
+    flag = "compiler.cpp.extra_flags=" + define
+    assert [c for c in command if c.startswith("compiler.cpp.extra_flags=")] == [flag]
+    folder = Path(command[command.index("--output-dir") + 1])
+    assert folder.is_dir() and not list(folder.iterdir())
+    if binary is not None:
+        (folder / binary).write_bytes(b"not an actual firmware image")
+
+
+def _check_breadboard_marker(report: dict[str, object]) -> None:
+    breadboard = read_object(report["breadboard_s3"], "breadboard")
+    assert breadboard["cpp_flags"] == "-DEEGLAB_BREADBOARD_S3"
+    assert breadboard["wiring_checked"] is False
+    assert list(read_object(breadboard["sha256"], "sha256")) == ["breadboard.bin"]
+    assert breadboard["artifact_directory"] != report["artifact_directory"]
+
+
+@pytest.mark.parametrize(
+    "fault", ["none", "cli_version", "core_version", "no_binary", "no_breadboard_binary"]
+)
 def test_firmware_gate_checks_versions_and_fresh_artifacts(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fault: str
 ) -> None:
@@ -116,12 +137,12 @@ def test_firmware_gate_checks_versions_and_fresh_artifacts(
         elif name == "arduino-core":
             text = "esp32:esp32 " + ("2.0.0" if fault == "core_version" else "3.3.12") + " esp32\n"
         elif name == "s3-compile":
-            assert timeout == 600
-            assert "compiler.cpp.extra_flags=-DEEGLAB_REV_A_S3" in command
-            folder = Path(command[command.index("--output-dir") + 1])
-            assert folder.is_dir() and not list(folder.iterdir())
-            if fault != "no_binary":
-                (folder / "fixture.bin").write_bytes(b"not an actual firmware image")
+            binary = None if fault == "no_binary" else "fixture.bin"
+            _fake_compile(command, timeout, "-DEEGLAB_REV_A_S3", binary)
+        elif name == "breadboard-s3-compile":
+            # The separate breadboard target compiles into its own fresh directory.
+            binary = None if fault == "no_breadboard_binary" else "breadboard.bin"
+            _fake_compile(command, timeout, "-DEEGLAB_BREADBOARD_S3", binary)
         (out / f"{name}.log").write_text(text)
 
     monkeypatch.setattr("tools.check.command_plan", no_commands)
@@ -136,6 +157,7 @@ def test_firmware_gate_checks_versions_and_fresh_artifacts(
         assert report["source_commit"] == "a" * 40
         assert report["physical_hardware_tested"] is False
         assert report["body_connection_authorized"] is False
+        _check_breadboard_marker(report)
     else:
         assert not marker.exists()
 

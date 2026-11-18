@@ -19,11 +19,20 @@ Do not repeat recovery, integration, supply, reference or nominal K2 repairs.
 | Coordinated BOM/CAD migration | 0 | Done 2026-11-15 on branch `fix/rev-a-review-fixes`, unpublished: five 33 ohm fits, 26 AFE capacitor identities, J102.1 no-connect, J105/tail silk, LVC1G97 names (commits 8644eea, d2f185f, 52c42d8, 33ef3fa) | Publish to a PR and pass hosted CI; Q03 assembler answer still open |
 | Fabrication/purchase release | 1-2 after prerequisites | Not released; DO-NOT-FABRICATE marking kept | Todo item 3: hosted fabrication export and release marking; then accepted revision, exact-part supply and delivered quote |
 | Standalone breadboard learning | 0 planning; 1 optional measurement follow-up | Kit, row layouts, charge curve and checked UT139C setup example ready | Receive the kit, identify meter and record first readings |
+| Breadboard ADS1299 + ESP32-S3 prototype (separate from Rev A) | 0 for firmware/card; 1-3 follow-ups after measurements | 2026-11-16, branch `feat/breadboard-s3-target`, unpublished: breadboard firmware build (`-DEEGLAB_BREADBOARD_S3`) and [bring-up card](BREADBOARD_S3_BRINGUP.md); 2026-11-19: card corrected after an independent re-check (electrolytic on VREFP/VCAP1, manual-range meter, console and Wi-Fi notes); parts ordered; nothing built or measured | Publish to a PR; step 4 on the DevKit alone when it arrives (also decides serial or Wi-Fi capture); user builds steps 0-10; electrode mode (steps 11-12) waits for the user's decision |
 | Laptop capture rehearsal | 0 for this rehearsal | Existing real localhost path:2248 synthetic samples, two intended gaps detected,10Hz peaks on four channels | Actual ADC capture waits for assembled-board commissioning |
 | Rev A startup/internal capture | 1-2 planning turns plus assembly/measurements | B1-B3 plans exist; B2 equipment gap explicit; firmware gate false | Actual source/probes, numeric commissioning limits and prior interlock evidence |
 | External-input characterization | Later, measurement-dependent | Unqualified; revision may be needed | Existing E1 requirements |
 | Body-connected use | Outside this pilot | Not approved | Separately scoped hardware/safety engineering |
 | Quote packet/outreach | 0 packet reconciliation; user/supplier dependent | Q1 current addendum added; frozen CSVs/manifest unchanged; unsent | Paused for budget (see current todo); then recipient/contact authorization and Q01-Q10 responses |
+
+**Breadboard ADS1299 prototype (2026-11-16):** the user will hand-solder an
+ADS1299-4 onto an adapter and wire it to an ESP32-S3-DevKitC-1 on a breadboard,
+battery only. A separate firmware build (`EEGLAB_BREADBOARD_S3`: no C2
+interlock, ID 0x3C or 0x3E, console-selected test signal or shorted inputs,
+lead-off and bias off) and [BREADBOARD_S3_BRINGUP.md](BREADBOARD_S3_BRINGUP.md)
+cover bring-up steps 0-10. The Rev A build is unchanged (identical loadable
+sections). There is no electrode mode; adding one is the user's separate decision.
 
 **Two separate practical paths:** the [breadboard kit](BREADBOARD_FIRST_STEPS.md)
 is ready to obtain for the standalone passive exercises. It needs neither an

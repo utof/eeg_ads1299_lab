@@ -5,8 +5,13 @@
 constexpr bool BOARD_PROFILE_REVIEWED = false;
 
 // Selection is explicit: compiling for S3 alone does not silently choose wiring.
+#if defined(EEGLAB_REV_A_S3) && defined(EEGLAB_BREADBOARD_S3)
+#error "Select one board profile: EEGLAB_REV_A_S3 or EEGLAB_BREADBOARD_S3."
+#endif
 #if defined(EEGLAB_REV_A_S3)
 #include "board_config_rev_a_s3.h"
+#elif defined(EEGLAB_BREADBOARD_S3)
+#include "board_config_breadboard_s3.h"
 #else
 #if !defined(CONFIG_IDF_TARGET_ESP32)
 #error "Original ESP32 profile only. Select EEGLAB_REV_A_S3 explicitly for the proposed S3 map."

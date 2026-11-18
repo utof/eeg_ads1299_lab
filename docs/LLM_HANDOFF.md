@@ -1,5 +1,9 @@
 # Continue with the standalone breadboard measurement
 
+**2026-11-16 (unpublished, branch `feat/breadboard-s3-target`):** separate breadboard ESP32-S3 firmware build (`-DEEGLAB_BREADBOARD_S3`) and [BREADBOARD_S3_BRINGUP.md](BREADBOARD_S3_BRINGUP.md) added, Rev A build unchanged; next: publish to a PR, then the user's build steps 0-10; the electrode mode awaits the user's decision.
+
+**2026-11-19 (same branch, unpublished):** the bring-up card was corrected after an independent re-check against SBAS499C, TI's EVM guide (SLAU443B) and the firmware: an aluminium electrolytic is accepted on VREFP and VCAP1 with a 4.45-4.55 V VREFP check in step 8 (the card had tantalum-only polarity wording), a manual-range meter's over-range display is explained, the console prints each message once (press RST), and the Wi-Fi route prints nothing after `N`. Parts are ordered and arriving 19 Nov to 12 Dec; nothing is built or measured. Next: step 4 on the DevKit alone when it arrives, which also shows whether opening the serial port restarts it (decides serial or Wi-Fi capture).
+
 Read root `AGENTS.md`, `REPOSITORY_PUBLICATION.md`, `DEVELOPMENT.md` and
 `REV_A_BENCH_FIRST.md`. Read live main, open PRs and original review threads.
 Use the [hosted capability preflight](REPOSITORY_PUBLICATION.md#hosted-capability-preflight).

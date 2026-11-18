@@ -188,6 +188,13 @@ record and its `OPEN_DNP` state describe that historical open source. It is not
 re-run against, and gives no current-mode or acquisition result for, the fitted
 revision.
 
+**2026-11-16 breadboard build.** The sketch gained separate `EEGLAB_BREADBOARD_S3`
+branches for the hand-wired prototype ([BREADBOARD_S3_BRINGUP.md](BREADBOARD_S3_BRINGUP.md)).
+Its bytes are therefore also verified at `6e4a207` only. Its Rev A form is not
+changed: a native test requires the preprocessed Rev A and legacy sketch at the
+current checkout to equal the one at this commit
+(`test_firmware_breadboard.py::test_rev_a_and_legacy_sketch_preprocess_as_at_the_study_commits`).
+
 
 ```python
 import gzip, hashlib, json, subprocess
@@ -225,10 +232,12 @@ inputs = {
     "tests/fixtures/auxiliary_c3_netlist.xml.gz",
 }
 require(set(m["input_sha256"]) == inputs, "source input inventory differs")
-# The reviewed 2026-11-15 fitted revision changed these inputs after this study.
-# They are verified and read at the source commit; every other input must still
-# equal its recorded bytes in the current checkout.
+# The reviewed 2026-11-15 fitted revision changed these inputs after this study,
+# and the 2026-11-16 breadboard build added branches to the sketch (Rev A form
+# checked unchanged by a native test). They are verified and read at the source
+# commit; every other input must still equal its recorded bytes in the checkout.
 revised = {
+    "firmware/esp32_ads1299_bench/esp32_ads1299_bench.ino",
     "hardware/rev_a/bom.json",
     "hardware/rev_a/auxiliary/contract.json",
     "tests/fixtures/rev_a_netlist.xml.gz",
