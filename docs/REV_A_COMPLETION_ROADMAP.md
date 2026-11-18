@@ -16,10 +16,10 @@ Do not repeat recovery, integration, supply, reference or nominal K2 repairs.
 | Proposed fitted components/stack | 0 for selection | PR100 selects five33ohm parts, capacitor shortlist, common stack target | Applied to active source 2026-11-15 (see migration row) |
 | Q04 capacitor design disposition | 0 for this bounded review | Conditional pilot decision recorded; EVM does not validate16V substitution | Internal-node/startup and local LDO C/ESR conditions before power; final build-risk acceptance |
 | Assembly ownership | 0 for make/buy choice | Outsource boards/TH/tails/crimps; no specialist tool purchase assumed | Actual supplier/process/hole/fixture responses |
-| Coordinated BOM/CAD migration | 0 | Done 2026-11-15 on branch `fix/rev-a-review-fixes`, unpublished: five 33 ohm fits, 26 AFE capacitor identities, J102.1 no-connect, J105/tail silk, LVC1G97 names (commits 8644eea, d2f185f, 52c42d8, 33ef3fa) | Publish to a PR and pass hosted CI; Q03 assembler answer still open |
+| Coordinated BOM/CAD migration | 0 | Done 2026-11-15, merged as PR103 (`1dd6cd2`): five 33 ohm fits, 26 AFE capacitor identities, J102.1 no-connect, J105/tail silk, LVC1G97 names (commits 8644eea, d2f185f, 52c42d8, 33ef3fa) | Hosted CI has not run (account billing lock); Q03 assembler answer still open |
 | Fabrication/purchase release | 1-2 after prerequisites | Not released; DO-NOT-FABRICATE marking kept | Todo item 3: hosted fabrication export and release marking; then accepted revision, exact-part supply and delivered quote |
 | Standalone breadboard learning | 0 planning; 1 optional measurement follow-up | Kit, row layouts, charge curve and checked UT139C setup example ready | Receive the kit, identify meter and record first readings |
-| Breadboard ADS1299 + ESP32-S3 prototype (separate from Rev A) | 0 for firmware/card; 1-3 follow-ups after measurements | 2026-11-16, branch `feat/breadboard-s3-target`, unpublished: breadboard firmware build (`-DEEGLAB_BREADBOARD_S3`) and [bring-up card](BREADBOARD_S3_BRINGUP.md); 2026-11-19: card corrected after an independent re-check (electrolytic on VREFP/VCAP1, manual-range meter, console and Wi-Fi notes); parts ordered; nothing built or measured | Publish to a PR; step 4 on the DevKit alone when it arrives (also decides serial or Wi-Fi capture); user builds steps 0-10; electrode mode (steps 11-12) waits for the user's decision |
+| Breadboard ADS1299 + ESP32-S3 prototype (separate from Rev A) | 0 for firmware/card; 1-3 follow-ups after measurements | Merged 2026-11-19 as PR104 (`2d52244`), hosted CI not run (billing lock): breadboard firmware build (`-DEEGLAB_BREADBOARD_S3`) and [bring-up card](BREADBOARD_S3_BRINGUP.md); 2026-11-19: card corrected after an independent re-check (electrolytic on VREFP/VCAP1, manual-range meter, console and Wi-Fi notes); parts ordered; nothing built or measured | Step 4 on the DevKit alone when it arrives (also decides serial or Wi-Fi capture); user builds steps 0-10; electrode mode (steps 11-12) waits for the user's decision |
 | Laptop capture rehearsal | 0 for this rehearsal | Existing real localhost path:2248 synthetic samples, two intended gaps detected,10Hz peaks on four channels | Actual ADC capture waits for assembled-board commissioning |
 | Rev A startup/internal capture | 1-2 planning turns plus assembly/measurements | B1-B3 plans exist; B2 equipment gap explicit; firmware gate false | Actual source/probes, numeric commissioning limits and prior interlock evidence |
 | External-input characterization | Later, measurement-dependent | Unqualified; revision may be needed | Existing E1 requirements |
@@ -76,8 +76,8 @@ review output until each item is fixed with a failing-first check:
 
 Items 1-2 and WIRE-03/WIRE-04 were **done 2026-11-15** (base `f4c4294`,
 commits `8644eea` S1-S4 rebinding, `d2f185f` WIRE-01/04, `52c42d8` WIRE-03,
-`33ef3fa` FAB-01/02) on branch `fix/rev-a-review-fixes`, not yet published or
-hosted-verified. Findings are recorded as fixed in `reviews/paths/`.
+`33ef3fa` FAB-01/02) merged as PR103 (`1dd6cd2`), not hosted-verified
+(CI billing lock). Findings are recorded as fixed in `reviews/paths/`.
 
 1. **Done 2026-11-15. Defect, before fab:** AUX J102.1 is TARGET_GND
    (`auxiliary/contract.json`, schematic, PCB pad), but it mates one-to-one

@@ -1,8 +1,8 @@
 # Continue with the standalone breadboard measurement
 
-**2026-11-16 (unpublished, branch `feat/breadboard-s3-target`):** separate breadboard ESP32-S3 firmware build (`-DEEGLAB_BREADBOARD_S3`) and [BREADBOARD_S3_BRINGUP.md](BREADBOARD_S3_BRINGUP.md) added, Rev A build unchanged; next: publish to a PR, then the user's build steps 0-10; the electrode mode awaits the user's decision.
+**2026-11-16 (merged 2026-11-19 as PR104, main `2d52244`):** separate breadboard ESP32-S3 firmware build (`-DEEGLAB_BREADBOARD_S3`) and [BREADBOARD_S3_BRINGUP.md](BREADBOARD_S3_BRINGUP.md) added, Rev A build unchanged; next: the user's build steps 0-10; the electrode mode awaits the user's decision.
 
-**2026-11-19 (same branch, unpublished):** the bring-up card was corrected after an independent re-check against SBAS499C, TI's EVM guide (SLAU443B) and the firmware: an aluminium electrolytic is accepted on VREFP and VCAP1 with a 4.45-4.55 V VREFP check in step 8 (the card had tantalum-only polarity wording), a manual-range meter's over-range display is explained, the console prints each message once (press RST), and the Wi-Fi route prints nothing after `N`. Parts are ordered and arriving 19 Nov to 12 Dec; nothing is built or measured. Next: step 4 on the DevKit alone when it arrives, which also shows whether opening the serial port restarts it (decides serial or Wi-Fi capture).
+**2026-11-19 (same PR104):** the bring-up card was corrected after an independent re-check against SBAS499C, TI's EVM guide (SLAU443B) and the firmware: an aluminium electrolytic is accepted on VREFP and VCAP1 with a 4.45-4.55 V VREFP check in step 8 (the card had tantalum-only polarity wording), a manual-range meter's over-range display is explained, the console prints each message once (press RST), and the Wi-Fi route prints nothing after `N`. Parts are ordered and arriving 19 Nov to 12 Dec; nothing is built or measured. Next: step 4 on the DevKit alone when it arrives, which also shows whether opening the serial port restarts it (decides serial or Wi-Fi capture). PR104 was merged on local evidence at the owner's instruction: hosted CI did not start (account billing lock), as for PR103; its merge message lists what was and was not run.
 
 Read root `AGENTS.md`, `REPOSITORY_PUBLICATION.md`, `DEVELOPMENT.md` and
 `REV_A_BENCH_FIRST.md`. Read live main, open PRs and original review threads.
@@ -10,10 +10,10 @@ Use the [hosted capability preflight](REPOSITORY_PUBLICATION.md#hosted-capabilit
 Local tool absence does not disable connected publication or hosted execution;
 explicit denials must not be bypassed.
 
-## Reviewed fixes and fitted revision, 2026-11-15 (unpublished)
+## Reviewed fixes and fitted revision, 2026-11-15 (merged as PR103, main `1dd6cd2`)
 
-Branch `fix/rev-a-review-fixes` from `f4c4294` (local, not pushed, no PR, no
-hosted CI yet): `8644eea` binds S1-S4 to their historical source commits;
+Branch `fix/rev-a-review-fixes` from `f4c4294` (merged as PR103 on local
+evidence; hosted CI did not start because of the account billing lock): `8644eea` binds S1-S4 to their historical source commits;
 `d2f185f` makes AUX J102.1 no-connect (WIRE-01 DevKit 3V3 short) and fixes the
 LVC1G97 pin names (WIRE-04); `52c42d8` adds J105 "+5V"/"GND" and tail pin-1
 silk (WIRE-03); `33ef3fa` fits the five 33 ohm SPI series parts and migrates
@@ -22,7 +22,7 @@ the pinned KiCad 9.0.2 container; see the path records and the commit messages.
 `test_spi_series_native.py::...[short-2-R24]` is flaky already at `f4c4294`
 (DRC sometimes reports the crossing/mask-bridge item, not `shorting_items`).
 Gates, BOARD_PROFILE_REVIEWED=false, DO-NOT-FABRICATE marking and the frozen Q1
-packet are unchanged. **Next:** publish to a PR and pass hosted CI, then roadmap
+packet are unchanged. **Next:** hosted CI once the billing lock is cleared, then roadmap
 todo item 3 (hosted fabrication export and release marking).
 
 ## Budget pause and path reviews, 2026-11-01
